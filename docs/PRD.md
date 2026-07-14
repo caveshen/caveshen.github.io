@@ -25,12 +25,27 @@ Priority of audiences:
   dialogue is progressive enhancement.
 - **Accessibility floor:** fully keyboard-playable, visible focus, honoured
   `prefers-reduced-motion`, WCAG AA contrast in both themes.
-- **Draft before deploy:** Caveshen reviews on local dev; deploy only on his approval.
+- **Draft before deploy:** Caveshen reviews on local dev; deploy only on his
+  approval. Once the remote exists, this hardens into the standing workflow:
+  for every change, Claude spins up the dev server for Caveshen to check and
+  approve **before** the commit/push.
+- **TDD:** every phase starts from failing tests (see §13); the reviewer
+  checks tests exist and pass before any commit.
 
 ## 3. Visual identity (locked — Sample C)
 
-Concept: flat-vector Cape Town scene (Lion's Head, Table Mountain, Devil's
-Peak, sea) above a narrative-game dialogue card.
+Concept: flat-vector Cape Town scene above a narrative-game dialogue card.
+
+Scene composition (locked 2026-07-14 from Caveshen's skyline reference —
+`E:\Users\Cavie\Downloads\2a84c08fd24fcaa421661c6643d02538.jpg`, a commercial
+decal used as **inspiration only**: never ship, trace, or commit it):
+- Far layer: Table Mountain (flat-topped massif, left/centre), Lion's Head
+  (peak) and Signal Hill (low ridge) to the right.
+- Foreground: city-bowl building silhouettes.
+- Night: **lit windows in the buildings** (celestial yellow, varying opacity)
+  are the city lights; sea strip with moonlight glints. Day: plain buildings,
+  sun, clouds.
+Implemented in the design reference (`docs/design-sample-c.html`).
 
 **Signature feature: the theme toggle is the time of day.**
 Dark (default) = night: stars, moon, sea glints, city-bowl lights.
@@ -121,8 +136,14 @@ JSON, authored/edited directly by Caveshen (proven shape from the samples):
 7. CI check greps for `PLACEHOLDER`; the build warns until all copy is
    Caveshen's.
 8. Push to `main` → GitHub Action builds and deploys to GitHub Pages.
+9. Full test suite (§13, unit + integration) runs in CI on every push and
+   **blocks the deploy on failure**.
 
 ## 9. Build phases (worker tasks; reviewer pass before each commit)
+
+TDD applies from P1 onward: each phase begins with failing tests for its
+scope (§13) and ends with them green. Test scaffolding (Vitest + Playwright
+config, device matrix) lands with P1.
 
 - **P0 — Scaffold:** Astro project, tokens, base layout, deploy action. Success: blank
   site deploys to Pages.
@@ -170,7 +191,56 @@ dialogue script and sheet copy.
   Caveshen is and what the site contains, so AI crawlers ingest the intended
   story rather than reverse-engineering it. Copy owned by Caveshen.
 - **sitemap.xml** — `@astrojs/sitemap` integration at P3.
-- **Honesty note:** the repo must be public for free GitHub Pages, so the
-  *implementation* is visible by design — robots.txt cannot hide source code.
-  Mitigation is simply discipline: no secrets, no PII, no draft copy beyond
-  marked placeholders ever committed. Anything sensitive lives outside the repo.
+- **Honesty note (see also §13 CI):** the repo must be public *for now* — free GitHub Pages
+  requires it — so the implementation is visible by design; robots.txt cannot
+  hide source code. At the domain + Cloudflare cutover, the repo **can** go
+  private (Cloudflare Pages builds from private repos on the free tier) if
+  Caveshen chooses. Until then the mitigation is discipline: no secrets, no
+  PII, no draft copy beyond marked placeholders ever committed. Anything
+  sensitive lives outside the repo.
+
+## 13. Testing strategy (TDD — added 2026-07-14)
+
+Written test-first per phase; the whole suite becomes the CI gate (criterion 9)
+and later ports unchanged to the Cloudflare pipeline.
+
+**Unit tests (Vitest)** — positive *and* negative cases throughout:
+- *Solitary* (pure logic, no DOM/collaborators): dialogue-engine node
+  resolution (valid id → node; unknown id → explicit error), option `to`
+  handling (node id vs `/path` navigation), theme state logic (stored "day" →
+  day; anything else → night default).
+- *Social* (modules together, DOM via happy-dom/jsdom): engine + real JSON
+  data renders root; clicking an option swaps speech and options; system
+  options carry their class; `aria-live` region updated.
+
+**Dialogue-tree flow tests** (data-level, run against the real JSON):
+- Schema valid (every node has `speech` and ≥1 option; option fields well-formed).
+- Graph checks: every `to` target resolves (node or path); every node
+  reachable from `root`; no dead ends (a node with no way back or out); the
+  character-sheet escape option present on `root`.
+
+**Theme validation:**
+- Token parity: every `:root` custom property has a `data-time="day"`
+  override or is on an explicit shared-tokens allowlist.
+- Contrast: text/option colours vs their grounds meet WCAG AA in both themes
+  (computed check, not eyeball).
+- `--theme-transition` resolves to `none` under `prefers-reduced-motion`.
+
+**Integration tests (Playwright):**
+- Device matrix via Playwright descriptors — mobile: iPhone SE (small),
+  iPhone 15 Pro, Pixel 8, iPad; desktop: 1366×768, 1920×1080, 2560×1440.
+- Touch/gesture: tap on dialogue options and theme toggle in mobile emulation
+  (touch enabled); scroll behaviour on small viewports; no horizontal overflow
+  at any matrix size.
+- Keyboard-only full dialogue playthrough with visible focus assertions.
+- Theme: night by default, toggle swaps scene (night-only/day-only elements),
+  choice persists across reload; `prefers-color-scheme` does not override the
+  stored choice.
+- Reduced-motion emulation: no blink/crossfade animations running.
+- JS-disabled context: `/sheet` fully readable; `/` offers a working no-JS
+  path to it.
+- Recruiter path: landing → sheet ≤ 2 clicks; → PDF link ≤ 3.
+
+**CI wiring:** test job added to the deploy workflow ahead of the build job
+(`needs:` chain) — any failure fails the push and blocks deploy. Playwright
+browsers cached. Simple pass/fail for now; richer reporting only if ever needed.

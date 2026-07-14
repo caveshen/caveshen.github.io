@@ -2,8 +2,8 @@
 :root {
   --bg:          #14121f;
   --sky:         #14121f;
-  --mountain-far:#262138;
-  --mountain-mid:#3a3457;
+  --mountain:    #262138;
+  --mountain-far:#3a3457;
   --sea:         #223240;
   --celestial:   #ffd75e;
   --card:        #1e1a2e;
@@ -21,8 +21,8 @@
 :root[data-time="day"] {
   --bg:          #e9f0ee;
   --sky:         #cfe6e3;
-  --mountain-far:#46615c;
-  --mountain-mid:#6f938d;
+  --mountain:    #46615c;
+  --mountain-far:#6f938d;
   --sea:         #7fb5b0;
   --celestial:   #f2b544;
   --card:        #fdfbf5;

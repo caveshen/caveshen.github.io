@@ -47,6 +47,14 @@ decal used as **inspiration only**: never ship, trace, or commit it):
   sun, clouds.
 Implemented in the design reference (`docs/design-sample-c.html`).
 
+Responsive scene (2026-07-15): `preserveAspectRatio="xMidYMax meet"` plus a
+sky/sea gradient on the scene element, so the artwork never crops and the
+backdrop runs to the viewport edges at any width (the original `slice` cropped
+moon/stars/mountain-tops on wide screens). Card sits below the scene on ≤680px.
+**P1 stretch goal — art-directed aspect variants:** dedicated compositions per
+aspect class (≈21:9, 16:9, 9:16), swapped via CSS aspect-ratio media queries,
+with the meet+gradient treatment as the universal fallback between them.
+
 **Signature feature: the theme toggle is the time of day.**
 Dark (default) = night: stars, moon, sea glints, city-bowl lights.
 Light = day: sun, clouds. 0.4s crossfade; none under reduced motion.

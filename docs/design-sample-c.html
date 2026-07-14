@@ -68,6 +68,10 @@
     display: block;
     width: 100%;
     height: clamp(220px, 38vh, 380px);
+    /* "meet" never crops the artwork; this gradient continues the sky and
+       sea bands across the letterboxed sides on wide screens (sea = bottom
+       12%, matching the artwork's 48/400) */
+    background: linear-gradient(to bottom, var(--scene-sky) 0% 88%, var(--sea) 88% 100%);
   }
   .scene rect, .scene polygon, .scene circle {
     transition: fill 0.4s ease;
@@ -197,7 +201,7 @@
     text-align: center;
   }
   @media (max-width: 680px) {
-    .card { margin: -48px 1rem 0; padding: 1.4rem 1.3rem 1.5rem; }
+    .card { margin: 0.75rem 1rem 0; padding: 1.4rem 1.3rem 1.5rem; }
   }
   @media (prefers-reduced-motion: reduce) {
     .avatar .eyes { animation: none; }
@@ -209,7 +213,7 @@
 
 <button class="toggle" id="toggle" aria-label="Switch to day mode">&#9788; day</button>
 
-<svg class="scene" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMax slice" role="img"
+<svg class="scene" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMax meet" role="img"
      aria-label="Flat illustration of Table Mountain, Lion's Head and Signal Hill behind the Cape Town city skyline, by night or day">
   <rect width="1200" height="400" fill="var(--scene-sky)" />
   <!-- stars (night) -->

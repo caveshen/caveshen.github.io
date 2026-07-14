@@ -1,0 +1,40 @@
+---
+import '../styles/tokens.css';
+export interface Props {
+  title?: string;
+}
+const { title = "Caveshen Rajman" } = Astro.props;
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <!-- Inline: set data-time before first paint to avoid flash -->
+    <script is:inline>
+      (function () {
+        var t = localStorage.getItem("time");
+        if (t === "day") document.documentElement.dataset.time = "day";
+        // Night is the default — no attribute needed
+      })();
+    </script>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+
+<style is:global>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: var(--serif);
+    transition: var(--theme-transition);
+    min-height: 100vh;
+  }
+</style>

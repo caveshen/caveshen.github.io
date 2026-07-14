@@ -1,0 +1,39 @@
+/* Design tokens — PRD §3. Night is default; day overrides on data-time="day". */
+:root {
+  --bg:          #14121f;
+  --sky:         #14121f;
+  --mountain-far:#262138;
+  --mountain-mid:#3a3457;
+  --sea:         #223240;
+  --celestial:   #ffd75e;
+  --card:        #1e1a2e;
+  --text:        #e9e2cf;
+  --stage:       #7d95a0;
+  --option:      #a48fd8;
+  --hover:       #ffd75e;
+
+  --serif: Georgia, "Times New Roman", serif;
+  --mono:  "Cascadia Code", ui-monospace, Consolas, monospace;
+
+  --theme-transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+:root[data-time="day"] {
+  --bg:          #e9f0ee;
+  --sky:         #cfe6e3;
+  --mountain-far:#46615c;
+  --mountain-mid:#6f938d;
+  --sea:         #7fb5b0;
+  --celestial:   #f2b544;
+  --card:        #fdfbf5;
+  --text:        #253038;
+  --stage:       #5d7470;
+  --option:      #4d3f80;
+  --hover:       #f2b544;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --theme-transition: none;
+  }
+}

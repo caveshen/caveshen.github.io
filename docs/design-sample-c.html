@@ -1,0 +1,362 @@
+<title>The Interview — Sample C: Cape Town Nocturne</title>
+<style>
+  /* Signature feature: the theme toggle is the time of day. Night (default)
+     wears the SCUMM dialogue palette — lavender = unchosen line, verb-line
+     yellow = highlighted. Day is the same Cape Town in daylight. */
+  :root {
+    --bg: #14121f;
+    --scene-sky: #14121f;
+    --mountain-far: #3a3457;
+    --mountain: #262138;
+    --sea: #223240;
+    --celestial: #ffd75e;
+    --card: #1e1a2e;
+    --card-edge: #2e2946;
+    --card-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+    --text: #e9e2cf;
+    --stage: #7d95a0;
+    --dim: #6c6488;
+    --option: #a48fd8;
+    --option-border: rgba(164, 143, 216, 0.35);
+    --btn-hover-bg: transparent;
+    --btn-hover-border: #ffd75e;
+    --btn-hover-text: #ffd75e;
+    --chip-bg: #ffd75e;
+    --chip-text: #14121f;
+    --avatar-ring: #a48fd8;
+    --hair: #14121f;
+    --mono: "Cascadia Code", ui-monospace, "Consolas", monospace;
+    --serif: Georgia, "Times New Roman", serif;
+  }
+  :root[data-time="day"] {
+    --bg: #e9f0ee;
+    --scene-sky: #cfe6e3;
+    --mountain-far: #6f938d;
+    --mountain: #46615c;
+    --sea: #7fb5b0;
+    --celestial: #f2b544;
+    --card: #fdfbf5;
+    --card-edge: rgba(37, 48, 56, 0.12);
+    --card-shadow: 0 12px 32px rgba(37, 48, 56, 0.18);
+    --text: #253038;
+    --stage: #5d7470;
+    --dim: #6b7f7a;
+    --option: #4d3f80;
+    --option-border: rgba(77, 63, 128, 0.35);
+    --btn-hover-bg: #f2b544;
+    --btn-hover-border: #f2b544;
+    --btn-hover-text: #253038;
+    --chip-bg: #f2b544;
+    --chip-text: #253038;
+    --avatar-ring: #7fb5b0;
+    --hair: #253038;
+  }
+  :root[data-time="day"] .night-only { display: none; }
+  :root:not([data-time="day"]) .day-only { display: none; }
+
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--serif);
+    line-height: 1.65;
+    margin: 0;
+    min-height: 100vh;
+    transition: background 0.4s ease, color 0.4s ease;
+  }
+  .scene {
+    display: block;
+    width: 100%;
+    height: clamp(220px, 38vh, 380px);
+  }
+  .scene rect, .scene polygon, .scene circle {
+    transition: fill 0.4s ease;
+  }
+  .toggle {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    color: var(--option);
+    background: var(--card);
+    border: 1.5px solid var(--option-border);
+    border-radius: 999px;
+    padding: 0.45rem 0.95rem;
+    cursor: pointer;
+    transition: color 0.12s ease, border-color 0.12s ease, background 0.4s ease;
+  }
+  .toggle:hover, .toggle:focus-visible {
+    color: var(--btn-hover-text);
+    border-color: var(--btn-hover-border);
+    background: var(--btn-hover-bg, var(--card));
+  }
+  .toggle:focus-visible {
+    outline: 2px solid var(--btn-hover-border);
+    outline-offset: 2px;
+  }
+  .card {
+    max-width: 620px;
+    margin: -72px auto 0;
+    padding: 1.75rem 2rem 2rem;
+    background: var(--card);
+    border: 1px solid var(--card-edge);
+    border-radius: 18px;
+    box-shadow: var(--card-shadow);
+    position: relative;
+    transition: background 0.4s ease, border-color 0.4s ease;
+  }
+  .card-head {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .avatar { flex: none; }
+  .avatar circle, .avatar rect { transition: fill 0.4s ease; }
+  .avatar .eyes {
+    animation: blink 5s infinite;
+    transform-origin: center 41px;
+  }
+  @keyframes blink {
+    0%, 92%, 100% { transform: scaleY(1); }
+    95% { transform: scaleY(0.1); }
+  }
+  .name {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    background: var(--chip-bg);
+    color: var(--chip-text);
+    padding: 0.32rem 0.8rem;
+    border-radius: 999px;
+  }
+  .stage {
+    font-size: 0.92rem;
+    font-style: italic;
+    color: var(--stage);
+    margin: 0 0 0.75rem;
+  }
+  .speech {
+    font-size: 1.1rem;
+    margin: 0 0 1.5rem;
+    transition: opacity 0.25s ease;
+    min-height: 3.2em;
+  }
+  .choices {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .choices button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    color: var(--option);
+    background: transparent;
+    border: 1.5px solid var(--option-border);
+    border-radius: 999px;
+    padding: 0.65rem 1.2rem;
+    cursor: pointer;
+    transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease, transform 0.12s ease;
+  }
+  .choices button:hover,
+  .choices button:focus-visible {
+    color: var(--btn-hover-text);
+    border-color: var(--btn-hover-border);
+    background: var(--btn-hover-bg);
+    transform: translateY(-1px);
+  }
+  .choices button:focus-visible {
+    outline: 2px solid var(--btn-hover-border);
+    outline-offset: 2px;
+  }
+  .choices button.system {
+    border-style: dashed;
+    color: var(--dim);
+    font-size: 0.82rem;
+  }
+  .choices button.system:hover,
+  .choices button.system:focus-visible { color: var(--stage); border-color: var(--stage); background: transparent; }
+  .page-foot {
+    max-width: 620px;
+    margin: 2rem auto 2.5rem;
+    padding: 0 2rem;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--dim);
+    text-align: center;
+  }
+  @media (max-width: 680px) {
+    .card { margin: -48px 1rem 0; padding: 1.4rem 1.3rem 1.5rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .avatar .eyes { animation: none; }
+    body, .scene rect, .scene polygon, .scene circle,
+    .card, .avatar circle, .avatar rect,
+    .speech, .choices button, .toggle { transition: none; }
+  }
+</style>
+
+<button class="toggle" id="toggle" aria-label="Switch to day mode">&#9788; day</button>
+
+<svg class="scene" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMax slice" role="img"
+     aria-label="Flat illustration of Table Mountain, Lion's Head and Devil's Peak above the sea, by night or day">
+  <rect width="1200" height="400" fill="var(--scene-sky)" />
+  <!-- stars (night) -->
+  <g fill="var(--text)" class="night-only">
+    <circle cx="95" cy="70" r="1.6" opacity="0.8" />
+    <circle cx="240" cy="120" r="1.2" opacity="0.5" />
+    <circle cx="410" cy="55" r="1.4" opacity="0.7" />
+    <circle cx="560" cy="105" r="1.1" opacity="0.45" />
+    <circle cx="700" cy="45" r="1.5" opacity="0.75" />
+    <circle cx="1050" cy="60" r="1.3" opacity="0.6" />
+    <circle cx="1150" cy="140" r="1.1" opacity="0.4" />
+    <circle cx="320" cy="160" r="1.0" opacity="0.35" />
+  </g>
+  <!-- moon (night) / sun (day), same sky position -->
+  <g class="night-only">
+    <circle cx="930" cy="100" r="46" fill="var(--celestial)" />
+    <circle cx="914" cy="88" r="7" fill="#e6b944" />
+    <circle cx="946" cy="112" r="5" fill="#e6b944" />
+  </g>
+  <circle class="day-only" cx="930" cy="100" r="50" fill="var(--celestial)" />
+  <!-- clouds (day) -->
+  <g fill="#ffffff" class="day-only">
+    <rect x="120" y="90" width="150" height="22" rx="11" opacity="0.85" />
+    <rect x="620" y="60" width="110" height="20" rx="10" opacity="0.7" />
+  </g>
+  <!-- far range -->
+  <polygon points="0,400 0,290 140,235 320,290 460,255 640,300 1200,265 1200,400"
+           fill="var(--mountain-far)" />
+  <!-- Lion's Head, Table Mountain, Devil's Peak -->
+  <polygon points="60,400 185,190 310,400" fill="var(--mountain)" />
+  <polygon points="330,400 455,175 745,175 870,400" fill="var(--mountain)" />
+  <polygon points="850,400 985,215 1120,400" fill="var(--mountain)" />
+  <!-- city bowl lights (night) -->
+  <g fill="var(--celestial)" class="night-only">
+    <circle cx="80" cy="346" r="1.6" opacity="0.9" />
+    <circle cx="150" cy="342" r="1.3" opacity="0.6" />
+    <circle cx="255" cy="347" r="1.5" opacity="0.8" />
+    <circle cx="335" cy="343" r="1.2" opacity="0.55" />
+    <circle cx="420" cy="346" r="1.6" opacity="0.85" />
+    <circle cx="505" cy="341" r="1.2" opacity="0.5" />
+    <circle cx="590" cy="345" r="1.5" opacity="0.75" />
+    <circle cx="672" cy="342" r="1.2" opacity="0.6" />
+    <circle cx="760" cy="346" r="1.4" opacity="0.8" />
+    <circle cx="905" cy="344" r="1.3" opacity="0.6" />
+    <circle cx="1000" cy="347" r="1.5" opacity="0.85" />
+    <circle cx="1090" cy="343" r="1.2" opacity="0.55" />
+  </g>
+  <!-- sea, with moonlight glints at night -->
+  <rect y="352" width="1200" height="48" fill="var(--sea)" />
+  <g class="night-only">
+    <rect x="900" y="360" width="60" height="3" rx="1.5" fill="var(--celestial)" opacity="0.35" />
+    <rect x="915" y="372" width="34" height="3" rx="1.5" fill="var(--celestial)" opacity="0.2" />
+  </g>
+</svg>
+
+<main class="card">
+  <div class="card-head">
+    <!-- ponytail: abstract placeholder avatar in the palette — no likeness guessed -->
+    <svg class="avatar" width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">
+      <circle cx="32" cy="32" r="32" fill="var(--avatar-ring)" />
+      <circle cx="32" cy="34" r="20" fill="var(--mountain)" />
+      <g class="eyes">
+        <circle cx="25" cy="41" r="2.6" fill="var(--card)" />
+        <circle cx="39" cy="41" r="2.6" fill="var(--card)" />
+      </g>
+      <rect x="18" y="14" width="28" height="16" rx="8" fill="var(--hair)" />
+    </svg>
+    <span class="name">Caveshen</span>
+  </div>
+  <p class="stage" id="stage">Two chairs, one desk, an office long after hours.
+    Someone seems quietly pleased you clicked.</p>
+  <div aria-live="polite">
+    <p class="speech" id="speech">Caveshen. Engineering manager by trade,
+      storyteller by inclination. Ask me anything — within reason.</p>
+  </div>
+  <ul class="choices" id="choices"></ul>
+</main>
+
+<p class="page-foot">Sample C · Cape Town, night &amp; day — all copy is placeholder;
+  the real script is Caveshen's to write.</p>
+
+<script>
+  // ponytail: same plain-object dialogue tree as Samples A and B — the shape is the engine.
+  const nodes = {
+    root: {
+      stage: "Two chairs, one desk, an office long after hours. Someone seems quietly pleased you clicked.",
+      speech: "Caveshen. Engineering manager by trade, storyteller by inclination. Ask me anything — within reason.",
+      options: [
+        ["Tell me about your experience.", "experience"],
+        ["Why games? Why narrative?", "games"],
+        ["What do you actually do all day?", "day"],
+        ["Skip the chat — open the character sheet", "sheet", "system"],
+      ],
+    },
+    experience: {
+      speech: "A decade and change. Started in the test lab, ended up running two engineering teams that keep a hundred billion requests a month from falling over. The interesting part is everything in between — placeholder, of course. He'd tell it better himself.",
+      options: [["Ask something else.", "root"]],
+    },
+    games: {
+      speech: "Because the thing I liked most about every system I ever shipped was the story it told about the people using it. Placeholder answer — the real one is being written by the man himself.",
+      options: [["Ask something else.", "root"]],
+    },
+    day: {
+      speech: "Business analysis, product, engineering, DevOps, QA, project management. And on Tuesdays, apparently, the coffee run.",
+      options: [["Ask something else.", "root"]],
+    },
+    sheet: {
+      speech: "That door isn't built yet. Behind it: the character sheet — a skimmable, RPG-flavoured CV with a Download button for the plain PDF.",
+      options: [["Back to the conversation.", "root"]],
+    },
+  };
+
+  const speech = document.getElementById("speech");
+  const stage = document.getElementById("stage");
+  const choices = document.getElementById("choices");
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function render(id) {
+    const node = nodes[id];
+    const apply = () => {
+      speech.textContent = node.speech;
+      stage.style.display = node.stage ? "" : "none";
+      if (node.stage) stage.textContent = node.stage;
+      choices.replaceChildren(...node.options.map(([label, target, cls]) => {
+        const li = document.createElement("li");
+        const b = document.createElement("button");
+        b.textContent = label;
+        if (cls) b.className = cls;
+        b.addEventListener("click", () => render(target));
+        li.appendChild(b);
+        return li;
+      }));
+      speech.style.opacity = "1";
+    };
+    if (reduced) { apply(); return; }
+    speech.style.opacity = "0";
+    setTimeout(apply, 200);
+  }
+
+  // Night is the default; the toggle walks between night and day.
+  const toggle = document.getElementById("toggle");
+  toggle.addEventListener("click", () => {
+    const day = document.documentElement.dataset.time === "day";
+    document.documentElement.dataset.time = day ? "night" : "day";
+    toggle.innerHTML = day ? "&#9788; day" : "&#9789; night";
+    toggle.setAttribute("aria-label", day ? "Switch to day mode" : "Switch to night mode");
+  });
+
+  render("root");
+</script>

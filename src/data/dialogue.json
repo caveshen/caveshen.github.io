@@ -1,0 +1,30 @@
+{
+  "root": {
+    "stage": "PLACEHOLDER — stage direction: set the scene here.",
+    "speech": "PLACEHOLDER — Caveshen's opening line goes here.",
+    "options": [
+      { "label": "PLACEHOLDER: Ask about experience", "to": "experience" },
+      { "label": "PLACEHOLDER: Ask about games and narrative", "to": "games" },
+      { "label": "PLACEHOLDER: Ask about day-to-day work", "to": "day" },
+      { "label": "PLACEHOLDER: Skip the chat — open the character sheet", "to": "/sheet", "kind": "system" }
+    ]
+  },
+  "experience": {
+    "speech": "PLACEHOLDER — Caveshen will describe his engineering manager experience here.",
+    "options": [
+      { "label": "PLACEHOLDER: Ask something else", "to": "root" }
+    ]
+  },
+  "games": {
+    "speech": "PLACEHOLDER — Caveshen will explain his interest in games and narrative design here.",
+    "options": [
+      { "label": "PLACEHOLDER: Ask something else", "to": "root" }
+    ]
+  },
+  "day": {
+    "speech": "PLACEHOLDER — Caveshen will describe what he does day-to-day here.",
+    "options": [
+      { "label": "PLACEHOLDER: Ask something else", "to": "root" }
+    ]
+  }
+}

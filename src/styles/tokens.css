@@ -10,7 +10,6 @@
   --text:        #e9e2cf;
   --stage:       #7d95a0;
   --option:      #a48fd8;
-  --hover:       #ffd75e;
 
   --serif: Georgia, "Times New Roman", serif;
   --mono:  "Cascadia Code", ui-monospace, Consolas, monospace;
@@ -29,7 +28,6 @@
   --text:        #253038;
   --stage:       #5d7470;
   --option:      #4d3f80;
-  --hover:       #f2b544;
 }
 
 @media (prefers-reduced-motion: reduce) {

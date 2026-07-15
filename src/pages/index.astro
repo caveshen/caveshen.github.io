@@ -1,25 +1,345 @@
 ---
 import Base from '../layouts/Base.astro';
+import tree from '../data/dialogue.json';
+const root = tree.root;
 ---
 <Base title="The Interview — Caveshen Rajman">
-  <main>
-    <p>The interview begins soon. — PLACEHOLDER</p>
+  <!-- Toggle: first in DOM so it's first in tab order -->
+  <button class="toggle" id="toggle" aria-label="Switch to day mode">&#9788; day</button>
+
+  <svg class="scene" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMax meet" role="img"
+       aria-label="Flat illustration of Table Mountain, Lion's Head and Signal Hill behind the Cape Town city skyline, by night or day">
+    <rect width="1200" height="400" fill="var(--sky)" />
+    <!-- stars (night only) -->
+    <g fill="var(--text)" class="night-only">
+      <circle cx="95"   cy="70"  r="1.6" opacity="0.8" />
+      <circle cx="240"  cy="120" r="1.2" opacity="0.5" />
+      <circle cx="410"  cy="55"  r="1.4" opacity="0.7" />
+      <circle cx="560"  cy="105" r="1.1" opacity="0.45" />
+      <circle cx="700"  cy="45"  r="1.5" opacity="0.75" />
+      <circle cx="1050" cy="60"  r="1.3" opacity="0.6" />
+      <circle cx="1150" cy="140" r="1.1" opacity="0.4" />
+      <circle cx="320"  cy="160" r="1.0" opacity="0.35" />
+    </g>
+    <!-- moon (night) -->
+    <g class="night-only">
+      <circle cx="930" cy="100" r="46" fill="var(--celestial)" />
+      <circle cx="914" cy="88"  r="7"  fill="#e6b944" />
+      <circle cx="946" cy="112" r="5"  fill="#e6b944" />
+    </g>
+    <!-- sun (day) -->
+    <circle class="day-only" cx="930" cy="100" r="50" fill="var(--celestial)" />
+    <!-- clouds (day only) -->
+    <g fill="#ffffff" class="day-only">
+      <rect x="120" y="90" width="150" height="22" rx="11" opacity="0.85" />
+      <rect x="620" y="60" width="110" height="20" rx="10" opacity="0.7" />
+    </g>
+    <!-- Cape Town landforms (far layer): Table Mountain, Lion's Head, Signal Hill -->
+    <polygon fill="var(--mountain-far)"
+             points="40,352 130,230 190,180 230,172 300,168 480,170 540,176 585,215 640,352" />
+    <polygon fill="var(--mountain-far)"
+             points="760,352 850,240 868,202 890,240 980,352" />
+    <polygon fill="var(--mountain-far)"
+             points="940,352 1030,290 1120,275 1200,285 1200,352" />
+    <!-- city-bowl buildings (foreground) -->
+    <g fill="var(--mountain)">
+      <rect x="190" y="262" width="34" height="90" />
+      <rect x="232" y="282" width="26" height="70" />
+      <rect x="266" y="246" width="40" height="106" />
+      <rect x="314" y="292" width="28" height="60" />
+      <rect x="350" y="258" width="36" height="94" />
+      <rect x="394" y="300" width="24" height="52" />
+      <rect x="426" y="238" width="44" height="114" />
+      <rect x="478" y="276" width="30" height="76" />
+      <rect x="516" y="254" width="38" height="98" />
+      <rect x="562" y="296" width="26" height="56" />
+      <rect x="596" y="266" width="42" height="86" />
+      <rect x="646" y="286" width="30" height="66" />
+      <rect x="684" y="252" width="36" height="100" />
+      <rect x="728" y="298" width="26" height="54" />
+      <rect x="766" y="290" width="32" height="62" />
+      <rect x="806" y="304" width="24" height="48" />
+    </g>
+    <!-- lit windows (night only) -->
+    <g fill="var(--celestial)" class="night-only">
+      <rect x="198" y="274" width="4" height="5" opacity="0.85" />
+      <rect x="212" y="296" width="4" height="5" opacity="0.55" />
+      <rect x="274" y="258" width="4" height="5" opacity="0.9" />
+      <rect x="290" y="284" width="4" height="5" opacity="0.6" />
+      <rect x="298" y="310" width="4" height="5" opacity="0.75" />
+      <rect x="358" y="270" width="4" height="5" opacity="0.8" />
+      <rect x="372" y="300" width="4" height="5" opacity="0.5" />
+      <rect x="436" y="250" width="4" height="5" opacity="0.9" />
+      <rect x="452" y="276" width="4" height="5" opacity="0.65" />
+      <rect x="444" y="316" width="4" height="5" opacity="0.75" />
+      <rect x="486" y="290" width="4" height="5" opacity="0.55" />
+      <rect x="524" y="266" width="4" height="5" opacity="0.85" />
+      <rect x="540" y="298" width="4" height="5" opacity="0.6" />
+      <rect x="606" y="278" width="4" height="5" opacity="0.8" />
+      <rect x="620" y="308" width="4" height="5" opacity="0.5" />
+      <rect x="692" y="264" width="4" height="5" opacity="0.85" />
+      <rect x="706" y="296" width="4" height="5" opacity="0.6" />
+      <rect x="774" y="302" width="4" height="5" opacity="0.7" />
+    </g>
+    <!-- sea strip -->
+    <rect y="352" width="1200" height="48" fill="var(--sea)" />
+    <!-- moonlight glints (night only) -->
+    <g class="night-only">
+      <rect x="900" y="360" width="60" height="3" rx="1.5" fill="var(--celestial)" opacity="0.35" />
+      <rect x="915" y="372" width="34" height="3" rx="1.5" fill="var(--celestial)" opacity="0.2" />
+    </g>
+  </svg>
+
+  <main class="card">
+    <div class="card-head">
+      <!-- ponytail: abstract placeholder avatar — no likeness guessed -->
+      <svg class="avatar" width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="32" fill="var(--avatar-ring)" />
+        <circle cx="32" cy="34" r="20" fill="var(--mountain)" />
+        <g class="eyes">
+          <circle cx="25" cy="41" r="2.6" fill="var(--card)" />
+          <circle cx="39" cy="41" r="2.6" fill="var(--card)" />
+        </g>
+        <rect x="18" y="14" width="28" height="16" rx="8" fill="var(--hair)" />
+      </svg>
+      <span class="name">Caveshen</span>
+    </div>
+    <!-- Static root content for no-JS path; engine overwrites on init -->
+    <p class="stage" id="stage">{root.stage}</p>
+    <div aria-live="polite">
+      <p class="speech" id="speech">{root.speech}</p>
+    </div>
+    <ul class="choices" id="choices"></ul>
+    <noscript>
+      <p class="noscript-note">
+        <a href="/sheet">Open the character sheet &rarr;</a>
+      </p>
+    </noscript>
   </main>
+
+  <p class="page-foot">PLACEHOLDER — attribution line. All copy is placeholder; the real script is Caveshen's to write.</p>
 </Base>
 
-<style>
-  main {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    padding: 2rem;
+<style is:global>
+  /* Extended tokens (page-level, not in tokens.css) */
+  :root {
+    --card-edge:        #2e2946;
+    --card-shadow:      0 16px 40px rgba(0, 0, 0, 0.45);
+    --dim:              #6c6488;
+    --option-border:    rgba(164, 143, 216, 0.35);
+    --btn-hover-bg:     transparent;
+    --btn-hover-border: #ffd75e;
+    --btn-hover-text:   #ffd75e;
+    --chip-bg:          #ffd75e;
+    --chip-text:        #14121f;
+    --avatar-ring:      #a48fd8;
+    --hair:             #14121f;
+  }
+  :root[data-time="day"] {
+    --card-edge:        rgba(37, 48, 56, 0.12);
+    --card-shadow:      0 12px 32px rgba(37, 48, 56, 0.18);
+    --dim:              #6b7f7a;
+    --option-border:    rgba(77, 63, 128, 0.35);
+    --btn-hover-bg:     #f2b544;
+    --btn-hover-border: #f2b544;
+    --btn-hover-text:   #253038;
+    --chip-bg:          #f2b544;
+    --chip-text:        #253038;
+    --avatar-ring:      #7fb5b0;
+    --hair:             #253038;
   }
 
-  p {
-    font-family: var(--serif);
-    color: var(--text);
-    font-size: 1.25rem;
+  /* Night/day layer visibility — driven by :root[data-time] */
+  :root[data-time="day"] .night-only          { display: none; }
+  :root:not([data-time="day"]) .day-only      { display: none; }
+
+  /* Scene SVG */
+  .scene {
+    display: block;
+    width: 100%;
+    height: clamp(220px, 38vh, 380px);
+    /* gradient continues sky/sea bands at letterbox edges (meet never crops) */
+    background: linear-gradient(to bottom, var(--sky) 0% 88%, var(--sea) 88% 100%);
+  }
+  .scene rect, .scene polygon, .scene circle {
+    transition: fill 0.4s ease;
+  }
+
+  /* Theme toggle */
+  .toggle {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    color: var(--option);
+    background: var(--card);
+    border: 1.5px solid var(--option-border);
+    border-radius: 999px;
+    padding: 0.45rem 0.95rem;
+    cursor: pointer;
+    transition: color 0.12s ease, border-color 0.12s ease, background 0.4s ease;
+  }
+  .toggle:hover, .toggle:focus-visible {
+    color: var(--btn-hover-text);
+    border-color: var(--btn-hover-border);
+    background: var(--btn-hover-bg, var(--card));
+  }
+  .toggle:focus-visible {
+    outline: 2px solid var(--btn-hover-border);
+    outline-offset: 2px;
+  }
+
+  /* Dialogue card */
+  .card {
+    max-width: 620px;
+    margin: -72px auto 0;
+    padding: 1.75rem 2rem 2rem;
+    background: var(--card);
+    border: 1px solid var(--card-edge);
+    border-radius: 18px;
+    box-shadow: var(--card-shadow);
+    position: relative;
+    transition: background 0.4s ease, border-color 0.4s ease;
+  }
+  .card-head {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .avatar { flex: none; }
+  .avatar circle, .avatar rect { transition: fill 0.4s ease; }
+  .avatar .eyes {
+    animation: blink 5s infinite;
+    transform-origin: center 41px;
+  }
+  @keyframes blink {
+    0%, 92%, 100% { transform: scaleY(1); }
+    95%            { transform: scaleY(0.1); }
+  }
+  .name {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    background: var(--chip-bg);
+    color: var(--chip-text);
+    padding: 0.32rem 0.8rem;
+    border-radius: 999px;
+  }
+  .stage {
+    font-size: 0.92rem;
+    font-style: italic;
+    color: var(--stage);
+    margin: 0 0 0.75rem;
+  }
+  .speech {
+    font-size: 1.1rem;
+    margin: 0 0 1.5rem;
+    transition: opacity 0.25s ease;
+    min-height: 3.2em;
+  }
+  .choices {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .choices button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    color: var(--option);
+    background: transparent;
+    border: 1.5px solid var(--option-border);
+    border-radius: 999px;
+    padding: 0.65rem 1.2rem;
+    cursor: pointer;
+    transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease, transform 0.12s ease;
+  }
+  .choices button:hover,
+  .choices button:focus-visible {
+    color: var(--btn-hover-text);
+    border-color: var(--btn-hover-border);
+    background: var(--btn-hover-bg);
+    transform: translateY(-1px);
+  }
+  .choices button:focus-visible {
+    outline: 2px solid var(--btn-hover-border);
+    outline-offset: 2px;
+  }
+  .choices button.system {
+    border-style: dashed;
+    color: var(--dim);
+    font-size: 0.82rem;
+  }
+  .choices button.system:hover,
+  .choices button.system:focus-visible {
+    color: var(--stage);
+    border-color: var(--stage);
+    background: transparent;
+  }
+  .noscript-note {
+    margin-top: 1rem;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+  }
+  .noscript-note a { color: var(--option); }
+  .page-foot {
+    max-width: 620px;
+    margin: 2rem auto 2.5rem;
+    padding: 0 2rem;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--dim);
     text-align: center;
   }
+
+  @media (max-width: 680px) {
+    .card { margin: 0.75rem 1rem 0; padding: 1.4rem 1.3rem 1.5rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .avatar .eyes { animation: none; }
+    body, .scene rect, .scene polygon, .scene circle,
+    .card, .avatar circle, .avatar rect,
+    .speech, .choices button, .toggle { transition: none; }
+  }
 </style>
+
+<script>
+  import { initEngine } from '../scripts/dialogue.js';
+  import tree from '../data/dialogue.json';
+
+  const speechEl  = document.getElementById('speech');
+  const stageEl   = document.getElementById('stage');
+  const choicesEl = document.getElementById('choices');
+
+  const render = initEngine(
+    tree,
+    { speechEl, stageEl, choicesEl },
+    (path) => { window.location.href = path; }
+  );
+
+  // Initial render is immediate — static content is already in place from SSR.
+  render('root', true);
+
+  const toggle = document.getElementById('toggle');
+  toggle.addEventListener('click', () => {
+    const isDay = document.documentElement.dataset.time === 'day';
+    const next  = isDay ? 'night' : 'day';
+    document.documentElement.dataset.time = next;
+    localStorage.setItem('time', next);
+    // Button label describes the CURRENT state to switch away from
+    toggle.innerHTML = isDay ? '&#9788; day' : '&#9789; night';
+    toggle.setAttribute('aria-label', isDay ? 'Switch to day mode' : 'Switch to night mode');
+  });
+</script>

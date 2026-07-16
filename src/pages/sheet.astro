@@ -9,6 +9,7 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     <div class="sheet-banner-inner">
       <h1 class="char-name">Caveshen Rajman</h1>
       <p class="char-class">PLACEHOLDER: class line (e.g. "Engineering Manager, multiclassing in Narrative Design")</p>
+      <a href="/" class="back-link">PLACEHOLDER: ← Back to the interview</a>
       <a href="/cv.pdf" class="download-btn">&#11015; Download Character Sheet</a>
     </div>
   </header>
@@ -204,6 +205,25 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     font-size: 0.9rem;
     color: var(--dim);
     letter-spacing: 0.04em;
+  }
+  .back-link {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    letter-spacing: 0.06em;
+    color: var(--dim);
+    text-decoration: none;
+    border: 1.5px dashed var(--option-border);
+    border-radius: 999px;
+    padding: 0.4rem 1rem;
+    transition: color 0.12s ease, border-color 0.12s ease;
+  }
+  .back-link:hover, .back-link:focus-visible {
+    color: var(--stage);
+    border-color: var(--stage);
+  }
+  .back-link:focus-visible {
+    outline: 2px solid var(--btn-hover-border);
+    outline-offset: 2px;
   }
   .download-btn {
     display: inline-block;
@@ -407,6 +427,6 @@ import ThemeToggle from '../components/ThemeToggle.astro';
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .sheet-banner, .panel, .download-btn, .contact-link { transition: none; }
+    .sheet-banner, .panel, .back-link, .download-btn, .contact-link { transition: none; }
   }
 </style>

@@ -20,6 +20,11 @@ test('/sheet renders complete CV content with JS disabled', async ({ browser }) 
   await expect(page.getByText(/Bachelor of Commerce/)).toBeVisible();
   await expect(page.getByText(/ISTQB/)).toBeVisible();
 
+  // Back link present and navigates to / without JS
+  await expect(page.locator('a[href="/"]')).toBeVisible();
+  await page.locator('a[href="/"]').click();
+  await expect(page).toHaveURL('/');
+
   await ctx.close();
 });
 
@@ -60,6 +65,14 @@ test('GET /cv.pdf returns 200 with content-type application/pdf', async ({ reque
 });
 
 // ── Contact links / privacy ───────────────────────────────────────────────────
+
+test('back link to / is present and navigates to /', async ({ page }) => {
+  await page.goto('/sheet');
+  const back = page.locator('a[href="/"]');
+  await expect(back).toBeVisible();
+  await back.click();
+  await expect(page).toHaveURL('/');
+});
 
 test('LinkedIn link has exact href', async ({ page }) => {
   await page.goto('/sheet');
@@ -103,17 +116,19 @@ test('toggle has visible focus outline on /sheet', async ({ page }) => {
   expect(outline).not.toBe('none');
 });
 
-test('download link reachable by keyboard on /sheet (real Tab walk)', async ({ page }) => {
+test('back link and download link both reachable by keyboard on /sheet (real Tab walk)', async ({ page }) => {
   await page.goto('/sheet');
-  // Walk forward through tab stops — download link must appear within 10 Tabs.
-  // A tautological .focus() would pass even with tabindex="-1"; Tab keypresses cannot.
-  let found = false;
+  // Walk forward through tab stops — back link ("/") and download link ("/cv.pdf")
+  // must both appear within 10 Tabs. Tab keypresses cannot be spoofed by .focus().
+  let foundBack = false, foundDownload = false;
   for (let i = 0; i < 10; i++) {
     await page.keyboard.press('Tab');
     const href = await page.evaluate(() => document.activeElement?.getAttribute('href'));
-    if (href === '/cv.pdf') { found = true; break; }
+    if (href === '/') foundBack = true;
+    if (href === '/cv.pdf') { foundDownload = true; break; }
   }
-  expect(found, 'download link not reached via Tab').toBe(true);
+  expect(foundBack, 'back link not reached via Tab').toBe(true);
+  expect(foundDownload, 'download link not reached via Tab').toBe(true);
   await expect(page.locator('a[href="/cv.pdf"]')).toBeFocused();
 });
 

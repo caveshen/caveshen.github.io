@@ -10,13 +10,15 @@ test.beforeEach(async ({ page }) => {
 
 test('night theme by default', async ({ page }) => {
   await expect(page.locator('html')).not.toHaveAttribute('data-time', 'day');
-  await expect(page.locator('.night-only').first()).toBeVisible();
+  // :visible filters to the active scene — hidden scene variants contain night-only too
+  await expect(page.locator('.night-only:visible').first()).toBeVisible();
 });
 
 test('toggle switches to day theme', async ({ page }) => {
   await page.locator('#toggle').click();
   await expect(page.locator('html')).toHaveAttribute('data-time', 'day');
-  await expect(page.locator('.day-only').first()).toBeVisible();
+  // :visible filters to the active scene — hidden scene variants contain day-only too
+  await expect(page.locator('.day-only:visible').first()).toBeVisible();
 });
 
 test('night-only elements hidden in day mode', async ({ page }) => {
@@ -135,4 +137,63 @@ test('/sheet link present without JavaScript (noscript fallback)', async ({ brow
   // noscript content is rendered when JS disabled
   await expect(page.locator('a[href="/sheet"]')).toBeVisible();
   await ctx.close();
+});
+
+// ── Aspect-ratio scene variants (PRD §3) ─────────────────────────────────────
+
+test('ultra-wide (2560×1080) shows scene-wide only', async ({ page }) => {
+  await page.setViewportSize({ width: 2560, height: 1080 });
+  await page.goto('/');
+  await expect(page.locator('.scene-wide')).toBeVisible();
+  await expect(page.locator('.scene-standard')).not.toBeVisible();
+  await expect(page.locator('.scene-tall')).not.toBeVisible();
+});
+
+test('portrait phone (390×844) shows scene-tall, card below scene', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await expect(page.locator('.scene-tall')).toBeVisible();
+  await expect(page.locator('.scene-standard')).not.toBeVisible();
+  await expect(page.locator('.scene-wide')).not.toBeVisible();
+  // card must start at or below the bottom of the scene (no overlap)
+  const sceneBound = await page.locator('.scene-tall').boundingBox();
+  const cardBound  = await page.locator('.card').boundingBox();
+  expect(cardBound.y).toBeGreaterThanOrEqual(sceneBound.y + sceneBound.height - 1);
+});
+
+test('portrait tablet (768×1024) shows scene-tall, card below scene', async ({ page }) => {
+  await page.setViewportSize({ width: 768, height: 1024 });
+  await page.goto('/');
+  await expect(page.locator('.scene-tall')).toBeVisible();
+  await expect(page.locator('.scene-standard')).not.toBeVisible();
+  const sceneBound = await page.locator('.scene-tall').boundingBox();
+  const cardBound  = await page.locator('.card').boundingBox();
+  expect(cardBound.y).toBeGreaterThanOrEqual(sceneBound.y + sceneBound.height - 1);
+});
+
+test('standard desktop (1920×1080) shows scene-standard only', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto('/');
+  await expect(page.locator('.scene-standard')).toBeVisible();
+  await expect(page.locator('.scene-wide')).not.toBeVisible();
+  await expect(page.locator('.scene-tall')).not.toBeVisible();
+});
+
+test('night/day toggle swaps elements in the visible scene', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto('/');
+  // Night is default — moon group inside scene-standard is visible
+  const nightEl = page.locator('.scene-standard .night-only').first();
+  await expect(nightEl).toBeVisible();
+  await page.locator('#toggle').click();
+  await expect(nightEl).not.toBeVisible();
+});
+
+test('no horizontal overflow at ultra-wide (2560×1080)', async ({ page }) => {
+  await page.setViewportSize({ width: 2560, height: 1080 });
+  await page.goto('/');
+  const overflow = await page.evaluate(() =>
+    document.documentElement.scrollWidth > document.documentElement.clientWidth
+  );
+  expect(overflow).toBe(false);
 });

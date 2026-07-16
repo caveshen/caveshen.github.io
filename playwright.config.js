@@ -9,9 +9,12 @@ export default defineConfig({
   testDir: './e2e',
   use: { baseURL: 'http://localhost:4321' },
   webServer: {
-    command: ci ? 'npm run build && npm run preview' : 'npm run dev',
+    // astro 7 `dev` daemonizes when stdin isn't a TTY — the spawned parent exits and
+    // Playwright aborts with "exited early". build+preview stays foreground everywhere.
+    // reuseExistingServer stays false so a stale preview can never serve old code to tests.
+    command: 'npm run build && npm run preview',
     url: 'http://localhost:4321',
-    reuseExistingServer: !ci,
+    reuseExistingServer: false,
     timeout: 120_000,
   },
   projects: [

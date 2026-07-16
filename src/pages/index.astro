@@ -90,7 +90,7 @@ const root = tree.root;
     </g>
   </svg>
 
-  <!-- ============ WIDE (~21:9) — extended panorama: Devil's Peak added left, coast tapers right ============ -->
+  <!-- ============ WIDE (~21:9) — the trio trails off right of the city, ending under the moon/sun ============ -->
   <svg class="scene scene-wide" viewBox="0 0 2400 400" preserveAspectRatio="xMidYMax meet" role="img" aria-label="Cape Town skyline panorama">
     <rect width="2400" height="400" fill="var(--sky)" />
     <g fill="var(--text)" class="night-only">
@@ -111,12 +111,10 @@ const root = tree.root;
       <rect x="1100" y="60" width="110" height="20" rx="10" opacity="0.7"/>
       <rect x="2080" y="110" width="130" height="20" rx="10" opacity="0.75"/>
     </g>
-    <!-- Devil's Peak (left), Table Mountain, Lion's Head, Signal Hill, coast taper -->
-    <polygon fill="var(--mountain-far)" points="60,352 210,246 330,190 358,176 386,196 460,272 540,352"/>
-    <polygon fill="var(--mountain-far)" points="420,352 540,232 640,182 690,172 770,168 1010,170 1080,176 1130,200 1220,352"/>
-    <polygon fill="var(--mountain-far)" points="1300,352 1395,240 1420,198 1445,240 1560,352"/>
-    <polygon fill="var(--mountain-far)" points="1500,352 1640,286 1800,272 1950,282 2080,302 2200,352"/>
-    <polygon fill="var(--mountain-far)" points="2140,352 2260,326 2400,332 2400,352"/>
+    <!-- The trio only: Table Mountain (long plateau behind the city), Lion's Head (sharp), Signal Hill (soft, under the moon) — nothing beyond either end -->
+    <polygon fill="var(--mountain-far)" points="520,352 604,218 640,184 684,176 1180,176 1226,184 1262,218 1400,352"/>
+    <polygon fill="var(--mountain-far)" points="1590,352 1692,216 1718,192 1744,216 1834,352"/>
+    <polygon fill="var(--mountain-far)" points="1790,352 1836,316 1892,290 1956,281 2022,290 2078,316 2124,352"/>
     <g fill="var(--mountain)">
       <rect x="700" y="262" width="34" height="90"/><rect x="742" y="282" width="26" height="70"/>
       <rect x="776" y="246" width="40" height="106"/><rect x="824" y="292" width="28" height="60"/>

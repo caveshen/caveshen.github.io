@@ -1,0 +1,52 @@
+---
+---
+<button class="toggle" id="toggle" aria-label="Switch to day mode">&#9788; day</button>
+
+<script>
+  const toggle = document.getElementById('toggle') as HTMLButtonElement;
+
+  // Sync button label to the theme already applied by Base.astro's inline script
+  function syncLabel(isDay: boolean) {
+    toggle.innerHTML = isDay ? '&#9789; night' : '&#9788; day';
+    toggle.setAttribute('aria-label', isDay ? 'Switch to night mode' : 'Switch to day mode');
+  }
+  syncLabel(document.documentElement.dataset.time === 'day');
+
+  toggle.addEventListener('click', () => {
+    const isDay = document.documentElement.dataset.time === 'day';
+    const next  = isDay ? 'night' : 'day';
+    document.documentElement.dataset.time = next;
+    localStorage.setItem('time', next);
+    syncLabel(!isDay);
+  });
+</script>
+
+<style>
+  .toggle {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    color: var(--option);
+    background: var(--card);
+    border: 1.5px solid var(--option-border);
+    border-radius: 999px;
+    padding: 0.45rem 0.95rem;
+    cursor: pointer;
+    transition: color 0.12s ease, border-color 0.12s ease, background 0.4s ease;
+  }
+  .toggle:hover, .toggle:focus-visible {
+    color: var(--btn-hover-text);
+    border-color: var(--btn-hover-border);
+    background: var(--btn-hover-bg, var(--card));
+  }
+  .toggle:focus-visible {
+    outline: 2px solid var(--btn-hover-border);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .toggle { transition: none; }
+  }
+</style>

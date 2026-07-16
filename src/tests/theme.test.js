@@ -31,7 +31,8 @@ const nightTokens     = parseTokens(tokensRootBlock);
 const dayTokens       = parseTokens(tokensDayBlock);
 
 // ── index.astro page-level style block ───────────────────────────────────────
-
+// Extended tokens were moved to tokens.css (P2). This block guards against
+// new tokens being accidentally added back to index.astro without day overrides.
 const pageStyle      = indexAstro.match(/<style[^>]*>([\s\S]*?)<\/style>/)?.[1] ?? '';
 const pageRootBlock  = pageStyle.match(/:root\s*\{([^}]+)\}/)?.[1] ?? '';
 const pageDayBlock   = pageStyle.match(/:root\[data-time="day"\]\s*\{([^}]+)\}/)?.[1] ?? '';

@@ -1,11 +1,12 @@
 ---
 import Base from '../layouts/Base.astro';
+import ThemeToggle from '../components/ThemeToggle.astro';
 import tree from '../data/dialogue.json';
 const root = tree.root;
 ---
 <Base title="The Interview — Caveshen Rajman">
   <!-- Toggle: first in DOM so it's first in tab order -->
-  <button class="toggle" id="toggle" aria-label="Switch to day mode">&#9788; day</button>
+  <ThemeToggle />
 
   <svg class="scene scene-standard" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMax meet" role="img"
        aria-label="Flat illustration of Table Mountain, Lion's Head and Signal Hill behind the Cape Town city skyline, by night or day">
@@ -230,34 +231,6 @@ const root = tree.root;
 </Base>
 
 <style is:global>
-  /* Extended tokens (page-level, not in tokens.css) */
-  :root {
-    --card-edge:        #2e2946;
-    --card-shadow:      0 16px 40px rgba(0, 0, 0, 0.45);
-    --dim:              #6c6488;
-    --option-border:    rgba(164, 143, 216, 0.35);
-    --btn-hover-bg:     transparent;
-    --btn-hover-border: #ffd75e;
-    --btn-hover-text:   #ffd75e;
-    --chip-bg:          #ffd75e;
-    --chip-text:        #14121f;
-    --avatar-ring:      #a48fd8;
-    --hair:             #14121f;
-  }
-  :root[data-time="day"] {
-    --card-edge:        rgba(37, 48, 56, 0.12);
-    --card-shadow:      0 12px 32px rgba(37, 48, 56, 0.18);
-    --dim:              #6b7f7a;
-    --option-border:    rgba(77, 63, 128, 0.35);
-    --btn-hover-bg:     #f2b544;
-    --btn-hover-border: #f2b544;
-    --btn-hover-text:   #253038;
-    --chip-bg:          #f2b544;
-    --chip-text:        #253038;
-    --avatar-ring:      #7fb5b0;
-    --hair:             #253038;
-  }
-
   /* Night/day layer visibility — driven by :root[data-time] */
   :root[data-time="day"] .night-only          { display: none; }
   :root:not([data-time="day"]) .day-only      { display: none; }
@@ -288,32 +261,6 @@ const root = tree.root;
       /* tall artwork's sea line is 700/800 = 87.5%, vs 88% for the others */
       background: linear-gradient(to bottom, var(--sky) 0% 87.5%, var(--sea) 87.5% 100%);
     }
-  }
-
-  /* Theme toggle */
-  .toggle {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    font-family: var(--mono);
-    font-size: 0.78rem;
-    letter-spacing: 0.08em;
-    color: var(--option);
-    background: var(--card);
-    border: 1.5px solid var(--option-border);
-    border-radius: 999px;
-    padding: 0.45rem 0.95rem;
-    cursor: pointer;
-    transition: color 0.12s ease, border-color 0.12s ease, background 0.4s ease;
-  }
-  .toggle:hover, .toggle:focus-visible {
-    color: var(--btn-hover-text);
-    border-color: var(--btn-hover-border);
-    background: var(--btn-hover-bg, var(--card));
-  }
-  .toggle:focus-visible {
-    outline: 2px solid var(--btn-hover-border);
-    outline-offset: 2px;
   }
 
   /* Dialogue card */
@@ -441,7 +388,7 @@ const root = tree.root;
     .avatar .eyes { animation: none; }
     body, .scene rect, .scene polygon, .scene circle,
     .card, .avatar circle, .avatar rect,
-    .speech, .choices button, .toggle { transition: none; }
+    .speech, .choices button { transition: none; }
   }
 </style>
 
@@ -461,15 +408,4 @@ const root = tree.root;
 
   // Initial render is immediate — static content is already in place from SSR.
   render('root', true);
-
-  const toggle = document.getElementById('toggle');
-  toggle.addEventListener('click', () => {
-    const isDay = document.documentElement.dataset.time === 'day';
-    const next  = isDay ? 'night' : 'day';
-    document.documentElement.dataset.time = next;
-    localStorage.setItem('time', next);
-    // Button label describes the CURRENT state to switch away from
-    toggle.innerHTML = isDay ? '&#9788; day' : '&#9789; night';
-    toggle.setAttribute('aria-label', isDay ? 'Switch to day mode' : 'Switch to night mode');
-  });
 </script>

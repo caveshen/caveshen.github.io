@@ -15,6 +15,19 @@
   --mono:  "Cascadia Code", ui-monospace, Consolas, monospace;
 
   --theme-transition: background-color 0.4s ease, color 0.4s ease;
+
+  /* Extended tokens — shared via tokens.css; some consumed only by / */
+  --card-edge:        #2e2946;
+  --card-shadow:      0 16px 40px rgba(0, 0, 0, 0.45);
+  --dim:              #6c6488;
+  --option-border:    rgba(164, 143, 216, 0.35);
+  --btn-hover-bg:     transparent;
+  --btn-hover-border: #ffd75e;
+  --btn-hover-text:   #ffd75e;
+  --chip-bg:          #ffd75e;
+  --chip-text:        #14121f;
+  --avatar-ring:      #a48fd8;
+  --hair:             #14121f;
 }
 
 :root[data-time="day"] {
@@ -28,6 +41,18 @@
   --text:        #253038;
   --stage:       #5d7470;
   --option:      #4d3f80;
+
+  --card-edge:        rgba(37, 48, 56, 0.12);
+  --card-shadow:      0 12px 32px rgba(37, 48, 56, 0.18);
+  --dim:              #6b7f7a;
+  --option-border:    rgba(77, 63, 128, 0.35);
+  --btn-hover-bg:     #f2b544;
+  --btn-hover-border: #f2b544;
+  --btn-hover-text:   #253038;
+  --chip-bg:          #f2b544;
+  --chip-text:        #253038;
+  --avatar-ring:      #7fb5b0;
+  --hair:             #253038;
 }
 
 @media (prefers-reduced-motion: reduce) {

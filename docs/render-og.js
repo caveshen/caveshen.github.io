@@ -1,8 +1,9 @@
-// Renders public/og-image.png (1200×630) and public/apple-touch-icon.png (180×180)
-// derived from the night scene and moon mark.
+// Renders public/og-image.png (1200×630), public/apple-touch-icon.png (180×180)
+// and public/favicon.ico (32×32) derived from the night scene and moon mark.
 // Pattern mirrors docs/render-cv.js — playwright-core + msedge channel.
 // Run from the repo root: node docs/render-og.js
 import { chromium } from 'playwright-core';
+import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -120,6 +121,43 @@ svg { display: block; width: 180px; height: 180px; }
   });
   await page.close();
   console.log('rendered public/apple-touch-icon.png');
+}
+
+// ── favicon.ico: 32×32 moon mark (PNG-in-ICO container) ──────────────────────
+{
+  const page = await browser.newPage();
+  await page.setViewportSize({ width: 32, height: 32 });
+  // Same markup as public/favicon.svg
+  await page.setContent(`<!doctype html>
+<html><head><meta charset="utf-8"><style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 32px; height: 32px; background: #14121f; overflow: hidden; }
+svg { display: block; width: 32px; height: 32px; }
+</style></head><body>
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <rect width="32" height="32" rx="6" fill="#14121f"/>
+  <circle cx="16" cy="16" r="11" fill="#ffd75e"/>
+  <circle cx="12" cy="13" r="2.2" fill="#e6b944"/>
+  <circle cx="18.5" cy="18" r="1.6" fill="#e6b944"/>
+</svg>
+</body></html>`);
+  const png = await page.screenshot({ clip: { x: 0, y: 0, width: 32, height: 32 } });
+  await page.close();
+  // ICO container around the PNG (valid since Vista): ICONDIR + one ICONDIRENTRY.
+  const header = Buffer.alloc(22);
+  header.writeUInt16LE(0, 0);           // reserved
+  header.writeUInt16LE(1, 2);           // type: icon
+  header.writeUInt16LE(1, 4);           // image count
+  header.writeUInt8(32, 6);             // width
+  header.writeUInt8(32, 7);             // height
+  header.writeUInt8(0, 8);              // palette colours
+  header.writeUInt8(0, 9);              // reserved
+  header.writeUInt16LE(1, 10);          // colour planes
+  header.writeUInt16LE(32, 12);         // bits per pixel
+  header.writeUInt32LE(png.length, 14); // image data size
+  header.writeUInt32LE(22, 18);         // image data offset
+  writeFileSync(path.join(root, 'public', 'favicon.ico'), Buffer.concat([header, png]));
+  console.log('rendered public/favicon.ico');
 }
 
 await browser.close();

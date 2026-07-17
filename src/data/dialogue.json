@@ -16,9 +16,26 @@
     ]
   },
   "games": {
-    "speech": "PLACEHOLDER — Caveshen will explain his interest in games and narrative design here.",
+    "speech": "PLACEHOLDER — Caveshen will explain his interest in games and narrative here. This topic BRANCHES: the two options below lead to their own nodes.",
     "options": [
+      { "label": "PLACEHOLDER: Which games shaped you?", "to": "games_influences" },
+      { "label": "PLACEHOLDER: What would you want to build?", "to": "games_build" },
       { "label": "PLACEHOLDER: Ask something else", "to": "root" }
+    ]
+  },
+  "games_influences": {
+    "speech": "PLACEHOLDER — a sub-node one level deeper. Note it can hand off to a sibling branch (games_build) OR loop back — that reconvergence is how a tree becomes a graph.",
+    "options": [
+      { "label": "PLACEHOLDER: So what would you build, then?", "to": "games_build" },
+      { "label": "PLACEHOLDER: Back to the start", "to": "root", "kind": "system" }
+    ]
+  },
+  "games_build": {
+    "stage": "PLACEHOLDER — optional stage direction, shown here so you can see the `stage` field in an inner node too.",
+    "speech": "PLACEHOLDER — the deepest node in this example. It routes over to an existing topic (experience) to show branches don't have to dead-end at leaves.",
+    "options": [
+      { "label": "PLACEHOLDER: Circle back to your experience", "to": "experience" },
+      { "label": "PLACEHOLDER: Back to the start", "to": "root", "kind": "system" }
     ]
   },
   "day": {

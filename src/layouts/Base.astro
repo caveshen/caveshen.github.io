@@ -1,18 +1,44 @@
 ---
 import '../styles/tokens.css';
+
 export interface Props {
   title?: string;
+  description?: string;
+  ogImage?: string;
 }
-const { title = "Caveshen Rajman" } = Astro.props;
+
+const {
+  title = "Caveshen Rajman",
+  description = "PLACEHOLDER — Caveshen Rajman's portfolio.",
+  ogImage = "/og-image.png",
+} = Astro.props;
+
+const canonicalURL = Astro.url.toString();
+const ogImageURL = new URL(ogImage, Astro.site).toString();
 ---
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <!-- Favicons -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImageURL} />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageURL} />
     <!-- Inline: set data-time before first paint to avoid flash -->
     <script is:inline>
       (function () {

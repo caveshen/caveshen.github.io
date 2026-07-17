@@ -89,9 +89,11 @@ describe('WCAG AA contrast (≥ 4.5:1)', () => {
     ['night text',   nightTokens['--text'],   nightTokens['--card']],
     ['night option', nightTokens['--option'], nightTokens['--card']],
     ['night stage',  nightTokens['--stage'],  nightTokens['--card']],
+    ['night dim',    nightTokens['--dim'],    nightTokens['--card']],
     ['day text',     dayTokens['--text'],     dayTokens['--card']],
     ['day option',   dayTokens['--option'],   dayTokens['--card']],
     ['day stage',    dayTokens['--stage'],    dayTokens['--card']],
+    ['day dim',      dayTokens['--dim'],      dayTokens['--card']],
   ])('%s: %s on %s', (_name, fg, bg) => {
     expect(fg, 'token value missing').toBeTruthy();
     expect(bg, 'token value missing').toBeTruthy();

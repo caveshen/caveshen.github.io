@@ -1,6 +1,6 @@
 # PRD — Caveshen Rajman, Personal Portfolio ("The Interview")
 
-**Status:** v1.1 — updated 2026-07-16. **P0–P2 complete** (local commits only;
+**Status:** v1.2 — updated 2026-07-17. **P0–P3 complete** (local commits only;
 no remote yet — push awaits Caveshen's call). Accepted design reference:
 Sample C artifact (claude.ai/code/artifact/4468f873-b55c-4d0e-a236-535aa5fb6d15,
 supersedes 0b8cd6e0); in-repo reference `docs/design-sample-c.html`.
@@ -152,7 +152,10 @@ JSON, authored/edited directly by Caveshen (proven shape from the samples):
   via `node docs/render-cv.js` (headless Edge print-to-PDF); PII verified on
   the text layer with pdftotext before commit.
 - Scene + avatar SVGs (from Sample C, refined). Real avatar art optional, later.
-- Favicons/OG image derived from the night scene.
+- Favicons/OG image derived from the night scene. ✅ P3 (2026-07-17):
+  `public/favicon.svg` (moon mark), `apple-touch-icon.png` (180×180) and
+  `og-image.png` (1200×630) rendered from an inline night-scene SVG via
+  `docs/render-og.js`. Re-run that script if the scene changes materially.
 
 ## 8. Success criteria (verifiable)
 
@@ -184,9 +187,15 @@ config, device matrix) lands with P1.
   persistence, aspect-ratio compositions. Criteria 2, 3, 5.
 - **P2 — Character Sheet: ✅ 2026-07-16 (36d80c8; back link e8f524d).**
   `/sheet` static page, `cv.pdf` asset, download + contact links. Criteria 1, 4.
-- **P3 — Polish:** 404, meta/OG tags, favicons, Lighthouse pass, placeholder
-  CI check, and the §12 hygiene files (robots.txt, llms.txt, sitemap).
-  Success: criteria 6, 7.
+- **P3 — Polish: ✅ 2026-07-17.** 404 page, meta/OG + Twitter tags (per-page
+  descriptions), night-scene favicon plus rendered apple-touch-icon & OG PNGs
+  (`docs/render-og.js`, same headless-Edge pipeline as the CV), warn-only
+  PLACEHOLDER CI check (`docs/placeholder-check.js`), and the §12 hygiene files
+  (robots.txt, llms.txt, `@astrojs/sitemap`). Lighthouse **100/100/100/100** on
+  `/` and `/sheet`. En route it caught a real WCAG AA failure — the `--dim`
+  token in both themes — now fixed and guarded by contrast assertions.
+  Criteria 6, 7 met. (Worker→reviewer loop; reviewer trimmed an unused
+  `lighthouse` dep and a placeholder-scanner blind spot before commit.)
 
 Parallel, non-worker: ~~Claude drafts the ATS CV~~ (✅ approved & rendered
 2026-07-16 — see §7); Caveshen writes the real dialogue script and sheet copy.
@@ -223,7 +232,10 @@ Parallel, non-worker: ~~Claude drafts the ATS CV~~ (✅ approved & rendered
 - **llms.txt** (`public/llms.txt`) — curated plain-text summary of who
   Caveshen is and what the site contains, so AI crawlers ingest the intended
   story rather than reverse-engineering it. Copy owned by Caveshen.
-- **sitemap.xml** — `@astrojs/sitemap` integration at P3.
+- **sitemap.xml** — `@astrojs/sitemap` integration. ✅ P3: generates
+  `sitemap-index.xml` + `sitemap-0.xml` (`/` and `/sheet` only; 404 filtered
+  out); `site` = `https://caveshen.github.io`. robots.txt + llms.txt shipped
+  alongside (llms.txt body is PLACEHOLDER — Caveshen's copy).
 - **Honesty note (see also §13 CI):** the repo must be public *for now* — free GitHub Pages
   requires it — so the implementation is visible by design; robots.txt cannot
   hide source code. At the domain + Cloudflare cutover, the repo **can** go
@@ -290,6 +302,13 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
   free when the e2e suite runs — an inspection preview and a test run cannot
   share it. Unit tests (Vitest) need no server at all.
 - Suite size as of e8f524d: 31 unit, 287 e2e (41 tests × 7 projects).
+- Suite size as of P3 (2026-07-17): **47 unit, 427 e2e** (61 tests × 7 projects).
+- P3 added a night-scene favicon/OG render pipeline (`docs/render-og.js`), a
+  warn-only PLACEHOLDER scanner (`docs/placeholder-check.js`, skips
+  `node_modules`/`dist`/`.git`/`tests` so it goes quiet once all real copy
+  lands), and `@astrojs/sitemap`. The dialogue tree also gained a worked
+  two-level branching example under `games` (commit 8cebfc4, still all
+  PLACEHOLDER) so the authoring shape is visible.
 
 ## 14. Amendments log
 
@@ -297,5 +316,11 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
   superseded → 4468f873. Skyline "trio" direction locked (§3). CV approved &
   rendered (§7). /sheet gains back-to-interview link (§4). Pre-remote commit
   workflow clarified (§2). Dialogue restart convention + scale notes (§5).
-  Pending next session: D&D-style character-sheet workshop (Caveshen brings
-  examples); Caveshen's dialogue JSON; P3; push decision.
+- **2026-07-17:** Dialogue tree gains a worked branching example (8cebfc4).
+  **P3 complete** (§9): 404, meta/OG, night-scene favicon + OG/apple-touch
+  PNGs, warn-only PLACEHOLDER check, robots/llms/sitemap; Lighthouse
+  100/100/100/100; `--dim` WCAG AA fix. Suite now 47 unit / 427 e2e (§13).
+  Restart convention confirmed by Caveshen (in-fiction `"to": "root"`).
+  Still pending: D&D-style character-sheet workshop (Caveshen brings
+  examples); Caveshen writes the real dialogue JSON + sheet copy; push
+  decision (create the public `caveshen.github.io` remote).

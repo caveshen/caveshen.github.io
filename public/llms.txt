@@ -1,0 +1,25 @@
+# Caveshen Rajman — Portfolio
+
+PLACEHOLDER: Caveshen writes this section. Intended to give AI crawlers the
+intended story rather than requiring them to infer it from the site source.
+
+## About
+
+PLACEHOLDER: Who Caveshen is, what this site is for, and how to read it.
+
+## Pages
+
+- / — The Interview: an interactive, adventure-game-styled CV.
+- /sheet — The Character Sheet: a static, RPG-flavoured full CV.
+- /cv.pdf — ATS-friendly CV download.
+
+## Contact
+
+- LinkedIn: https://www.linkedin.com/in/caveshen
+- GitHub: https://github.com/caveshen
+
+## Note on content
+
+All dialogue copy and personal descriptions are marked PLACEHOLDER until
+Caveshen replaces them with his own words. The structure, code, and design
+are complete; the voice is his to fill in.

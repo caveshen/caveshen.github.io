@@ -32,6 +32,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Check for PLACEHOLDER tokens (warns, never fails)
+        run: node docs/placeholder-check.js
+
       - name: Unit tests
         run: npm test
 

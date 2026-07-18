@@ -97,15 +97,24 @@ placeholder until real art exists), SCUMM-style option hover (lavender → yello
   (claude.ai/code/artifact/952df112-1dfe-4e27-86ca-b8dc3bd030a7); Caveshen
   wants it a touch (~15%) quieter than the mock, and workshopping continues:
   - Nameplate banner: character name; **Class & Level** = "Engineering
-    Manager 11" where the level must *blatantly* read as years in tech
-    (1 level = 1 year, levelling since 2015 — say so on the sheet);
-    Background = **"Tester → Senior Engineer"**; Home Region; Alignment.
+    Manager 11", label just "Class & Level" — round 2 (2026-07-18): the
+    "1 level = 1 year in tech" label was too obvious/tasteless; the XP-bar
+    line ("Experience — 11 years in tech · levelling since 2015") carries
+    the meaning on its own. Background = **"Software Engineering"** (round 2;
+    replaced "Tester → Senior Engineer"). Home Region; Alignment.
     NO multiclassing field — the narrative-design journey hasn't begun;
     surface that ambition in the dialogue trees instead.
   - Ability rail: six framed scores with modifiers (People / Tech / Product /
     Delivery / Narrative / Strategy). Kept; wording tweaks are Caveshen's.
-  - Spellbook — Tech Stack: Cantrips = at-will daily drivers (C#, SQL, JS,
-    Git); higher spell levels = heavier tooling; slot pips. His list to fill.
+  - Spellbook — Tech Stack (round 2, simplified to his real stack from the
+    approved CV, docs/cv.html — facts, not invented): drop the casting-stat
+    trio header (noise); three tiers with slot pips —
+    Cantrips (at will): .NET / C#, SQL, JavaScript, Git;
+    Level 1: VueJS, React, Angular, GraphQL, Spring;
+    Level 2: Azure, AWS, Power BI. His list to tune further.
+  - Layout (round 2): the three columns must bottom-align at desktop width —
+    distribute vertical space in the ability rail and middle column so their
+    bottom edges meet the right column's (no ragged column ends).
   - Skills panel with proficiency dots (expertise/proficient/learning).
     Kept for now — Caveshen undecided, still under workshop.
   - Backstory — Quest Log (roles: Derivco CPT EM ← Entelect ← Derivco Durban)
@@ -119,8 +128,10 @@ placeholder until real art exists), SCUMM-style option hover (lavender → yello
   - Unchanged invariants: **"Download Character Sheet"** button → `/cv.pdf`;
     "Back to the interview" link → `/` (plain anchor, no JS); contact =
     LinkedIn + GitHub links only, no email (spam caution); fully static.
-  - Workshop list (open): overall noise −15%; ability-rail wording (his);
-    skills panel verdict; vitals-row rework; his copy for quartet/spells.
+  - Workshop list (open): overall noise (round 2 verdict: still too noisy —
+    keep calming); ability-rail wording (his); vitals-row rework; his copy
+    for quartet/spells/alignment. Round-2 verdicts: skills panel LIKED
+    (keep); spellbook liked, simplified per above.
 - `404` — one flavour line + link home (nice-to-have).
 
 ## 5. Dialogue tree (content model)
@@ -354,6 +365,11 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
   unmarked invented flavour, two lost real job titles, a loosened test
   assertion, and a dropped `<main>` landmark — all fixed). Suite now
   47 unit / 462 e2e (66 × 7).
+  **Workshop round 2 (same day, from the live preview):** drop the
+  "1 level = 1 year" label (too on-the-nose; XP bar carries it);
+  Background → "Software Engineering"; spellbook simplified to the real
+  CV stack, casting-stat trio dropped; columns must bottom-align; skills
+  panel verdict: LIKED. Details in §4.
   Still pending: D&D-style character-sheet workshop (Caveshen brings
   examples); Caveshen writes the real dialogue JSON + sheet copy; push
   decision (create the public `caveshen.github.io` remote).

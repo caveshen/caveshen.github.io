@@ -28,6 +28,9 @@
   --chip-text:        #14121f;
   --avatar-ring:      #a48fd8;
   --hair:             #14121f;
+
+  /* Sheet panel surface: ink-wash — plum sinking into black at the base */
+  --panel-grad:       linear-gradient(180deg, #1c1830 0%, #151220 100%);
 }
 
 :root[data-time="day"] {
@@ -53,6 +56,9 @@
   --chip-text:        #253038;
   --avatar-ring:      #7fb5b0;
   --hair:             #253038;
+
+  /* Sheet panel surface: parchment wash — cream warming at the base */
+  --panel-grad:       linear-gradient(180deg, #fdfbf5 0%, #f4eee0 100%);
 }
 
 @media (prefers-reduced-motion: reduce) {

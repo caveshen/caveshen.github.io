@@ -7,10 +7,11 @@ test('/sheet renders complete CV content with JS disabled', async ({ browser }) 
   const page = await ctx.newPage();
   await page.goto('/sheet');
 
-  // Roles (all three present — real title tokens, D&D quest-log heading format)
+  // Roles (all four present — real title tokens, D&D quest-log heading format)
   await expect(page.getByRole('heading', { name: /Engineering Manager/ })).toBeVisible();
   await expect(page.getByRole('heading', { name: /Senior Software Engineer/ })).toBeVisible();
   await expect(page.getByRole('heading', { name: /Senior Software Developer/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Managing Editor.*EGMR/ })).toBeVisible();
 
   // Skills (exact: true to avoid partial matches; from D&D skill list)
   await expect(page.getByText('SQL Archaeology', { exact: true })).toBeVisible();
@@ -255,6 +256,34 @@ test('spellbook: casting-stat trio header is absent (round 2 cut)', async ({ pag
   const html = await page.content();
   expect(html).not.toContain('Save DC');
   expect(html).not.toContain('Attack Bonus');
+});
+
+// ── Round 3 content additions (2026-07-18) ────────────────────────────────────
+
+test('quest log has EGMR side-quest heading', async ({ page }) => {
+  await page.goto('/sheet');
+  await expect(page.getByRole('heading', { name: /Managing Editor.*EGMR/ })).toBeVisible();
+});
+
+test('quest log has four quest articles', async ({ page }) => {
+  await page.goto('/sheet');
+  await expect(page.locator('.quest')).toHaveCount(4);
+});
+
+test('spellbook: Divination tier is visible with Cypress chip', async ({ page }) => {
+  await page.goto('/sheet');
+  await expect(page.getByText('Divination')).toBeVisible();
+  await expect(page.getByText('Cypress', { exact: true })).toBeVisible();
+});
+
+test('name-box epithet is visible', async ({ page }) => {
+  await page.goto('/sheet');
+  await expect(page.getByText('Problem solver, coffee enjoyer, 10x human')).toBeVisible();
+});
+
+test('skills panel has Games Journalism row', async ({ page }) => {
+  await page.goto('/sheet');
+  await expect(page.getByText('Games Journalism', { exact: true })).toBeVisible();
 });
 
 test('three columns bottom-align at desktop width (±16 px tolerance)', async ({ page }) => {

@@ -128,10 +128,32 @@ placeholder until real art exists), SCUMM-style option hover (lavender → yello
   - Unchanged invariants: **"Download Character Sheet"** button → `/cv.pdf`;
     "Back to the interview" link → `/` (plain anchor, no JS); contact =
     LinkedIn + GitHub links only, no email (spam caution); fully static.
-  - Workshop list (open): overall noise (round 2 verdict: still too noisy —
-    keep calming); ability-rail wording (his); vitals-row rework; his copy
-    for quartet/spells/alignment. Round-2 verdicts: skills panel LIKED
-    (keep); spellbook liked, simplified per above.
+  - **Round 3 (2026-07-18, approved "go for it"):**
+    - Tiles: kill the flat "LLM purple" — panel surfaces become an ink-wash
+      gradient sinking the plum into black at the base (new sheet-scoped
+      token `--panel-grad`; night ≈ #1c1830→#151220, day = parchment wash).
+      The `/` dialogue card keeps plain `--card` unless Caveshen extends it.
+    - Spacing: one notch up across the sheet (panel padding, grid/list gaps,
+      prose line-height) so content fills the stretched panels.
+    - Content from his LinkedIn dump (facts, PII-scrubbed — the dump's email
+      never enters the repo):
+      · Quest log gains a side quest: Managing Editor — EGMR
+        (Feb 2011 – Dec 2015), flavour line PLACEHOLDER.
+      · Spellbook gains a Divination tier (the school of finding hidden
+        truths = his QA arsenal): Cypress, Selenium, K6, NUnit, XUnit,
+        WebDriverIO.
+      · Name box gains his own authored epithet under the name:
+        "Problem solver, coffee enjoyer, 10x human" (his words from
+        LinkedIn — not invented, no PLACEHOLDER needed).
+      · Skills panel gains Games Journalism (proficient, Narrative).
+    - OPEN GATES (his call, blocking quest-log dates + cv.html edits):
+      LinkedIn says EM since MAY 2025 with an SDET year before it, while
+      cv.html says EM since June 2024; LinkedIn lists a second UKZN degree
+      (CS&IS 2008–2011) absent from the CV. Until he rules, existing role
+      dates and the CV stay as approved.
+  - Workshop list (open): ability-rail wording (his); vitals-row rework; his
+    copy for quartet/alignment/flavour lines. Round-2 verdicts: skills panel
+    LIKED; spellbook liked, simplified.
 - `404` — one flavour line + link home (nice-to-have).
 
 ## 5. Dialogue tree (content model)

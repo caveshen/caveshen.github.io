@@ -155,6 +155,13 @@ placeholder until real art exists), SCUMM-style option hover (lavender → yello
       natural height, approximately matched by this redistribution. The
       measured bottom-alignment e2e test is retired with the mechanism.
       Round-3 spacing scale stays. Still workshopping.
+    - **Round 5 (2026-07-18): The Quartet is CUT** — removed from the page
+      (markup + CSS; resurrect from git history at 0f8ec09 if he changes his
+      mind — backburner, not banished). Height-alignment returns, scoped:
+      only the MIDDLE column's last panel grows so the middle bottom meets
+      the right column's (right is naturally longest — fine); the ability
+      rail stays natural height. Middle = Skills → Spellbook; right =
+      Quest Log → Features & Traits.
     - OPEN GATES (his call, blocking quest-log dates + cv.html edits):
       LinkedIn says EM since MAY 2025 with an SDET year before it, while
       cv.html says EM since June 2024; LinkedIn lists a second UKZN degree

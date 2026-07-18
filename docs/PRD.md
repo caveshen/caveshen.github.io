@@ -409,6 +409,15 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
 
 ## 14. Amendments log
 
+- **2026-07-19 (later):** Character sheet PARKED in its accepted state after
+  workshop rounds 1–7 (D&D anatomy, AMOLED blue/black night + sky/parchment
+  day, purple-free both themes, quartet cut, columns aligned). Remaining
+  sheet work is content only: Caveshen's copy (alignment, flavour lines,
+  spell/skill tuning) + the parked vitals-row idea. Focus returns to `/`
+  (the Interview) — his notes incoming. Push conversation opened: gh CLI
+  not yet authenticated; awaiting `gh auth login` + his call on enabling
+  Pages (site would go live with PLACEHOLDER copy until his words land).
+
 - **2026-07-16:** P0–P2 complete (see §9 for commits). Sample C artifact
   superseded → 4468f873. Skyline "trio" direction locked (§3). CV approved &
   rendered (§7). /sheet gains back-to-interview link (§4). Pre-remote commit

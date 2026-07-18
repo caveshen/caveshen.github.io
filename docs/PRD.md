@@ -180,6 +180,10 @@ placeholder until real art exists), SCUMM-style option hover (lavender → yello
       `--option`/`--option-border` also page-scoped to a soft azure
       (#8fb3e6) so skill mods, tier heads, dots, chips, and the toggle
       join the blue family. Celestial yellow stays. Day untouched.
+      And the same for day (his call, same day): NO purple in light mode
+      either — day `--option`/`--option-border` page-scoped to a deep sky
+      blue (#2e5c96, AA on the cream panels). The sheet is now purple-free
+      in both themes; `/` keeps the Sample C lavender.
     - GATES RESOLVED 2026-07-19: **EM start = May 2025.** Convention set
       by Caveshen: each Backstory entry shows the HIGHEST role achieved in
       that tenure — so the sheet's Derivco Cape Town entry stays

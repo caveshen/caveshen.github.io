@@ -146,6 +146,15 @@ placeholder until real art exists), SCUMM-style option hover (lavender → yello
         "Problem solver, coffee enjoyer, 10x human" (his words from
         LinkedIn — not invented, no PLACEHOLDER needed).
       · Skills panel gains Games Journalism (proficient, Narrative).
+    - **Round 4 (2026-07-18):** colour APPROVED (ink-wash stays). Page still
+      slightly long/busy. Forced bottom-alignment REMOVED by design: the
+      ability rail returns to natural height (no space-between stretch), and
+      panels no longer flex-grow. Balance comes from content instead —
+      **The Quartet moves to the middle column** (Skills → Spellbook →
+      Quartet); right column = Quest Log → Features & Traits. Columns end at
+      natural height, approximately matched by this redistribution. The
+      measured bottom-alignment e2e test is retired with the mechanism.
+      Round-3 spacing scale stays. Still workshopping.
     - OPEN GATES (his call, blocking quest-log dates + cv.html edits):
       LinkedIn says EM since MAY 2025 with an SDET year before it, while
       cv.html says EM since June 2024; LinkedIn lists a second UKZN degree

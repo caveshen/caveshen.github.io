@@ -176,6 +176,10 @@ placeholder until real art exists), SCUMM-style option hover (lavender → yello
       (bluer edge, blue-grey dim, black-blue grounds) with day values
       reset untouched. Day mode APPROVED as of round 6 — unchanged.
       Accents (lavender/celestial) unchanged pending his reaction.
+      Follow-up same day: the lavender read as leftover purple — night
+      `--option`/`--option-border` also page-scoped to a soft azure
+      (#8fb3e6) so skill mods, tier heads, dots, chips, and the toggle
+      join the blue family. Celestial yellow stays. Day untouched.
     - GATES RESOLVED 2026-07-19: **EM start = May 2025.** Convention set
       by Caveshen: each Backstory entry shows the HIGHEST role achieved in
       that tenure — so the sheet's Derivco Cape Town entry stays

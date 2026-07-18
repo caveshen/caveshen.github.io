@@ -25,10 +25,10 @@ import ThemeToggle from '../components/ThemeToggle.astro';
           <div class="id-field">
             <!-- PLACEHOLDER: Class & Level — scores are illustrative; Caveshen tunes -->
             <p class="value">Engineering Manager <em>11</em></p>
-            <p class="label">Class &amp; Level &middot; 1 level = 1 year in tech</p>
+            <p class="label">Class &amp; Level</p>
           </div>
           <div class="id-field">
-            <p class="value">Tester &#8594; Senior Engineer</p>
+            <p class="value">Software Engineering</p>
             <p class="label">Background</p>
           </div>
           <div class="id-field">
@@ -88,35 +88,24 @@ import ThemeToggle from '../components/ThemeToggle.astro';
         </section>
 
         <!-- Spellbook panel -->
+        <!-- spell tier assignments are Caveshen's to tune -->
         <section class="panel" aria-labelledby="spellbook-caption">
-          <div class="spell-head">
-            <!-- PLACEHOLDER: casting stats; Caveshen's list -->
-            <div class="spell-stat"><p class="s-val">TECH</p><p class="s-lab">Casting Ability</p></div>
-            <div class="spell-stat"><p class="s-val">15</p><p class="s-lab">Save DC</p></div>
-            <div class="spell-stat"><p class="s-val">+7</p><p class="s-lab">Attack Bonus</p></div>
-          </div>
           <div class="spell-tier">
             <div class="tier-head"><span class="tier-badge">0</span> Cantrips <span class="slots">&middot; at will</span></div>
             <div class="spell-row">
-              <span class="spell">C#</span><span class="spell">SQL</span><span class="spell">JavaScript</span><span class="spell">Git</span>
+              <span class="spell">.NET / C#</span><span class="spell">SQL</span><span class="spell">JavaScript</span><span class="spell">Git</span>
             </div>
           </div>
           <div class="spell-tier">
             <div class="tier-head"><span class="tier-badge">1</span> First Level <span class="slots">&middot; &#9689;&#9689;&#9689;&#9675; slots</span></div>
             <div class="spell-row">
-              <span class="spell">.NET</span><span class="spell">CI/CD</span><span class="spell placeholder-spell">PLACEHOLDER&hellip;</span>
-            </div>
-          </div>
-          <div class="spell-tier">
-            <div class="tier-head"><span class="tier-badge">2</span> Second Level <span class="slots">&middot; &#9689;&#9689;&#9675; slots</span></div>
-            <div class="spell-row">
-              <span class="spell">System Design</span><span class="spell placeholder-spell">PLACEHOLDER&hellip;</span>
+              <span class="spell">VueJS</span><span class="spell">React</span><span class="spell">Angular</span><span class="spell">GraphQL</span><span class="spell">Spring</span>
             </div>
           </div>
           <div class="spell-tier last-tier">
-            <div class="tier-head"><span class="tier-badge">3</span> Third Level <span class="slots">&middot; &#9689;&#9675; slots</span></div>
+            <div class="tier-head"><span class="tier-badge">2</span> Second Level <span class="slots">&middot; &#9689;&#9689;&#9675; slots</span></div>
             <div class="spell-row">
-              <span class="spell placeholder-spell">PLACEHOLDER: the big guns&hellip;</span>
+              <span class="spell">Azure</span><span class="spell">AWS</span><span class="spell">Power BI</span>
             </div>
           </div>
           <p class="panel-caption" id="spellbook-caption">Spellbook &mdash; Tech Stack</p>
@@ -410,27 +399,6 @@ import ThemeToggle from '../components/ThemeToggle.astro';
   .key-dot { width: 7px; height: 7px; display: inline-block; vertical-align: middle; margin-right: 4px; }
 
   /* ── spellbook ──────────────────────────────────────────── */
-  .spell-head {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
-    margin-bottom: 0.75rem;
-  }
-  .spell-stat {
-    border: 1px solid var(--card-edge);
-    border-radius: 6px;
-    padding: 0.35rem 0.25rem;
-    text-align: center;
-  }
-  .s-val { font-family: var(--serif); font-size: 0.9rem; font-weight: 700; }
-  .s-lab {
-    font-family: var(--mono);
-    font-size: 0.48rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--stage);
-    margin-top: 0.1rem;
-  }
   .spell-tier { margin-bottom: 0.7rem; }
   .spell-tier.last-tier { margin-bottom: 0; }
   .tier-head {
@@ -462,8 +430,6 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     padding: 0.18rem 0.58rem;
     color: var(--text);
   }
-  .placeholder-spell { color: var(--dim); border-style: dashed; }
-
   /* ── quest log ──────────────────────────────────────────── */
   .quest {
     padding: 0.65rem 0;
@@ -573,6 +539,17 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     border-color: var(--celestial);
   }
   .contact-link:focus-visible { outline: 2px solid var(--celestial); outline-offset: 2px; }
+
+  /* ── 3-column bottom-alignment (desktop only) ──────────── */
+  /* Stretch grid rows so all three columns reach the same bottom edge.
+     Rail: slack spreads across the 5 gaps between 6 frames.
+     Middle: slack goes INSIDE the two panels (captions are pinned to the
+     panel bottom via margin-top:auto), not into one gaping inter-panel gap. */
+  @media (min-width: 901px) {
+    .sheet-grid    { align-items: stretch; }
+    .abilities-col { justify-content: space-between; }
+    .middle-col .panel { flex: 1; }
+  }
 
   /* ── responsive ─────────────────────────────────────────── */
   @media (max-width: 900px) {

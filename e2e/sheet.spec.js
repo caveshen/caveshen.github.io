@@ -221,13 +221,54 @@ test('quartet section has four cells', async ({ page }) => {
   await expect(page.locator('.q-cell')).toHaveCount(4);
 });
 
-test('Class & Level label states 1 level = 1 year in tech', async ({ page }) => {
+test('Class & Level label is plain "Class & Level" and XP line carries years-in-tech', async ({ page }) => {
   await page.goto('/sheet');
-  await expect(page.getByText(/1 level = 1 year/)).toBeVisible();
+  // "1 level = 1 year in tech" was removed from the label as too on-the-nose (round 2);
+  // the XP bar line carries the years-in-tech meaning on its own.
+  await expect(page.getByText('Class & Level', { exact: true })).toBeVisible();
+  await expect(page.getByText(/11 years in tech/)).toBeVisible();
 });
 
 test('vitals row is absent from /sheet (explicitly cut per PRD §4)', async ({ page }) => {
   await page.goto('/sheet');
   const html = await page.content();
   expect(html).not.toContain('Armor Class');
+});
+
+test('Background field shows "Software Engineering"', async ({ page }) => {
+  await page.goto('/sheet');
+  await expect(page.getByText('Software Engineering', { exact: true })).toBeVisible();
+});
+
+test('spellbook: .NET / C# cantrip chip is visible', async ({ page }) => {
+  await page.goto('/sheet');
+  await expect(page.getByText('.NET / C#', { exact: true })).toBeVisible();
+});
+
+test('spellbook: Power BI Level 2 chip is visible', async ({ page }) => {
+  await page.goto('/sheet');
+  await expect(page.getByText('Power BI', { exact: true })).toBeVisible();
+});
+
+test('spellbook: casting-stat trio header is absent (round 2 cut)', async ({ page }) => {
+  await page.goto('/sheet');
+  const html = await page.content();
+  expect(html).not.toContain('Save DC');
+  expect(html).not.toContain('Attack Bonus');
+});
+
+test('three columns bottom-align at desktop width (±16 px tolerance)', async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto('/sheet');
+  const abBox   = await page.locator('.abilities-col').boundingBox();
+  const midBox  = await page.locator('.middle-col').boundingBox();
+  const rightBox = await page.locator('.right-col').boundingBox();
+  expect(abBox,    'abilities-col not found').toBeTruthy();
+  expect(midBox,   'middle-col not found').toBeTruthy();
+  expect(rightBox, 'right-col not found').toBeTruthy();
+  const abBottom    = abBox.y    + abBox.height;
+  const midBottom   = midBox.y   + midBox.height;
+  const rightBottom = rightBox.y + rightBox.height;
+  expect(Math.abs(abBottom  - rightBottom), 'ability rail bottom misaligned').toBeLessThanOrEqual(16);
+  expect(Math.abs(midBottom - rightBottom), 'middle col bottom misaligned').toBeLessThanOrEqual(16);
 });

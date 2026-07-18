@@ -414,9 +414,13 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
   day, purple-free both themes, quartet cut, columns aligned). Remaining
   sheet work is content only: Caveshen's copy (alignment, flavour lines,
   spell/skill tuning) + the parked vitals-row idea. Focus returns to `/`
-  (the Interview) — his notes incoming. Push conversation opened: gh CLI
-  not yet authenticated; awaiting `gh auth login` + his call on enabling
-  Pages (site would go live with PLACEHOLDER copy until his words land).
+  (the Interview) — his notes incoming. Push conversation opened and RULED
+  (2026-07-19): auth via his `gh_pat` env var (classic PAT, repo+workflow —
+  no gh login needed; account is CaV1E). His decisions: **rename CaV1E →
+  caveshen** in GitHub settings (his action; keeps repos/PAT, unclaimed name
+  verified free), then Claude creates `caveshen.github.io`, pushes, and
+  **enables Pages — live immediately with PLACEHOLDER copy**, iterating in
+  public. Never print the PAT; map it per-command (`GH_TOKEN="$gh_pat"`).
 
 - **2026-07-16:** P0–P2 complete (see §9 for commits). Sample C artifact
   superseded → 4468f873. Skyline "trio" direction locked (§3). CV approved &

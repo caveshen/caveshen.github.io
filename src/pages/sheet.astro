@@ -182,6 +182,20 @@ import ThemeToggle from '../components/ThemeToggle.astro';
   /* Sheet-scoped nebular background (PRD §4 round 6); / keeps plain --bg */
   body { background: var(--sheet-bg); }
 
+  /* AMOLED night tone-shift (PRD §4 round 7): retire the purple on this
+     page only — bluer edges, blue-grey dim, black-blue grounds. Day resets
+     below keep the approved round-6 day values byte-identical. */
+  body {
+    --card-edge: #1f2942;
+    --dim: #94a2c6;
+    --bg: #0a0d16;
+  }
+  [data-time="day"] body {
+    --card-edge: rgba(37, 48, 56, 0.12);
+    --dim: #4d6260;
+    --bg: #e9f0ee;
+  }
+
   /* ── sheet wrapper ──────────────────────────────────────── */
   .sheet-wrap {
     max-width: 1080px;

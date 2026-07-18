@@ -168,15 +168,24 @@ placeholder until real art exists), SCUMM-style option hover (lavender → yello
       wash mirroring the interview scene's day sky. `--panel-grad` night
       stops shift a few degrees from plum toward blue-violet. Accents
       (lavender/celestial), text tokens, and `/` untouched.
-    - OPEN GATES: **Gate 1 RULED 2026-07-19 — EM start is MAY 2025**
-      (LinkedIn correct; cv.html's "June 2024" is wrong). Application
-      pending one follow-up from Caveshen: does the SDET Level 1 year
-      (June 2024 – May 2025, Derivco Cape Town) appear as its own entry on
-      the CV/quest log, or fold silently into the Derivco tenure? Once
-      answered: fix cv.html, re-render cv.pdf (PII re-verify), update the
-      quest-log q-meta + its date test. **Gate 2 still OPEN:** LinkedIn
-      lists a second UKZN degree (CS&IS 2008–2011) absent from the CV —
-      deliberate omission or include?
+    - **Round 7 (2026-07-19): night goes AMOLED blue/black.** The purple
+      tiles are retired in night mode: sheet night tokens tone-shift to
+      darker blues on near-black — `--sheet-bg` = faint blue nebula glows
+      on a near-black base; `--panel-grad` = dark blue sinking to black;
+      page-scoped night overrides for `--card-edge`, `--dim`, and `--bg`
+      (bluer edge, blue-grey dim, black-blue grounds) with day values
+      reset untouched. Day mode APPROVED as of round 6 — unchanged.
+      Accents (lavender/celestial) unchanged pending his reaction.
+    - GATES RESOLVED 2026-07-19: **EM start = May 2025.** Convention set
+      by Caveshen: each Backstory entry shows the HIGHEST role achieved in
+      that tenure — so the sheet's Derivco Cape Town entry stays
+      "Engineering Manager, June 2024 – Present" (no SDET line, no sheet
+      change). The CV (cv.html/cv.pdf) DOES split it: EM May 2025–Present
+      plus its own "Senior Software Development Engineer in Test, Level 1,
+      June 2024 – May 2025" entry (wording adapted from his authored
+      LinkedIn text; his review before push). **Second degree: excluded
+      everywhere** — the 2008–2011 BSc CompSci was discontinued; only the
+      2014 BCom appears (already the case; no change).
   - Workshop list (open): ability-rail wording (his); vitals-row rework; his
     copy for quartet/alignment/flavour lines. Round-2 verdicts: skills panel
     LIKED; spellbook liked, simplified.

@@ -396,6 +396,9 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
   unmarked invented flavour, two lost real job titles, a loosened test
   assertion, and a dropped `<main>` landmark — all fixed). Suite now
   47 unit / 462 e2e (66 × 7).
+  **Round 4 shipped:** stretch mechanism removed, Quartet to middle column,
+  alignment test retired. Natural bottoms at 1366px: rail 805 / right 986 /
+  middle 1186 — no interior voids; real copy will shift the balance.
   **Workshop round 2 (same day, from the live preview):** drop the
   "1 level = 1 year" label (too on-the-nose; XP bar carries it);
   Background → "Software Engineering"; spellbook simplified to the real

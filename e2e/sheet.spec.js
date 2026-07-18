@@ -286,18 +286,5 @@ test('skills panel has Games Journalism row', async ({ page }) => {
   await expect(page.getByText('Games Journalism', { exact: true })).toBeVisible();
 });
 
-test('three columns bottom-align at desktop width (±16 px tolerance)', async ({ page }) => {
-  await page.setViewportSize({ width: 1366, height: 768 });
-  await page.goto('/sheet');
-  const abBox   = await page.locator('.abilities-col').boundingBox();
-  const midBox  = await page.locator('.middle-col').boundingBox();
-  const rightBox = await page.locator('.right-col').boundingBox();
-  expect(abBox,    'abilities-col not found').toBeTruthy();
-  expect(midBox,   'middle-col not found').toBeTruthy();
-  expect(rightBox, 'right-col not found').toBeTruthy();
-  const abBottom    = abBox.y    + abBox.height;
-  const midBottom   = midBox.y   + midBox.height;
-  const rightBottom = rightBox.y + rightBox.height;
-  expect(Math.abs(abBottom  - rightBottom), 'ability rail bottom misaligned').toBeLessThanOrEqual(16);
-  expect(Math.abs(midBottom - rightBottom), 'middle col bottom misaligned').toBeLessThanOrEqual(16);
-});
+// "three columns bottom-align" test removed — forced bottom-alignment retired
+// by design in Round 4 (2026-07-18); the stretch block was deleted from CSS.

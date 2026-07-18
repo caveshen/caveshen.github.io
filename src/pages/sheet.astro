@@ -121,6 +121,30 @@ import ThemeToggle from '../components/ThemeToggle.astro';
           <p class="panel-caption" id="spellbook-caption">Spellbook &mdash; Tech Stack</p>
         </section>
 
+        <!-- Quartet panel -->
+        <section class="panel" aria-labelledby="quartet-caption">
+          <div class="quartet">
+            <!-- PLACEHOLDER: Caveshen writes all four cells -->
+            <div class="q-cell">
+              <p class="q-text">PLACEHOLDER &mdash; &ldquo;Ships small, ships often.&rdquo;</p>
+              <p class="q-label">Personality Traits</p>
+            </div>
+            <div class="q-cell">
+              <p class="q-text">PLACEHOLDER &mdash; &ldquo;Simple beats clever.&rdquo;</p>
+              <p class="q-label">Ideals</p>
+            </div>
+            <div class="q-cell">
+              <p class="q-text">PLACEHOLDER &mdash; &ldquo;The team ships together.&rdquo;</p>
+              <p class="q-label">Bonds</p>
+            </div>
+            <div class="q-cell">
+              <p class="q-text">PLACEHOLDER &mdash; &ldquo;Will refactor the kitchen.&rdquo;</p>
+              <p class="q-label">Flaws</p>
+            </div>
+          </div>
+          <p class="panel-caption" id="quartet-caption">The Quartet</p>
+        </section>
+
       </div>
 
       <!-- Right column -->
@@ -164,30 +188,6 @@ import ThemeToggle from '../components/ThemeToggle.astro';
             <li><span class="feat-mark">&#10022;</span><span class="feat-body"><strong>PLACEHOLDER: Training</strong> &mdash; Crucial Conversations, Personal Mastery, Legitimate Leadership.</span></li>
           </ul>
           <p class="panel-caption" id="feats-caption">Features &amp; Traits &mdash; Education &amp; Training</p>
-        </section>
-
-        <!-- Quartet panel -->
-        <section class="panel" aria-labelledby="quartet-caption">
-          <div class="quartet">
-            <!-- PLACEHOLDER: Caveshen writes all four cells -->
-            <div class="q-cell">
-              <p class="q-text">PLACEHOLDER &mdash; &ldquo;Ships small, ships often.&rdquo;</p>
-              <p class="q-label">Personality Traits</p>
-            </div>
-            <div class="q-cell">
-              <p class="q-text">PLACEHOLDER &mdash; &ldquo;Simple beats clever.&rdquo;</p>
-              <p class="q-label">Ideals</p>
-            </div>
-            <div class="q-cell">
-              <p class="q-text">PLACEHOLDER &mdash; &ldquo;The team ships together.&rdquo;</p>
-              <p class="q-label">Bonds</p>
-            </div>
-            <div class="q-cell">
-              <p class="q-text">PLACEHOLDER &mdash; &ldquo;Will refactor the kitchen.&rdquo;</p>
-              <p class="q-label">Flaws</p>
-            </div>
-          </div>
-          <p class="panel-caption" id="quartet-caption">The Quartet</p>
         </section>
 
       </div>
@@ -562,17 +562,6 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     border-color: var(--celestial);
   }
   .contact-link:focus-visible { outline: 2px solid var(--celestial); outline-offset: 2px; }
-
-  /* ── 3-column bottom-alignment (desktop only) ──────────── */
-  /* Stretch grid rows so all three columns reach the same bottom edge.
-     Rail: slack spreads across the 5 gaps between 6 frames.
-     Middle: slack goes INSIDE the two panels (captions are pinned to the
-     panel bottom via margin-top:auto), not into one gaping inter-panel gap. */
-  @media (min-width: 901px) {
-    .sheet-grid    { align-items: stretch; }
-    .abilities-col { justify-content: space-between; }
-    .middle-col .panel { flex: 1; }
-  }
 
   /* ── responsive ─────────────────────────────────────────── */
   @media (max-width: 900px) {

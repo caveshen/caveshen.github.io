@@ -350,6 +350,10 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
   instead), Background "Tester → Senior Engineer", vitals row cut from the
   site but kept on the workshop list, quartet kept (his copy). Restyle
   proceeds; workshopping continues at ~15% less noise.
+  **Restyle shipped same day** (worker→reviewer loop; reviewer caught
+  unmarked invented flavour, two lost real job titles, a loosened test
+  assertion, and a dropped `<main>` landmark — all fixed). Suite now
+  47 unit / 462 e2e (66 × 7).
   Still pending: D&D-style character-sheet workshop (Caveshen brings
   examples); Caveshen writes the real dialogue JSON + sheet copy; push
   decision (create the public `caveshen.github.io` remote).

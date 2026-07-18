@@ -7,14 +7,14 @@ test('/sheet renders complete CV content with JS disabled', async ({ browser }) 
   const page = await ctx.newPage();
   await page.goto('/sheet');
 
-  // Roles (all three present)
-  await expect(page.getByRole('heading', { name: 'Software Engineering Manager' })).toBeVisible();
+  // Roles (all three present — real title tokens, D&D quest-log heading format)
+  await expect(page.getByRole('heading', { name: /Engineering Manager/ })).toBeVisible();
   await expect(page.getByRole('heading', { name: /Senior Software Engineer/ })).toBeVisible();
   await expect(page.getByRole('heading', { name: /Senior Software Developer/ })).toBeVisible();
 
-  // Skills (exact: true to avoid case-insensitive partial match with role bullets)
-  await expect(page.getByText('Stakeholder Management', { exact: true })).toBeVisible();
-  await expect(page.getByText('Azure', { exact: true })).toBeVisible();
+  // Skills (exact: true to avoid partial matches; from D&D skill list)
+  await expect(page.getByText('SQL Archaeology', { exact: true })).toBeVisible();
+  await expect(page.getByText('Scope Wrangling', { exact: true })).toBeVisible();
 
   // Education
   await expect(page.getByText(/Bachelor of Commerce/)).toBeVisible();
@@ -39,7 +39,7 @@ test('no-JS: / noscript link navigates to /sheet with real content', async ({ br
   await expect(noscriptLink).toBeVisible();
   await noscriptLink.click();
   await expect(page).toHaveURL('/sheet');
-  await expect(page.getByRole('heading', { name: 'Software Engineering Manager' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Engineering Manager/ })).toBeVisible();
   await ctx.close();
 });
 
@@ -200,4 +200,34 @@ test('no horizontal overflow on /sheet at 2560px width', async ({ page }) => {
     document.documentElement.scrollWidth > document.documentElement.clientWidth
   );
   expect(overflow).toBe(false);
+});
+
+// ── D&D structure landmarks (new restyle) ─────────────────────────────────────
+
+test('ability rail has six framed ability scores', async ({ page }) => {
+  await page.goto('/sheet');
+  const rail = page.locator('[aria-label="Ability scores"]');
+  await expect(rail).toBeVisible();
+  await expect(rail.locator('.ability')).toHaveCount(6);
+});
+
+test('spellbook section is visible', async ({ page }) => {
+  await page.goto('/sheet');
+  await expect(page.locator('[aria-labelledby="spellbook-caption"]')).toBeVisible();
+});
+
+test('quartet section has four cells', async ({ page }) => {
+  await page.goto('/sheet');
+  await expect(page.locator('.q-cell')).toHaveCount(4);
+});
+
+test('Class & Level label states 1 level = 1 year in tech', async ({ page }) => {
+  await page.goto('/sheet');
+  await expect(page.getByText(/1 level = 1 year/)).toBeVisible();
+});
+
+test('vitals row is absent from /sheet (explicitly cut per PRD §4)', async ({ page }) => {
+  await page.goto('/sheet');
+  const html = await page.content();
+  expect(html).not.toContain('Armor Class');
 });

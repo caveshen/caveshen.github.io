@@ -29,8 +29,12 @@
   --avatar-ring:      #a48fd8;
   --hair:             #14121f;
 
-  /* Sheet panel surface: ink-wash — plum sinking into black at the base */
-  --panel-grad:       linear-gradient(180deg, #1c1830 0%, #151220 100%);
+  /* Sheet panel surface: ink-wash — blue-violet sinking into black */
+  --panel-grad:       linear-gradient(180deg, #1c1c38 0%, #141428 100%);
+  /* Sheet page background: nebular — soft blue/violet glows on plum-black */
+  --sheet-bg:         radial-gradient(900px 520px at 82% -6%, rgba(62, 84, 150, 0.30), transparent 65%),
+                      radial-gradient(760px 480px at 6% 34%, rgba(96, 74, 160, 0.17), transparent 60%),
+                      #131120;
 }
 
 :root[data-time="day"] {
@@ -59,6 +63,8 @@
 
   /* Sheet panel surface: parchment wash — cream warming at the base */
   --panel-grad:       linear-gradient(180deg, #fdfbf5 0%, #f4eee0 100%);
+  /* Sheet page background: pale daytime-sky blue, mirroring the day scene */
+  --sheet-bg:         linear-gradient(180deg, #d7e9f4 0%, #e7f0f5 100%);
 }
 
 @media (prefers-reduced-motion: reduce) {

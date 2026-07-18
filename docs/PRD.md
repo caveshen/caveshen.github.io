@@ -162,11 +162,21 @@ placeholder until real art exists), SCUMM-style option hover (lavender → yello
       the right column's (right is naturally longest — fine); the ability
       rail stays natural height. Middle = Skills → Spellbook; right =
       Quest Log → Features & Traits.
-    - OPEN GATES (his call, blocking quest-log dates + cv.html edits):
-      LinkedIn says EM since MAY 2025 with an SDET year before it, while
-      cv.html says EM since June 2024; LinkedIn lists a second UKZN degree
-      (CS&IS 2008–2011) absent from the CV. Until he rules, existing role
-      dates and the CV stay as approved.
+    - **Round 6 (2026-07-19): a splash of blue — nebular.** Sheet-scoped
+      background token `--sheet-bg`: night = deep plum-black base with two
+      soft radial blue/violet nebula glows; day = pale daytime-sky blue
+      wash mirroring the interview scene's day sky. `--panel-grad` night
+      stops shift a few degrees from plum toward blue-violet. Accents
+      (lavender/celestial), text tokens, and `/` untouched.
+    - OPEN GATES: **Gate 1 RULED 2026-07-19 — EM start is MAY 2025**
+      (LinkedIn correct; cv.html's "June 2024" is wrong). Application
+      pending one follow-up from Caveshen: does the SDET Level 1 year
+      (June 2024 – May 2025, Derivco Cape Town) appear as its own entry on
+      the CV/quest log, or fold silently into the Derivco tenure? Once
+      answered: fix cv.html, re-render cv.pdf (PII re-verify), update the
+      quest-log q-meta + its date test. **Gate 2 still OPEN:** LinkedIn
+      lists a second UKZN degree (CS&IS 2008–2011) absent from the CV —
+      deliberate omission or include?
   - Workshop list (open): ability-rail wording (his); vitals-row rework; his
     copy for quartet/alignment/flavour lines. Round-2 verdicts: skills panel
     LIKED; spellbook liked, simplified.

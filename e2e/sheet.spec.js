@@ -217,11 +217,6 @@ test('spellbook section is visible', async ({ page }) => {
   await expect(page.locator('[aria-labelledby="spellbook-caption"]')).toBeVisible();
 });
 
-test('quartet section has four cells', async ({ page }) => {
-  await page.goto('/sheet');
-  await expect(page.locator('.q-cell')).toHaveCount(4);
-});
-
 test('Class & Level label is plain "Class & Level" and XP line carries years-in-tech', async ({ page }) => {
   await page.goto('/sheet');
   // "1 level = 1 year in tech" was removed from the label as too on-the-nose (round 2);
@@ -286,5 +281,14 @@ test('skills panel has Games Journalism row', async ({ page }) => {
   await expect(page.getByText('Games Journalism', { exact: true })).toBeVisible();
 });
 
-// "three columns bottom-align" test removed — forced bottom-alignment retired
-// by design in Round 4 (2026-07-18); the stretch block was deleted from CSS.
+// ── Layout alignment (Round 5) ───────────────────────────────────────────────
+
+test('middle and right columns bottom-align at desktop', async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto('/sheet');
+  const middleBox = await page.locator('.middle-col').boundingBox();
+  const rightBox  = await page.locator('.right-col').boundingBox();
+  const middleBottom = middleBox.y + middleBox.height;
+  const rightBottom  = rightBox.y  + rightBox.height;
+  expect(Math.abs(middleBottom - rightBottom)).toBeLessThanOrEqual(16);
+});

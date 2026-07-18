@@ -121,30 +121,6 @@ import ThemeToggle from '../components/ThemeToggle.astro';
           <p class="panel-caption" id="spellbook-caption">Spellbook &mdash; Tech Stack</p>
         </section>
 
-        <!-- Quartet panel -->
-        <section class="panel" aria-labelledby="quartet-caption">
-          <div class="quartet">
-            <!-- PLACEHOLDER: Caveshen writes all four cells -->
-            <div class="q-cell">
-              <p class="q-text">PLACEHOLDER &mdash; &ldquo;Ships small, ships often.&rdquo;</p>
-              <p class="q-label">Personality Traits</p>
-            </div>
-            <div class="q-cell">
-              <p class="q-text">PLACEHOLDER &mdash; &ldquo;Simple beats clever.&rdquo;</p>
-              <p class="q-label">Ideals</p>
-            </div>
-            <div class="q-cell">
-              <p class="q-text">PLACEHOLDER &mdash; &ldquo;The team ships together.&rdquo;</p>
-              <p class="q-label">Bonds</p>
-            </div>
-            <div class="q-cell">
-              <p class="q-text">PLACEHOLDER &mdash; &ldquo;Will refactor the kitchen.&rdquo;</p>
-              <p class="q-label">Flaws</p>
-            </div>
-          </div>
-          <p class="panel-caption" id="quartet-caption">The Quartet</p>
-        </section>
-
       </div>
 
       <!-- Right column -->
@@ -484,31 +460,6 @@ import ThemeToggle from '../components/ThemeToggle.astro';
   .feat-body { color: var(--dim); }
   .feat-body strong { color: var(--text); font-weight: 700; }
 
-  /* ── quartet ────────────────────────────────────────────── */
-  .quartet {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.1rem 1.3rem;
-  }
-  .q-text {
-    font-family: var(--serif);
-    font-style: italic;
-    font-size: 0.84rem;
-    line-height: 1.55;
-    color: var(--dim);
-  }
-  .q-label {
-    font-family: var(--mono);
-    font-size: 0.52rem;
-    font-weight: 600;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--stage);
-    border-top: 1px solid var(--card-edge);
-    margin-top: 0.35rem;
-    padding-top: 0.28rem;
-  }
-
   /* ── nav / download / contact ───────────────────────────── */
   .back-link {
     font-family: var(--mono);
@@ -563,6 +514,13 @@ import ThemeToggle from '../components/ThemeToggle.astro';
   }
   .contact-link:focus-visible { outline: 2px solid var(--celestial); outline-offset: 2px; }
 
+  /* ── desktop height-alignment: right col sets height; middle last panel grows to meet it; rail stays natural ── */
+  @media (min-width: 901px) {
+    .sheet-grid { align-items: stretch; }
+    .abilities-col { align-self: start; }
+    .middle-col .panel:last-child { flex: 1; }
+  }
+
   /* ── responsive ─────────────────────────────────────────── */
   @media (max-width: 900px) {
     .sheet-grid { grid-template-columns: 110px 1fr; }
@@ -575,7 +533,6 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     .sheet-grid { grid-template-columns: 1fr; }
     .abilities-col { flex-direction: row; flex-wrap: wrap; }
     .ability { flex: 1 1 80px; }
-    .quartet { grid-template-columns: 1fr; }
   }
 
   /* ── reduced motion ─────────────────────────────────────── */

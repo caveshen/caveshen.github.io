@@ -420,6 +420,27 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
 
 ## 14. Amendments log
 
+- **2026-07-19 (evening close) — WORK QUEUE.** Session ended deliberately;
+  pick these up in order of appetite, one at a time, branch-per-item:
+  1. **item/webkit-matrix — IN PROGRESS, PAUSED.** Branch exists; WIP
+     commit `eba2a52` ("UNVERIFIED, do not merge") has the config/workflow/
+     spec edits but the full suite was NOT re-run against them. Resume:
+     free port 4321, `npx playwright test` (expect 525; 3 Apple projects on
+     real WebKit), fix honestly, reviewer pass, his approval, merge.
+  2. **CV consistency roll-up — AWAITING CAVESHEN'S VERDICT.** Claude's
+     recommendation on the table: collapse the SDET split back into one
+     entry "Software Engineering Manager, Derivco, June 2024 – Present"
+     plus a bullet "Joined as Senior SDET (Level 1); promoted to
+     Engineering Manager in May 2025" — consistent with the other squashed
+     entries, honest against LinkedIn. On his go: branch, edit cv.html,
+     re-render cv.pdf, PII re-verify.
+  3. **Caveshen's copy — IN PROGRESS (his side).** Dialogue JSON, sheet
+     copy, llms.txt, meta descriptions, 404 line. Claude nags gently.
+  4. **Interview page feedback — his play-through impressions** open the
+     main-page workshop; items branch as accepted.
+  5. Parked as before: vitals-row rework; the Quartet (backburner).
+  Node-version action bumps are DONE (73f8b5f, CI green).
+
 - **2026-07-19 (later):** Character sheet PARKED in its accepted state after
   workshop rounds 1–7 (D&D anatomy, AMOLED blue/black night + sky/parchment
   day, purple-free both themes, quartet cut, columns aligned). Remaining

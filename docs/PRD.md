@@ -420,6 +420,17 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
 
 ## 14. Amendments log
 
+- **2026-07-19 (morning) — TRI-ENGINE RULING.** Caveshen accepted the
+  engine-coverage advice: **WebKit proceeds** (queue item 1 resumes — the
+  three Apple device projects move to real WebKit, since every iOS browser
+  is WebKit and the current descriptors only emulate viewport/UA on
+  Chromium). **Firefox is DEFERRED** as its own later item
+  (`item/firefox-desktop`): weak audience case (low desktop share, standards-
+  clean static site) and Playwright's Firefox cannot emulate mobile, so it
+  would be one desktop project only — ~5 lines of config plus adding
+  `firefox` to the CI install step, ~75 extra test runs. Pick it up after
+  WebKit merges, if appetite allows.
+
 - **2026-07-19 (evening close) — WORK QUEUE.** Session ended deliberately;
   pick these up in order of appetite, one at a time, branch-per-item:
   1. **item/webkit-matrix — IN PROGRESS, PAUSED.** Branch exists; WIP

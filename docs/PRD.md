@@ -446,6 +446,24 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
 
 ## 14. Amendments log
 
+- **2026-07-19 (evening) — LANDING PAGE v2 AMBITION (Caveshen's direction,
+  research first).** The current `/` opens as if the dialogue is already
+  underway. The new ambition: the page opens on a **scene containing a
+  human-like avatar** the visitor can interact with — clicking the avatar
+  **zooms the camera into them, Elder Scrolls Oblivion cutscene style**, and
+  only then do the dialogue options appear. Constraints, his words:
+  - The avatar **survives the light/dark toggle unchanged** — the toggle
+    remains time-of-day and *lighting* (scene mood), never the character.
+  - Styled graphically **like a scene in a videogame**.
+  - **No generated assets** — vectors and other programmatic methods only
+    (in keeping with the existing hand-built SVG scene work).
+  This is NOT accepted for build yet. Next step, explicitly authorised:
+  **research** what modern browsers can do graphically under these
+  constraints (SVG/CSS/canvas/WebGL animation, camera-zoom techniques,
+  programmatic character rendering), findings to land in the repo for
+  workshopping. Design and build follow only after the research is
+  reviewed and the approach is accepted item-by-item.
+
 - **2026-07-19 (afternoon) — QUEUE ITEMS 1–3 SHIPPED.** All three technical
   items from the evening-close queue landed today, each through the full
   branch → worker → reviewer → Caveshen's merge approval loop:

@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
 
+  # PRs run the test job only; build/deploy are gated to main below
+  pull_request:
+    branches: [main]
+
   # Allow manual trigger
   workflow_dispatch:
 
@@ -46,6 +50,7 @@ jobs:
 
   build:
     needs: test
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

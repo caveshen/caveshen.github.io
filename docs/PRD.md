@@ -34,6 +34,14 @@ Priority of audiences:
   approval. Clarified 2026-07-16 (pre-remote workflow, Caveshen OK'd): local
   commits proceed freely after the reviewer pass; **his approval gates push
   and deploy**. He may harden this to "gate commits on my review" at any time.
+- **Branch per PRD item (adopted 2026-07-19, post-launch):** `main` is
+  production — every push deploys. Work on an accepted PRD item happens on
+  its own branch (`item/<slug>`); commits land there after the reviewer
+  pass; local preview + Caveshen's approval happen on the branch; merge to
+  `main` (regular merge, history preserved) only when the item is done —
+  the merge IS the deploy. CI runs the test job on pull requests;
+  build/deploy remain main-only. Pragmatic exception: docs/PRD notes and
+  trivial repo chores may commit straight to main at Caveshen's discretion.
 - **TDD:** every phase starts from failing tests (see §13); the reviewer
   checks tests exist and pass before any commit.
 

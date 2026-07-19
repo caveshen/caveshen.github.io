@@ -403,6 +403,11 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
   touch, UA), not real WebKit — device descriptors are pinned to
   `browserName: 'chromium'` so the local Edge channel works. Known ceiling,
   noted in `playwright.config.js`; real WebKit coverage is a future upgrade.
+  **Upgrade accepted 2026-07-19 (item/webkit-matrix):** unpin the Apple
+  device descriptors (iPhone SE, iPhone 15 Pro, iPad) to real Playwright
+  WebKit; Pixel 8 stays Chromium (faithful to Android). WebKit installs
+  via `npx playwright install` locally and `--with-deps` in CI. Desktop
+  projects stay on the msedge channel locally / chromium in CI.
 - Playwright `webServer` uses **build + preview in every environment** with
   `reuseExistingServer: false`: Astro 7's `dev` daemonizes when spawned
   without a TTY (Playwright reads the parent exit as failure), and reuse once

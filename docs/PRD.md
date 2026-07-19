@@ -445,6 +445,18 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
   `firefox` to the CI install step, ~75 extra test runs. Pick it up after
   WebKit merges, if appetite allows.
 
+- **2026-07-19 — CV ROLLUP RULING (item/cv-rollup).** Caveshen ruled: the
+  two split Derivco Cape Town entries (EM May 2025–Present + Senior SDET L1
+  June 2024–May 2025) roll up into one, matching the document's highest-
+  role-per-tenure convention already used throughout the CV. Heading becomes
+  "Software Engineering Manager"; tenure spans the full June 2024–Present;
+  first bullet records the progression ("Joined as Senior SDET (Level 1);
+  promoted to Engineering Manager in May 2025"); the EM body text and bullets
+  are kept verbatim; the SDET body is dropped entirely — same pattern as the
+  Derivco Durban entry (Production Tester detail absent, Technical Lead
+  content kept). The character sheet already follows the same convention and
+  is unchanged.
+
 - **2026-07-19 (evening close) — WORK QUEUE.** Session ended deliberately;
   pick these up in order of appetite, one at a time, branch-per-item:
   1. **item/webkit-matrix — IN PROGRESS, PAUSED.** Branch exists; WIP

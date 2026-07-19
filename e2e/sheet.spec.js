@@ -117,7 +117,10 @@ test('toggle has visible focus outline on /sheet', async ({ page }) => {
   expect(outline).not.toBe('none');
 });
 
-test('back link and download link both reachable by keyboard on /sheet (real Tab walk)', async ({ page }) => {
+test('back link and download link both reachable by keyboard on /sheet (real Tab walk)', async ({ page, browserName }) => {
+  // WebKit (Safari) does not Tab-focus <a> elements by default — only form controls.
+  // This is a platform behaviour, not a site defect; skip rather than weaken the assertion.
+  test.skip(browserName === 'webkit', 'WebKit does not Tab-focus <a> elements by default (platform behaviour, not a site bug)');
   await page.goto('/sheet');
   // Walk forward through tab stops — back link ("/") and download link ("/cv.pdf")
   // must both appear within 10 Tabs. Tab keypresses cannot be spoofed by .focus().

@@ -1,7 +1,10 @@
 # PRD — Caveshen Rajman, Personal Portfolio ("The Interview")
 
-**Status:** v1.2 — updated 2026-07-17. **P0–P3 complete** (local commits only;
-no remote yet — push awaits Caveshen's call). Accepted design reference:
+**Status:** v1.3 — updated 2026-07-19. **P0–P3 complete and LIVE at
+https://caveshen.github.io** (public repo `caveshen/caveshen.github.io`;
+Pages via the test-gated Actions workflow; criteria 8+9 verified in
+production). Copy is PLACEHOLDER by his explicit choice — iterating in
+public until his words land. Accepted design reference:
 Sample C artifact (claude.ai/code/artifact/4468f873-b55c-4d0e-a236-535aa5fb6d15,
 supersedes 0b8cd6e0); in-repo reference `docs/design-sample-c.html`.
 **Owner:** Caveshen (all writing/copy). **Orchestrator:** Claude (Fable 5).
@@ -421,6 +424,15 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
   verified free), then Claude creates `caveshen.github.io`, pushes, and
   **enables Pages — live immediately with PLACEHOLDER copy**, iterating in
   public. Never print the PAT; map it per-command (`GH_TOKEN="$gh_pat"`).
+- **2026-07-19 — LAUNCH.** Account renamed CaV1E → caveshen. Git identity
+  fixed: global config + all 34 commits rewritten to
+  `Caveshen Rajman <25897311+caveshen@users.noreply.github.com>` (the old
+  Entelect work email never reached the public remote). Repo
+  `caveshen/caveshen.github.io` created; main pushed; Pages source set to
+  the Actions workflow (the auto-enabled legacy build was superseded — its
+  one failed run is expected debris). First deploy GREEN: tests → build →
+  deploy in 2m23s; `/`, `/sheet/`, `/cv.pdf` all serving. The PLACEHOLDER
+  CI check annotates 6 files, as designed, until Caveshen's copy lands.
 
 - **2026-07-16:** P0–P2 complete (see §9 for commits). Sample C artifact
   superseded → 4468f873. Skyline "trio" direction locked (§3). CV approved &

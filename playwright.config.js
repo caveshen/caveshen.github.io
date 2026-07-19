@@ -29,5 +29,7 @@ export default defineConfig({
     { name: 'desktop-1366', use: { viewport: { width: 1366, height: 768  }, ...ch } },
     { name: 'desktop-1920', use: { viewport: { width: 1920, height: 1080 }, ...ch } },
     { name: 'desktop-2560', use: { viewport: { width: 2560, height: 1440 }, ...ch } },
+    // Firefox: desktop only — Playwright's Firefox engine cannot emulate mobile.
+    { name: 'desktop-firefox', use: { ...devices['Desktop Firefox'], browserName: 'firefox' } },
   ],
 });

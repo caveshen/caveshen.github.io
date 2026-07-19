@@ -434,6 +434,13 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
 
 ## 14. Amendments log
 
+- **2026-07-19 — FIREFOX DESKTOP PICKED UP.** Caveshen gave the go on
+  `item/firefox-desktop` today — cross-browser coverage ahead of the
+  upcoming main-page workshopping, and he tests in Firefox himself.
+  One desktop project only (Playwright's Firefox cannot emulate mobile);
+  ~5 lines of config, `firefox` added to the CI install step, ~75 extra
+  test runs.
+
 - **2026-07-19 (morning) — TRI-ENGINE RULING.** Caveshen accepted the
   engine-coverage advice: **WebKit proceeds** (queue item 1 resumes — the
   three Apple device projects move to real WebKit, since every iOS browser

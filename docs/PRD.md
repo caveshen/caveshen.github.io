@@ -422,6 +422,15 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
   lands), and `@astrojs/sitemap`. The dialogue tree also gained a worked
   two-level branching example under `games` (commit 8cebfc4, still all
   PLACEHOLDER) so the authoring shape is visible.
+- Suite size as of character-sheet workshop rounds 3–7 and subsequent fixes
+  (2026-07-18/19): **47 unit, 525 e2e** (75 tests × 7 projects). Three
+  tests are conditionally skipped on real WebKit (one per Apple project):
+  `back link and download link both reachable by keyboard on /sheet` —
+  WebKit (Safari) does not Tab-focus `<a>` elements by default; this is a
+  documented platform behaviour, not a site defect; skip is guarded by a
+  `test.skip(browserName === 'webkit', …)` with an explanatory comment.
+  item/webkit-matrix verified 2026-07-19: all 3 Apple projects running real
+  WebKit, suite 522 passed / 3 skipped / 0 failed; no product bugs found.
 
 ## 14. Amendments log
 
@@ -479,3 +488,14 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
   Still pending: D&D-style character-sheet workshop (Caveshen brings
   examples); Caveshen writes the real dialogue JSON + sheet copy; push
   decision (create the public `caveshen.github.io` remote).
+
+- **2026-07-19 — item/webkit-matrix VERIFIED.** Full e2e suite ran on
+  real WebKit (iPhone SE, iPhone 15 Pro, iPad) plus Chromium (Pixel 8,
+  3 desktops): 525 tests, 522 passed, 3 skipped, 0 failed. The 3 skips
+  are the keyboard Tab-walk test on the 3 Apple WebKit projects (WebKit
+  does not Tab-focus `<a>` by default — platform behaviour, skip is
+  engine-guarded with a comment). No product bugs found; no assertions
+  were loosened. One back-to-back-run race condition observed (og-image
+  content-type on iphone-se, passes in isolation and in clean runs) —
+  pre-existing infrastructure behaviour, not introduced by this item.
+  PRD §13 as-built updated with current suite size (75 × 7 = 525).

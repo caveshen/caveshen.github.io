@@ -1,10 +1,12 @@
 # PRD — Caveshen Rajman, Personal Portfolio ("The Interview")
 
-**Status:** v1.3 — updated 2026-07-19. **P0–P3 complete and LIVE at
+**Status:** v1.4 — updated 2026-07-19. **P0–P3 complete and LIVE at
 https://caveshen.github.io** (public repo `caveshen/caveshen.github.io`;
 Pages via the test-gated Actions workflow; criteria 8+9 verified in
-production). Copy is PLACEHOLDER by his explicit choice — iterating in
-public until his words land. Accepted design reference:
+production). Test matrix is tri-engine (Chromium / WebKit / Firefox,
+47 unit + 600 e2e); CV shows the rolled-up single Derivco entry. Copy is
+PLACEHOLDER by his explicit choice — iterating in public until his words
+land. Accepted design reference:
 Sample C artifact (claude.ai/code/artifact/4468f873-b55c-4d0e-a236-535aa5fb6d15,
 supersedes 0b8cd6e0); in-repo reference `docs/design-sample-c.html`.
 **Owner:** Caveshen (all writing/copy). **Orchestrator:** Claude (Fable 5).
@@ -431,8 +433,33 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
   `test.skip(browserName === 'webkit', …)` with an explanatory comment.
   item/webkit-matrix verified 2026-07-19: all 3 Apple projects running real
   WebKit, suite 522 passed / 3 skipped / 0 failed; no product bugs found.
+- Suite size as of the tri-engine merges (2026-07-19, items webkit-matrix +
+  firefox-desktop): **47 unit, 600 e2e** (75 tests × 8 projects). Engines:
+  Chromium (three desktops + Pixel 8), real WebKit (iPhone SE, iPhone 15 Pro,
+  iPad), Firefox (one desktop project — Playwright's Firefox cannot emulate
+  mobile). Firefox needed no engine-conditionals; the only skips remain the
+  three WebKit keyboard guards above. CI installs all three engines
+  (`--with-deps chromium webkit firefox`); deploys now run ~5 minutes.
+  Known infrastructure flake (pre-existing, unfixed by choice): back-to-back
+  local e2e runs can race on the port-4321 handover between preview servers —
+  re-run rather than patch.
 
 ## 14. Amendments log
+
+- **2026-07-19 (afternoon) — QUEUE ITEMS 1–3 SHIPPED.** All three technical
+  items from the evening-close queue landed today, each through the full
+  branch → worker → reviewer → Caveshen's merge approval loop:
+  1. **item/webkit-matrix** merged (`0927fa4`) — Apple devices on real
+     WebKit, deploy green.
+  2. **item/cv-rollup** merged (`6850a6c`) — single Derivco entry with the
+     promotion bullet; live cv.pdf verified serving the new render.
+  3. **item/firefox-desktop** merged (`25ca087`) — picked up same-day on
+     Caveshen's go (he tests in Firefox himself); tri-engine matrix,
+     deploy green.
+  The queue now holds only the human items: Caveshen's copy (in progress,
+  his side) and his interview play-through feedback, plus the parked
+  vitals-row and Quartet ideas. Merged `item/*` branches retained locally
+  for archaeology.
 
 - **2026-07-19 — FIREFOX DESKTOP PICKED UP.** Caveshen gave the go on
   `item/firefox-desktop` today — cross-browser coverage ahead of the

@@ -446,6 +446,28 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
 
 ## 14. Amendments log
 
+- **2026-07-19 (evening) — LANDING v2: HOODED PLACEHOLDER AVATAR (direction
+  set; mock in progress).** Research (`docs/research-avatar-scene.md`, commit
+  a0cbd07) confirmed the avatar art is the critical-path blocker. To unblock
+  the *interaction* build (click → zoom → dialogue, theme isolation,
+  reduced-motion, keyboard, Playwright coverage) without waiting on final
+  character art, Caveshen chose a **faceless placeholder** — treated as a
+  genuine design candidate, not mere scaffolding (it may well become
+  permanent). Register RULED: **modern hoodie** — a contemporary
+  developer-at-night figure lit by the city glow, hood up, face in shadow
+  (grounds the character in Caveshen himself; no face to draw = ~1h of path
+  work vs 4–16h). Rejected alternatives: adventurer's cloak (too fantasy),
+  neutral graphic hood (says too little). Technical approach follows research
+  #1: the avatar is its own flat-vector SVG layered over the scene (theme
+  isolation free), zoom via CSS `transform: scale()` (compositor-only) with
+  expo-out easing, reduced-motion = jump cut, and a dark outline stroke so
+  the hood survives the day sky (WCAG AA). **Immediate step (authorised):**
+  a standalone **artifact mock** (not committed to the repo — same vehicle as
+  the Sample C and D&D-sheet workshops) showing the hooded figure at scene
+  scale + close-up scale, in both day and night lighting, to judge the look
+  and how "faceless" holds up under the camera push. No PRD build item and no
+  repo code until the mock is workshopped and the look is accepted.
+
 - **2026-07-19 (evening) — LANDING PAGE v2 AMBITION (Caveshen's direction,
   research first).** The current `/` opens as if the dialogue is already
   underway. The new ambition: the page opens on a **scene containing a

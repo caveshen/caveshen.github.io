@@ -446,6 +446,27 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
 
 ## 14. Amendments log
 
+- **2026-07-21 — LANDING v2 PLACEHOLDER: MOCK CONVERGED (agreed look, still
+  mock-only).** After several workshop rounds on the artifact mock, the
+  placeholder avatar and its interaction are settled — ready to become a real
+  build item whenever Caveshen gives the go (nothing in the repo yet). Agreed:
+  - **Figure:** hooded modern hoodie (hip-length, ribbed hem/cuffs, hands in
+    the kangaroo pocket, jeans), a proper cowl with the head recessed inside
+    and the **face an empty shadow void** — Caveshen ruled **Empty** over a
+    Rembrandt-lit "shadowed face" alternative we prototyped (the drawn-feature
+    "hint" was rejected as too joke-y). Theme-independent colours (slate hoodie,
+    dark outline for day-sky AA, warm city-glow rim light); the character never
+    changes with the toggle.
+  - **Interaction:** click the figure → CSS `transform` cutscene zoom
+    (JS-computed head-and-shoulders framing, expo-out ease) → dialogue card;
+    exits via an on-screen "End dialogue" control + an "End the conversation"
+    option + Escape; reduced-motion jump-cuts. Light ambient wind (drawstring
+    flutter + drifting motes).
+  - **Moon:** pale/cratered (not the warm disc, which read as a night sun).
+  - Reference mock (not in repo): artifact c94fe4ea-7e97-4fac-8403-e8469df78f9e.
+    The scene backdrop there is a quick stand-in, NOT the real Sample C
+    composition. Next: turn this into a branched build item on Caveshen's go.
+
 - **2026-07-19 (evening) — LANDING v2: HOODED PLACEHOLDER AVATAR (direction
   set; mock in progress).** Research (`docs/research-avatar-scene.md`, commit
   a0cbd07) confirmed the avatar art is the critical-path blocker. To unblock

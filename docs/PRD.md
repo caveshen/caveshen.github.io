@@ -354,7 +354,19 @@ config, device matrix) lands with P1.
      duration 0s).
   8. Toggling day↔night leaves the figure's computed fills **unchanged**
      (the character never changes with the theme — §14 ambition).
-  9. All 75 existing e2e tests and 47 unit tests still pass, unmodified.
+  9. All 47 unit tests and all existing e2e tests still pass. **Amended
+     2026-07-21** — the original wording ("unmodified") was wrong and the
+     worker correctly escalated rather than quietly editing around it: five
+     tests in `e2e/interview.spec.js` encode the *old* contract, that the
+     dialogue is already underway on load (`choice buttons are next in tab
+     order after toggle`; `full keyboard dialogue playthrough`; `dialogue
+     content updates immediately under reduced-motion`; and the two portrait
+     `card below scene` bounding-box tests). That is precisely what P4
+     overturns. Caveshen ruled: **re-point those five at the new journey** —
+     each first approaches the figure, then asserts exactly what it asserted
+     before. Assertions may be *extended* with the approach step; none may be
+     weakened, deleted, or have its expectation relaxed. Every other test
+     stays untouched.
   10. No-JS: card visible and the `/sheet` path still reachable (criterion 1).
   11. Lighthouse holds 100/100/100/100 on `/`.
   12. No new dependencies, no generated assets, no PII; invented copy carries

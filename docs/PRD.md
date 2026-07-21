@@ -835,3 +835,57 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
   content-type on iphone-se, passes in isolation and in clean runs) —
   pre-existing infrastructure behaviour, not introduced by this item.
   PRD §13 as-built updated with current suite size (75 × 7 = 525).
+
+---
+
+## 15. Known defects (open)
+
+Logged 2026-07-22, found by screenshot review of the landing-v2 port on
+`item/landing-v2-avatar` **after** the suite went green (757 passed / 3
+pre-existing skips). All three are invisible to the tests — they are
+composition faults, not logic faults. Deferred by Caveshen's ruling to a
+following session; the port itself is sound and ships as-is.
+
+### D1 — The approach prompt renders on top of the figure's hood
+
+**Symptom:** the "Approach the hooded figure" button sits across the
+character's head in all three aspect variants, not beside or above it.
+**Cause:** `src/pages/index.astro`, `positionPrompt()` — the button is
+centred on the figure's measured bounding box at `fig.height * 0.1` from
+its top, which is precisely where the head is. Carried forward unchanged
+from the pre-restage build.
+**Why the tests miss it:** every assertion checks the button is present,
+focusable and clickable. None checks it does not overlap the figure.
+**Proposed fix:** float the prompt clear above the head with a gap (game
+interaction-prompt convention), clamped so it cannot leave the stage frame
+on the tall variant. Add an assertion that the prompt's bounding box does
+not intersect the figure's.
+
+### D2 — The dialogue card occludes the face after the camera zoom
+
+**Symptom:** approaching zooms to frame the face, then the card covers it.
+Only the crown of the hood remains visible above the card.
+**Cause:** `src/scripts/camera.js` frames the face at `stage.height * 0.32`;
+the in-scene card (five choice buttons tall) begins at roughly 28% of stage
+height. The two were specified independently and were never checked against
+each other.
+**Why the tests miss it:** the camera tests assert the transform is
+non-identity and numerically correct; the card tests assert visibility and
+focus order. Neither compares their geometry.
+**Proposed fix:** raise the framing constant so the head clears the card's
+top edge. The constant is unit-tested in `src/tests/camera.test.js` — that
+test moves with it (extended, never weakened, per §9 P4 criterion 9).
+Consider deriving the constant from the measured card height rather than
+hard-coding it, so it cannot drift apart again.
+
+### D3 — Ultra-wide leaves the bottom half of the page empty
+
+**Symptom:** at 2560×1080 the scene occupies ~47% of the viewport width and
+the lower half of the page is bare background.
+**Cause:** `src/pages/index.astro` — `.stage-frame { max-width: 1200px }`
+applies to every variant, so the 21:9 scene cannot use the width its own
+`1750 / 750` aspect-ratio was authored for. Standard and portrait are
+unaffected.
+**Status:** NOT yet ruled a bug. The cap may be deliberate line-length
+hygiene. Deciding to let the wide scene go full-bleed is a design decision
+for Caveshen, not a defect fix — resolve the ruling before touching it.

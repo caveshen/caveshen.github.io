@@ -514,6 +514,80 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
 
 ## 14. Amendments log
 
+- **2026-07-21 — RESTAGED SCENE ACCEPTED (mock approved, ready to port).**
+  Caveshen accepted the restage after four workshop rounds. Reference mock:
+  artifact `a564f7f9-3d59-4f78-97a1-a55bdf42545e` (not in the repo). This is
+  the specification the port implements.
+
+  **Architecture — ONE WORLD, THREE CAMERAS (his ruling, and it fixed a real
+  bug).** The three shipped aspects were not merely framed differently: they
+  were three separately hand-drawn Table Mountains, carrying three different
+  vertical stretches (1.35 / 1.4 / 1.25). The mountain was changing *shape*
+  between viewports. His instruction — "resize for the camera/perspective, but
+  not resize the background itself… a mountain does not shift when we change
+  our aspect ratio" — is now the rule:
+  - The landforms, city bowl and lit windows are authored **once**, at one set
+    of coordinates, baseline `y=352` (the shipped scene's own baseline).
+  - Each aspect applies **pan and uniform scale only. Never a stretch.**
+    Standard is the base:
+
+    | View | Camera transform |
+    |---|---|
+    | Standard (1200×750) | `translate(0,128)` |
+    | Wide 21:9 (1750×750) | `translate(280,128)` |
+    | Tall / mobile (600×1067) | `translate(-20,262) scale(0.62)` |
+
+  - Verification for the port: Table Mountain's bounding-box width÷height must
+    measure **2.4194 in all three views**. This is a testable invariant — assert
+    it rather than eyeballing it.
+  - **Foreground may differ per view** (his words): sea, promenade, railing and
+    the figure's placement/scale are per-aspect. Standard and Wide share a
+    camera height, so they share foreground y-values and figure scale (1.2);
+    Tall steps back (figure 1.3, deeper water).
+
+  **Art changes ruled:**
+  - Lion's Head moved **65 left** (gap to Table Mountain 120 → 55); Signal Hill
+    follows **40 left** so the chain stays linked.
+  - The city **breathes left**, five shorter/sparser buildings wrapping around
+    Table Mountain's foot — reads as the bowl curving around the massif.
+  - Sky elements (moon, sun, stars, clouds) stay **per-aspect** — locked to the
+    land they pan off-frame in portrait — but the **moon's radius is locked at
+    46** in every view (it was 54 in portrait, i.e. it was changing size).
+  - Moon is **pale and cratered** (`--moon:#e7e3cf`, `--crater:#cbc6ae`), and
+    the sea glints pale with it. The **sun stays warm gold** — a pale sun is
+    wrong and the day sky reads better against it.
+  - Railing rebuilt as a **standing parapet** (top rail, mid rail, posts
+    crossing the waterline), semi-foreground: in front of the water, behind the
+    figure. The earlier flat version "looked like road linings".
+  - **The figure has arms.** Sleeve panels on each flank plus armhole seams —
+    the seam is what makes an arm read as an arm — and ribbed cuffs angling
+    inward. Drawn **before** the pocket in paint order so the pocket overlaps
+    the cuffs and the hands read as tucked in. (The approved figure had none:
+    it survived four workshop rounds, a full build and a reviewer pass without
+    anyone noticing.)
+
+  **Ambient life (all of it stops under `prefers-reduced-motion`):**
+  - **Window glimmer, night only.** Each lit window keeps the base opacity the
+    artwork gave it, held in `--o`; the animation only ever dips *below* it
+    (to ~45%), on its own duration (4.5–11s) and a negative delay so nothing
+    pulses in unison. In the port Astro emits `--o`/`--t`/`--d` inline, so this
+    stays **CSS-only with no JavaScript** — it must work with JS disabled.
+  - **Motes on the breeze**, deliberately placed **outside the camera group**
+    so the wind keeps a constant speed when the camera pushes in.
+  - Drawstring sway, unchanged.
+
+  **Layout:** the stage fills the frame and the **dialogue card is an in-scene
+  overlay** (RPG dialogue box), not a block below the scene. This is what kills
+  the "page collapses below the fold" defect from the first P4 attempt.
+
+  **§3 AMENDED.** §3's skyline direction requires every landform to close
+  inside the artwork with "no viewBox-edge cliffs". That rule was written when
+  each aspect was hand-composed and **cannot hold under a locked world**: a
+  3.2:1 world does not fit a 9:16 frame without either cropping or shrinking
+  the mountain to a smudge. Caveshen ruled **crop**, sacrificing **Signal Hill**
+  (the low soft one) at the portrait right edge. The rule still stands for
+  Standard and Wide.
+
 - **2026-07-21 — SCENE RESTAGE RULED (supersedes the P4 staging).** The first
   P4 build put the figure into the shipped Sample C composition and it did not
   work: the figure read as "a postbox on stilts" standing on the sea, and with

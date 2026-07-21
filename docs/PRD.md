@@ -515,9 +515,19 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
 ## 14. Amendments log
 
 - **2026-07-21 — RESTAGED SCENE ACCEPTED (mock approved, ready to port).**
-  Caveshen accepted the restage after four workshop rounds. Reference mock:
-  artifact `a564f7f9-3d59-4f78-97a1-a55bdf42545e` (not in the repo). This is
-  the specification the port implements.
+  Caveshen accepted the restage after four workshop rounds. This entry is the
+  specification the port implements. Reference mock (NOT in the repo, and it
+  should not be committed — it is a workshop vehicle, as Sample C and the
+  character sheet were):
+  - Published: `https://claude.ai/code/artifact/a564f7f9-3d59-4f78-97a1-a55bdf42545e`
+    — readable with WebFetch from any session.
+  - Editable source, if it survives on disk:
+    `C:\Users\Cavie\AppData\Local\Temp\claude\C--Users-Cavie\b2e294ca-13ea-483d-a0ca-da9ab5379b2f\scratchpad\scene-restage-mock.html`
+    (scratchpads are per-session but have persisted across sessions before —
+    the earlier avatar mock was still readable days later). **If that path is
+    gone, fetch the published artifact rather than redesigning from scratch.**
+    The figure's own markup also lives in `src/components/HoodedFigure.astro`,
+    which is committed and is the safer source for the character itself.
 
   **Architecture — ONE WORLD, THREE CAMERAS (his ruling, and it fixed a real
   bug).** The three shipped aspects were not merely framed differently: they

@@ -2,8 +2,28 @@
 import Base from '../layouts/Base.astro';
 import ThemeToggle from '../components/ThemeToggle.astro';
 import HoodedFigure from '../components/HoodedFigure.astro';
+import CityScape from '../components/CityScape.astro';
 import tree from '../data/dialogue.json';
 const root = tree.root;
+
+// One world, three cameras (PRD §14) — pan + uniform scale only, never a stretch.
+// This is what fixed the "three different hand-drawn mountains" bug: the world
+// (CityScape.astro) is authored once and each aspect only pans/scales the camera.
+const CAMERA = {
+  std:  'translate(0,128)',
+  wide: 'translate(280,128)',
+  tall: 'translate(-20,262) scale(0.62)',
+};
+
+// Foreground placement per aspect — free to differ per view (unlike the world).
+// Standard/Wide share a camera height, so they share the figure's scale too;
+// Tall steps back. HoodedFigure's y prop is a translate origin, not the feet
+// position, so we convert: the figure's own shoe-line sits at local y=196.
+const FIG = {
+  std:  { x: 700,  y: 700 - 196 * 1.2, scale: 1.2 },
+  wide: { x: 1290, y: 700 - 196 * 1.2, scale: 1.2 },
+  tall: { x: 300,  y: 940 - 196 * 1.3, scale: 1.3 },
+};
 ---
 <Base
   title="The Interview — Caveshen Rajman"
@@ -12,15 +32,19 @@ const root = tree.root;
   <!-- Toggle: first in DOM so it's first in tab order -->
   <ThemeToggle />
 
-  <!-- stage-frame: overflow:hidden clips the camera zoom; .camera carries the transform -->
+  <!--
+    stage-frame: a full-height stage — a place to stand in, not a letterbox strip.
+    overflow:hidden clips the camera zoom; .camera carries the transform.
+    The dialogue card lives inside it as an in-scene overlay (PRD §14 restage).
+  -->
   <div class="stage-frame">
   <div class="camera">
 
-  <svg class="scene scene-standard" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMax meet" role="img"
-       aria-label="Flat illustration of Table Mountain, Lion's Head and Signal Hill behind the Cape Town city skyline, by night or day">
-    <rect width="1200" height="400" fill="var(--sky)" />
-    <!-- stars (night only) -->
-    <g fill="var(--text)" class="night-only">
+  <!-- ============ STANDARD 1200×750 ============ -->
+  <svg class="scene scene-standard" viewBox="0 0 1200 750" preserveAspectRatio="xMidYMax slice" role="img"
+       aria-label="Cape Town's Table Mountain, Lion's Head and Signal Hill above the city bowl, by night or day, with a hooded figure on the promenade">
+    <rect class="f-sky" width="1200" height="750" />
+    <g class="f-star night-only">
       <circle cx="95"   cy="70"  r="1.6" opacity="0.8" />
       <circle cx="240"  cy="120" r="1.2" opacity="0.5" />
       <circle cx="410"  cy="55"  r="1.4" opacity="0.7" />
@@ -29,192 +53,151 @@ const root = tree.root;
       <circle cx="1050" cy="60"  r="1.3" opacity="0.6" />
       <circle cx="1150" cy="140" r="1.1" opacity="0.4" />
       <circle cx="320"  cy="160" r="1.0" opacity="0.35" />
+      <circle cx="820"  cy="190" r="1.2" opacity="0.5" />
+      <circle cx="150"  cy="230" r="1.0" opacity="0.35" />
     </g>
-    <!-- moon (night) -->
+    <!-- moon (night) — pale and cratered, radius locked at 46 -->
     <g class="night-only">
-      <circle cx="930" cy="100" r="46" fill="var(--celestial)" />
-      <circle cx="914" cy="88"  r="7"  fill="#e6b944" />
-      <circle cx="946" cy="112" r="5"  fill="#e6b944" />
+      <circle class="f-moon" cx="930" cy="150" r="46" />
+      <g class="f-crater" opacity="0.55">
+        <circle cx="914" cy="136" r="8" /><circle cx="947" cy="164" r="5.5" />
+        <circle cx="939" cy="128" r="3.5" /><circle cx="908" cy="166" r="4.5" />
+      </g>
     </g>
-    <!-- sun (day) -->
-    <circle class="day-only" cx="930" cy="100" r="50" fill="var(--celestial)" />
-    <!-- clouds (day only) -->
-    <g fill="#ffffff" class="day-only">
-      <rect x="120" y="90" width="150" height="22" rx="11" opacity="0.85" />
-      <rect x="620" y="60" width="110" height="20" rx="10" opacity="0.7" />
+    <!-- sun + clouds (day) -->
+    <g class="day-only">
+      <circle class="f-cel" cx="930" cy="150" r="50" />
+      <rect x="120" y="140" width="150" height="22" rx="11" fill="#fff" opacity="0.85" />
+      <rect x="620" y="105" width="110" height="20" rx="10" fill="#fff" opacity="0.7" />
     </g>
-    <!-- Cape Town landforms (far layer): Table Mountain, Lion's Head, Signal Hill -->
-    <polygon fill="var(--mountain-far)"
-             points="40,352 130,230 190,180 230,172 300,168 480,170 540,176 585,215 640,352" />
-    <polygon fill="var(--mountain-far)"
-             points="760,352 850,240 868,202 890,240 980,352" />
-    <polygon fill="var(--mountain-far)"
-             points="890,352 932,318 984,293 1040,284 1096,293 1148,318 1190,352" />
-    <!-- city-bowl buildings (foreground) -->
-    <g fill="var(--mountain)">
-      <rect x="190" y="262" width="34" height="90" />
-      <rect x="232" y="282" width="26" height="70" />
-      <rect x="266" y="246" width="40" height="106" />
-      <rect x="314" y="292" width="28" height="60" />
-      <rect x="350" y="258" width="36" height="94" />
-      <rect x="394" y="300" width="24" height="52" />
-      <rect x="426" y="238" width="44" height="114" />
-      <rect x="478" y="276" width="30" height="76" />
-      <rect x="516" y="254" width="38" height="98" />
-      <rect x="562" y="296" width="26" height="56" />
-      <rect x="596" y="266" width="42" height="86" />
-      <rect x="646" y="286" width="30" height="66" />
-      <rect x="684" y="252" width="36" height="100" />
-      <rect x="728" y="298" width="26" height="54" />
-      <rect x="766" y="290" width="32" height="62" />
-      <rect x="806" y="304" width="24" height="48" />
+    <CityScape camera={CAMERA.std} />
+    <!-- sea -->
+    <rect class="f-sea" y="480" width="1200" height="120" />
+    <g class="f-moon night-only">
+      <rect x="900" y="502" width="60" height="3" rx="1.5" opacity="0.35" />
+      <rect x="915" y="530" width="34" height="3" rx="1.5" opacity="0.2" />
+      <rect x="908" y="556" width="44" height="3" rx="1.5" opacity="0.14" />
     </g>
-    <!-- lit windows (night only) -->
-    <g fill="var(--celestial)" class="night-only">
-      <rect x="198" y="274" width="4" height="5" opacity="0.85" />
-      <rect x="212" y="296" width="4" height="5" opacity="0.55" />
-      <rect x="274" y="258" width="4" height="5" opacity="0.9" />
-      <rect x="290" y="284" width="4" height="5" opacity="0.6" />
-      <rect x="298" y="310" width="4" height="5" opacity="0.75" />
-      <rect x="358" y="270" width="4" height="5" opacity="0.8" />
-      <rect x="372" y="300" width="4" height="5" opacity="0.5" />
-      <rect x="436" y="250" width="4" height="5" opacity="0.9" />
-      <rect x="452" y="276" width="4" height="5" opacity="0.65" />
-      <rect x="444" y="316" width="4" height="5" opacity="0.75" />
-      <rect x="486" y="290" width="4" height="5" opacity="0.55" />
-      <rect x="524" y="266" width="4" height="5" opacity="0.85" />
-      <rect x="540" y="298" width="4" height="5" opacity="0.6" />
-      <rect x="606" y="278" width="4" height="5" opacity="0.8" />
-      <rect x="620" y="308" width="4" height="5" opacity="0.5" />
-      <rect x="692" y="264" width="4" height="5" opacity="0.85" />
-      <rect x="706" y="296" width="4" height="5" opacity="0.6" />
-      <rect x="774" y="302" width="4" height="5" opacity="0.7" />
+    <!-- the near shore — promenade the figure stands on -->
+    <rect class="f-ground" y="600" width="1200" height="150" />
+    <!-- semi-foreground railing: in front of the water, behind the figure -->
+    <g class="f-rail" stroke-linecap="round" stroke-width="7">
+      <g stroke-width="5">
+        <line x1="40" y1="590" x2="40" y2="654" /><line x1="200" y1="590" x2="200" y2="654" />
+        <line x1="360" y1="590" x2="360" y2="654" /><line x1="520" y1="590" x2="520" y2="654" />
+        <line x1="680" y1="590" x2="680" y2="654" /><line x1="840" y1="590" x2="840" y2="654" />
+        <line x1="1000" y1="590" x2="1000" y2="654" /><line x1="1160" y1="590" x2="1160" y2="654" />
+      </g>
+      <line x1="0" y1="592" x2="1200" y2="592" />
+      <line x1="0" y1="624" x2="1200" y2="624" stroke-width="4" opacity="0.8" />
     </g>
-    <!-- sea strip -->
-    <rect y="352" width="1200" height="48" fill="var(--sea)" />
-    <!-- moonlight glints (night only) -->
-    <g class="night-only">
-      <rect x="900" y="360" width="60" height="3" rx="1.5" fill="var(--celestial)" opacity="0.35" />
-      <rect x="915" y="372" width="34" height="3" rx="1.5" fill="var(--celestial)" opacity="0.2" />
-    </g>
-    <!-- figure: right foreground, cropped at bottom edge; moon sits over left shoulder -->
-    <HoodedFigure x={1060} y={200} scale={1.3} />
+    <HoodedFigure x={FIG.std.x} y={FIG.std.y} scale={FIG.std.scale} />
   </svg>
 
-  <!-- ============ WIDE (~21:9) — the trio trails off right of the city, ending under the moon/sun ============ -->
-  <svg class="scene scene-wide" viewBox="0 0 2400 400" preserveAspectRatio="xMidYMax meet" role="img" aria-label="Cape Town skyline panorama">
-    <rect width="2400" height="400" fill="var(--sky)" />
-    <g fill="var(--text)" class="night-only">
-      <circle cx="95" cy="70" r="1.6" opacity="0.8"/><circle cx="340" cy="120" r="1.2" opacity="0.5"/>
-      <circle cx="610" cy="55" r="1.4" opacity="0.7"/><circle cx="860" cy="105" r="1.1" opacity="0.45"/>
-      <circle cx="1100" cy="45" r="1.5" opacity="0.75"/><circle cx="1450" cy="90" r="1.3" opacity="0.6"/>
-      <circle cx="1650" cy="140" r="1.1" opacity="0.4"/><circle cx="520" cy="160" r="1.0" opacity="0.35"/>
-      <circle cx="2080" cy="70" r="1.4" opacity="0.7"/><circle cx="2250" cy="130" r="1.1" opacity="0.45"/>
-      <circle cx="2350" cy="55" r="1.3" opacity="0.6"/><circle cx="1280" cy="150" r="1.0" opacity="0.35"/>
+  <!-- ============ WIDE 1750×750 (21:9) ============ -->
+  <svg class="scene scene-wide" viewBox="0 0 1750 750" preserveAspectRatio="xMidYMax slice" role="img"
+       aria-label="Cape Town skyline panorama, by night or day, with a hooded figure on the promenade">
+    <rect class="f-sky" width="1750" height="750" />
+    <g class="f-star night-only">
+      <circle cx="95" cy="70" r="1.6" opacity="0.8" /><circle cx="340" cy="120" r="1.2" opacity="0.5" />
+      <circle cx="610" cy="55" r="1.4" opacity="0.7" /><circle cx="860" cy="105" r="1.1" opacity="0.45" />
+      <circle cx="1100" cy="45" r="1.5" opacity="0.75" /><circle cx="1450" cy="90" r="1.3" opacity="0.6" />
+      <circle cx="1650" cy="140" r="1.1" opacity="0.4" /><circle cx="520" cy="160" r="1.0" opacity="0.35" />
+      <circle cx="1180" cy="200" r="1.4" opacity="0.7" /><circle cx="240" cy="230" r="1.1" opacity="0.45" />
+      <circle cx="1560" cy="55" r="1.3" opacity="0.6" /><circle cx="760" cy="190" r="1.0" opacity="0.35" />
     </g>
     <g class="night-only">
-      <circle cx="1900" cy="95" r="46" fill="var(--celestial)"/>
-      <circle cx="1884" cy="83" r="7" fill="#e6b944"/><circle cx="1916" cy="107" r="5" fill="#e6b944"/>
+      <circle class="f-moon" cx="1290" cy="150" r="46" />
+      <g class="f-crater" opacity="0.55">
+        <circle cx="1274" cy="136" r="8" /><circle cx="1307" cy="164" r="5.5" />
+        <circle cx="1299" cy="128" r="3.5" /><circle cx="1268" cy="166" r="4.5" />
+      </g>
     </g>
-    <circle class="day-only" cx="1900" cy="95" r="50" fill="var(--celestial)"/>
-    <g fill="#ffffff" class="day-only">
-      <rect x="250" y="90" width="150" height="22" rx="11" opacity="0.85"/>
-      <rect x="1100" y="60" width="110" height="20" rx="10" opacity="0.7"/>
-      <rect x="2080" y="110" width="130" height="20" rx="10" opacity="0.75"/>
+    <g class="day-only">
+      <circle class="f-cel" cx="1290" cy="150" r="50" />
+      <rect x="250" y="140" width="150" height="22" rx="11" fill="#fff" opacity="0.85" />
+      <rect x="900" y="105" width="110" height="20" rx="10" fill="#fff" opacity="0.7" />
+      <rect x="1480" y="185" width="130" height="20" rx="10" fill="#fff" opacity="0.75" />
     </g>
-    <!-- The trio only: Table Mountain (long plateau behind the city), Lion's Head (sharp), Signal Hill (soft, under the moon) — nothing beyond either end -->
-    <polygon fill="var(--mountain-far)" points="520,352 604,218 640,184 684,176 1180,176 1226,184 1262,218 1400,352"/>
-    <polygon fill="var(--mountain-far)" points="1590,352 1692,216 1718,192 1744,216 1834,352"/>
-    <polygon fill="var(--mountain-far)" points="1790,352 1836,316 1892,290 1956,281 2022,290 2078,316 2124,352"/>
-    <g fill="var(--mountain)">
-      <rect x="700" y="262" width="34" height="90"/><rect x="742" y="282" width="26" height="70"/>
-      <rect x="776" y="246" width="40" height="106"/><rect x="824" y="292" width="28" height="60"/>
-      <rect x="860" y="258" width="36" height="94"/><rect x="904" y="300" width="24" height="52"/>
-      <rect x="936" y="238" width="44" height="114"/><rect x="988" y="276" width="30" height="76"/>
-      <rect x="1026" y="254" width="38" height="98"/><rect x="1072" y="296" width="26" height="56"/>
-      <rect x="1106" y="266" width="42" height="86"/><rect x="1156" y="286" width="30" height="66"/>
-      <rect x="1194" y="252" width="36" height="100"/><rect x="1238" y="298" width="26" height="54"/>
-      <rect x="1276" y="290" width="32" height="62"/><rect x="1316" y="304" width="24" height="48"/>
-      <!-- outskirts: sparser, lower -->
-      <rect x="560" y="300" width="28" height="52"/><rect x="600" y="286" width="34" height="66"/>
-      <rect x="646" y="308" width="24" height="44"/>
-      <rect x="1380" y="306" width="26" height="46"/><rect x="1420" y="294" width="32" height="58"/>
-      <rect x="1464" y="312" width="22" height="40"/><rect x="1560" y="316" width="26" height="36"/>
-      <rect x="1600" y="308" width="22" height="44"/>
+    <CityScape camera={CAMERA.wide} />
+    <!-- foreground: same camera height as Standard, so sea/promenade/rail share y -->
+    <rect class="f-sea" y="480" width="1750" height="120" />
+    <g class="f-moon night-only">
+      <rect x="1290" y="502" width="60" height="3" rx="1.5" opacity="0.35" />
+      <rect x="1305" y="530" width="34" height="3" rx="1.5" opacity="0.2" />
+      <rect x="1298" y="556" width="44" height="3" rx="1.5" opacity="0.14" />
     </g>
-    <g fill="var(--celestial)" class="night-only">
-      <rect x="708" y="274" width="4" height="5" opacity="0.85"/><rect x="722" y="296" width="4" height="5" opacity="0.55"/>
-      <rect x="784" y="258" width="4" height="5" opacity="0.9"/><rect x="800" y="284" width="4" height="5" opacity="0.6"/>
-      <rect x="808" y="310" width="4" height="5" opacity="0.75"/><rect x="868" y="270" width="4" height="5" opacity="0.8"/>
-      <rect x="882" y="300" width="4" height="5" opacity="0.5"/><rect x="946" y="250" width="4" height="5" opacity="0.9"/>
-      <rect x="962" y="276" width="4" height="5" opacity="0.65"/><rect x="954" y="316" width="4" height="5" opacity="0.75"/>
-      <rect x="996" y="290" width="4" height="5" opacity="0.55"/><rect x="1034" y="266" width="4" height="5" opacity="0.85"/>
-      <rect x="1050" y="298" width="4" height="5" opacity="0.6"/><rect x="1116" y="278" width="4" height="5" opacity="0.8"/>
-      <rect x="1130" y="308" width="4" height="5" opacity="0.5"/><rect x="1202" y="264" width="4" height="5" opacity="0.85"/>
-      <rect x="1216" y="296" width="4" height="5" opacity="0.6"/><rect x="1284" y="302" width="4" height="5" opacity="0.7"/>
-      <rect x="612" y="296" width="4" height="5" opacity="0.6"/><rect x="656" y="318" width="4" height="5" opacity="0.5"/>
-      <rect x="1430" y="304" width="4" height="5" opacity="0.65"/><rect x="1470" y="320" width="4" height="5" opacity="0.5"/>
-      <rect x="1608" y="318" width="4" height="5" opacity="0.55"/>
+    <rect class="f-ground" y="600" width="1750" height="150" />
+    <g class="f-rail" stroke-linecap="round" stroke-width="7">
+      <g stroke-width="5">
+        <line x1="40" y1="590" x2="40" y2="654" /><line x1="200" y1="590" x2="200" y2="654" />
+        <line x1="360" y1="590" x2="360" y2="654" /><line x1="520" y1="590" x2="520" y2="654" />
+        <line x1="680" y1="590" x2="680" y2="654" /><line x1="840" y1="590" x2="840" y2="654" />
+        <line x1="1000" y1="590" x2="1000" y2="654" /><line x1="1160" y1="590" x2="1160" y2="654" />
+        <line x1="1320" y1="590" x2="1320" y2="654" /><line x1="1480" y1="590" x2="1480" y2="654" />
+        <line x1="1640" y1="590" x2="1640" y2="654" />
+      </g>
+      <line x1="0" y1="592" x2="1750" y2="592" />
+      <line x1="0" y1="624" x2="1750" y2="624" stroke-width="4" opacity="0.8" />
     </g>
-    <rect y="352" width="2400" height="48" fill="var(--sea)"/>
-    <g class="night-only">
-      <rect x="1870" y="360" width="60" height="3" rx="1.5" fill="var(--celestial)" opacity="0.35"/>
-      <rect x="1885" y="372" width="34" height="3" rx="1.5" fill="var(--celestial)" opacity="0.2"/>
-    </g>
-    <!-- figure: right foreground, clear of buildings (end ~x1600); moon at (1900,95) to upper-left -->
-    <HoodedFigure x={2200} y={200} scale={1.3} />
+    <HoodedFigure x={FIG.wide.x} y={FIG.wide.y} scale={FIG.wide.scale} />
   </svg>
 
-  <!-- ============ TALL (~9:16 / portrait) — re-cropped: big sky, Table Mountain + Lion's Head ============ -->
-  <svg class="scene scene-tall" viewBox="0 0 600 800" preserveAspectRatio="xMidYMax meet" role="img" aria-label="Cape Town skyline, portrait">
-    <rect width="600" height="800" fill="var(--sky)" />
-    <g fill="var(--text)" class="night-only">
-      <circle cx="60" cy="80" r="1.6" opacity="0.8"/><circle cx="170" cy="150" r="1.2" opacity="0.5"/>
-      <circle cx="280" cy="60" r="1.4" opacity="0.7"/><circle cx="90" cy="260" r="1.1" opacity="0.45"/>
-      <circle cx="350" cy="200" r="1.5" opacity="0.75"/><circle cx="520" cy="270" r="1.3" opacity="0.6"/>
-      <circle cx="240" cy="320" r="1.1" opacity="0.4"/><circle cx="460" cy="330" r="1.0" opacity="0.35"/>
-      <circle cx="140" cy="380" r="1.2" opacity="0.5"/><circle cx="560" cy="90" r="1.4" opacity="0.65"/>
+  <!-- ============ TALL 600×1067 (portrait / mobile) ============ -->
+  <svg class="scene scene-tall" viewBox="0 0 600 1067" preserveAspectRatio="xMidYMax slice" role="img"
+       aria-label="Cape Town skyline in portrait, by night or day, with a hooded figure on the promenade">
+    <rect class="f-sky" width="600" height="1067" />
+    <g class="f-star night-only">
+      <circle cx="60" cy="80" r="1.6" opacity="0.8" /><circle cx="170" cy="150" r="1.2" opacity="0.5" />
+      <circle cx="280" cy="60" r="1.4" opacity="0.7" /><circle cx="90" cy="260" r="1.1" opacity="0.45" />
+      <circle cx="350" cy="200" r="1.5" opacity="0.75" /><circle cx="520" cy="270" r="1.3" opacity="0.6" />
+      <circle cx="240" cy="320" r="1.1" opacity="0.4" /><circle cx="460" cy="330" r="1.0" opacity="0.35" />
+      <circle cx="140" cy="380" r="1.2" opacity="0.5" /><circle cx="560" cy="90" r="1.4" opacity="0.65" />
     </g>
     <g class="night-only">
-      <circle cx="440" cy="140" r="54" fill="var(--celestial)"/>
-      <circle cx="422" cy="126" r="8" fill="#e6b944"/><circle cx="458" cy="154" r="6" fill="#e6b944"/>
+      <circle class="f-moon" cx="452" cy="200" r="46" />
+      <g class="f-crater" opacity="0.55">
+        <circle cx="436" cy="186" r="8" /><circle cx="469" cy="214" r="5.5" />
+        <circle cx="461" cy="178" r="3.5" /><circle cx="430" cy="216" r="4.5" />
+      </g>
     </g>
-    <circle class="day-only" cx="440" cy="140" r="58" fill="var(--celestial)"/>
-    <g fill="#ffffff" class="day-only">
-      <rect x="60" y="200" width="130" height="20" rx="10" opacity="0.85"/>
-      <rect x="300" y="290" width="100" height="18" rx="9" opacity="0.7"/>
+    <g class="day-only">
+      <circle class="f-cel" cx="452" cy="200" r="50" />
+      <rect x="60" y="270" width="130" height="20" rx="10" fill="#fff" opacity="0.85" />
+      <rect x="300" y="360" width="100" height="18" rx="9" fill="#fff" opacity="0.7" />
     </g>
-    <!-- Table Mountain (dominant, left/centre) + Lion's Head (right, cresting the edge) -->
-    <polygon fill="var(--mountain-far)" points="0,700 34,536 96,444 126,426 372,426 404,446 448,500 500,700"/>
-    <polygon fill="var(--mountain-far)" points="440,700 520,530 548,472 576,530 600,620 600,700"/>
-    <g fill="var(--mountain)">
-      <rect x="40" y="580" width="34" height="120"/><rect x="82" y="606" width="26" height="94"/>
-      <rect x="116" y="560" width="40" height="140"/><rect x="164" y="618" width="28" height="82"/>
-      <rect x="200" y="576" width="36" height="124"/><rect x="244" y="628" width="24" height="72"/>
-      <rect x="276" y="548" width="44" height="152"/><rect x="328" y="600" width="30" height="100"/>
-      <rect x="366" y="572" width="38" height="128"/><rect x="412" y="624" width="26" height="76"/>
-      <rect x="446" y="592" width="42" height="108"/><rect x="496" y="632" width="30" height="68"/>
+    <CityScape camera={CAMERA.tall} />
+    <!-- portrait carries the extra height as water: further back, more of the bay in view -->
+    <rect class="f-sea" y="480" width="600" height="220" />
+    <g class="f-moon night-only">
+      <rect x="420" y="510" width="56" height="3" rx="1.5" opacity="0.35" />
+      <rect x="434" y="548" width="32" height="3" rx="1.5" opacity="0.2" />
+      <rect x="426" y="586" width="44" height="3" rx="1.5" opacity="0.14" />
     </g>
-    <g fill="var(--celestial)" class="night-only">
-      <rect x="48" y="594" width="4" height="5" opacity="0.85"/><rect x="62" y="622" width="4" height="5" opacity="0.55"/>
-      <rect x="124" y="574" width="4" height="5" opacity="0.9"/><rect x="140" y="604" width="4" height="5" opacity="0.6"/>
-      <rect x="148" y="640" width="4" height="5" opacity="0.75"/><rect x="208" y="590" width="4" height="5" opacity="0.8"/>
-      <rect x="222" y="626" width="4" height="5" opacity="0.5"/><rect x="286" y="562" width="4" height="5" opacity="0.9"/>
-      <rect x="302" y="592" width="4" height="5" opacity="0.65"/><rect x="294" y="648" width="4" height="5" opacity="0.75"/>
-      <rect x="336" y="614" width="4" height="5" opacity="0.55"/><rect x="374" y="586" width="4" height="5" opacity="0.85"/>
-      <rect x="390" y="622" width="4" height="5" opacity="0.6"/><rect x="456" y="606" width="4" height="5" opacity="0.8"/>
-      <rect x="470" y="640" width="4" height="5" opacity="0.5"/><rect x="504" y="644" width="4" height="5" opacity="0.65"/>
+    <rect class="f-ground" y="700" width="600" height="367" />
+    <g class="f-rail" stroke-linecap="round" stroke-width="7">
+      <g stroke-width="5">
+        <line x1="30" y1="690" x2="30" y2="756" /><line x1="150" y1="690" x2="150" y2="756" />
+        <line x1="270" y1="690" x2="270" y2="756" /><line x1="390" y1="690" x2="390" y2="756" />
+        <line x1="510" y1="690" x2="510" y2="756" />
+      </g>
+      <line x1="0" y1="692" x2="600" y2="692" />
+      <line x1="0" y1="726" x2="600" y2="726" stroke-width="4" opacity="0.8" />
     </g>
-    <rect y="700" width="600" height="100" fill="var(--sea)"/>
-    <g class="night-only">
-      <rect x="400" y="716" width="56" height="3" rx="1.5" fill="var(--celestial)" opacity="0.35"/>
-      <rect x="414" y="732" width="32" height="3" rx="1.5" fill="var(--celestial)" opacity="0.2"/>
-    </g>
-    <!-- figure: right foreground, larger scale for tall composition; moon at (440,140) upper-left -->
-    <HoodedFigure x={480} y={400} scale={2.5} />
+    <HoodedFigure x={FIG.tall.x} y={FIG.tall.y} scale={FIG.tall.scale} />
   </svg>
 
   </div><!-- /.camera -->
+
+  <!-- wind: motes on the breeze, deliberately outside .camera so the breeze stays a
+       constant speed when the camera pushes in. -->
+  <div class="wind" aria-hidden="true">
+    <span class="mote" style="top:44%;animation-duration:17s;animation-delay:0s"></span>
+    <span class="mote" style="top:62%;animation-duration:21s;animation-delay:-6s;width:4px;height:4px"></span>
+    <span class="mote" style="top:53%;animation-duration:14s;animation-delay:-10s;width:6px;height:6px"></span>
+    <span class="mote" style="top:73%;animation-duration:24s;animation-delay:-3s;width:4px;height:4px"></span>
+    <span class="mote" style="top:35%;animation-duration:19s;animation-delay:-14s"></span>
+  </div>
 
   <!--
     Approach prompt: a real <button> styled as a videogame NPC interaction prompt.
@@ -224,8 +207,6 @@ const root = tree.root;
   <button class="approach-prompt" id="approach-prompt" hidden>
     PLACEHOLDER: Approach the hooded figure
   </button>
-
-  </div><!-- /.stage-frame -->
 
   <main class="card">
     <div class="card-head">
@@ -260,6 +241,8 @@ const root = tree.root;
     </noscript>
   </main>
 
+  </div><!-- /.stage-frame -->
+
   <p class="page-foot">PLACEHOLDER — attribution line. All copy is placeholder; the real script is Caveshen's to write.</p>
 </Base>
 
@@ -268,24 +251,73 @@ const root = tree.root;
   :root[data-time="day"] .night-only          { display: none; }
   :root:not([data-time="day"]) .day-only      { display: none; }
 
-  /* ── P4: stage-frame + camera ────────────────────────────────────────────── */
+  /* ── P4: stage-frame — a full-height stage, not a letterbox strip ─────────── */
   /* ponytail: stage-frame is position:relative which makes it a positioned element
      that stacks AFTER the toggle (which comes earlier in DOM), so stage-frame's
      bounding box physically covers the toggle area and intercepts its clicks.
      pointer-events:none on stage-frame makes it fully transparent to events;
-     .approach-prompt re-enables them only where the interactive button lives. */
+     interactive children (approach prompt, card) re-enable them individually. */
   .stage-frame {
     position: relative;
     overflow: hidden;
     pointer-events: none;
+    max-width: 1200px;
+    margin: 1rem auto 0;
+    border-radius: 14px;
+    border: 1px solid var(--card-edge);
+    background: var(--sky);
+    aspect-ratio: 1200 / 750;
+    transition: background 0.4s ease, border-color 0.4s ease;
   }
   .camera {
     transform-origin: 0 0;
     will-change: transform;
+    height: 100%;
     transition: transform 950ms cubic-bezier(0.16, 1, 0.3, 1);
   }
   @media (prefers-reduced-motion: reduce) {
     .camera { transition: none; }
+  }
+
+  /* Aspect-ratio scene switching: standard is default; wide/tall take over at the
+     extremes. The stage-frame's own aspect-ratio follows the visible scene's viewBox
+     so the SVG fills it exactly (no letterboxing, no cropping). */
+  .scene { display: block; width: 100%; height: 100%; }
+  .scene-wide, .scene-tall { display: none; }
+  @media (min-aspect-ratio: 15/8) {
+    .stage-frame { aspect-ratio: 1750 / 750; }
+    .scene-standard { display: none; }
+    .scene-wide { display: block; }
+  }
+  @media (max-aspect-ratio: 4/5) {
+    .stage-frame { aspect-ratio: 600 / 1067; max-width: 480px; }
+    .scene-standard { display: none; }
+    .scene-tall { display: block; }
+  }
+  .scene rect, .scene polygon, .scene circle, .scene line, .scene path {
+    transition: fill 0.4s ease, stroke 0.4s ease;
+  }
+
+  /* ── P4: wind — ambient motes drifting on the breeze ───────────────────────── */
+  .wind { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+  .mote {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--mote);
+    opacity: 0;
+    animation: drift linear infinite;
+  }
+  @keyframes drift {
+    0%   { left: -4%;  opacity: 0; transform: translateY(0); }
+    12%  { opacity: var(--mote-op); }
+    88%  { opacity: var(--mote-op); }
+    100% { left: 104%; opacity: 0; transform: translateY(-38px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .wind { display: none; }
+    .mote { animation: none; }
   }
 
   /* ── P4: approach prompt button ──────────────────────────────────────────── */
@@ -360,44 +392,19 @@ const root = tree.root;
     .end-dialogue { transition: none; }
   }
 
-  /* Scene SVG */
-  .scene {
-    display: block;
-    width: 100%;
-    height: clamp(220px, 38vh, 380px);
-    /* gradient continues sky/sea bands at letterbox edges (meet never crops) */
-    background: linear-gradient(to bottom, var(--sky) 0% 88%, var(--sea) 88% 100%);
-  }
-  .scene rect, .scene polygon, .scene circle {
-    transition: fill 0.4s ease;
-  }
-
-  /* Aspect-ratio scene switching: standard is default; wide/tall take over at the extremes */
-  .scene-wide, .scene-tall { display: none; }
-  @media (min-aspect-ratio: 15/8) {
-    .scene-standard { display: none; }
-    .scene-wide { display: block; }
-  }
-  @media (max-aspect-ratio: 4/5) {
-    .scene-standard { display: none; }
-    .scene-tall {
-      display: block;
-      height: clamp(320px, 52vh, 560px);
-      /* tall artwork's sea line is 700/800 = 87.5%, vs 88% for the others */
-      background: linear-gradient(to bottom, var(--sky) 0% 87.5%, var(--sea) 87.5% 100%);
-    }
-  }
-
-  /* Dialogue card */
+  /* ── Dialogue card: an IN-SCENE overlay, not a block below the scene ──────── */
   .card {
-    max-width: 620px;
-    margin: -72px auto 0;
+    position: absolute;
+    left: 50%;
+    bottom: 3.5%;
+    transform: translateX(-50%);
+    width: min(600px, 88%);
+    pointer-events: auto; /* re-enable: stage-frame has pointer-events:none */
     padding: 1.75rem 2rem 2rem;
     background: var(--card);
     border: 1px solid var(--card-edge);
     border-radius: 18px;
     box-shadow: var(--card-shadow);
-    position: relative;
     transition: background 0.4s ease, border-color 0.4s ease;
   }
   .card-head {
@@ -501,17 +508,12 @@ const root = tree.root;
   }
 
   @media (max-width: 680px) {
-    .card { margin: 0.75rem 1rem 0; padding: 1.4rem 1.3rem 1.5rem; }
-  }
-
-  /* portrait aspect: card sits below the scene, never over it (after .card base so it wins) */
-  @media (max-aspect-ratio: 4/5) {
-    .card { margin: 0.75rem auto 0; width: calc(100% - 2rem); }
+    .card { padding: 1.4rem 1.3rem 1.5rem; }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .avatar .eyes { animation: none; }
-    body, .scene rect, .scene polygon, .scene circle,
+    body, .scene rect, .scene polygon, .scene circle, .scene line, .scene path,
     .card, .avatar circle, .avatar rect,
     .speech, .choices button { transition: none; }
   }

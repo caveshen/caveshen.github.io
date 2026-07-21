@@ -1,0 +1,60 @@
+---
+// CityScape.astro — the world (landforms + city bowl + lit windows), authored ONCE
+// and rendered into all three scene SVGs (standard / wide / tall) at variant-appropriate
+// camera transforms (pan + uniform scale only — never a stretch; PRD §14 "one world,
+// three cameras" ruling, which fixed the three-different-mountains bug).
+//
+// Ported verbatim from the approved restage mock (docs/PRD §14, 2026-07-21): Lion's Head
+// moved 65 left, Signal Hill 40 left, five extra buildings wrapping Table Mountain's foot.
+//
+// Fills are CSS classes, not presentation attributes — var() does not resolve inside SVG
+// presentation attributes (PRD constraint).
+
+interface Props {
+  camera: string; // e.g. "translate(0,128)" or "translate(-20,262) scale(0.62)"
+}
+const { camera } = Astro.props;
+
+const BUILDINGS: Array<[number, number, number, number]> = [
+  // city breathing left, wrapping around the mountain's foot
+  [46, 304, 26, 48], [78, 284, 30, 68], [114, 298, 24, 54], [144, 270, 32, 82], [176, 290, 20, 62],
+  // the shipped city bowl
+  [190, 230, 34, 122], [232, 258, 26, 94], [266, 209, 40, 143], [314, 271, 28, 81],
+  [350, 225, 36, 127], [394, 282, 24, 70], [426, 198, 44, 154], [478, 249, 30, 103],
+  [516, 220, 38, 132], [562, 276, 26, 76], [596, 236, 42, 116], [646, 263, 30, 89],
+  [684, 217, 36, 135], [728, 279, 26, 73], [766, 268, 32, 84], [806, 287, 24, 65],
+];
+
+// Lit windows: base opacity is the artwork's own (--o); glimmer only ever dips below it,
+// on a per-window duration/delay so nothing pulses in unison. Emitted inline at build time
+// so this stays CSS-only and works with JS disabled.
+const WINDOWS: Array<[number, number, number]> = [
+  [54, 318, 0.6], [86, 298, 0.8], [122, 312, 0.5], [152, 286, 0.75], [152, 318, 0.45], [182, 304, 0.65],
+  [198, 247, 0.85], [212, 276, 0.55], [274, 225, 0.9], [290, 260, 0.6], [298, 295, 0.75], [358, 241, 0.8],
+  [372, 282, 0.5], [436, 214, 0.9], [452, 249, 0.65], [444, 303, 0.75], [486, 268, 0.55], [524, 236, 0.85],
+  [540, 279, 0.6], [606, 252, 0.8], [620, 293, 0.5], [692, 233, 0.85], [706, 276, 0.6], [774, 284, 0.7],
+];
+const windowStyle = (opacity: number, i: number) => {
+  const t = (4.5 + ((i * 1.7) % 6.5)).toFixed(2);
+  const d = -((i * 2.3) % 9);
+  return `--o:${opacity};--t:${t}s;--d:${d.toFixed(2)}s;`;
+};
+---
+
+<g class="world" transform={camera}>
+  <!-- Table Mountain -->
+  <polygon class="f-far table-mountain"
+           points="40,352 130,187 190,120 230,109 300,104 480,106 540,114 585,167 640,352" />
+  <!-- Lion's Head — moved 65 left, closing the gap to Table Mountain -->
+  <polygon class="f-far" points="695,352 785,201 803,149 825,201 915,352" />
+  <!-- Signal Hill — moved 40 left so the chain stays linked -->
+  <polygon class="f-far" points="850,352 892,306 944,272 1000,260 1056,272 1108,306 1150,352" />
+  <g class="f-near">
+    {BUILDINGS.map(([x, y, w, h]) => <rect x={x} y={y} width={w} height={h} />)}
+  </g>
+  <g class="f-cel night-only">
+    {WINDOWS.map(([x, y, o], i) => (
+      <rect x={x} y={y} width="4" height="6" opacity={o} style={windowStyle(o, i)} />
+    ))}
+  </g>
+</g>

@@ -154,34 +154,41 @@ test('ultra-wide (2560×1080) shows scene-wide only', async ({ page }) => {
   await expect(page.locator('.scene-tall')).not.toBeVisible();
 });
 
-test('portrait phone (390×844) shows scene-tall, card below scene', async ({ page }) => {
+test('portrait phone (390×844) shows scene-tall, card overlays the scene', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
   await expect(page.locator('.scene-tall')).toBeVisible();
   await expect(page.locator('.scene-standard')).not.toBeVisible();
   await expect(page.locator('.scene-wide')).not.toBeVisible();
-  // Measure scene before approach: camera zoom would shift the scene's BCR,
-  // but the card's DOM position (outside the camera) is fixed regardless.
   const sceneBound = await page.locator('.scene-tall').boundingBox();
-  // P4: approach to reveal the card, then measure its position
+  // P4 restage: card is an in-scene overlay (RPG dialogue box), not a block
+  // below the scene — approach to reveal it, then assert it overlaps the
+  // scene's bounds and is readable (visible, non-zero size).
   await page.locator('#approach-prompt').click();
-  const cardBound  = await page.locator('.card').boundingBox();
-  // card must start at or below the bottom of the scene (no overlap)
-  expect(cardBound.y).toBeGreaterThanOrEqual(sceneBound.y + sceneBound.height - 1);
+  const card = page.locator('.card');
+  await expect(card).toBeVisible();
+  const cardBound = await card.boundingBox();
+  expect(cardBound.y).toBeLessThan(sceneBound.y + sceneBound.height);
+  expect(cardBound.y + cardBound.height).toBeGreaterThan(sceneBound.y);
+  expect(cardBound.width).toBeGreaterThan(0);
+  expect(cardBound.height).toBeGreaterThan(0);
 });
 
-test('portrait tablet (768×1024) shows scene-tall, card below scene', async ({ page }) => {
+test('portrait tablet (768×1024) shows scene-tall, card overlays the scene', async ({ page }) => {
   await page.setViewportSize({ width: 768, height: 1024 });
   await page.goto('/');
   await expect(page.locator('.scene-tall')).toBeVisible();
   await expect(page.locator('.scene-standard')).not.toBeVisible();
-  // Measure scene before approach: camera zoom would shift the scene's BCR,
-  // but the card's DOM position (outside the camera) is fixed regardless.
   const sceneBound = await page.locator('.scene-tall').boundingBox();
-  // P4: approach to reveal the card, then measure its position
+  // P4 restage: card is an in-scene overlay — approach, then assert overlap.
   await page.locator('#approach-prompt').click();
-  const cardBound  = await page.locator('.card').boundingBox();
-  expect(cardBound.y).toBeGreaterThanOrEqual(sceneBound.y + sceneBound.height - 1);
+  const card = page.locator('.card');
+  await expect(card).toBeVisible();
+  const cardBound = await card.boundingBox();
+  expect(cardBound.y).toBeLessThan(sceneBound.y + sceneBound.height);
+  expect(cardBound.y + cardBound.height).toBeGreaterThan(sceneBound.y);
+  expect(cardBound.width).toBeGreaterThan(0);
+  expect(cardBound.height).toBeGreaterThan(0);
 });
 
 test('standard desktop (1920×1080) shows scene-standard only', async ({ page }) => {

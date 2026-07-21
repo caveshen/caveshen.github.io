@@ -32,6 +32,20 @@ const { x, y, scale = 1 } = Astro.props;
         fill="#464d63" stroke="#14151c" stroke-width="3" stroke-linejoin="round"/>
   <!-- right-side shading panel -->
   <path d="M 0 32 Q 23 32 46 42 L 49 54 L 45 92 Q 45 100 39 101 L 0 101 Z" fill="#3a3f52" opacity="0.85"/>
+  <!-- ARMS: sleeve panels on each flank, forearms angling into the pocket.
+       Drawn before the pocket so the pocket overlaps the cuffs = hands tucked in. -->
+  <path d="M -44 38 Q -51 42 -50 58 Q -49 71 -43 77 Q -35 81 -29 70 L -31 60 Q -35 49 -37 39 Z"
+        fill="#414759" stroke="#14151c" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M 44 38 Q 51 42 50 58 Q 49 71 43 77 Q 35 81 29 70 L 31 60 Q 35 49 37 39 Z"
+        fill="#414759" stroke="#14151c" stroke-width="2" stroke-linejoin="round"/>
+  <!-- armhole seams — the line that makes an arm read as an arm -->
+  <path d="M -37 39 Q -34 52 -31 62" fill="none" stroke="#2b3040" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M 37 39 Q 34 52 31 62"   fill="none" stroke="#2b3040" stroke-width="1.6" stroke-linecap="round"/>
+  <!-- ribbed cuffs at the wrists (sleeve cuffs, above the elbow) -->
+  <g stroke="#2b3040" stroke-width="1.5" stroke-linecap="round">
+    <line x1="-45" y1="66" x2="-33" y2="70"/><line x1="-44" y1="71" x2="-32" y2="75"/>
+    <line x1="45" y1="66" x2="33" y2="70"/><line x1="44" y1="71" x2="32" y2="75"/>
+  </g>
   <!-- ribbed hem -->
   <g stroke="#2f3446" stroke-width="1.5" stroke-linecap="round">
     <line x1="-30" y1="94" x2="-30" y2="101"/>

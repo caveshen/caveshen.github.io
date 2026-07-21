@@ -146,3 +146,45 @@ test('no-JS: /sheet link is reachable', async ({ browser }) => {
   await expect(page.locator('a[href="/sheet"]')).toBeVisible();
   await ctx.close();
 });
+
+// ── Regression: one world, three cameras (PRD §14) ─────────────────────────
+// Table Mountain is authored once in CityScape.astro; each aspect variant only
+// pans/scales the camera around it, never stretches it. getBBox() reads the
+// polygon's own LOCAL geometry — it ignores the element's own transform and
+// every ancestor transform (including the .world camera pan/scale), so it
+// can't see a stretch applied there. We must measure in screen space, post-
+// transform: getBoundingClientRect() on the visible variant, at a viewport
+// sized to force that variant on (same pattern as the aspect-variant tests
+// in interview.spec.js). A zero-height rect (wrong/hidden variant selected)
+// fails loudly rather than skating through as a false pass.
+const MOUNTAIN_RATIO = 2.4194;
+
+async function mountainRatio(page, selector) {
+  const box = await page.locator(selector).evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    return { width: r.width, height: r.height };
+  });
+  expect(box.height, 'Table Mountain rect has zero height — wrong/hidden scene variant selected').toBeGreaterThan(0);
+  return box.width / box.height;
+}
+
+test('Table Mountain aspect ratio is 2.4194 in the standard view', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto('/');
+  const ratio = await mountainRatio(page, '.scene-standard .table-mountain');
+  expect(ratio).toBeCloseTo(MOUNTAIN_RATIO, 3);
+});
+
+test('Table Mountain aspect ratio is 2.4194 in the wide view', async ({ page }) => {
+  await page.setViewportSize({ width: 2560, height: 1080 });
+  await page.goto('/');
+  const ratio = await mountainRatio(page, '.scene-wide .table-mountain');
+  expect(ratio).toBeCloseTo(MOUNTAIN_RATIO, 3);
+});
+
+test('Table Mountain aspect ratio is 2.4194 in the tall view', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  const ratio = await mountainRatio(page, '.scene-tall .table-mountain');
+  expect(ratio).toBeCloseTo(MOUNTAIN_RATIO, 3);
+});

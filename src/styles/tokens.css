@@ -35,6 +35,16 @@
   --sheet-bg:         radial-gradient(900px 520px at 82% -6%, rgba(44, 82, 158, 0.26), transparent 65%),
                       radial-gradient(760px 480px at 6% 34%, rgba(36, 64, 128, 0.15), transparent 60%),
                       #07090f;
+
+  /* P4 restage: pale/cratered moon (locked, not the warm disc — a pale sun is
+     wrong so the sun stays --celestial), standing-parapet rail, near-shore ground,
+     ambient wind motes. */
+  --moon:   #e7e3cf;
+  --crater: #cbc6ae;
+  --rail:   #474163;
+  --ground: #0e0d16;
+  --mote:      #d8c9a0;
+  --mote-op:   .30;
 }
 
 :root[data-time="day"] {
@@ -65,10 +75,51 @@
   --panel-grad:       linear-gradient(180deg, #fdfbf5 0%, #f4eee0 100%);
   /* Sheet page background: pale daytime-sky blue, mirroring the day scene */
   --sheet-bg:         linear-gradient(180deg, #d7e9f4 0%, #e7f0f5 100%);
+
+  /* Moon stays pale in both themes (it's hidden by day anyway); rail/ground/mote
+     lighten for the day sky. */
+  --moon:   #e7e3cf;
+  --crater: #cbc6ae;
+  --rail:   #809892;
+  --ground: #33403c;
+  --mote:      #5f7068;
+  --mote-op:   .28;
 }
 
 @media (prefers-reduced-motion: reduce) {
   :root {
     --theme-transition: none;
   }
+}
+
+/* ── Scene fill/stroke utility classes (P4) ────────────────────────────────
+   var() does NOT resolve inside SVG presentation attributes (fill="var(--x)"
+   silently fails on some engines) — themeable SVG fills are driven by these
+   classes instead. Shared by index.astro's scene SVGs and CityScape.astro. */
+.f-sky   { fill: var(--sky); }
+.f-star  { fill: var(--text); }
+.f-cel   { fill: var(--celestial); }
+.f-far   { fill: var(--mountain-far); }
+.f-near  { fill: var(--mountain); }
+.f-sea   { fill: var(--sea); }
+.f-ground{ fill: var(--ground); }
+.f-rail  { stroke: var(--rail); }
+.f-moon  { fill: var(--moon); }
+.f-crater{ fill: var(--crater); }
+
+/* ── City lights: a low glimmer, night only ────────────────────────────────
+   --o holds each window's own base opacity (emitted inline by CityScape.astro
+   at build time so this stays CSS-only and works with JS disabled); the
+   animation only ever dips below it. */
+.f-cel.night-only rect {
+  animation: glimmer var(--t, 7s) ease-in-out infinite alternate;
+  animation-delay: var(--d, 0s);
+}
+@keyframes glimmer {
+  from { opacity: var(--o, .7); }
+  to   { opacity: calc(var(--o, .7) * .45); }
+}
+:root[data-time="day"] .f-cel.night-only rect { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .f-cel.night-only rect { animation: none; }
 }

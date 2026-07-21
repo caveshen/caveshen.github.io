@@ -307,6 +307,62 @@ config, device matrix) lands with P1.
   Criteria 6, 7 met. (Worker→reviewer loop; reviewer trimmed an unused
   `lighthouse` dep and a placeholder-scanner blind spot before commit.)
 
+- **P4 — Landing v2: the approach (item/landing-v2-avatar).** Accepted for
+  build 2026-07-21. The page opens on the scene with a hooded figure standing
+  in it; the conversation starts only when the visitor approaches. Placeholder
+  figure per the converged mock (§14, 2026-07-21) — no real character art.
+
+  **Rulings taken 2026-07-21 (Caveshen):**
+  - *No scene art change.* The locked Sample C composition is untouched. The
+    figure is a nearer-to-camera foreground silhouette **cropped by the frame's
+    bottom edge**, standing on the picture plane; the sea strip reads as
+    distant water behind them. (The alternative — adding a promenade band and
+    railing to give them ground — was declined.)
+  - *Diegetic interaction prompt, not a hitbox.* Rather than a pixel-accurate
+    click target on the SVG (awkward for keyboard; WebKit's focus behaviour
+    already bit us on the test matrix), a real HTML `<button>` styled as a
+    **videogame NPC interaction prompt** sits near the figure and starts the
+    dialogue. Keyboard-native by construction, and more videogame besides.
+
+  **Shape:**
+  - `HoodedFigure.astro` — the figure authored **once**, rendered into all
+    three scene SVGs (standard / wide / tall) at variant-appropriate
+    transforms. Living inside the artwork's coordinate space gives exact
+    alignment under `meet` letterboxing for free. Fills are literal and
+    theme-independent; classes, not IDs, so three copies can coexist.
+  - Camera: `.stage-frame` (overflow hidden) wrapping `.camera`, which takes
+    `transform: translate() scale()` computed in JS from the *visible* figure's
+    measured rect (head-and-shoulders framing), expo-out
+    `cubic-bezier(0.16, 1, 0.3, 1)`. Compositor-only, per research #1.
+  - Dialogue card hidden until approach — **by a class JS adds on init**, never
+    by default CSS, so the no-JS path keeps working exactly as today.
+  - Three exits: an on-screen "End dialogue" control, Escape, and any dialogue
+    option Caveshen later writes back out. No new dialogue nodes invented here.
+
+  **Success criteria (verifiable):**
+  1. Unit: the camera-transform maths is a pure exported function with tests
+     (stage rect + figure rect + scale → translate), so it isn't only e2e-covered.
+  2. On load with JS: card not visible; the approach prompt is visible and has
+     an accessible name.
+  3. Approaching shows the card, applies a non-identity camera transform, and
+     hides the prompt.
+  4. The prompt is reachable by Tab and activates with both Enter and Space.
+  5. After approach, focus lands on the first dialogue option.
+  6. "End dialogue" and Escape each return to the wide shot: card hidden,
+     transform back to none, prompt visible **and focused**.
+  7. Under `prefers-reduced-motion: reduce` the camera jump-cuts (transition
+     duration 0s).
+  8. Toggling day↔night leaves the figure's computed fills **unchanged**
+     (the character never changes with the theme — §14 ambition).
+  9. All 75 existing e2e tests and 47 unit tests still pass, unmodified.
+  10. No-JS: card visible and the `/sheet` path still reachable (criterion 1).
+  11. Lighthouse holds 100/100/100/100 on `/`.
+  12. No new dependencies, no generated assets, no PII; invented copy carries
+      `PLACEHOLDER`.
+
+  **Non-goals:** real character art; any change to the locked scene
+  composition; new dialogue nodes (Caveshen's copy); sound.
+
 Parallel, non-worker: ~~Claude drafts the ATS CV~~ (✅ approved & rendered
 2026-07-16 — see §7); Caveshen writes the real dialogue script and sheet copy.
 
@@ -445,6 +501,18 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
   re-run rather than patch.
 
 ## 14. Amendments log
+
+- **2026-07-21 — LANDING v2 ACCEPTED FOR BUILD (P4, item/landing-v2-avatar).**
+  Caveshen gave the go to build the workshopped mock for real. Full item spec,
+  rulings and success criteria in §9 (P4). Two decisions taken today: the
+  locked scene art is **not** touched (figure cropped at the frame's bottom
+  edge rather than gaining a promenade to stand on), and the interaction is a
+  **videogame-style NPC prompt button** near the figure rather than a hitbox on
+  the SVG — his suggestion, and better than either option offered: it is
+  keyboard-native, engine-safe, and reads as a game affordance. Also noted
+  while reading the code: the real page is *three* art-directed scene SVGs, not
+  the mock's single stage, so the figure is authored once as an Astro component
+  and rendered into each.
 
 - **2026-07-21 — LANDING v2 PLACEHOLDER: MOCK CONVERGED (agreed look, still
   mock-only).** After several workshop rounds on the artifact mock, the

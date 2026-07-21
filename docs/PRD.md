@@ -889,3 +889,49 @@ unaffected.
 **Status:** NOT yet ruled a bug. The cap may be deliberate line-length
 hygiene. Deciding to let the wide scene go full-bleed is a design decision
 for Caveshen, not a defect fix — resolve the ruling before touching it.
+
+---
+
+## 16. Proposed item — visual validation in e2e (NOT ACCEPTED, intent only)
+
+Raised by Caveshen 2026-07-22. **Recorded as intent only — no design, no
+research, no build.** Work starts fresh in a later session, on his go.
+
+### The problem
+
+The test suite cannot see composition faults. It has now missed them four
+separate times on this project, most recently §15 D1/D2/D3 — all three found
+by a human looking at screenshots *after* 757 tests went green. The suite
+guards logic (does it render, is it focusable, does the transform apply);
+nothing guards whether the result looks right. Every composition fault so
+far has been caught by eye, and eyes do not run in CI.
+
+### The constraint (this is the interesting part)
+
+The standard answer — golden-image / snapshot testing, e.g. Playwright's
+`toHaveScreenshot()` — is **explicitly rejected**. Caveshen's requirement:
+no solution whose disk footprint grows with test coverage. Baseline images
+across an 8-project tri-engine matrix, re-baselined on every deliberate art
+change, would commit a churning binary blob to the repo permanently. The ad
+hoc screenshot passes used during the landing-v2 workshop are the same
+problem in manual form and are not to become routine.
+
+### Working hypothesis (to evaluate, NOT a decision)
+
+Assert **geometry and relationships**, not pixels. All three §15 defects are
+statements about boxes: does the prompt's rect intersect the figure's; does
+the card cover the point the camera framed; does the scene fill the viewport
+it was authored for. The Table Mountain 2.4194 invariant is already this
+shape and, once corrected to screen space, it works. Costs no disk, is
+deterministic across engines, and fails with a number a human can read.
+
+Open for the session that takes this on: whether geometric invariants cover
+enough of the risk on their own, or whether something cheap and lossy (a
+perceptual hash, a coarse checksum) earns its place alongside them. Neither
+is decided.
+
+### Acceptance shape
+
+Whatever is chosen must catch a re-introduction of §15 D1 and D2, run in the
+existing CI matrix without a meaningful time penalty, and add no artefact to
+the repo that grows as tests are added.

@@ -53,15 +53,18 @@ test('toggle is first in tab order and keyboard-operable', async ({ page }) => {
 });
 
 test('choice buttons are next in tab order after toggle', async ({ page }) => {
+  // P4: toggle → approach prompt → approach → first choice (card hidden on load)
   await page.keyboard.press('Tab'); // toggle
-  await page.keyboard.press('Tab'); // first choice button
+  await page.keyboard.press('Tab'); // approach prompt
+  await page.keyboard.press('Enter'); // approach — engine focuses first choice (SC5)
   await expect(page.locator('#choices button').first()).toBeFocused();
 });
 
 test('full keyboard dialogue playthrough', async ({ page }) => {
-  // Tab to first choice, activate it
-  await page.keyboard.press('Tab');
-  await page.keyboard.press('Tab');
+  // P4: approach first, then play through the dialogue by keyboard
+  await page.keyboard.press('Tab'); // toggle
+  await page.keyboard.press('Tab'); // approach prompt
+  await page.keyboard.press('Enter'); // approach — engine focuses first choice (SC5)
   await expect(page.locator('#choices button').first()).toBeFocused();
 
   const rootSpeech = await page.locator('#speech').textContent();
@@ -102,6 +105,8 @@ test('blink animation absent under prefers-reduced-motion', async ({ page }) => 
 test('dialogue content updates immediately under reduced-motion (no fade delay)', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.reload();
+  // P4: approach first (card is hidden on load), then interact with choices
+  await page.locator('#approach-prompt').click();
   await page.locator('#choices button').first().click();
   // Opacity should be 1 immediately — no fade delay
   const opacity = await page.locator('#speech').evaluate(el =>
@@ -155,9 +160,13 @@ test('portrait phone (390×844) shows scene-tall, card below scene', async ({ pa
   await expect(page.locator('.scene-tall')).toBeVisible();
   await expect(page.locator('.scene-standard')).not.toBeVisible();
   await expect(page.locator('.scene-wide')).not.toBeVisible();
-  // card must start at or below the bottom of the scene (no overlap)
+  // Measure scene before approach: camera zoom would shift the scene's BCR,
+  // but the card's DOM position (outside the camera) is fixed regardless.
   const sceneBound = await page.locator('.scene-tall').boundingBox();
+  // P4: approach to reveal the card, then measure its position
+  await page.locator('#approach-prompt').click();
   const cardBound  = await page.locator('.card').boundingBox();
+  // card must start at or below the bottom of the scene (no overlap)
   expect(cardBound.y).toBeGreaterThanOrEqual(sceneBound.y + sceneBound.height - 1);
 });
 
@@ -166,7 +175,11 @@ test('portrait tablet (768×1024) shows scene-tall, card below scene', async ({ 
   await page.goto('/');
   await expect(page.locator('.scene-tall')).toBeVisible();
   await expect(page.locator('.scene-standard')).not.toBeVisible();
+  // Measure scene before approach: camera zoom would shift the scene's BCR,
+  // but the card's DOM position (outside the camera) is fixed regardless.
   const sceneBound = await page.locator('.scene-tall').boundingBox();
+  // P4: approach to reveal the card, then measure its position
+  await page.locator('#approach-prompt').click();
   const cardBound  = await page.locator('.card').boundingBox();
   expect(cardBound.y).toBeGreaterThanOrEqual(sceneBound.y + sceneBound.height - 1);
 });

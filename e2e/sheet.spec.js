@@ -48,6 +48,8 @@ test('no-JS: / noscript link navigates to /sheet with real content', async ({ br
 
 test('recruiter path: / → /sheet in 1 click via system option', async ({ page }) => {
   await page.goto('/');
+  // P4: card is hidden on load — approach the figure to reveal dialogue choices
+  await page.locator('#approach-prompt').click();
   // Dialogue engine renders the system option (JS required; page uses JS by default)
   await expect(page.locator('#choices button.system')).toBeVisible();
   await page.locator('#choices button.system').click();

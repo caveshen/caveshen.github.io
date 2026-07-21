@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import ThemeToggle from '../components/ThemeToggle.astro';
+import HoodedFigure from '../components/HoodedFigure.astro';
 import tree from '../data/dialogue.json';
 const root = tree.root;
 ---
@@ -10,6 +11,10 @@ const root = tree.root;
 >
   <!-- Toggle: first in DOM so it's first in tab order -->
   <ThemeToggle />
+
+  <!-- stage-frame: overflow:hidden clips the camera zoom; .camera carries the transform -->
+  <div class="stage-frame">
+  <div class="camera">
 
   <svg class="scene scene-standard" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMax meet" role="img"
        aria-label="Flat illustration of Table Mountain, Lion's Head and Signal Hill behind the Cape Town city skyline, by night or day">
@@ -92,6 +97,8 @@ const root = tree.root;
       <rect x="900" y="360" width="60" height="3" rx="1.5" fill="var(--celestial)" opacity="0.35" />
       <rect x="915" y="372" width="34" height="3" rx="1.5" fill="var(--celestial)" opacity="0.2" />
     </g>
+    <!-- figure: right foreground, cropped at bottom edge; moon sits over left shoulder -->
+    <HoodedFigure x={1060} y={200} scale={1.3} />
   </svg>
 
   <!-- ============ WIDE (~21:9) — the trio trails off right of the city, ending under the moon/sun ============ -->
@@ -154,6 +161,8 @@ const root = tree.root;
       <rect x="1870" y="360" width="60" height="3" rx="1.5" fill="var(--celestial)" opacity="0.35"/>
       <rect x="1885" y="372" width="34" height="3" rx="1.5" fill="var(--celestial)" opacity="0.2"/>
     </g>
+    <!-- figure: right foreground, clear of buildings (end ~x1600); moon at (1900,95) to upper-left -->
+    <HoodedFigure x={2200} y={200} scale={1.3} />
   </svg>
 
   <!-- ============ TALL (~9:16 / portrait) — re-cropped: big sky, Table Mountain + Lion's Head ============ -->
@@ -201,7 +210,22 @@ const root = tree.root;
       <rect x="400" y="716" width="56" height="3" rx="1.5" fill="var(--celestial)" opacity="0.35"/>
       <rect x="414" y="732" width="32" height="3" rx="1.5" fill="var(--celestial)" opacity="0.2"/>
     </g>
+    <!-- figure: right foreground, larger scale for tall composition; moon at (440,140) upper-left -->
+    <HoodedFigure x={480} y={400} scale={2.5} />
   </svg>
+
+  </div><!-- /.camera -->
+
+  <!--
+    Approach prompt: a real <button> styled as a videogame NPC interaction prompt.
+    Hidden by default (revealed by JS on init); JS also hides it after approach.
+    Position is approximate right-foreground; JS places it near the measured figure.
+  -->
+  <button class="approach-prompt" id="approach-prompt" hidden>
+    PLACEHOLDER: Approach the hooded figure
+  </button>
+
+  </div><!-- /.stage-frame -->
 
   <main class="card">
     <div class="card-head">
@@ -223,6 +247,12 @@ const root = tree.root;
       <p class="speech" id="speech">{root.speech}</p>
     </div>
     <ul class="choices" id="choices"></ul>
+    <!--
+      End dialogue: hidden by default (JS reveals on approach, hides on exit).
+      Styled like the .system options. With JS off this stays hidden — no camera
+      to exit, so no exit control needed in the no-JS path.
+    -->
+    <button class="end-dialogue" id="end-dialogue" hidden>PLACEHOLDER: End dialogue ✕</button>
     <noscript>
       <p class="noscript-note">
         <a href="/sheet">Open the character sheet &rarr;</a>
@@ -237,6 +267,98 @@ const root = tree.root;
   /* Night/day layer visibility — driven by :root[data-time] */
   :root[data-time="day"] .night-only          { display: none; }
   :root:not([data-time="day"]) .day-only      { display: none; }
+
+  /* ── P4: stage-frame + camera ────────────────────────────────────────────── */
+  /* ponytail: stage-frame is position:relative which makes it a positioned element
+     that stacks AFTER the toggle (which comes earlier in DOM), so stage-frame's
+     bounding box physically covers the toggle area and intercepts its clicks.
+     pointer-events:none on stage-frame makes it fully transparent to events;
+     .approach-prompt re-enables them only where the interactive button lives. */
+  .stage-frame {
+    position: relative;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .camera {
+    transform-origin: 0 0;
+    will-change: transform;
+    transition: transform 950ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .camera { transition: none; }
+  }
+
+  /* ── P4: approach prompt button ──────────────────────────────────────────── */
+  .approach-prompt {
+    position: absolute;
+    pointer-events: auto; /* re-enable: stage-frame has pointer-events:none */
+    /* JS overrides left/top after measuring the visible figure; CSS is fallback */
+    right: 10%;
+    bottom: 38%;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    color: var(--text);
+    background: rgba(10, 8, 22, 0.55);
+    border: 1px solid rgba(233, 226, 207, 0.22);
+    border-radius: 999px;
+    padding: 0.35rem 0.75rem;
+    cursor: pointer;
+    backdrop-filter: blur(3px);
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+  .approach-prompt:hover,
+  .approach-prompt:focus-visible {
+    color: var(--btn-hover-text);
+    border-color: var(--btn-hover-border);
+    background: rgba(10, 8, 22, 0.75);
+  }
+  .approach-prompt:focus-visible {
+    outline: 2px solid var(--btn-hover-border);
+    outline-offset: 2px;
+  }
+  /* Day theme: lighter glass-morphism */
+  :root[data-time="day"] .approach-prompt {
+    background: rgba(253, 251, 245, 0.65);
+    border-color: rgba(37, 48, 56, 0.22);
+  }
+  :root[data-time="day"] .approach-prompt:hover,
+  :root[data-time="day"] .approach-prompt:focus-visible {
+    background: rgba(253, 251, 245, 0.88);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .approach-prompt { transition: none; }
+  }
+
+  /* ── P4: end-dialogue button (inside .card; styled like .system options) ── */
+  .end-dialogue {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    color: var(--dim);
+    background: transparent;
+    border: 1.5px dashed var(--option-border);
+    border-radius: 999px;
+    padding: 0.65rem 1.2rem;
+    cursor: pointer;
+    margin-top: 0.75rem;
+    transition: color 0.12s ease, border-color 0.12s ease;
+  }
+  .end-dialogue:hover,
+  .end-dialogue:focus-visible {
+    color: var(--stage);
+    border-color: var(--stage);
+    background: transparent;
+  }
+  .end-dialogue:focus-visible {
+    outline: 2px solid var(--stage);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .end-dialogue { transition: none; }
+  }
 
   /* Scene SVG */
   .scene {
@@ -397,11 +519,19 @@ const root = tree.root;
 
 <script>
   import { initEngine } from '../scripts/dialogue.js';
+  import { computeCameraTransform } from '../scripts/camera.js';
   import tree from '../data/dialogue.json';
 
-  const speechEl  = document.getElementById('speech');
-  const stageEl   = document.getElementById('stage');
-  const choicesEl = document.getElementById('choices');
+  const speechEl    = document.getElementById('speech');
+  const stageEl     = document.getElementById('stage');
+  const choicesEl   = document.getElementById('choices');
+  const card        = document.querySelector('.card') as HTMLElement;
+  const camera      = document.querySelector('.camera') as HTMLElement;
+  const stageFrame  = document.querySelector('.stage-frame') as HTMLElement;
+  const approachBtn = document.getElementById('approach-prompt') as HTMLButtonElement;
+  const endDlgBtn   = document.getElementById('end-dialogue') as HTMLButtonElement;
+
+  // ── Dialogue engine ───────────────────────────────────────────────────────
 
   const render = initEngine(
     tree,
@@ -411,4 +541,84 @@ const root = tree.root;
 
   // Initial render is immediate — static content is already in place from SSR.
   render('root', true);
+
+  // ── P4: progressive enhancement — hide card, reveal approach prompt ───────
+  // The `hidden` attribute is added here, never in default CSS, so the no-JS
+  // path keeps the card visible exactly as before.
+  card.hidden = true;
+  approachBtn.hidden = false;
+
+  // Position the prompt near the visible figure's measured location in screen space.
+  function positionPrompt() {
+    const figEl = [...document.querySelectorAll('.hooded-figure')]
+      .find((el) => el.getBoundingClientRect().width > 0) as SVGElement | undefined;
+    if (!figEl) return;
+    const sf  = stageFrame.getBoundingClientRect();
+    const fig = figEl.getBoundingClientRect();
+    // Centre the button on the figure, ~10% down from the top of the figure
+    const left = (fig.left + fig.width  / 2) - sf.left;
+    const top  = (fig.top  - sf.top) + fig.height * 0.1;
+    approachBtn.style.left      = `${left}px`;
+    approachBtn.style.top       = `${top}px`;
+    approachBtn.style.right     = 'auto';
+    approachBtn.style.bottom    = 'auto';
+    approachBtn.style.transform = 'translateX(-50%)';
+  }
+  positionPrompt();
+  window.addEventListener('resize', positionPrompt, { passive: true });
+
+  // ── Camera zoom ───────────────────────────────────────────────────────────
+
+  let approached = false;
+
+  function approach() {
+    if (approached) return;
+    approached = true;
+
+    // Show card, hide prompt
+    card.hidden    = false;
+    endDlgBtn.hidden = false;
+    approachBtn.hidden = true;
+
+    // Measure the visible figure and compute the camera transform
+    const figEl = [...document.querySelectorAll('.hooded-figure')]
+      .find((el) => el.getBoundingClientRect().width > 0) as SVGElement | undefined;
+    if (figEl) {
+      const sf  = stageFrame.getBoundingClientRect();
+      const fig = figEl.getBoundingClientRect();
+      const scale = 2.2;
+      const { tx, ty } = computeCameraTransform({ stage: sf, figure: fig, scale });
+      camera.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+    }
+
+    // Focus the first dialogue option (SC5)
+    const firstChoice = choicesEl.querySelector('button') as HTMLButtonElement | null;
+    firstChoice?.focus();
+  }
+
+  function exit() {
+    if (!approached) return;
+    approached = false;
+
+    // Restore state
+    card.hidden    = true;
+    endDlgBtn.hidden = true;
+    approachBtn.hidden = false;
+    camera.style.transform = 'none';
+
+    // Return focus to the approach prompt (SC6)
+    approachBtn.focus();
+  }
+
+  // ── Event wiring ─────────────────────────────────────────────────────────
+
+  approachBtn.addEventListener('click', approach);
+  endDlgBtn.addEventListener('click', exit);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && approached) {
+      e.preventDefault();
+      exit();
+    }
+  });
 </script>

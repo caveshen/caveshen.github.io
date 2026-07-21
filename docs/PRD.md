@@ -514,6 +514,39 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
 
 ## 14. Amendments log
 
+- **2026-07-21 — SCENE RESTAGE RULED (supersedes the P4 staging).** The first
+  P4 build put the figure into the shipped Sample C composition and it did not
+  work: the figure read as "a postbox on stilts" standing on the sea, and with
+  the card hidden the page collapsed into empty background. Caveshen's
+  diagnosis, and it is the right one: Sample C was composed as a **letterbox
+  strip you look at, with a card underneath** (`clamp(220px, 38vh, 380px)`),
+  whereas the workshopped mock was composed as **a place you stand in**. A
+  character who walks up and talks to you needs the second. Grafting a person
+  into a 3:1 vista strip was never going to hold.
+
+  **Ruling — Sample C's *content*, the mock's *staging*:**
+  - Cape Town **survives**. The trio (Table Mountain, Lion's Head, Signal Hill)
+    and the city bowl carry over, as do the palette and the time-of-day toggle.
+    The alternative — adopting the mock's backdrop wholesale — was rejected:
+    that backdrop was a twenty-minute throwaway stand-in with no landforms, and
+    taking it literally would have deleted Cape Town from the portfolio.
+  - Restaged into the mock's format: a **full-height stage** rather than a
+    strip, a **foreground ground plane** for the figure to stand on, figure at
+    human scale, camera zoom. This **reverses the "no scene art change" ruling**
+    taken earlier the same day — the promenade band Caveshen declined becomes
+    the natural answer once the composition is open for renovation.
+  - **All three aspect variants stay**: standard (most users), wide 21:9, tall
+    portrait (mobile). Each gets restaged; none is collapsed or deleted.
+  - The current Sample C strip composition goes on the **backburner, not the
+    bin** — Caveshen expects it back "with a vengeance" for a different scene
+    serving a different purpose elsewhere on the site. Do not delete it.
+
+  **Process:** workshop the restaged scene as a throwaway artifact mock FIRST,
+  as Sample C and the character sheet both were, then port on approval. The
+  interaction layer already built (`da579cd` — figure component, camera maths,
+  approach/exit wiring, tests) is composition-agnostic and carries forward
+  unchanged; only the backdrop and page layout are in scope.
+
 - **2026-07-21 — LANDING v2 ACCEPTED FOR BUILD (P4, item/landing-v2-avatar).**
   Caveshen gave the go to build the workshopped mock for real. Full item spec,
   rulings and success criteria in §9 (P4). Two decisions taken today: the

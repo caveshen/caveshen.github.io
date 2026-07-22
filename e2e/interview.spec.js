@@ -264,12 +264,18 @@ for (const vp of [
 
 // Reviewer follow-up 1b — positionPrompt()'s beside-the-figure fallback (the
 // "not enough headroom above the head" branch) sets top but never clamped
-// left/right, so it could leave .stage-frame. At 240×160 the standard-variant
+// left/right, so it could leave .stage-frame. At 240×280 the standard-variant
 // stage-frame is small enough (150px tall) that the headroom above the head
 // is less than the gap + button height, forcing the fallback branch — proven
 // by the same overlap check above still holding at this size.
-test('beside-the-figure fallback keeps the prompt inside the stage frame — forced narrow viewport (240×160)', async ({ page }) => {
-  await page.setViewportSize({ width: 240, height: 160 });
+// PRD §17.1a: height was raised from 160 to 280 — under the new height-limited
+// max-width formula, 160px of viewport height is mostly eaten by the 120px
+// reserve, producing a degenerate ~64px-wide frame that's smaller than the
+// prompt button itself (a frame no real window would ever present at this
+// aspect). 280px keeps the same 240×150 frame this test was written against,
+// by staying in the width-bound branch of the formula (100% < height-formula).
+test('beside-the-figure fallback keeps the prompt inside the stage frame — forced narrow viewport (240×280)', async ({ page }) => {
+  await page.setViewportSize({ width: 240, height: 280 });
   await page.goto('/');
   const promptBox = await page.locator('#approach-prompt').boundingBox();
   const frameBox  = await page.locator('.stage-frame').boundingBox();
@@ -299,16 +305,13 @@ test('ultra-wide (2560×1080) has no page scroll, vertical or horizontal', async
   expect(overflow.h).toBe(false);
 });
 
-// Current-behaviour baseline, captured from the build before this change —
-// standard and portrait must render byte-identically; this change must be
-// invisible outside ultra-wide.
-test('standard desktop (1920×1080) stage-frame geometry is unchanged', async ({ page }) => {
-  await page.setViewportSize({ width: 1920, height: 1080 });
-  await page.goto('/');
-  const box = await page.locator('.stage-frame').boundingBox();
-  expect(box.width).toBeCloseTo(1200, 0);
-  expect(box.height).toBeCloseTo(750, 0);
-});
+// PRD §17.1a SUPERSEDES the test that used to live here ("standard desktop
+// stage-frame geometry is unchanged", asserting 1200×750). That baseline was
+// captured for §17.1, which scoped the height-limited fit to the wide variant
+// only — §17.1a rules that scoping wrong: it left ordinary 16:9 desktops in
+// exactly the top-strip state §17.1 was meant to fix. The standard variant's
+// geometry is *supposed* to change now; the tests below assert the new,
+// accepted target instead of the old one.
 
 test('portrait phone (390×844) stage-frame geometry is unchanged', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -316,6 +319,82 @@ test('portrait phone (390×844) stage-frame geometry is unchanged', async ({ pag
   const box = await page.locator('.stage-frame').boundingBox();
   expect(box.width).toBeCloseTo(390, 0);
   expect(box.height).toBeCloseTo(693.5, 0);
+});
+
+// Wide variant (2560×1080) baseline, captured from the §17.1-built code
+// before §17.1a — the wide variant is explicitly out of scope for §17.1a and
+// must render byte-identically.
+test('wide (2560×1080) stage-frame geometry is unchanged by §17.1a', async ({ page }) => {
+  await page.setViewportSize({ width: 2560, height: 1080 });
+  await page.goto('/');
+  const box = await page.locator('.stage-frame').boundingBox();
+  expect(box.width).toBeCloseTo(2240, 0);
+  expect(box.height).toBeCloseTo(960, 0);
+});
+
+// ── PRD §17.1a — standard variant gets the height-limited fit too ───────────
+
+test('standard desktop (1920×1080) stage-frame is ≥80% of viewport width', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto('/');
+  const box = await page.locator('.stage-frame').boundingBox();
+  expect(box.width).toBeGreaterThanOrEqual(1920 * 0.8);
+});
+
+// The old top-aligned layout let ALL slack pool below the footer — at
+// 1920×1080 under the old 1200px cap that was ~214px of dead space between
+// the footer and the viewport bottom. The height-limited max-width mostly
+// closes that gap by itself (the stage grows to use the freed budget); the
+// centring is what accounts for whatever small remainder is left, splitting
+// it instead of dumping it all below. Assert the pooled gap stays small
+// (bounded well under the old ~214px) rather than exact pixel symmetry
+// between two edges that carry different fixed margins (stage-frame's 1rem
+// top vs the footer's own 2.5rem bottom) by design.
+test('standard desktop (1920×1080) has no dead space pooled below the footer', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto('/');
+  const gapBelowFooter = await page.evaluate(() => {
+    const foot = document.querySelector('.page-foot').getBoundingClientRect();
+    return window.innerHeight - foot.bottom;
+  });
+  expect(gapBelowFooter).toBeLessThan(60);
+});
+
+// §17.1a centring guard. At 16:9 the height-limited fit already fills almost
+// the whole height, so centring only nudges the frame a few px and no test can
+// tell it from top-aligned there (that gap is why this test exists). Centring
+// is only *measurable* when the standard-aspect frame leaves real vertical
+// slack — i.e. a tall-but-still-standard window. At 1200×1400 the frame is
+// 750 tall in 1400px: centred splits the ~590px slack ≈283 above / ≈307 below;
+// top-aligned would be 16 above / ≈574 below. Assert the split is roughly even
+// — this FAILS (558px asymmetry) the moment the centring rule is removed.
+test('standard-aspect frame is vertically centred when the window leaves slack', async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 1400 }); // aspect 0.857 → standard variant
+  await page.goto('/');
+  await expect(page.locator('.scene-standard')).toBeVisible();
+  const { gapAbove, gapBelowFooter } = await page.evaluate(() => {
+    const f = document.querySelector('.stage-frame').getBoundingClientRect();
+    const foot = document.querySelector('.page-foot').getBoundingClientRect();
+    return { gapAbove: f.top, gapBelowFooter: window.innerHeight - foot.bottom };
+  });
+  // Both gaps are large (proves it's not top-aligned) and near-symmetric.
+  expect(gapAbove).toBeGreaterThan(150);
+  expect(Math.abs(gapAbove - gapBelowFooter)).toBeLessThan(80);
+});
+
+test.describe('no page scroll at 1920×1080 and 2560×1440', () => {
+  for (const vp of [{ width: 1920, height: 1080 }, { width: 2560, height: 1440 }]) {
+    test(`${vp.width}×${vp.height}`, async ({ page }) => {
+      await page.setViewportSize(vp);
+      await page.goto('/');
+      const overflow = await page.evaluate(() => ({
+        v: document.documentElement.scrollHeight > document.documentElement.clientHeight,
+        h: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+      }));
+      expect(overflow.v).toBe(false);
+      expect(overflow.h).toBe(false);
+    });
+  }
 });
 
 // D2 — the zoomed face must clear the dialogue card that overlays it.
@@ -335,6 +414,142 @@ for (const vp of [
     expect(rectsIntersect(faceBox, cardBox)).toBe(false);
   });
 }
+
+// ── PRD §18 — fullscreen toggle button ───────────────────────────────────────
+// Real OS fullscreen is unreliable/vacuous in a headless matrix (PRD's own
+// testing note), so these assert what's deterministic: presence/position/
+// labelling, geometric non-occlusion, the click→requestFullscreen wiring
+// (stubbed), the fullscreenchange→label/glyph sync (simulated, not real
+// fullscreen), honest degradation, and the no-JS path.
+
+// These tests force fullscreenEnabled=true up front — real support varies by
+// engine/platform (notably WebKit on iOS-style devices, honestly absent
+// there per the dedicated degrade test below), and the button's own
+// position/focusability/non-occlusion are independent of that, so they
+// should hold across the whole matrix rather than only where the platform
+// happens to support the real API.
+async function forceFullscreenEnabled(page) {
+  await page.addInitScript(() => {
+    Object.defineProperty(document, 'fullscreenEnabled', { get: () => true });
+  });
+}
+
+test('fullscreen button is present, near the bottom-right corner, with an accessible label', async ({ page }) => {
+  await forceFullscreenEnabled(page);
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto('/');
+  const btn = page.locator('#fullscreen-toggle');
+  await expect(btn).toBeVisible();
+  await expect(btn).toHaveAttribute('aria-label', 'Enter fullscreen');
+  const box   = await btn.boundingBox();
+  // "Bottom-right of the screen" — measured against .stage-frame, not the
+  // raw viewport: the button lives inside .stage-frame (it must, to stay
+  // visible/operable once real fullscreen is entered — see the markup
+  // comment), and outside fullscreen the frame is ~80% of viewport width by
+  // design (PRD §17.1a), not edge-to-edge. Its corner IS the screen's corner
+  // the moment fullscreen is actually entered.
+  const frame = await page.locator('.stage-frame').boundingBox();
+  expect(box.x + box.width).toBeGreaterThan(frame.x + frame.width - 100);
+  expect(box.y + box.height).toBeGreaterThan(frame.y + frame.height - 100);
+});
+
+test('fullscreen button is keyboard-focusable with a visible outline', async ({ page }) => {
+  await forceFullscreenEnabled(page);
+  await page.goto('/');
+  await page.locator('#fullscreen-toggle').focus();
+  await expect(page.locator('#fullscreen-toggle')).toBeFocused();
+  const outlineStyle = await page.evaluate(() =>
+    window.getComputedStyle(document.activeElement).outlineStyle
+  );
+  expect(outlineStyle).not.toBe('none');
+});
+
+// Non-occlusion (§16 hypothesis, geometrically assertable) across all three
+// aspect variants, against whichever of {approach prompt, card} is on screen.
+for (const vp of [
+  { name: 'wide (2560×1080)',     width: 2560, height: 1080 },
+  { name: 'standard (1920×1080)', width: 1920, height: 1080 },
+  { name: 'tall (390×844)',       width: 390,  height: 844  },
+]) {
+  test(`fullscreen button does not overlap the figure, prompt, or card — ${vp.name}`, async ({ page }) => {
+    await forceFullscreenEnabled(page);
+    await page.setViewportSize({ width: vp.width, height: vp.height });
+    await page.goto('/');
+    const btnBox = await page.locator('#fullscreen-toggle').boundingBox();
+    const figureBox = await visibleRect(page, '.hooded-figure');
+    expect(rectsIntersect(btnBox, figureBox)).toBe(false);
+    const promptBox = await page.locator('#approach-prompt').boundingBox();
+    expect(rectsIntersect(btnBox, promptBox)).toBe(false);
+
+    await page.locator('#approach-prompt').click();
+    const cardBox = await page.locator('.card').boundingBox();
+    expect(rectsIntersect(btnBox, cardBox)).toBe(false);
+  });
+}
+
+test('clicking the fullscreen button calls requestFullscreen on the stage', async ({ page }) => {
+  // Stub before any page script runs. fullscreenEnabled is also forced true
+  // here — real support varies by engine/platform (notably WebKit on iOS-
+  // style devices, which the matrix includes and which honestly degrades,
+  // per its own dedicated test below) — this test is only about the click
+  // wiring, so it shouldn't depend on a given project's real API support.
+  await page.addInitScript(() => {
+    window.__rfCalls = 0;
+    Object.defineProperty(document, 'fullscreenEnabled', { get: () => true });
+    Element.prototype.requestFullscreen = function () {
+      window.__rfCalls += 1;
+      return Promise.resolve();
+    };
+  });
+  await page.goto('/');
+  await page.locator('#fullscreen-toggle').click();
+  const calls = await page.evaluate(() => window.__rfCalls);
+  expect(calls).toBe(1);
+});
+
+test('a simulated fullscreenchange event flips the glyph and aria-label — including the Escape path', async ({ page }) => {
+  // No real OS fullscreen involved: document.fullscreenElement is stubbed to
+  // a settable flag, and fullscreenchange is dispatched by hand. This proves
+  // the *handler*, independent of whether the browser can truly go
+  // fullscreen headless — and covers leaving via Escape (which never calls
+  // the button's own click handler, only fires the event).
+  await page.addInitScript(() => {
+    window.__fsEl = null;
+    Object.defineProperty(document, 'fullscreenEnabled', { get: () => true });
+    Object.defineProperty(document, 'fullscreenElement', { get: () => window.__fsEl });
+  });
+  await page.goto('/');
+  const btn = page.locator('#fullscreen-toggle');
+  await expect(btn).toHaveAttribute('aria-label', 'Enter fullscreen');
+
+  await page.evaluate(() => {
+    window.__fsEl = document.querySelector('.stage-frame');
+    document.dispatchEvent(new Event('fullscreenchange'));
+  });
+  await expect(btn).toHaveAttribute('aria-label', 'Exit fullscreen');
+
+  await page.evaluate(() => {
+    window.__fsEl = null; // simulates Escape, not a click on our button
+    document.dispatchEvent(new Event('fullscreenchange'));
+  });
+  await expect(btn).toHaveAttribute('aria-label', 'Enter fullscreen');
+});
+
+test('fullscreenEnabled=false: the button is never revealed', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(document, 'fullscreenEnabled', { get: () => false });
+  });
+  await page.goto('/');
+  await expect(page.locator('#fullscreen-toggle')).not.toBeVisible();
+});
+
+test('no-JS: fullscreen button is absent', async ({ browser }) => {
+  const ctx  = await browser.newContext({ javaScriptEnabled: false });
+  const page = await ctx.newPage();
+  await page.goto('/');
+  await expect(page.locator('#fullscreen-toggle')).not.toBeVisible();
+  await ctx.close();
+});
 
 // ── PRD §21 — camera zoom easing, split by direction ──────────────────────────
 

@@ -28,6 +28,7 @@ const FIG = {
 <Base
   title="The Interview — Caveshen Rajman"
   description="PLACEHOLDER — Caveshen Rajman's interactive portfolio. An adventure-game-styled CV for games industry and tech contacts."
+  bodyClass="stage-page"
 >
   <!-- Toggle: first in DOM so it's first in tab order -->
   <ThemeToggle />
@@ -241,6 +242,23 @@ const FIG = {
     </noscript>
   </main>
 
+  <!--
+    Fullscreen toggle (PRD §18 / §17.2 — one control, and it is fullscreen).
+    Lives INSIDE .stage-frame, not as a body-level sibling like ThemeToggle —
+    the Fullscreen API only keeps descendants of the fullscreened element
+    visible/interactive, so it has to be one to still be clickable (and to
+    exit via a second click) once fullscreen is active.
+    Hidden by default, same spirit as the approach prompt: JS unhides it only
+    if the Fullscreen API is actually usable (degrade honestly), so a no-JS
+    or unsupported-API visitor never sees a dead button.
+  -->
+  <button class="fullscreen-toggle" id="fullscreen-toggle" hidden aria-label="Enter fullscreen">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M4 9V4H9M15 4H20V9M20 15V20H15M9 20H4V15" />
+    </svg>
+  </button>
+
   </div><!-- /.stage-frame -->
 
   <p class="page-foot">PLACEHOLDER — attribution line. All copy is placeholder; the real script is Caveshen's to write.</p>
@@ -261,13 +279,42 @@ const FIG = {
     position: relative;
     overflow: hidden;
     pointer-events: none;
-    max-width: 1200px;
+    /* PRD §17.1a: the standard variant gets the same height-limited fit as
+       the wide breakpoint below, so it fills the viewport on ordinary 16:9
+       windows instead of sitting capped at 1200px with slack pooling round
+       it. 1200/750 is the standard viewBox ratio; 120px is the SAME measured
+       toggle+footer reserve justified at the wide breakpoint — reused, not
+       re-derived, since the vertical budget above/below the stage doesn't
+       change with which scene is showing. */
+    max-width: min(100%, calc((100svh - 120px) * 1200 / 750));
+    /* Explicit width:100% (not the default auto) — inside the flex-centred
+       body below, auto margins on a flex item's cross axis disable stretch
+       sizing in favour of shrink-to-fit, which would collapse the frame to
+       its content's intrinsic width instead of filling out to max-width.
+       An explicit width still lets the auto margins centre the capped box —
+       this only matters once body is flex; harmless no-op in block layout. */
+    width: 100%;
     margin: 1rem auto 0;
     border-radius: 14px;
     border: 1px solid var(--card-edge);
     background: var(--sky);
     aspect-ratio: 1200 / 750;
     transition: background 0.4s ease, border-color 0.4s ease;
+  }
+  /* PRD §17.1a: the page centres the stage vertically so any leftover height
+     splits evenly above/below instead of pooling below a top-aligned stage.
+     Scoped to the standard aspect range only (the same complement the wide/
+     portrait media queries below carve out) — wide and portrait already have
+     their own sizing story and must render byte-identically to before. Flex
+     also sidesteps margin collapse on its own (flex items never collapse
+     margins with their container), so this needs no flow-root-style hack. */
+  @media (min-aspect-ratio: 4/5) and (max-aspect-ratio: 15/8) {
+    body.stage-page {
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
   }
   .camera {
     transform-origin: 0 0;
@@ -370,6 +417,80 @@ const FIG = {
   }
   @media (prefers-reduced-motion: reduce) {
     .approach-prompt { transition: none; }
+  }
+
+  /* ── PRD §18: fullscreen toggle — floating, bottom-right of the stage ─────── */
+  .fullscreen-toggle {
+    position: absolute;
+    right: 1rem;
+    bottom: 1rem;
+    pointer-events: auto; /* re-enable: stage-frame has pointer-events:none */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    color: var(--text);
+    background: rgba(10, 8, 22, 0.55);
+    border: 1px solid rgba(233, 226, 207, 0.22);
+    border-radius: 999px;
+    cursor: pointer;
+    backdrop-filter: blur(3px);
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+  /* display:flex above is author-origin CSS, which outranks the UA
+     stylesheet's [hidden]{display:none} regardless of selector specificity —
+     left alone it would render the button even while `hidden` is set.
+     Reassert it explicitly so JS (or its absence, on the no-JS path) stays
+     the only thing that can ever reveal this button. */
+  .fullscreen-toggle[hidden] { display: none; }
+  .fullscreen-toggle:hover,
+  .fullscreen-toggle:focus-visible {
+    color: var(--btn-hover-text);
+    border-color: var(--btn-hover-border);
+    background: rgba(10, 8, 22, 0.75);
+  }
+  .fullscreen-toggle:focus-visible {
+    outline: 2px solid var(--btn-hover-border);
+    outline-offset: 2px;
+  }
+  /* Day theme: lighter glass-morphism — same treatment as the approach prompt */
+  :root[data-time="day"] .fullscreen-toggle {
+    background: rgba(253, 251, 245, 0.65);
+    border-color: rgba(37, 48, 56, 0.22);
+  }
+  :root[data-time="day"] .fullscreen-toggle:hover,
+  :root[data-time="day"] .fullscreen-toggle:focus-visible {
+    background: rgba(253, 251, 245, 0.88);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fullscreen-toggle { transition: none; }
+  }
+  /* Portrait: the dialogue card runs almost the full height of the frame
+     (min(600px,88%) wide, bottom-anchored, tall enough on a phone screen
+     that its own top edge sits well above the frame's bottom) — there is no
+     clear bottom-right corner left once the card is showing. The one band
+     that's reliably clear of the toggle above, the card below, and the
+     figure/approach-prompt in between is just under the toggle, so the
+     button moves there for this aspect only; every other variant has room
+     to spare at the literal bottom-right and is left alone. */
+  @media (max-aspect-ratio: 4/5) {
+    .fullscreen-toggle { top: 4rem; bottom: auto; }
+  }
+  /* PRD §17.2: fullscreen IS the full-window mode — the stage fills the
+     screen instead of sitting inside its framed/capped box. The scenes
+     already carry preserveAspectRatio="xMidYMax slice", so an oversized
+     stage crops rather than stretches; no new scaling strategy needed here,
+     only the frame's own box gets to be arbitrary. Explicit width/height
+     override the aspect-ratio (it only fills in a missing dimension), so no
+     separate aspect-ratio:auto override is needed. */
+  .stage-frame:fullscreen {
+    max-width: none;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    border-radius: 0;
+    border: none;
   }
 
   /* ── P4: end-dialogue button (inside .card; styled like .system options) ── */
@@ -680,6 +801,48 @@ const FIG = {
 
     // Return focus to the approach prompt (SC6)
     approachBtn.focus();
+  }
+
+  // ── Fullscreen toggle (PRD §18 / §17.2) ─────────────────────────────────────
+  // Degrade honestly: only reveal the button if the API is actually usable —
+  // an unhidden-but-dead button is worse than no button. The stage itself
+  // (not <html>) is what goes fullscreen, so the approach prompt / card /
+  // this button — all descendants of .stage-frame — stay visible and
+  // operable while fullscreen (the Fullscreen API hides everything that
+  // isn't a descendant of the fullscreened element).
+  const fsBtn = document.getElementById('fullscreen-toggle') as HTMLButtonElement;
+
+  if (document.fullscreenEnabled) {
+    fsBtn.hidden = false;
+
+    // Four-corner brackets, hand-derived rather than swapping the whole SVG:
+    // ENTER has each bracket's vertex AT the box corner, arms reaching in;
+    // EXIT mirrors it — vertex pulled inward, arms reaching back out to the
+    // same points — the standard expand/compress pairing.
+    const ENTER_D = 'M4 9V4H9M15 4H20V9M20 15V20H15M9 20H4V15';
+    const EXIT_D  = 'M4 9H9V4M20 9H15V4M20 15H15V20M4 15H9V20';
+    const fsPath  = fsBtn.querySelector('path') as SVGPathElement;
+
+    function syncFullscreenButton() {
+      const isFs = document.fullscreenElement === stageFrame;
+      fsBtn.setAttribute('aria-label', isFs ? 'Exit fullscreen' : 'Enter fullscreen');
+      fsPath.setAttribute('d', isFs ? EXIT_D : ENTER_D);
+    }
+
+    fsBtn.addEventListener('click', () => {
+      if (document.fullscreenElement === stageFrame) {
+        document.exitFullscreen();
+      } else {
+        // Refused/unavailable at click time (e.g. permission policy) — fail
+        // quietly rather than an unhandled rejection; the button simply
+        // stays in its current state, which fullscreenchange keeps honest.
+        stageFrame.requestFullscreen().catch(() => {});
+      }
+    });
+
+    // Must stay correct when the user leaves fullscreen via Escape rather
+    // than the button — fullscreenchange covers both paths (PRD §18 AC2).
+    document.addEventListener('fullscreenchange', syncFullscreenButton);
   }
 
   // ── Event wiring ─────────────────────────────────────────────────────────

@@ -1053,8 +1053,28 @@ worse interface than one. Three ways to resolve it, undecided:
 - Fullscreen only, and let §17.2's full-window mode *be* what fullscreen
   does — simplest, and probably the laziest thing that works.
 
-Caveshen to rule before either is built, since it decides whether §17.2
-needs a control of its own at all.
+### RULED 2026-07-22 — one control
+
+Caveshen: "agree with your leaning, that's fine, if I feel differently later
+we can change it up."
+
+**There is one button, and it is fullscreen.** §17.2's full-window mode is
+what fullscreen *does* — the stage claiming the whole screen is the single
+behaviour, reached by the single control. No separate size toggle ships.
+
+Consequences for §17.2, which stands but narrows:
+- The persistence criterion (17.2 acceptance 3, "state persists across
+  reloads") is **dropped**. Browsers do not allow fullscreen to be entered
+  without a user gesture, so a persisted preference could not be honoured on
+  load, and a control that silently forgets is worse than one that never
+  claimed to remember.
+- The crop behaviour, the no-stretch guarantee and the Table Mountain
+  invariant (17.2 acceptance 4) all still apply — they are properties of the
+  stage at any size, not of how it got there.
+
+Reversible by design: if the two behaviours later want separating, the
+full-window sizing rule is independent of the Fullscreen API call and can be
+given its own control without rework.
 
 ---
 
@@ -1156,12 +1176,31 @@ and the lock stops being a trade-off and simply becomes correct.
 - **How wide.** Wide enough that a locked background still fills a 2560px
   stage, with margin for wider displays. Implies an authored span
   meaningfully beyond 1750 units.
-- **What extends.** The city clearly does. The mountain chain is the open
-  question: Table Mountain, Lion's Head and Signal Hill are the scene's
-  identity and a literal repetition of them would be wrong. Options include
-  keeping the chain as a centrepiece with the city running out past it on
-  both flanks, or extending the landform with lower, further silhouettes
-  that read as the rest of the peninsula.
+- **What extends — RULED 2026-07-22.** The mountain chain **stays exactly as
+  it is**. Table Mountain, Lion's Head and Signal Hill are the scene's
+  identity and are not to be repeated, extended or redrawn. The world grows
+  **asymmetrically**:
+  - **Left** — the city continues past the existing bowl and turns
+    **industrial**. Caveshen: "it is an industrial area around that part of
+    town." This is the half that gains new vocabulary, not just more of the
+    same rectangles.
+  - **Right** — **open water**. Caveshen: "the right of the scene can just be
+    water because that's the natural coastline of the city." Nothing is
+    built out to the right; the sea is the answer to the empty flank, and it
+    is a truthful one rather than a filler.
+
+  This is a better answer than the symmetric extension originally sketched
+  here, and not only aesthetically: it halves the drawing work, it means the
+  right-hand reveal costs nothing but sea, and it makes the composition
+  asymmetric in a way that reads as a real place rather than a repeating
+  backdrop.
+
+- **Industrial vocabulary — to workshop, nothing decided.** Candidates that
+  would read at this silhouette scale: gantry cranes, container stacks,
+  chimneys or cooling stacks, silos, warehouse sheds with low pitched roofs,
+  dock gantries. The existing city is drawn purely as plain rectangles with
+  lit windows, so anything added must survive being reduced to a silhouette
+  and must not out-detail the buildings it stands beside.
 - **Depth.** §19 flags the absent depth cue. A wider world is the natural
   moment to introduce one — a haze band, a second further-back building
   layer at lower contrast — which would also buy headroom for the figure's
@@ -1183,8 +1222,10 @@ and the lock stops being a trade-off and simply becomes correct.
 
 ### Acceptance criteria
 
-1. At 2560×1080 with the §19 lock applied, the city reaches both edges of
-   the stage — no bare sky wedge at either flank.
+1. At 2560×1080 with the §19 lock applied, the **left** flank is filled to
+   the stage edge by city and industry — no bare sky wedge on that side. The
+   **right** flank is open water by design, and a horizon that runs clean to
+   the edge is the pass condition there, not a failure.
 2. Standard and portrait remain compositionally sound; the mountain chain is
    still legible and uncropped on a 390px-wide phone.
 3. The Table Mountain screen-space aspect invariant (§13) still passes in all

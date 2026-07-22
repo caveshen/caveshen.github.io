@@ -217,3 +217,65 @@ test('no horizontal overflow at ultra-wide (2560×1080)', async ({ page }) => {
   );
   expect(overflow).toBe(false);
 });
+
+// ── PRD §15 D1/D2 — known-defect regression tests ─────────────────────────────
+
+// Rect-intersection helper, local to this spec (ponytail: shared by both tests
+// below, not worth a module for two call sites).
+function rectsIntersect(a, b) {
+  return a.x < b.x + b.width && a.x + a.width > b.x &&
+         a.y < b.y + b.height && a.y + a.height > b.y;
+}
+
+function rectContains(outer, inner) {
+  return inner.x >= outer.x && inner.y >= outer.y &&
+         inner.x + inner.width  <= outer.x + outer.width &&
+         inner.y + inner.height <= outer.y + outer.height;
+}
+
+// Several .hooded-figure / .face-void copies exist (one per scene variant) —
+// only the one in the visible scene has a non-zero box. Mirrors the lookup
+// index.astro's own script already does.
+async function visibleRect(page, selector) {
+  return page.evaluate((sel) => {
+    const el = [...document.querySelectorAll(sel)].find((e) => e.getBoundingClientRect().width > 0);
+    const r  = el.getBoundingClientRect();
+    return { x: r.left, y: r.top, width: r.width, height: r.height };
+  }, selector);
+}
+
+// D1 — approach prompt must clear the figure's head, in all three aspect variants.
+for (const vp of [
+  { name: 'wide (2560×1080)',     width: 2560, height: 1080 },
+  { name: 'standard (1920×1080)', width: 1920, height: 1080 },
+  { name: 'tall (390×844)',       width: 390,  height: 844  },
+]) {
+  test(`approach prompt does not overlap the figure — ${vp.name}`, async ({ page }) => {
+    await page.setViewportSize({ width: vp.width, height: vp.height });
+    await page.goto('/');
+    const promptBox = await page.locator('#approach-prompt').boundingBox();
+    const figureBox = await visibleRect(page, '.hooded-figure');
+    const frameBox  = await page.locator('.stage-frame').boundingBox();
+    expect(rectsIntersect(promptBox, figureBox)).toBe(false);
+    // The clamp must not push the prompt out of the scene.
+    expect(rectContains(frameBox, promptBox)).toBe(true);
+  });
+}
+
+// D2 — the zoomed face must clear the dialogue card that overlays it.
+for (const vp of [
+  { name: 'standard (1920×1080)', width: 1920, height: 1080 },
+  { name: 'tall (390×844)',       width: 390,  height: 844  },
+]) {
+  test(`face clears the dialogue card after approach — ${vp.name}`, async ({ page }) => {
+    await page.setViewportSize({ width: vp.width, height: vp.height });
+    // Reduced motion turns off the .camera transition (see index.astro CSS),
+    // so the transform applies instantly — a settled state with no timing wait.
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/');
+    await page.locator('#approach-prompt').click();
+    const cardBox = await page.locator('.card').boundingBox();
+    const faceBox = await visibleRect(page, '.face-void');
+    expect(rectsIntersect(faceBox, cardBox)).toBe(false);
+  });
+}

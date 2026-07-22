@@ -551,20 +551,36 @@ const FIG = {
   approachBtn.hidden = false;
 
   // Position the prompt near the visible figure's measured location in screen space.
+  // PRD §15 D1: floats clear ABOVE the head with a gap (interaction-prompt
+  // convention), centred on the figure, clamped inside the stage frame.
   function positionPrompt() {
     const figEl = [...document.querySelectorAll('.hooded-figure')]
       .find((el) => el.getBoundingClientRect().width > 0) as SVGElement | undefined;
     if (!figEl) return;
     const sf  = stageFrame.getBoundingClientRect();
     const fig = figEl.getBoundingClientRect();
-    // Centre the button on the figure, ~10% down from the top of the figure
-    const left = (fig.left + fig.width  / 2) - sf.left;
-    const top  = (fig.top  - sf.top) + fig.height * 0.1;
+    const GAP = 14; // clearance between the prompt and the head
+
+    // Centre horizontally on the figure first — the button's available width
+    // (and so its measured height, below) depends on this left offset.
+    const left = (fig.left + fig.width / 2) - sf.left;
     approachBtn.style.left      = `${left}px`;
-    approachBtn.style.top       = `${top}px`;
     approachBtn.style.right     = 'auto';
     approachBtn.style.bottom    = 'auto';
     approachBtn.style.transform = 'translateX(-50%)';
+
+    // The button is already unhidden by now, so its real (measured) height is
+    // available rather than a guess.
+    const btnHeight = approachBtn.getBoundingClientRect().height;
+    let top = (fig.top - sf.top) - GAP - btnHeight;
+    if (top < 8) {
+      // Not enough headroom above the head to clear it inside the frame —
+      // sit beside the figure instead of pushing the prompt down onto it.
+      top = Math.max(8, fig.top - sf.top);
+      approachBtn.style.left      = `${(fig.right - sf.left) + GAP}px`;
+      approachBtn.style.transform = 'none';
+    }
+    approachBtn.style.top = `${top}px`;
   }
   positionPrompt();
   window.addEventListener('resize', positionPrompt, { passive: true });
@@ -589,7 +605,23 @@ const FIG = {
       const sf  = stageFrame.getBoundingClientRect();
       const fig = figEl.getBoundingClientRect();
       const scale = 2.2;
-      const { tx, ty } = computeCameraTransform({ stage: sf, figure: fig, scale });
+      // PRD §15 D2: frame the face in the band between the top of the stage
+      // and the top of the (already-visible) card, derived from the measured
+      // card rather than a hard-coded constant, so the two cannot drift apart.
+      // computeCameraTransform's own faceY heuristic (18% down the whole
+      // figure) doesn't line up with the true face-void centre, so correct
+      // for that measured gap too — all from measurement, no magic numbers.
+      const faceVoidEl = [...document.querySelectorAll('.face-void')]
+        .find((el) => el.getBoundingClientRect().width > 0) as SVGElement | undefined;
+      const cardTop = card.getBoundingClientRect().top - sf.top;
+      let faceTargetY = cardTop / 2;
+      if (faceVoidEl) {
+        const faceVoid = faceVoidEl.getBoundingClientRect();
+        const trueCentreOffset = (faceVoid.top + faceVoid.height / 2) - fig.top;
+        const heuristicOffset  = fig.height * 0.18;
+        faceTargetY -= scale * (trueCentreOffset - heuristicOffset);
+      }
+      const { tx, ty } = computeCameraTransform({ stage: sf, figure: fig, scale, faceTargetY });
       camera.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
     }
 

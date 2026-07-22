@@ -61,4 +61,28 @@ describe('computeCameraTransform', () => {
     expect(tx).toBeCloseTo(1200 / 2 - 2.2 * 1000, 1);
     expect(ty).toBeCloseTo(400 * 0.32 - 2.2 * 219.6, 1);
   });
+
+  // ── D2: optional faceTargetY (PRD §15 D2) ─────────────────────────────────
+  // Derives the framing target from the measured dialogue card instead of the
+  // hard-coded 0.32 constant, so the two can never drift apart again.
+
+  it('uses the explicit faceTargetY when provided, instead of stage.height * 0.32', () => {
+    const stage  = { left: 0, top: 0, width: 1200, height: 400 };
+    const figure = { left: 960, top: 180, width: 80, height: 220 };
+    const scale  = 2.2;
+    const faceTargetY = 100;
+    const { ty } = computeCameraTransform({ stage, figure, scale, faceTargetY });
+    // faceY = (180 - 0) + 220 * 0.18 = 219.6
+    // ty = 100 - 2.2 * 219.6 = -383.12
+    expect(ty).toBeCloseTo(-383.12, 1);
+  });
+
+  it('falls back to stage.height * 0.32 when faceTargetY is omitted (back-compat)', () => {
+    const stage  = { left: 0, top: 0, width: 1200, height: 400 };
+    const figure = { left: 960, top: 180, width: 80, height: 220 };
+    const scale  = 2.2;
+    const withTarget    = computeCameraTransform({ stage, figure, scale, faceTargetY: stage.height * 0.32 });
+    const withoutTarget = computeCameraTransform({ stage, figure, scale });
+    expect(withoutTarget.ty).toBeCloseTo(withTarget.ty, 5);
+  });
 });

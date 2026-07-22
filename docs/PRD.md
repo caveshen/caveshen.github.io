@@ -1294,6 +1294,34 @@ as a runtime override against the built site, screenshot all three aspects,
 Caveshen rules, *then* it enters the repo. Nothing is drawn into
 `CityScape.astro` before he has seen it.
 
+### Status 2026-07-23 — DIRECTION ACCEPTED; ready for real implementation
+
+Two prototype passes (harbour cranes + tapering warehouse fringe; then a
+lightest-touch pass that boosted the container stacks so they read at night
+and dropped the ship that would not read). Caveshen: "Yes, we leave it there."
+No further prototype rounds.
+
+The prototype's exact drawing is preserved as the base for the real build —
+it is not to be re-drawn from scratch. Reference (throwaway worktree deleted;
+this copy is authoritative for the geometry):
+`scratchpad/s20-cityscape-reference.astro` in the session scratchpad. The real
+implementation ports those ~32 elements (industrial district at world
+x ≈ −295 to 34, camera/viewBox unchanged) into `CityScape.astro`, **test-first
+and on a clean base once §17.1a/§18 have committed** — not on top of the
+in-flight stage-sizing work.
+
+### Added scope — wave elements in the water (Caveshen 2026-07-23)
+
+"A few more 'wave' elements in the water would complete this backdrop." Add a
+small number of subtle wave marks to the sea surface — short horizontal
+strokes in the sea's own silhouette language, sparse, monochrome, matching
+the existing moon-reflection marks rather than out-detailing them. Applies to
+the sea in **all three scene variants**, not only the wide one (the sea is
+foreground per §19, so it is unaffected by the background lock). Keep it
+cheap — a handful of static marks, no per-element animation — against success
+criterion 6. Folded into the §20 implementation so the sea is drawn once,
+complete; Caveshen sees it in the real build rather than a further prototype.
+
 ---
 
 ## 21. Camera zoom easing — the approach lurches

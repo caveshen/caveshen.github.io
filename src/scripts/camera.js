@@ -15,11 +15,19 @@
  *   Optional (PRD §15 D2): callers measure the dialogue card and pass the mid-point
  *   of the band above it, so the zoom can never drift behind the card again. Falls
  *   back to the original stage.height * 0.32 constant when omitted.
+ * @param {number} [faceY] – stage-relative Y of the point to frame (pre-scale).
+ *   Optional (reviewer follow-up 1a): callers measure the .face-void centre and
+ *   pass it directly, so no correction term is needed to cancel the heuristic
+ *   back out. Falls back to the original (figure.top - stage.top) + figure.height
+ *   * 0.18 heuristic when omitted.
  * @returns {{ tx:number, ty:number }}
  */
-export function computeCameraTransform({ stage, figure, scale, faceTargetY = stage.height * 0.32 }) {
+export function computeCameraTransform({
+  stage, figure, scale,
+  faceTargetY = stage.height * 0.32,
+  faceY = (figure.top - stage.top) + figure.height * 0.18,
+}) {
   const figCx = (figure.left + figure.width  / 2) - stage.left;
-  const faceY = (figure.top  - stage.top)         + figure.height * 0.18;
   return {
     tx: stage.width  / 2 - scale * figCx,
     ty: faceTargetY - scale * faceY,

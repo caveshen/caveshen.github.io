@@ -262,6 +262,62 @@ for (const vp of [
   });
 }
 
+// Reviewer follow-up 1b — positionPrompt()'s beside-the-figure fallback (the
+// "not enough headroom above the head" branch) sets top but never clamped
+// left/right, so it could leave .stage-frame. At 240×160 the standard-variant
+// stage-frame is small enough (150px tall) that the headroom above the head
+// is less than the gap + button height, forcing the fallback branch — proven
+// by the same overlap check above still holding at this size.
+test('beside-the-figure fallback keeps the prompt inside the stage frame — forced narrow viewport (240×160)', async ({ page }) => {
+  await page.setViewportSize({ width: 240, height: 160 });
+  await page.goto('/');
+  const promptBox = await page.locator('#approach-prompt').boundingBox();
+  const frameBox  = await page.locator('.stage-frame').boundingBox();
+  expect(rectContains(frameBox, promptBox)).toBe(true);
+});
+
+// ── PRD §17.1 — wide variant goes full-bleed ─────────────────────────────────
+// The 1200px cap stops applying at the 21:9 breakpoint; the stage grows until
+// limited by available height instead, so it never exceeds the viewport.
+
+test('ultra-wide (2560×1080) stage-frame grows beyond 1200px, bounded by viewport height', async ({ page }) => {
+  await page.setViewportSize({ width: 2560, height: 1080 });
+  await page.goto('/');
+  const box = await page.locator('.stage-frame').boundingBox();
+  expect(box.width).toBeGreaterThan(1400); // meaningfully greater than the 1200px cap
+  expect(box.height).toBeLessThanOrEqual(1080);
+});
+
+test('ultra-wide (2560×1080) has no page scroll, vertical or horizontal', async ({ page }) => {
+  await page.setViewportSize({ width: 2560, height: 1080 });
+  await page.goto('/');
+  const overflow = await page.evaluate(() => ({
+    v: document.documentElement.scrollHeight > document.documentElement.clientHeight,
+    h: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+  }));
+  expect(overflow.v).toBe(false);
+  expect(overflow.h).toBe(false);
+});
+
+// Current-behaviour baseline, captured from the build before this change —
+// standard and portrait must render byte-identically; this change must be
+// invisible outside ultra-wide.
+test('standard desktop (1920×1080) stage-frame geometry is unchanged', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto('/');
+  const box = await page.locator('.stage-frame').boundingBox();
+  expect(box.width).toBeCloseTo(1200, 0);
+  expect(box.height).toBeCloseTo(750, 0);
+});
+
+test('portrait phone (390×844) stage-frame geometry is unchanged', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  const box = await page.locator('.stage-frame').boundingBox();
+  expect(box.width).toBeCloseTo(390, 0);
+  expect(box.height).toBeCloseTo(693.5, 0);
+});
+
 // D2 — the zoomed face must clear the dialogue card that overlays it.
 for (const vp of [
   { name: 'standard (1920×1080)', width: 1920, height: 1080 },
@@ -279,3 +335,94 @@ for (const vp of [
     expect(rectsIntersect(faceBox, cardBox)).toBe(false);
   });
 }
+
+// ── PRD §21 — camera zoom easing, split by direction ──────────────────────────
+
+// Cubic-bezier evaluator, local to this spec (test-only — the shipped code
+// never needs to evaluate its own curve, only apply it via CSS). X(t) is the
+// elapsed-time fraction, Y(t) is progress; CSS solves X(t)=x for t then
+// returns Y(t), so we do the same via bisection on the monotonic X(t).
+function bezierProgressAt(p1x, p1y, p2x, p2y, durationMs, elapsedMs) {
+  const x = elapsedMs / durationMs;
+  const X = (t) => { const m = 1 - t; return 3 * m * m * t * p1x + 3 * m * t * t * p2x + t ** 3; };
+  const Y = (t) => { const m = 1 - t; return 3 * m * m * t * p1y + 3 * m * t * t * p2y + t ** 3; };
+  let lo = 0, hi = 1;
+  // 30 halvings takes the interval below 1e-9 — far past what a percentage
+  // threshold needs, and past float64's useful precision here anyway.
+  for (let i = 0; i < 30; i++) {
+    const mid = (lo + hi) / 2;
+    if (X(mid) < x) lo = mid; else hi = mid;
+  }
+  return Y((lo + hi) / 2);
+}
+
+// Parses a computed `transition` shorthand (e.g. "transform 0.55s cubic-bezier(0.4, 0, 0.2, 1)")
+// into duration (ms) and the four bezier control-point numbers.
+function parseTransition(css) {
+  const durationMatch = css.match(/([\d.]+)s\b/);
+  const bezierMatch   = css.match(/cubic-bezier\(([^)]+)\)/);
+  const [p1x, p1y, p2x, p2y] = bezierMatch[1].split(',').map(Number);
+  return { durationMs: parseFloat(durationMatch[1]) * 1000, p1x, p1y, p2x, p2y };
+}
+
+async function computedTransition(page, approached) {
+  if (approached) await page.locator('#approach-prompt').click();
+  else await page.locator('#end-dialogue').click();
+  return page.locator('.camera').evaluate((el) => getComputedStyle(el).transition);
+}
+
+test('entry easing starts from rest — advances less than 4% in the first frame (16ms)', async ({ page }) => {
+  const css = await computedTransition(page, true);
+  const { durationMs, p1x, p1y, p2x, p2y } = parseTransition(css);
+  const pct = bezierProgressAt(p1x, p1y, p2x, p2y, durationMs, 16) * 100;
+  expect(pct).toBeLessThan(4);
+});
+
+// Contrast case: the exit curve is approved as-is and deliberately NOT eased
+// from rest (a fast departure that settles reads as a natural retreat). This
+// documents *why* entry and exit can't share a curve — it fails loudly if
+// someone later "simplifies" by unifying them.
+test('exit easing (unchanged) advances more than 10% in the first frame (16ms), by contrast', async ({ page }) => {
+  await page.locator('#approach-prompt').click();
+  const css = await computedTransition(page, false);
+  const { durationMs, p1x, p1y, p2x, p2y } = parseTransition(css);
+  const pct = bezierProgressAt(p1x, p1y, p2x, p2y, durationMs, 16) * 100;
+  expect(pct).toBeGreaterThan(10);
+});
+
+test('entry and exit have different computed transitions', async ({ page }) => {
+  const entryCss = await computedTransition(page, true);
+  const exitCss  = await computedTransition(page, false);
+  expect(entryCss).not.toBe(exitCss);
+});
+
+test('exit computed transition matches the unchanged, approved 950ms curve', async ({ page }) => {
+  await page.locator('#approach-prompt').click();
+  const css = await computedTransition(page, false);
+  const { durationMs, p1x, p1y, p2x, p2y } = parseTransition(css);
+  expect(durationMs).toBeCloseTo(950, 0);
+  expect([p1x, p1y, p2x, p2y]).toEqual([0.16, 1, 0.3, 1]);
+});
+
+test('prefers-reduced-motion skips the camera transition entirely, entry and exit', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.reload();
+  await page.locator('#approach-prompt').click();
+  const entryTransition = await page.locator('.camera').evaluate((el) => getComputedStyle(el).transitionDuration);
+  expect(entryTransition).toBe('0s');
+  await page.locator('#end-dialogue').click();
+  const exitTransition = await page.locator('.camera').evaluate((el) => getComputedStyle(el).transitionDuration);
+  expect(exitTransition).toBe('0s');
+});
+
+test('Escape mid-zoom leaves the camera coherent — no stuck or doubled transform', async ({ page }) => {
+  await page.locator('#approach-prompt').click();
+  // Interrupt before the (550ms) entry transition settles.
+  await page.waitForTimeout(100);
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(700); // let any in-flight transition finish settling
+  const transform = await page.locator('.camera').evaluate((el) => getComputedStyle(el).transform);
+  // 'none' is the exited state's target — a single coherent value, not stuck
+  // mid-transition and not some doubled/compounded matrix.
+  expect(transform).toBe('none');
+});

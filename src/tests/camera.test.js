@@ -85,4 +85,29 @@ describe('computeCameraTransform', () => {
     const withoutTarget = computeCameraTransform({ stage, figure, scale });
     expect(withoutTarget.ty).toBeCloseTo(withTarget.ty, 5);
   });
+
+  // ── D1/D2 follow-up: optional explicit faceY (PRD reviewer follow-up 1a) ──
+  // Lets the caller pass the measured .face-void centre directly instead of
+  // relying on the figure.height * 0.18 heuristic, so no correction term is
+  // needed to cancel the heuristic back out.
+
+  it('uses the explicit faceY when provided, instead of the 0.18 heuristic', () => {
+    const stage  = { left: 0, top: 0, width: 1200, height: 400 };
+    const figure = { left: 960, top: 180, width: 80, height: 220 };
+    const scale  = 2.2;
+    const faceTargetY = 100;
+    const faceY = 250; // measured face-void centre, stage-relative — not figure.height * 0.18
+    const { ty } = computeCameraTransform({ stage, figure, scale, faceTargetY, faceY });
+    // ty = 100 - 2.2 * 250 = -450
+    expect(ty).toBeCloseTo(-450, 1);
+  });
+
+  it('falls back to the 0.18 heuristic when faceY is omitted (back-compat)', () => {
+    const stage  = { left: 0, top: 0, width: 1200, height: 400 };
+    const figure = { left: 960, top: 180, width: 80, height: 220 };
+    const scale  = 2.2;
+    const withFaceY    = computeCameraTransform({ stage, figure, scale, faceY: (figure.top - stage.top) + figure.height * 0.18 });
+    const withoutFaceY = computeCameraTransform({ stage, figure, scale });
+    expect(withoutFaceY.ty).toBeCloseTo(withFaceY.ty, 5);
+  });
 });

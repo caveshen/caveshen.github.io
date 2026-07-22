@@ -288,6 +288,16 @@ const FIG = {
     .stage-frame { aspect-ratio: 1750 / 750; }
     .scene-standard { display: none; }
     .scene-wide { display: block; }
+    /* PRD §17.1: the 1200px cap stops applying here — the wide stage instead
+       grows until it runs out of *height*, so it never exceeds the viewport.
+       7/3 is the wide viewBox ratio (1750/750). 120px is the measured
+       vertical cost of everything stacked above/below the stage-frame at
+       this breakpoint: its own 1rem top margin (16px) + the footer's 2rem
+       top margin (32px) + the footer's own height (28px) + the footer's
+       2.5rem bottom margin (40px) = 116px, rounded up for breathing room.
+       (PRD's suggested 100px undershot this and left a 16px vertical
+       scrollbar at 2560×1080 — verified by measurement, not taste.) */
+    .stage-frame { max-width: min(100%, calc((100svh - 120px) * 7 / 3)); }
   }
   @media (max-aspect-ratio: 4/5) {
     .stage-frame { aspect-ratio: 600 / 1067; max-width: 480px; }
@@ -577,8 +587,16 @@ const FIG = {
       // Not enough headroom above the head to clear it inside the frame —
       // sit beside the figure instead of pushing the prompt down onto it.
       top = Math.max(8, fig.top - sf.top);
-      approachBtn.style.left      = `${(fig.right - sf.left) + GAP}px`;
       approachBtn.style.transform = 'none';
+      // Reviewer follow-up 1b: this branch sets left/top directly (no
+      // translateX centring to absorb an edge overrun), so both must be
+      // clamped into the frame itself — a figure near the stage edge could
+      // otherwise push the prompt out of .stage-frame on any side.
+      const btnWidth  = approachBtn.getBoundingClientRect().width;
+      const wantsLeft = (fig.right - sf.left) + GAP;
+      const left      = Math.min(Math.max(8, wantsLeft), Math.max(8, sf.width - btnWidth - 8));
+      approachBtn.style.left = `${left}px`;
+      top = Math.min(top, Math.max(8, sf.height - btnHeight - 8));
     }
     approachBtn.style.top = `${top}px`;
   }
@@ -587,11 +605,29 @@ const FIG = {
 
   // ── Camera zoom ───────────────────────────────────────────────────────────
 
+  // PRD §21: the shared 950ms/(0.16,1,.3,1) curve reads as a lurch-then-crawl
+  // on entry (it's ~97% done by half its duration) but reads correctly on
+  // exit (a fast departure that settles) — approved as-is, unchanged below.
+  // Entry gets its own curve, set inline only for the zoom-in transition, so
+  // it can differ from the exit without touching the shared CSS transition
+  // (the exit's authoritative source, so it can never drift from "unchanged").
+  // cubic-bezier(0.4, 0, 0.2, 1) is the Material "standard" ease-in-out — its
+  // first control point has y=0, so the curve starts from true rest (no
+  // first-frame jump) rather than the old curve's ~6x-speed launch.
+  const ENTRY_TRANSITION = 'transform 550ms cubic-bezier(0.4, 0, 0.2, 1)';
+  const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   let approached = false;
 
   function approach() {
     if (approached) return;
     approached = true;
+
+    // Inline transition override for the entry only (PRD §21). Under
+    // reduced-motion we simply never set it, so the stylesheet's
+    // `transition: none` applies unopposed — there is no cascade contest.
+    // An inline style would outrank the media query and reinstate the zoom.
+    if (!reducedMotion()) camera.style.transition = ENTRY_TRANSITION;
 
     // Show card, hide prompt
     card.hidden    = false;
@@ -608,20 +644,17 @@ const FIG = {
       // PRD §15 D2: frame the face in the band between the top of the stage
       // and the top of the (already-visible) card, derived from the measured
       // card rather than a hard-coded constant, so the two cannot drift apart.
-      // computeCameraTransform's own faceY heuristic (18% down the whole
-      // figure) doesn't line up with the true face-void centre, so correct
-      // for that measured gap too — all from measurement, no magic numbers.
+      // Reviewer follow-up 1a: pass the measured .face-void centre directly
+      // as faceY, rather than relying on computeCameraTransform's built-in
+      // 18%-down-the-figure heuristic — no correction term needed.
       const faceVoidEl = [...document.querySelectorAll('.face-void')]
         .find((el) => el.getBoundingClientRect().width > 0) as SVGElement | undefined;
       const cardTop = card.getBoundingClientRect().top - sf.top;
-      let faceTargetY = cardTop / 2;
-      if (faceVoidEl) {
-        const faceVoid = faceVoidEl.getBoundingClientRect();
-        const trueCentreOffset = (faceVoid.top + faceVoid.height / 2) - fig.top;
-        const heuristicOffset  = fig.height * 0.18;
-        faceTargetY -= scale * (trueCentreOffset - heuristicOffset);
-      }
-      const { tx, ty } = computeCameraTransform({ stage: sf, figure: fig, scale, faceTargetY });
+      const faceTargetY = cardTop / 2;
+      const faceY = faceVoidEl
+        ? (faceVoidEl.getBoundingClientRect().top + faceVoidEl.getBoundingClientRect().height / 2) - sf.top
+        : undefined;
+      const { tx, ty } = computeCameraTransform({ stage: sf, figure: fig, scale, faceTargetY, faceY });
       camera.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
     }
 
@@ -633,6 +666,11 @@ const FIG = {
   function exit() {
     if (!approached) return;
     approached = false;
+
+    // Clear the entry's inline transition override — this restores the
+    // stylesheet's own transition (unchanged, exit's authoritative source),
+    // whether or not reduced-motion is active.
+    camera.style.transition = '';
 
     // Restore state
     card.hidden    = true;

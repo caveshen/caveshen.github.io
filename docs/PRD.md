@@ -998,6 +998,16 @@ with the mode before deciding whether it becomes the default.
 6. Keyboard-operable with a visible focus ring; honours
    `prefers-reduced-motion` on any size transition.
 
+### Status 2026-07-22
+
+- **17.1 — BUILT** on `item/landing-v2-avatar`. The reserve subtracted from
+  the viewport height is **120px**, measured rather than estimated: 16px
+  stage-frame top margin + 32px footer top margin + 28px footer height + 40px
+  footer bottom margin = 116px, rounded up. The 100px used in the accepted
+  prototype was wrong and left a 16px scrollbar at 2560×1080.
+- **17.2 — NOT BUILT.** Blocked on the §18 open question below; building it
+  first risks building the same control twice and discarding one.
+
 ### Open questions
 
 - Does the full-window toggle survive as a permanent control, or is it a
@@ -1258,3 +1268,27 @@ redistributing the same 950ms.
 Easing is a felt quality and the suite cannot judge it — criterion 1 is
 measurable, but "dramatic" is not. This wants a look before it commits, in
 the manner of §16.
+
+### Status 2026-07-22 — BUILT, values PROVISIONAL
+
+Implemented on `item/landing-v2-avatar` while Caveshen was away, on his
+instruction to work through the items that did not need him. Entry is
+`550ms cubic-bezier(0.4, 0, 0.2, 1)`; the exit is untouched, and is left that
+way structurally rather than by copying its values — `exit()` clears the
+inline override so the original CSS rule remains the single source of the
+exit transition and cannot drift.
+
+Two things above were **not** resolved before building, and are recorded here
+rather than quietly closed:
+
+1. The "faster on zoom-in / slower on zoom-out" against "zoom-out is actually
+   perfect" ambiguity was never put to Caveshen. The working interpretation
+   was applied: the exit is untouchable, and "faster" means a shorter entry.
+   If he meant the exit should genuinely slow, that is a one-line change.
+2. The promised visual look has not happened. Criterion 1 is objectively
+   satisfied — first-frame advance drops from 12.0% to under 4%, asserted in
+   the suite — so the *lurch* is provably gone. Whether 550ms feels
+   **dramatic** is unjudged.
+
+The numbers are therefore provisional and expected to move. This must not be
+merged to `main` before Caveshen has looked at the entry animation.

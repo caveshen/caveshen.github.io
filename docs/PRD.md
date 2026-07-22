@@ -1233,12 +1233,27 @@ and the lock stops being a trade-off and simply becomes correct.
   asymmetric in a way that reads as a real place rather than a repeating
   backdrop.
 
-- **Industrial vocabulary — to workshop, nothing decided.** Candidates that
-  would read at this silhouette scale: gantry cranes, container stacks,
-  chimneys or cooling stacks, silos, warehouse sheds with low pitched roofs,
-  dock gantries. The existing city is drawn purely as plain rectangles with
-  lit windows, so anything added must survive being reduced to a silhouette
-  and must not out-detail the buildings it stands beside.
+- **Industrial vocabulary — DECIDED 2026-07-23.** A blend of the working
+  harbour and the warehouse fringe, **≈67% harbour / 33% warehouse by mass**,
+  laid out as a **gradient across the left flank** rather than mixed evenly:
+  - **Nearest the existing city bowl (the harbour end, ~2/3):** gantry /
+    portal cranes, stacked shipping containers, a moored ship silhouette.
+    Taller and more active; the crane arms reaching right toward the open
+    water tie the industrial left to the sea on the right.
+  - **Tapering off toward the far-left edge (the warehouse fringe, ~1/3):**
+    low pitched-roof sheds, water towers, short stacks, poles and wires.
+    Lower, more horizontal, quiet — the edge of town thinning out.
+  - The warehouse share concentrates at the leftmost side and **tapers**, so
+    the density falls away at the frame edge rather than ending on a hard
+    wall of buildings.
+
+  Constraints on the drawing: everything reads as a **flat silhouette at the
+  same detail level as the existing plain-rectangle city** — simple geometry,
+  no gradients or fine detail, nothing that out-details its neighbours.
+  Container stacks read by their stepped rectangular stacking, not by colour;
+  keep the silhouette monochrome to match the city language. Lit windows are
+  permitted via the existing CSS-only glimmer, but **sparingly** — industry
+  is darker than the city bowl.
 - **Depth.** §19 flags the absent depth cue. A wider world is the natural
   moment to introduce one — a haze band, a second further-back building
   layer at lower contrast — which would also buy headroom for the figure's

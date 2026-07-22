@@ -967,6 +967,44 @@ against 47%/48% as shipped.
 
 Standard and portrait variants are **unaffected**. Their caps stay.
 
+### 17.1a Standard variant gets the same treatment — SUPERSEDES the line above
+
+Raised by Caveshen 2026-07-23 from live play on a 1990×1120 window: the scene
+sat in a 1200px strip along the top, "stretching to neither height nor width…
+just randomly placed somewhere in screen space." **The original scoping of
+17.1 to the wide variant only was wrong** — it left the most common desktop
+case, ordinary 16:9, in exactly the D3 state 17.1 was meant to fix.
+
+Cause: the 1.875 aspect breakpoint that triggers full-bleed is above 16:9
+(1.778), so every standard 1920×1080-class window falls into the *standard*
+variant, which still carries the 1200px cap **and** is top-aligned — so the
+horizontal slack shows as side margins and the vertical slack pools at the
+bottom. Measured: at 1990×1120 the stage was 1200×750, 60% of viewport width.
+
+Fix (prototyped and measured at his own window size): the standard variant
+takes the same height-limited `max-width` as the wide one, and the page
+centres it vertically so leftover space splits evenly rather than pooling
+below. Measured outcomes: 1990×1120 → 1600×1000 (80% width); 1920×1080 →
+1536×960 (80%); 2560×1440 → 2112×1320 (83%). No page scroll at any of them.
+
+Known and accepted limit: a 1.6-aspect standard world in a 16:9 window is
+height-bound, so it cannot reach 100% width without cropping — the side
+margins are the scene keeping its proportions. Edge-to-edge is the §17.2 /
+§18 fullscreen story, not this.
+
+**Status 2026-07-23 — ACCEPTED, TO BUILD.** Caveshen approved the prototype
+at his own window size and told us to build it. The height-limited `max-width`
+extends to the standard variant and the page centres the stage vertically.
+Acceptance: standard-variant stage width ≥ 80% of viewport on a 16:9 window,
+vertically centred, no page scroll; portrait untouched; the wide variant and
+the Table Mountain invariant unchanged.
+
+Open follow-up, NOT decided (Caveshen 2026-07-23: "leave it as an open
+question to be decided later"): whether the wide-variant breakpoint should
+drop below 16:9 so common desktops get the panorama instead of the standard
+composition. Deferred until §20's wider world exists, since it changes what
+"wide" even shows.
+
 ### 17.2 The stage may claim the whole window (new)
 
 Caveshen's addition, and it goes further than 17.1: he wants the option of
@@ -1333,3 +1371,40 @@ rather than quietly closed:
 
 The numbers are therefore provisional and expected to move. This must not be
 merged to `main` before Caveshen has looked at the entry animation.
+
+### Status 2026-07-23 — ACCEPTED
+
+Caveshen looked at the entry live: "the zoom is better… accept the zoom speed
+here." 550ms / `cubic-bezier(0.4, 0, 0.2, 1)` is final for the entry, exit
+unchanged. The values are no longer provisional; the merge caveat above is
+lifted for §21 specifically.
+
+He noticed a separate thing while looking, logged as §22: the dialogue *text*
+swaps instantly while the camera eases, which reads oddly. That is not this
+item — the zoom is settled.
+
+---
+
+## 22. Dialogue presentation — text is instant, to be workshopped
+
+Noticed by Caveshen 2026-07-23 while reviewing the §21 zoom: with the camera
+now easing in smoothly, the dialogue **text** swapping instantly stands out —
+"the dialogue itself though is instant, which looks *interesting* in the
+scene." His framing: **to be workshopped, not fixed now.** "We definitely
+need to rework the dialogue soon, but for now it's fine just to note this."
+
+**ACCEPTED AS A PARKED ITEM — no work, no design.** Recorded so it is not
+lost, and because it is a symptom of a larger intent he has flagged more than
+once: the dialogue system wants a proper pass, not a one-line tween.
+
+What "instant" means concretely, for whoever picks this up: `apply()` in the
+dialogue engine replaces the speech and choice nodes in a single synchronous
+`replaceChildren`, with only the existing 200ms opacity crossfade (skipped
+under reduced motion). Against a 550ms camera ease the text is fully swapped
+before the camera has travelled a third of the way, so it reads as a hard cut
+inside a moving shot.
+
+This is deliberately left open. It is entangled with the larger "rework the
+dialogue" intent and should be taken as part of that, not pre-empted by a
+typewriter effect bolted onto the current engine. When it is picked up it
+wants a look, in the manner of §16 and §21 — pacing is felt, not asserted.

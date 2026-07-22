@@ -1475,3 +1475,65 @@ silently destroy the old scene.
   and layouts move under it. Either keep it in the build/test path enough to
   catch that, or explicitly freeze it as excluded reference — decide when it
   is built, not now.
+
+---
+
+## 24. Ambient banner plane
+
+Requested by Caveshen 2026-07-23. **ACCEPTED — not yet built, not scheduled.**
+A small flourish: a plane crosses the sky towing an advertising banner, the
+kind that drones along a coastline on a summer afternoon.
+
+### Behaviour
+
+- A plane silhouette flies across the scene towing a banner behind it.
+- **Banner copy:** black banner, white text reading **"MAVERICKS"**. This is
+  Caveshen's own intended copy, **not** a placeholder — it is exempt from the
+  `PLACEHOLDER` rule, which governs only copy the assistant invents. Do not
+  change it or tokenise it.
+- **Detail fallback (his steer):** if legible white-on-black lettering cannot
+  be made to read at this silhouette scale, **implied detail is acceptable** —
+  a banner shape with suggested text (rhythmic marks, a soft blur) rather than
+  crisp glyphs. Preferred: legible "MAVERICKS". Acceptable: it reads as a
+  lettered banner without the word being sharp.
+
+### Timing
+
+- First pass at **~10 seconds** after load.
+- Thereafter roughly **every ~2 minutes**, at **randomised** intervals (not a
+  metronome — "random times… ~2 mins or so"). Jitter the interval around the
+  2-minute centre.
+
+### Gating — only in the zoomed-out full scene
+
+- Appears **only while the scene is zoomed out and dialogue has not been
+  initiated** — i.e. the `approached === false` state, before the camera zoom.
+  Once the visitor approaches and the camera zooms in, no plane.
+- If a pass is in flight when the visitor approaches, it should bow out
+  gracefully rather than freeze mid-sky — decide at build time (finish the
+  pass off-screen, or fade). Not specified by Caveshen; flag for his look.
+
+### Constraints and open points
+
+- Purely decorative: `pointer-events: none`, never intercepts interaction,
+  never shifts layout. JS-driven timing; absent on the no-JS path is fine.
+- **Honours `prefers-reduced-motion`** — a plane tracking across the sky is
+  exactly the kind of motion that setting exists to suppress. Under reduced
+  motion it should not fly; whether it appears static or not at all is a
+  build-time call to confirm with Caveshen.
+- Cheap: one transform-animated element on an occasional timer; must not cost
+  render budget against success criterion 6 (Lighthouse ≥ 95).
+- **Open — which aspect variants.** "Across the scene" reads as the wide and
+  standard skies naturally; on the narrow tall (portrait) scene a horizontal
+  fly-through is shorter and may read oddly. Applies in the zoomed-out state
+  regardless of aspect unless Caveshen decides to limit it; flag on his look.
+- **Open — direction of travel.** Left-to-right or right-to-left, unspecified.
+  Could lean into the harbour side of §20. His call, or the implementer's if
+  he does not mind.
+
+### Note
+
+Like §16 / §21 / §22, the *feel* — speed, altitude, how often it truly wants
+to appear — is not something the suite can judge. This wants a look before it
+ships. The suite can assert the gating (never present once approached, absent
+under reduced motion) and that it does not intercept pointer events.

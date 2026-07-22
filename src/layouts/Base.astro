@@ -62,5 +62,13 @@ const ogImageURL = new URL(ogImage, Astro.site).toString();
     font-family: var(--serif);
     transition: var(--theme-transition);
     min-height: 100vh;
+    /* PRD §17.1: without this, .stage-frame's own top margin collapses
+       through body (its first in-flow child, since the toggle button is
+       position:absolute), pushing body's whole box 1rem below the viewport
+       and, combined with min-height:100vh, causing a page-height overflow
+       that has nothing to do with actual content. flow-root establishes a
+       new block-formatting context so the margin stays inside body instead.
+       No visible effect at any breakpoint — verified by measurement. */
+    display: flow-root;
   }
 </style>

@@ -886,9 +886,21 @@ the lower half of the page is bare background.
 applies to every variant, so the 21:9 scene cannot use the width its own
 `1750 / 750` aspect-ratio was authored for. Standard and portrait are
 unaffected.
-**Status:** NOT yet ruled a bug. The cap may be deliberate line-length
-hygiene. Deciding to let the wide scene go full-bleed is a design decision
-for Caveshen, not a defect fix — resolve the ruling before touching it.
+**Status: RULED 2026-07-22 — Option 2 accepted.** Caveshen reviewed three
+rendered options at 2560×1080 (the built site with runtime CSS overrides;
+nothing in the repo was changed to produce them) and chose to lift the cap
+for the wide variant only, limiting width by available height instead so the
+stage grows in both directions. Implementation, the further full-window
+option and the perspective consequences are carried into §17 and §19; this
+entry closes as a design ruling, not a defect fix.
+
+Recorded for the record, because it changes how the other two options should
+be read if this is ever revisited: the flaw in the shipped layout was **not**
+the 1200px cap. It was that `.stage-frame` is top-aligned, so all the unused
+height collects in one slab below it. Centring the frame vertically makes
+the identical cap read as a deliberate letterbox rather than an unfinished
+page. That variant was rejected in favour of Option 2, but it is the correct
+fallback if the full-bleed direction is ever reversed.
 
 ---
 
@@ -935,3 +947,314 @@ is decided.
 Whatever is chosen must catch a re-introduction of §15 D1 and D2, run in the
 existing CI matrix without a meaningful time penalty, and add no artefact to
 the repo that grows as tests are added.
+
+---
+
+## 17. Stage sizing — full-bleed wide, and a full-window toggle
+
+Raised and accepted by Caveshen 2026-07-22, out of the §15 D3 ruling.
+**ACCEPTED — not yet built.** Comparison that produced the ruling:
+https://claude.ai/code/artifact/0ec6a101-aee8-4f1f-b35a-3217715f6417
+
+### 17.1 Wide variant goes full-bleed (the D3 ruling)
+
+`.stage-frame`'s `max-width: 1200px` stops applying to the 21:9 variant. The
+stage instead grows until it runs out of *height*, which is the real
+constraint: at 1750/750 a 2560px-wide stage would need 1097px of height, and
+a 1080px viewport has not got it. Measured outcome of the accepted prototype
+at 2560×1080 was a 2287×980 stage — 89% of viewport width, 91% of its height,
+against 47%/48% as shipped.
+
+Standard and portrait variants are **unaffected**. Their caps stay.
+
+### 17.2 The stage may claim the whole window (new)
+
+Caveshen's addition, and it goes further than 17.1: he wants the option of
+the stage occupying 100% of the window — *explicitly accepting that this
+swallows the scene*, i.e. that the SVG will crop rather than fit. His words:
+"I still want this even if it swallows the scene."
+
+This is already structurally available. Every scene SVG carries
+`preserveAspectRatio="xMidYMax slice"` — `slice` crops the overflow instead
+of letterboxing it, so a stage sized to arbitrary dimensions renders a
+correctly-proportioned *crop* of the world rather than a distorted stretch.
+No new rendering strategy is required; only the sizing rule changes.
+
+**Shipped as a toggle "for now"** — Caveshen's framing, meaning the default
+presentation is not being replaced, and the toggle is the safe way to live
+with the mode before deciding whether it becomes the default.
+
+### Acceptance criteria
+
+1. At ≥ 15/8 aspect the stage grows beyond 1200px, limited by available
+   height, and never introduces vertical page scroll.
+2. Standard and portrait variants render byte-identically to before at their
+   existing breakpoints — this change is invisible outside ultra-wide.
+3. A control switches the stage between framed and full-window. State
+   persists across reloads, in the manner of the existing theme toggle.
+4. In full-window mode the scene crops via `slice` and is never stretched:
+   the Table Mountain screen-space aspect invariant (§13) still holds.
+5. No horizontal page overflow in any mode at any tested viewport.
+6. Keyboard-operable with a visible focus ring; honours
+   `prefers-reduced-motion` on any size transition.
+
+### Open questions
+
+- Does the full-window toggle survive as a permanent control, or is it a
+  staging post to making full-window the default? Caveshen has deliberately
+  not decided.
+- **It may be the same control as §18.** See that section.
+
+---
+
+## 18. Fullscreen toggle button
+
+Requested by Caveshen 2026-07-22. **ACCEPTED — not yet built.**
+
+A floating button, **bottom-right of the screen**, carrying the standard
+fullscreen glyph (the four-corner brackets), toggling the browser's
+Fullscreen API on the stage.
+
+### Acceptance criteria
+
+1. Button is present, visible against both night and day grounds, and does
+   not occlude the figure, the card, or the approach prompt in any of the
+   three aspect variants — asserted geometrically, per §16's hypothesis.
+2. Calls `requestFullscreen()` / `exitFullscreen()`; the glyph reflects
+   current state, and the control stays correct when the user leaves
+   fullscreen by pressing Escape rather than by clicking the button.
+3. Degrades honestly: where the API is unavailable or refused, the button is
+   absent rather than present-and-dead.
+4. Keyboard reachable with a visible focus ring; correctly labelled for
+   screen readers, with the label changing with state.
+5. No-JS path: the button does not appear at all (it cannot function), and
+   nothing else on the page shifts because of its absence.
+
+### Open question — is this one control or two?
+
+§17.2 (stage claims the whole *window*) and §18 (stage claims the whole
+*screen*) are different mechanisms but arguably one user intention: "give me
+more scene". Two floating controls that both make the picture bigger is a
+worse interface than one. Three ways to resolve it, undecided:
+
+- Keep both, distinct affordances (a size toggle and a fullscreen button).
+- One button that goes full-window on click, fullscreen on a modifier or a
+  second click.
+- Fullscreen only, and let §17.2's full-window mode *be* what fullscreen
+  does — simplest, and probably the laziest thing that works.
+
+Caveshen to rule before either is built, since it decides whether §17.2
+needs a control of its own at all.
+
+---
+
+## 19. Locked background layer (perspective consistency)
+
+Raised by Caveshen 2026-07-22 as "one twist" on the §15 D3 ruling.
+**ACCEPTED IN PRINCIPLE — implementation blocked on §20.** Prototype:
+https://claude.ai/code/artifact/f23b9a5b-81f3-4356-a5d1-0ea9f7c15fbc
+
+### The intent, in his words
+
+The background — mountains and buildings — "must persist in screen space…
+perspective should not vary that much based on aspect ratio". The foreground
+may scale freely with the stage ("essentially, zoom-in-zoom-out").
+
+### Why this is right, and bigger than ultra-wide
+
+The problem it fixes is already shipped and is worst on **mobile**, not on
+ultra-wide. The tall camera carries `scale(0.62)`, so Table Mountain is
+genuinely 38% smaller on a phone than on a desktop — same mountain, different
+apparent distance, for no reason but the viewport's shape. Locking the
+background makes the skyline a stable identity across all three aspects and
+demotes the aspect ratio to deciding only *how much of the world you see*.
+
+### The mechanism (prototyped, measured, works)
+
+- **The seam follows paint order.** Foreground is the sky fill (which must
+  always cover), and everything painted from `.f-sea` onward: sea, moon
+  reflection, ground, railing, figure. Background is everything before it:
+  stars, moon/sun, and `.world` (mountains, buildings, lit windows). The
+  existing `CityScape.astro` `.world` group is *already* exactly the
+  mountains-and-buildings layer, so the split needs no re-authoring.
+- **The anchor is the waterline.** The world's base (`y=352`) lands on
+  `y=480` under all three cameras, so scaling the background about that point
+  keeps the city's feet on the water at every size.
+- **The reference is desktop as it looks today** — 1 screen pixel per world
+  unit, i.e. the standard scene at its 1200px cap. Standard is therefore
+  unchanged by definition.
+- Scale factor `k = S_REF / (s · cameraScale)`, where `s` is the scene's
+  measured px-per-unit. Measured: 0.766 at 2560×1080 wide, 1.002 at standard
+  (i.e. unchanged), 2.494 at 390×844 tall.
+
+### The measured failure, and the proposed clamp — NOT RULED
+
+At 390×844 a locked background must magnify 2.494×, and a 390px frame can
+then show only 27% of the world's width. In the prototype Table Mountain,
+Lion's Head and Signal Hill are **all cropped away entirely** — the entire
+visual identity of the scene is lost and only anonymous building tops remain.
+
+Proposed, not accepted: clamp the factor with `Math.min(1, …)` so the lock
+may only ever *shrink* the background, never magnify it. Ultra-wide gets the
+intended behaviour, standard is untouched, portrait keeps its authored
+pull-back and keeps its mountain.
+
+**§20 may make the clamp unnecessary at the wide end** and it must be
+re-evaluated once the world is wider — hence this section is blocked on that
+one, not built alongside it.
+
+### Known consequence to art-direct, not to test away
+
+With the background locked and the foreground scaling, the figure grows
+relative to the skyline — roughly 1.3× at 2560×1080. There is no atmospheric
+depth cue in the scene (no haze, no overlap, no converging ground plane), so
+past some ratio the figure stops reading as *nearer the camera* and starts
+reading as *enormous*. The parapet railing is the only element arguing for
+depth, and it is in the scaling layer. Either accept a bounded scale range or
+introduce a real depth cue; this is a drawing decision, not a code one.
+
+### Relationship to §3
+
+This **refines, and does not repeal, "one world, three cameras"**. There is
+still exactly one authored world and no variant ever stretches it. What
+changes is that the world now has two depth layers with independent scale
+rules, both uniform. Any future change must preserve the no-stretch
+invariant, which §13's Table Mountain screen-space test already guards.
+
+---
+
+## 20. A wider world — extending the cityscape
+
+Raised by Caveshen 2026-07-22 on seeing the §19 prototype: the background
+city "needs to be MUCH larger / widespread… extend it across the entire
+scene in widescreen and then let it naturally adjust to the other views".
+**ACCEPTED — to be workshopped. Explicitly open to creative exploration**
+("we can workshop and/or get creative with this one as well").
+
+### Why this is the load-bearing item of the three
+
+It is not a polish pass; §19 depends on it. A locked background is a
+statement that a larger stage **reveals more world** rather than magnifying
+it — which only holds while there is more world to reveal. The city currently
+spans x 40–1150 of a 1750-wide scene, so the ultra-wide prototype ran out of
+city and filled the difference with empty sky. That emptiness was read as a
+flaw in locking; it is actually a flaw in the world's extent. Widen the world
+and the lock stops being a trade-off and simply becomes correct.
+
+### Scope to workshop
+
+- **How wide.** Wide enough that a locked background still fills a 2560px
+  stage, with margin for wider displays. Implies an authored span
+  meaningfully beyond 1750 units.
+- **What extends.** The city clearly does. The mountain chain is the open
+  question: Table Mountain, Lion's Head and Signal Hill are the scene's
+  identity and a literal repetition of them would be wrong. Options include
+  keeping the chain as a centrepiece with the city running out past it on
+  both flanks, or extending the landform with lower, further silhouettes
+  that read as the rest of the peninsula.
+- **Depth.** §19 flags the absent depth cue. A wider world is the natural
+  moment to introduce one — a haze band, a second further-back building
+  layer at lower contrast — which would also buy headroom for the figure's
+  scale growth.
+- **Density and rhythm.** The existing 21 buildings and 24 lit windows are
+  hand-placed with deliberate irregularity. Extension must not become a
+  visibly tiled repeat.
+
+### Constraints that still bind
+
+- Authored **once** in `CityScape.astro` and rendered into all three scenes;
+  cameras pan and scale uniformly, never stretch (§3, as refined by §19).
+- The lit-window glimmer stays CSS-only, emitted inline at build time, and
+  keeps working with JavaScript disabled.
+- Fills come from CSS classes, never SVG presentation attributes — `var()`
+  does not resolve in those.
+- More SVG nodes cost render time on the mobile matrix; watch it, since
+  Lighthouse ≥ 95 performance is success criterion 6.
+
+### Acceptance criteria
+
+1. At 2560×1080 with the §19 lock applied, the city reaches both edges of
+   the stage — no bare sky wedge at either flank.
+2. Standard and portrait remain compositionally sound; the mountain chain is
+   still legible and uncropped on a 390px-wide phone.
+3. The Table Mountain screen-space aspect invariant (§13) still passes in all
+   three variants — proof the world was widened, not stretched.
+4. Lighthouse performance on `/` stays ≥ 95 on the mobile profile.
+5. The extension reads as hand-placed: no detectable tiling period in the
+   building rhythm or the window scatter.
+
+### Method
+
+Same loop that settled §15 D3 and §19, which has now worked twice: prototype
+as a runtime override against the built site, screenshot all three aspects,
+Caveshen rules, *then* it enters the repo. Nothing is drawn into
+`CityScape.astro` before he has seen it.
+
+---
+
+## 21. Camera zoom easing — the approach lurches
+
+Reported by Caveshen 2026-07-22 from live play. **ACCEPTED — not yet built.**
+
+### Symptom, in his words
+
+"It zooms in a little INSTANTLY and then continues the zoom, which is less
+dramatic and more sudden… I want the zoom-in to be fully animated/rendered
+and the speed can certainly be modified to be faster on zoom-in and slower on
+zoom-out (zoom-out is actually perfect)."
+
+### Cause — measured, not suspected
+
+`src/pages/index.astro:276` — `.camera { transition: transform 950ms
+cubic-bezier(0.16, 1, 0.3, 1); }`. That curve leaves the origin at roughly
+6× speed. Against the 950ms duration it resolves to:
+
+| Elapsed | Zoom completed |
+|---------|----------------|
+| 19ms (~1 frame at 60Hz) | 12.0% |
+| 48ms | 28.1% |
+| 95ms | 49.4% |
+| 190ms | 75.2% |
+| 475ms (half the duration) | 97.2% |
+
+The animation is perceptually over in about 200ms and then spends its
+remaining 750ms traversing the last few percent. The "instant jump" is the
+first frame landing 12% in; the "continues" is the long imperceptible crawl.
+Nothing is dropping frames — the easing is doing exactly what it was told.
+
+The same curve is used for the exit, where it reads correctly: a fast
+departure that settles is a natural retreat. **This is why one shared
+transition cannot serve both directions.**
+
+### Direction
+
+Split the easing by direction. The entry wants a curve that actually starts
+from rest so the zoom is legible as motion; the exit keeps today's behaviour,
+which he has explicitly approved.
+
+**Ambiguity to resolve with Caveshen before building:** he asks for "faster on
+zoom-in and slower on zoom-out" while also saying "zoom-out is actually
+perfect". Read literally those conflict. Working interpretation, to confirm:
+the exit is not to be touched, and "faster" for the entry means a shorter
+overall duration once the first-frame lurch is gone — not merely
+redistributing the same 950ms.
+
+### Acceptance criteria
+
+1. Entering the zoom, no single frame advances the transform more than a
+   small fraction of the total; the motion reads as continuous from rest.
+2. Entry and exit have independent durations and curves.
+3. Exit behaviour is unchanged from what ships today — verified by eye
+   against the current build, since it is approved as-is.
+4. `prefers-reduced-motion: reduce` continues to skip the transition
+   entirely (`index.astro:278–280` already does this; it must not regress).
+5. Interrupting an in-flight zoom — approach then Escape before it settles —
+   leaves the camera in a coherent state, with no stuck or doubled transform.
+6. The existing camera unit tests (§13) still pass untouched: this is a
+   presentation change and the transform maths must not move.
+
+### Note for whoever takes it
+
+Easing is a felt quality and the suite cannot judge it — criterion 1 is
+measurable, but "dramatic" is not. This wants a look before it commits, in
+the manner of §16.

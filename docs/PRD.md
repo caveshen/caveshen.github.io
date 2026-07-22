@@ -902,6 +902,25 @@ the identical cap read as a deliberate letterbox rather than an unfinished
 page. That variant was rejected in favour of Option 2, but it is the correct
 fallback if the full-bleed direction is ever reversed.
 
+### D4 — "End dialogue" button shows on the no-JS path
+
+**Symptom:** with JavaScript disabled, the `#end-dialogue` button renders
+visibly inside the (no-JS-visible) card, despite carrying the `hidden`
+attribute — a dead control the visitor cannot use.
+**Cause:** `src/pages/index.astro` — `.end-dialogue { display: block }` is an
+author-origin rule that overrides the user-agent `[hidden] { display: none }`
+regardless of specificity, so the `hidden` attribute is defeated. Its own
+comment claims "with JS off this stays hidden"; it does not. Pre-existing,
+not introduced by any recent work.
+**Found:** by the reviewer of the §17.1a/§18 build (2026-07-23), which fixed
+the *identical* cascade bug two rules away on `.fullscreen-toggle`
+(`.fullscreen-toggle[hidden] { display: none }`). Flagged, deliberately NOT
+fixed in that diff — out of its scope, and pre-existing.
+**Proposed fix:** the same one-liner —
+`.end-dialogue[hidden] { display: none; }`. Trivial, but it is Caveshen's call
+whether to fold it into the next branch that touches this file or take it
+standalone. Add a no-JS assertion that `#end-dialogue` is not visible.
+
 ---
 
 ## 16. Proposed item — visual validation in e2e (NOT ACCEPTED, intent only)

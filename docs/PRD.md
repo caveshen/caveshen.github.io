@@ -1408,3 +1408,55 @@ This is deliberately left open. It is entangled with the larger "rework the
 dialogue" intent and should be taken as part of that, not pre-empted by a
 typewriter effect bolted onto the current engine. When it is picked up it
 wants a look, in the manner of §16 and §21 — pacing is felt, not asserted.
+
+---
+
+## 23. Preserving the current main landing — the "attic"
+
+Raised by Caveshen 2026-07-23, tied to the eventual `main` cutover. Two
+concerns: switchover discipline, and archival.
+
+### Switchover
+
+When `item/landing-v2-avatar` merges to `main` it replaces the current
+landing — the original **Sample C** scene with the simpler dialogue over the
+Cape Town backdrop, the first thing built on this project. That original is a
+finished, working page and **must not be lost to the overwrite.** Git history
+is not sufficient: Caveshen wants it kept as a live, resurrectable reference
+in the tree, not an archaeology dig through old commits.
+
+### Archival
+
+Before or as part of the cutover, lift the original landing's assets — its
+scene SVG / components, its dialogue data, its page — into a self-contained
+reference folder. **Not named "Sample C view"** (his explicit steer); pick
+something that reads as an archive or reference. Candidates, undecided:
+`src/reference/`, `src/attic/`, or an unlisted `/attic` route. It stays
+buildable so it can be resurrected wholesale, not as dead text.
+
+### Candidate destination — an interactive 404
+
+Astro's not-found page is `src/pages/404.astro`. Wiring the preserved scene
+there would give the archive a home and make the 404 itself a small
+interactive scene. Caveshen: "An interactive 404 seems like something nobody
+has done before." **Not decided** — the archive stands on its own regardless
+of whether, or where, it is later mounted. Other future pages are equally
+open.
+
+### Status
+
+**NOTED, not scheduled.** No work until Caveshen calls it, and likely
+sequenced around the real `main` cutover — itself gated on his approval and a
+local preview per the branch rule. It is recorded now so the cutover cannot
+silently destroy the old scene.
+
+### Constraints and one open question
+
+- Preservation is lossless: the archived scene renders identically to today's
+  `main` landing when resurrected.
+- Same repo rules apply to the archived assets: no PII, no email, copy stays
+  `PLACEHOLDER` until it is Caveshen's.
+- **Open:** kept buildable, the archive can bit-rot silently as shared tokens
+  and layouts move under it. Either keep it in the build/test path enough to
+  catch that, or explicitly freeze it as excluded reference — decide when it
+  is built, not now.

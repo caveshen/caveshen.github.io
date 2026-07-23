@@ -1596,3 +1596,241 @@ Like §16 / §21 / §22, the *feel* — speed, altitude, how often it truly want
 to appear — is not something the suite can judge. This wants a look before it
 ships. The suite can assert the gating (never present once approached, absent
 under reduced motion) and that it does not intercept pointer events.
+
+---
+
+## 25. Palette — from violet night to the sheet's blue-black
+
+Requested by Caveshen 2026-07-23 on the §20 review. **ACCEPTED — not yet
+built.** "Move away from the purple hues and colour-match to our character
+sheet blue-black styling."
+
+### What this is
+
+The landing scene's **night** theme leans violet across its ground tokens
+(`tokens.css`): `--bg`/`--sky` `#14121f`, `--mountain` `#262138`,
+`--mountain-far` `#3a3457`, `--card` `#1e1a2e`, `--card-edge` `#2e2946`,
+`--option` `#a48fd8`, `--option-border`, `--avatar-ring` `#a48fd8`, `--dim`
+`#9b93b8`, `--rail` `#474163`. The character sheet (`/sheet`) already lives in
+a colder **blue-black**: `--panel-grad linear-gradient(#121a2e → #0a0e1a)`,
+`--sheet-bg` nebular blue glows on near-black `#07090f`. This item pulls the
+landing into that same family so the two pages read as **one site**, not two
+palettes.
+
+### Scope
+
+- Retune the night-theme ground tokens listed above from violet toward
+  navy-sinking-into-black, keyed off the sheet's existing values rather than
+  invented afresh.
+- The **warm accents** — `--celestial`/`--moon` gold, `--text` cream — are the
+  deliberate counterpoint to the cold ground; the ask was specifically about
+  the *purple*, so these are probably kept. Confirm on the look.
+- Because the §20 industrial district and the city bowl draw with
+  `--mountain`/`--mountain-far`, this reskin recolours them for free — one
+  token move, whole scene.
+
+### Constraints
+
+- WCAG AA is documented on `--dim` and `--option` (≥4.5:1 on both `--card` and
+  `--bg`); every new value must preserve it — re-verify contrast after the
+  shift, don't assume.
+- Token-value change only; fills stay in their CSS classes, no structural
+  churn. Theme transition and reduced-motion untouched.
+
+### Acceptance criteria
+
+1. The landing night palette sits in the same blue-black family as `/sheet`;
+   no violet cast remains where he flagged it.
+2. `--dim` and `--option` contrast ratios still pass AA on both surfaces.
+3. Day theme handled per his ruling (see open point).
+
+### Method
+
+Visual — wants a look (§16). Prototype token values as a runtime override
+against the built site, screenshot night (and day if touched), he rules, then
+into `tokens.css`.
+
+### Open points
+
+- Keep the warm gold/cream accents, or cool those too?
+- **Day theme** (currently teal/sage) — shift to match the cooler direction,
+  or leave it? He named the night styling only.
+
+---
+
+## 26. Normalising the mountains — Devil's Peak + soften Lion's Head
+
+Requested by Caveshen 2026-07-23 ("I have been asked to add Devil's Peak… and
+to soften the top of Lion's Head"). **ACCEPTED — not yet built.**
+
+### What this is
+
+Two edits to the authored skyline in `CityScape.astro`:
+
+1. **Add Devil's Peak** — the fourth massif of the Table Mountain group, not
+   currently drawn.
+2. **Soften Lion's Head** — its apex is a sharp point today (polygon apex
+   `803,149` between shoulders `785,201` / `825,201`). Round or blunt it.
+
+### Placement note — confirm on the look
+
+The scene reads with the **coastline on the right** (Signal Hill descending to
+the §20 water). Devil's Peak conventionally sits at the eastern/inland end —
+the **left** of Table Mountain in this orientation. That is the same flank
+§20 filled with the industrial harbour (world-x ≈ −295…34). Mountains are
+`f-far` (behind); industry is `f-near` (front) — so Devil's Peak would rise
+**behind** the cranes, which is geographically right (the peak inland, the
+harbour at the shore). Its base and scale must clear the cranes without
+fighting them. Placement is not fixed; his call on the look.
+
+### Constraints that bind
+
+- **Table Mountain itself is the identity silhouette** and its §13 screen-space
+  aspect invariant must still pass **unchanged** — do not touch its polygon.
+  Devil's Peak is a NEW polygon; softening Lion's Head touches only Lion's
+  Head's polygon.
+- Authored once, rendered into all three cameras (§14) — pan/scale only, never
+  stretch.
+- Same flat `f-far` silhouette language and detail level; nothing that
+  out-details its neighbours.
+- Must stay legible and uncropped on a 390px portrait (§20 criterion 2 extends
+  here).
+
+### Acceptance criteria
+
+1. Devil's Peak present and reads as part of the chain in all three variants.
+2. Lion's Head apex visibly softened.
+3. The Table Mountain aspect invariant (§13) still passes unchanged — proof the
+   edit was additive/local, not a re-stretch.
+4. Portrait still shows the full chain uncropped at 390px.
+
+### Method
+
+Visual — prototype, screenshot the three aspects, he rules, then repo.
+
+### Open points
+
+- Devil's Peak's exact placement/height and its relationship to the §20 cranes.
+- How soft is "soft" on Lion's Head — a rounded cap vs a blunt flat top.
+
+---
+
+## 27. A second character — the Badger avatar
+
+Requested by Caveshen 2026-07-23. **ACCEPTED — not yet built.** A secondary
+option for the on-stage character: alongside the current hooded figure, his
+commissioned **Badger** avatar (his identity across most sites), selectable
+"depending on who I decide is the subject being spoken to."
+
+### Rights — this one ships
+
+The Badger is **commissioned, paid for, full rights** (his words). It is **not**
+the inspiration-only decal (`2a84c08…jpg`, which is never to be shipped or
+traced) — the Badger may enter the repo and ship. Source:
+`E:\Internet Downloads\Downloaded Pictures\BadgerUP.png` (front-facing cartoon
+badger, ~55 KB). Bring it into the repo as a tracked asset during
+implementation.
+
+### The design question this item exists to answer
+
+The scene is flat monochrome silhouettes; the hooded figure is authored SVG.
+The Badger is a detailed, shaded cartoon **raster**. Dropped in as-is it risks
+out-detailing the whole world — the exact failure mode §20 kept guarding
+against. Two directions to prototype and choose between:
+
+- **As-authored** — place the Badger as a full-colour/detailed foreground
+  character, accepting it as a deliberate focal contrast against the flat scene.
+- **Scene-matched** — reduce it toward the scene's silhouette/tonal language so
+  it belongs to the world.
+
+Caveshen: "try fitting it into the scene **accordingly**" — the "accordingly"
+is precisely this call, and it is resolved with a look, not in the abstract.
+
+### Mechanism
+
+- A selector for which character occupies the stage — hooded figure vs Badger
+  — chosen by **content/subject**, not by the visitor. Likely a prop/config
+  value (site-wide, or per-dialogue if the subject varies by conversation).
+  Keep it simple; no visitor-facing toggle UI unless he asks.
+- The two characters differ in silhouette and size, so everything measured off
+  the figure must adapt for the Badger: the approach-prompt placement (D1/D2 —
+  today 13 px above the hooded head, measured off `.face-void`), the camera
+  face-target (§13 `faceTargetY`/`faceY`), and the zoom framing (§21). The
+  Badger needs its own equivalent anchor, not the figure's.
+
+### Constraints
+
+- A raster will **not** theme like the SVG (it won't recolour night/day).
+  Decide its day/night treatment — two assets, a CSS filter, or accept it sits
+  constant. Flag on the look.
+- Accessibility: the character carries a functional `aria-label`/`role` like the
+  current figure (functional labels are exempt from the `PLACEHOLDER` rule).
+- Perf: one raster is cheap, but size/optimise it for its displayed dimensions
+  rather than shipping the full-res PNG (success criterion 6). Confirm nothing
+  identifying is baked into the committed filename/metadata (no-PII rule).
+
+### Acceptance criteria
+
+1. Both characters selectable; the scene renders coherently with either.
+2. Prompt placement, camera face-target and zoom framing are correct for the
+   Badger — computed from its own anchor, not the figure's.
+3. Badger day/night treatment decided and applied.
+
+### Method
+
+Visual — wants a look. Prototype the two fitting directions above, he rules,
+then repo.
+
+### Open points
+
+- **As-authored vs scene-matched** — the core call.
+- What drives the selection — a single site-wide subject, or per-dialogue.
+- Day/night treatment of the raster.
+
+---
+
+## 28. Dialogue fade-in on zoom
+
+Requested by Caveshen 2026-07-23. **ACCEPTED — not yet built.** "A tiny
+fade-in when the zoom-in happens after the hovering button is clicked."
+
+### What this is
+
+Today the dialogue card appears **instantly** on approach — flagged under §22
+("dialogue is instant… to be workshopped"). This is a small, self-contained
+down-payment on that: on approach, as the camera zooms in (§21 entry, 550 ms),
+the dialogue **fades in** gently instead of popping. Emphasis on **tiny** — a
+soft reveal, not a slow curtain.
+
+### Scope
+
+- An opacity transition (optionally a few-px rise) on the dialogue card,
+  triggered by the same approach that already fires the §21 zoom.
+- Timed **with or just trailing** the zoom so the card arrives as the camera
+  settles rather than competing with it — exact offset decided on the look.
+- Down-payment only; the broader §22 dialogue rework (sequenced/typewriter
+  reveal, etc.) remains its own item.
+
+### Constraints
+
+- `prefers-reduced-motion: reduce` — no fade; the card appears immediately,
+  consistent with §21's reduced-motion skip.
+- No-JS path unaffected — the card is already visible without JS; this only
+  touches the JS approach flow.
+- Cheap: a CSS transition on one element, no new timers beyond what approach
+  already runs.
+
+### Acceptance criteria
+
+1. On approach, the dialogue fades in over a short duration rather than
+   appearing instantly.
+2. Under reduced motion, no fade — immediate.
+3. No-JS behaviour unchanged.
+4. Interrupt (approach then Escape mid-zoom) leaves no half-faded stuck card
+   (mirrors §21 criterion 5).
+
+### Method
+
+Feel — a quick look to confirm "tiny" reads right, but small enough to also
+assert in the suite (opacity transition present on approach; absent under
+reduced motion).

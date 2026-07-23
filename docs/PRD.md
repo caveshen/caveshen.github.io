@@ -1084,13 +1084,24 @@ cropped, so the mountains never squash. This is the mechanism already
 described above — the clarification only confirms the intent and separates it
 from §18.
 
-### Open question — the one remaining call
+### RULED 2026-07-23 — default (not a toggle)
 
-- **Default, or toggle?** Fill-the-window either *replaces* the current
-  fit-and-centre sizing (§17.1a) as the default presentation, or ships as a
-  toggle between fit (today) and fill (§17.2), per Caveshen's original "as a
-  toggle for now" framing. If it becomes the default, §17.1a's height-limited
-  fit and vertical centring become moot on `/`. Awaiting his call.
+Caveshen: fill-the-window is the **default** sizing behaviour, not a toggle.
+It **supersedes §17.1a's height-limited fit + vertical centring** on `/`: the
+stage fills 100% of the viewport at any size and the selected variant is
+cropped via `slice` (never distorted). The three-camera variant swap by width
+cut-off (§14) is unchanged.
+
+Implementation notes:
+- Site chrome (footer, time toggle, the §18 fullscreen button) now overlays a
+  full-bleed stage rather than sitting below it. Exact placement is implementer
+  discretion — flag the result for his look.
+- Guard the crop: keep the figure and dialogue card within the safe centre so
+  extreme window aspects crop sky/sea, not the subject. "Swallows the scene"
+  is accepted, but clipping the figure/card is not the goal.
+- §17.1a's now-superseded fit/centre tests are expected to be replaced, as the
+  earlier §17.1a corrections were — document each removal as a correction, not
+  a weakening.
 
 ---
 
@@ -1670,11 +1681,25 @@ Visual — wants a look (§16). Prototype token values as a runtime override
 against the built site, screenshot night (and day if touched), he rules, then
 into `tokens.css`.
 
-### Open points
+### Direction 2026-07-23 — day theme (assistant's proposal, pending his look)
 
-- Keep the warm gold/cream accents, or cool those too?
-- **Day theme** (currently teal/sage) — shift to match the cooler direction,
-  or leave it? He named the night styling only.
+Caveshen delegated the day-theme call ("open to suggestions… from you").
+Proposal, to be shown in the prototype beside the night reskin: shift the day
+theme off teal/sage to a **cool coastal blue** mirroring `/sheet`'s day
+(`#d7e9f4 → #e7f0f5`) — pale sky-blue ground, cool slate-blue mountains, a
+clearer blue sea — while **keeping the warm gold sun** (`--celestial`
+`#f2b544`). This gives day/night symmetry: a warm celestial body (sun / moon)
+over a cool ground in both themes. Warm cream `--text` and the cream `--card`
+are kept for legibility and warmth.
+
+### Decided
+
+- Warm gold/cream accents (`--celestial`, `--moon`, `--text`) are **kept** in
+  both themes as the deliberate warm counterpoint to the cool ground.
+
+### Open (his look)
+
+- Final sign-off on the night blue-black and the day direction above.
 
 ---
 
@@ -1728,10 +1753,14 @@ fighting them. Placement is not fixed; his call on the look.
 
 Visual — prototype, screenshot the three aspects, he rules, then repo.
 
-### Open points
+### RULED 2026-07-23
 
-- Devil's Peak's exact placement/height and its relationship to the §20 cranes.
-- How soft is "soft" on Lion's Head — a rounded cap vs a blunt flat top.
+- **Soft = rounded, still pointed.** Lion's Head's apex should read as a
+  rounded edge rather than a sharp peak, but stay **quite pointed** — round the
+  tip, do not flatten it into a cap.
+- **Devil's Peak placement accepted:** left flank, rising behind the §20
+  harbour as `f-far`, per the placement note above. Exact height/position
+  settled on the prototype look.
 
 ---
 
@@ -1801,11 +1830,14 @@ is precisely this call, and it is resolved with a look, not in the abstract.
 Visual — wants a look. Prototype the two fitting directions above, he rules,
 then repo.
 
-### Open points
+### RULED 2026-07-23
 
-- **As-authored vs scene-matched** — the core call.
-- What drives the selection — a single site-wide subject, or per-dialogue.
-- Day/night treatment of the raster.
+- **Show both.** Prototype **both** fitting directions — as-authored and
+  scene-matched — for his choice; neither is pre-selected.
+- **Day/night (assistant discretion, granted):** day = the Badger **as-is**;
+  night = the Badger with **subtle shadowing / darkening** over it.
+- **Still open (resolved when built for real, not needed for the prototype):**
+  what drives the selection — a single site-wide subject vs per-dialogue.
 
 ---
 

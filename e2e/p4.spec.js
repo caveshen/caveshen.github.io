@@ -188,3 +188,39 @@ test('Table Mountain aspect ratio is 2.4194 in the tall view', async ({ page }) 
   const ratio = await mountainRatio(page, '.scene-tall .table-mountain');
   expect(ratio).toBeCloseTo(MOUNTAIN_RATIO, 3);
 });
+
+// ── PRD §20: industrial district west of the mountain foot ────────────────
+// The district is drawn at world x < 0 (harbour end); none of the original
+// geometry (mountains, city bowl) uses negative x. Presence of a negative-x
+// rect/polygon in the world group is a cheap, reliable proxy that bites if
+// the port is reverted, without depending on exact screen-space placement.
+
+test('industrial district: the world group contains geometry west of x=0', async ({ page }) => {
+  await page.goto('/');
+  const hasNegativeX = await page.locator('.scene-standard .world').evaluate((worldEl) => {
+    const rects = [...worldEl.querySelectorAll('rect')]
+      .some((el) => parseFloat(el.getAttribute('x') ?? '0') < 0);
+    const polys = [...worldEl.querySelectorAll('polygon')]
+      .some((el) => (el.getAttribute('points') ?? '')
+        .trim().split(/\s+/)
+        .some((pair) => parseFloat(pair.split(',')[0]) < 0));
+    return rects || polys;
+  });
+  expect(hasNegativeX).toBe(true);
+});
+
+// ── PRD §20 added scope: sea wave marks ────────────────────────────────────
+
+test('each sea variant has at least 4 wave marks, visible in both day and night', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 }); // forces the standard variant on
+  await page.goto('/');
+  for (const variant of ['scene-standard', 'scene-wide', 'scene-tall']) {
+    const count = await page.locator(`.${variant} .f-wave`).count();
+    expect(count, `${variant} wave count`).toBeGreaterThanOrEqual(4);
+  }
+  // Night is default (PRD §3) — confirm waves are visible without toggling first,
+  // then toggle to day and confirm they stay visible (not gated behind night-only).
+  await expect(page.locator('.scene-standard .f-wave').first()).toBeVisible();
+  await page.locator('#toggle').click();
+  await expect(page.locator('.scene-standard .f-wave').first()).toBeVisible();
+});

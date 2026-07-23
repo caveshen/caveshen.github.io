@@ -45,6 +45,10 @@
   --ground: #0e0d16;
   --mote:      #d8c9a0;
   --mote-op:   .30;
+
+  /* §20 added scope: sea foam — a lighter tint of --sea, kept distinct from
+     the pale/cream --moon so wave marks read as sea, not moon reflection. */
+  --wave: #3c5a6e;
 }
 
 :root[data-time="day"] {
@@ -84,6 +88,7 @@
   --ground: #33403c;
   --mote:      #5f7068;
   --mote-op:   .28;
+  --wave:      #a8d4cf;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -106,6 +111,7 @@
 .f-rail  { stroke: var(--rail); }
 .f-moon  { fill: var(--moon); }
 .f-crater{ fill: var(--crater); }
+.f-wave  { fill: var(--wave); }
 
 /* ── City lights: a low glimmer, night only ────────────────────────────────
    --o holds each window's own base opacity (emitted inline by CityScape.astro

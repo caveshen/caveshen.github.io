@@ -1329,6 +1329,13 @@ x ≈ −295 to 34, camera/viewBox unchanged) into `CityScape.astro`, **test-fir
 and on a clean base once §17.1a/§18 have committed** — not on top of the
 in-flight stage-sizing work.
 
+**Ported 2026-07-23.** `CityScape.astro` now matches the reference verbatim;
+world spans x ≈ −295..1150. Waves added in all three scene variants (below).
+New e2e regression tests (industrial district geometry west of x=0; ≥4
+`.f-wave` marks per variant) pass, each proved to fail on revert; full unit
+(56) and e2e (1013) suites plus `npm run build` all green. Awaiting
+Caveshen's live review.
+
 ### Added scope — wave elements in the water (Caveshen 2026-07-23)
 
 "A few more 'wave' elements in the water would complete this backdrop." Add a
@@ -1340,6 +1347,11 @@ foreground per §19, so it is unaffected by the background lock). Keep it
 cheap — a handful of static marks, no per-element animation — against success
 criterion 6. Folded into the §20 implementation so the sea is drawn once,
 complete; Caveshen sees it in the real build rather than a further prototype.
+
+**Done.** 6 static `.f-wave` marks per variant (rx=1.5, opacity 0.09–0.16 —
+subordinate to the moon reflections), new `--wave` token in `tokens.css`
+(sea-tinted, distinct from `--moon`'s pale cream), always visible (not
+`night-only`), fills via CSS class per the no-presentation-attribute rule.
 
 ---
 

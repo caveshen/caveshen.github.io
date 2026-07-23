@@ -112,6 +112,55 @@ test('camera transition-duration is 0s under prefers-reduced-motion', async ({ p
   expect(duration).toBe('0s');
 });
 
+// ── PRD §28: dialogue card fades in on approach, synced to the §21 zoom ───────
+
+test('card has an opacity transition wired up (fades rather than pops)', async ({ page }) => {
+  const { property, duration } = await page.locator('.card').evaluate((el) => {
+    const cs = window.getComputedStyle(el);
+    return { property: cs.transitionProperty, duration: cs.transitionDuration };
+  });
+  const props = property.split(', ');
+  const idx = props.indexOf('opacity');
+  expect(idx, `transitionProperty was "${property}"`).toBeGreaterThanOrEqual(0);
+  expect(parseFloat(duration.split(', ')[idx])).toBeGreaterThan(0);
+});
+
+test('approaching fades the card in to full opacity', async ({ page }) => {
+  await page.locator('#approach-prompt').click();
+  await expect(page.locator('.card')).toHaveCSS('opacity', '1');
+});
+
+test('reduced motion: card fade is disabled, card is immediately full opacity', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.reload();
+  const duration = await page.locator('.card').evaluate((el) =>
+    window.getComputedStyle(el).transitionDuration
+  );
+  expect(duration).toBe('0s');
+  await page.locator('#approach-prompt').click();
+  await expect(page.locator('.card')).toHaveCSS('opacity', '1');
+});
+
+test('exiting mid-approach resets the fade so a re-approach fades in cleanly (PRD §28 AC4)', async ({ page }) => {
+  await page.locator('#approach-prompt').click();
+  await page.keyboard.press('Escape');
+  await page.locator('#approach-prompt').click();
+  // Sampled immediately after the second click, before the fade's transition
+  // delay elapses — if exit() failed to reset the entering state, the card
+  // would already be sitting at full opacity here (no fade left to observe).
+  const opacity = await page.locator('.card').evaluate((el) => window.getComputedStyle(el).opacity);
+  expect(parseFloat(opacity)).toBeLessThan(1);
+  await expect(page.locator('.card')).toHaveCSS('opacity', '1');
+});
+
+test('no-JS: card is fully opaque, not stuck at the fade\'s starting opacity', async ({ browser }) => {
+  const ctx  = await browser.newContext({ javaScriptEnabled: false });
+  const page = await ctx.newPage();
+  await page.goto('/');
+  await expect(page.locator('.card')).toHaveCSS('opacity', '1');
+  await ctx.close();
+});
+
 // ── SC8: figure fills are theme-independent ───────────────────────────────────
 
 test('figure fill colours are unchanged by day/night toggle', async ({ page }) => {
@@ -144,6 +193,16 @@ test('no-JS: /sheet link is reachable', async ({ browser }) => {
   const page = await ctx.newPage();
   await page.goto('/');
   await expect(page.locator('a[href="/sheet"]')).toBeVisible();
+  await ctx.close();
+});
+
+// ── PRD §15 D4: [hidden] must actually hide #end-dialogue with no JS ──────────
+
+test('no-JS: end-dialogue button is not visible', async ({ browser }) => {
+  const ctx  = await browser.newContext({ javaScriptEnabled: false });
+  const page = await ctx.newPage();
+  await page.goto('/');
+  await expect(page.locator('#end-dialogue')).not.toBeVisible();
   await ctx.close();
 });
 

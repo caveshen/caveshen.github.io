@@ -902,7 +902,7 @@ the identical cap read as a deliberate letterbox rather than an unfinished
 page. That variant was rejected in favour of Option 2, but it is the correct
 fallback if the full-bleed direction is ever reversed.
 
-### D4 — "End dialogue" button shows on the no-JS path
+### D4 — "End dialogue" button shows on the no-JS path — FIXED (2026-07-23)
 
 **Symptom:** with JavaScript disabled, the `#end-dialogue` button renders
 visibly inside the (no-JS-visible) card, despite carrying the `hidden`
@@ -920,6 +920,9 @@ fixed in that diff — out of its scope, and pre-existing.
 `.end-dialogue[hidden] { display: none; }`. Trivial, but it is Caveshen's call
 whether to fold it into the next branch that touches this file or take it
 standalone. Add a no-JS assertion that `#end-dialogue` is not visible.
+**Fixed:** applied verbatim, mirroring `.fullscreen-toggle[hidden]` exactly.
+`e2e/p4.spec.js` — "no-JS: end-dialogue button is not visible" — proven red
+before the fix, green after.
 
 ---
 
@@ -1062,15 +1065,32 @@ with the mode before deciding whether it becomes the default.
   stage-frame top margin + 32px footer top margin + 28px footer height + 40px
   footer bottom margin = 116px, rounded up. The 100px used in the accepted
   prototype was wrong and left a 16px scrollbar at 2560×1080.
-- **17.2 — NOT BUILT.** Blocked on the §18 open question below; building it
-  first risks building the same control twice and discarding one.
+- **17.2 — NOT BUILT.** Unblocked 2026-07-23 (see clarification below); one
+  open question remains before it can be built.
 
-### Open questions
+### Clarified intent — Caveshen 2026-07-23
 
-- Does the full-window toggle survive as a permanent control, or is it a
-  staging post to making full-window the default? Caveshen has deliberately
-  not decided.
-- **It may be the same control as §18.** See that section.
+The §18 overlap is **resolved: §17.2 and §18 are independent.** §18 (the
+fullscreen button) is its own accepted, shipped control and is not touched by
+§17.2. §17.2 is purely the *windowed* sizing behaviour: "the scene stretches
+to fit the window regardless of the size, and then transitions between the
+three scenes according to the width cut-offs."
+
+"Stretches to fit" means **fill the window, cropping via `slice`** — not a
+non-uniform distortion. The three-camera system (§14) already selects the
+correctly-proportioned variant per width cut-off and scales it uniformly; in
+full-window mode the selected variant fills the viewport and the overflow is
+cropped, so the mountains never squash. This is the mechanism already
+described above — the clarification only confirms the intent and separates it
+from §18.
+
+### Open question — the one remaining call
+
+- **Default, or toggle?** Fill-the-window either *replaces* the current
+  fit-and-centre sizing (§17.1a) as the default presentation, or ships as a
+  toggle between fit (today) and fill (§17.2), per Caveshen's original "as a
+  toggle for now" framing. If it becomes the default, §17.1a's height-limited
+  fit and vertical centring become moot on `/`. Awaiting his call.
 
 ---
 
@@ -1791,8 +1811,24 @@ then repo.
 
 ## 28. Dialogue fade-in on zoom
 
-Requested by Caveshen 2026-07-23. **ACCEPTED — not yet built.** "A tiny
+Requested by Caveshen 2026-07-23. **BUILT (2026-07-23) — awaiting Caveshen's
+live look ("feel" is the acceptance method, per §28 Method below).** "A tiny
 fade-in when the zoom-in happens after the hovering button is clicked."
+
+**Implementation:** `.card`'s existing transition list gains
+`opacity 380ms ease 170ms, transform 380ms ease 170ms` (170ms delay + 380ms
+duration lands at 550ms, syncing the fade's end with the §21 zoom's end). A
+JS-only `.card-entering` class (`opacity: 0; transform: translateX(-50%)
+translateY(6px)`) supplies the starting state — added at init alongside the
+existing `card.hidden = true`, and re-armed by `exit()` — never a static
+`.card` rule, so the no-JS card (which never runs this script) stays fully
+visible per the progressive-enhancement trap. `approach()` removes the class
+after a forced reflow (`card.offsetHeight`) so the opacity:0 frame actually
+paints before the transition fires; under reduced motion it removes the
+class synchronously with no reflow, so no frame is ever painted with it
+applied (transition is also `none` there, via the existing catch-all
+reduced-motion block, which already covers `.card`). Tests added in
+`e2e/p4.spec.js`, each proven to bite on a targeted revert.
 
 ### What this is
 

@@ -531,6 +531,12 @@ const FIG = {
     margin-top: 0.75rem;
     transition: color 0.12s ease, border-color 0.12s ease;
   }
+  /* display:block above is author-origin CSS, which outranks the UA
+     stylesheet's [hidden]{display:none} regardless of selector specificity —
+     left alone it would render the button even while `hidden` is set.
+     Reassert it explicitly so JS (or its absence, on the no-JS path) stays
+     the only thing that can ever reveal this button. */
+  .end-dialogue[hidden] { display: none; }
   .end-dialogue:hover,
   .end-dialogue:focus-visible {
     color: var(--stage);
@@ -558,7 +564,19 @@ const FIG = {
     border: 1px solid var(--card-edge);
     border-radius: 18px;
     box-shadow: var(--card-shadow);
-    transition: background 0.4s ease, border-color 0.4s ease;
+    /* PRD §28: opacity/transform tail on the existing transition list — the
+       fade. 170ms delay + 380ms duration lands at 550ms, so the card settles
+       exactly as the §21 zoom (550ms) does. */
+    transition: background 0.4s ease, border-color 0.4s ease,
+      opacity 380ms ease 170ms, transform 380ms ease 170ms;
+  }
+  /* PRD §28: the fade's starting state. JS-only (added by `approach()`'s
+     init and re-armed by `exit()`) — never a static rule on .card itself,
+     or the no-JS path (which never adds this class) would render the card
+     invisible. */
+  .card.card-entering {
+    opacity: 0;
+    transform: translateX(-50%) translateY(6px);
   }
   .card-head {
     display: flex;
@@ -701,6 +719,10 @@ const FIG = {
   // The `hidden` attribute is added here, never in default CSS, so the no-JS
   // path keeps the card visible exactly as before.
   card.hidden = true;
+  // PRD §28: same reasoning — the fade's opacity:0 starting class is added
+  // here in JS only, never as a static .card rule, so the no-JS card (which
+  // never runs this script) stays fully visible.
+  card.classList.add('card-entering');
   approachBtn.hidden = false;
 
   // Position the prompt near the visible figure's measured location in screen space.
@@ -777,6 +799,15 @@ const FIG = {
     endDlgBtn.hidden = false;
     approachBtn.hidden = true;
 
+    // PRD §28: fade the card in, synced with the zoom above. Force a style
+    // flush before removing the entering class so the browser paints the
+    // opacity:0 starting frame — without it, both style changes could
+    // coalesce into one frame and the transition would never fire. Under
+    // reduced-motion the flush is a harmless no-op (the CSS `transition: none`
+    // catch-all makes the class removal instant), so no branch is needed.
+    void card.offsetHeight; // force reflow
+    card.classList.remove('card-entering');
+
     // Measure the visible figure and compute the camera transform
     const figEl = [...document.querySelectorAll('.hooded-figure')]
       .find((el) => el.getBoundingClientRect().width > 0) as SVGElement | undefined;
@@ -817,6 +848,12 @@ const FIG = {
 
     // Restore state
     card.hidden    = true;
+    // PRD §28 AC4: re-arm the fade's entering state so a later re-approach
+    // fades in again instead of popping (a leftover opacity:1 from a prior
+    // fade would otherwise carry over, and mid-fade this also snaps the
+    // card's opacity/position cleanly back rather than leaving it stuck
+    // half-faded — hidden takes over the same tick so nothing is visible).
+    card.classList.add('card-entering');
     endDlgBtn.hidden = true;
     approachBtn.hidden = false;
     camera.style.transform = 'none';

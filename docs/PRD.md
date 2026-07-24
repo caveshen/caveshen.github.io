@@ -43,7 +43,7 @@ the same commit.
 | 26 | Devil's Peak + Lion's Head | ✅ built, accepted |
 | 27 | Badger avatar | ◐ built; **selection mechanism open, toggle is scaffold** |
 | 28 | Dialogue fade-in | ✅ built, accepted |
-| 29 | Badger two-frame idle | 📋 drafted, not built |
+| 29 | Badger two-frame idle | 📋 **STAGED — next up**, ready to build on his go |
 
 Also open and not owned by any section above: **all copy** (§23 checklist item
 1), and the **stale OG/touch-icon render** (§7 debt).
@@ -2297,10 +2297,57 @@ frames — arms up and arms down.
 ### Open points (feel — his look)
 
 - **Cadence** — how fast the two frames alternate (a slow ~0.6–1s bob vs a
-  quicker wave). Feel call on a look.
-- **Naming** — rename the existing `public/badger.png` → `badger-up.png` for
-  symmetry with `badger-down.png`, or keep `badger.png` as the up frame.
-  Implementer's discretion unless Caveshen minds.
+  quicker wave). Feel call on a look. **Still open** — see the staging block.
+- ~~**Naming**~~ — **DECIDED (implementer's discretion, as granted):** rename
+  `public/badger.png` → `badger-up.png` alongside `badger-down.png`. The two
+  frames are equal citizens now; leaving one called `badger.png` would imply a
+  primacy that stops being true the moment the idle runs. One-line change in
+  `Badger.astro`, and `src/tests/p3.test.js` does not reference the filename.
+
+### STAGED 2026-07-25 — registration measured, not eyeballed
+
+§29's own scope demanded confirmation that "only the arms move and the
+feet/shadow stay planted (no vertical jump between frames)". Measured rather
+than guessed: both PNGs decoded to a canvas, ink bounding box computed per
+frame (ink = opaque and not near-white). Both are 500×500 as promised.
+
+| Edge | up | down | delta |
+|---|---|---|---|
+| top (ears) | 32 | 55 | **+23** |
+| bottom (feet) | 488 | 489 | **+1** |
+| left | 33 | 62 | +29 |
+| right | 466 | 436 | −30 |
+
+**The feet are planted.** A 1px delta at the bottom edge is imperceptible and,
+crucially, means the ground shadow will not jump — the single failure mode the
+scope named. Registration passes where it has to.
+
+**The arms narrow by 59px**, symmetrically (+29 left, −30 right). Exactly the
+intended difference: horizontal-out becomes angled-down.
+
+**But the head sits 23px lower in the down frame** — the figure is 22px shorter
+overall, all of it lost at the top. That is ~5% of the badger's height, and at
+the shipped display size (~200px) it lands as a **~10px head bob**.
+
+This is flagged, not fixed. It is very likely *correct* — a body settling as
+the arms come down is a squash-and-stretch cue and reads as breathing rather
+than as a broken sprite swap; a rigid two-frame arm swap with a perfectly
+static head would look more mechanical, not less. But it means the two frames
+are not the pure arm-only swap the section assumed when it was drafted, and
+**cadence now matters more than it did**: a 10px head bob at a slow ~0.9s is a
+gentle breath, while the same bob at ~0.3s is a jitter. The two open points are
+therefore coupled, and the cadence call cannot be made from the stills.
+
+**Recommended starting point for the look: ~800ms per frame** (1.6s full
+cycle), which reads as an idle breath rather than a wave. Trivially retuned —
+it wants to be one named constant, not a magic number.
+
+**Ready to build on his go.** No blockers. Order: bring `BadgerDown.png` into
+`public/` under a neutral name (PII/metadata check as `badger.png` had), rename
+the up frame, swap frames on a timer or CSS `steps()` animation honouring
+`prefers-reduced-motion` (hold the up frame), keep both under the §27
+scene-matched filter and the shared ground shadow so neither jumps. Then a look
+at the motion, and expect the cadence constant to move.
 
 ### Method
 

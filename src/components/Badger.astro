@@ -1,0 +1,48 @@
+---
+// Badger.astro — commissioned Badger avatar (PRD §27). Real, ships.
+// Rights: commissioned, paid for, full rights (not the inspiration-only decal).
+// Source: E:\Internet Downloads\Downloaded Pictures\BadgerUP.png, committed as
+// public/badger.png (neutral filename; XMP metadata checked, no PII).
+//
+// Same x/y/scale contract as HoodedFigure.astro: local y=196 is the ground/
+// shoe line, so callers pass the figure's own FIG anchors straight through —
+// same ground line, comparable height, no separate placement maths needed.
+//
+// Scene-matched treatment (RULED 2026-07-23): grayscale + a touch of contrast/
+// darkening, darker again at night, so the detailed raster doesn't out-detail
+// the flat-silhouette world (§20's guard) — never shipped full-colour.
+//
+// Perf: displayed at ~200px but the source PNG is the full 500x500 — deferred
+// per the task brief (not optimised for its displayed size yet).
+interface Props {
+  x: number;
+  y: number;
+  scale?: number;
+}
+const { x, y, scale = 1 } = Astro.props;
+---
+
+<g class="js-character badger-figure" transform={`translate(${x},${y}) scale(${scale})`}>
+
+  <!-- ground shadow — identical form to the hooded figure's own -->
+  <ellipse cx="0" cy="196" rx="50" ry="11" fill="rgba(0,0,0,0.35)"/>
+
+  <!-- Badger raster, feet on the shared y=196 ground line -->
+  <image class="badger-image" href="/badger.png" x="-100" y="-4" width="200" height="200" />
+
+  <!-- invisible marker over the face, upper-centre — drives approach/zoom framing,
+       same mechanism as the hooded figure's .face-void -->
+  <rect class="face-void" x="-42" y="34" width="84" height="66" fill="transparent" />
+
+</g>
+
+<style is:global>
+  .badger-image {
+    filter: grayscale(1) contrast(1.05) brightness(.95);
+  }
+  /* Night: additionally darkened. A raster can't recolour like the SVG
+     figure's literal-hex fills, so this is its whole day/night treatment. */
+  :root:not([data-time="day"]) .badger-image {
+    filter: grayscale(1) contrast(1.05) brightness(.95) brightness(.7);
+  }
+</style>

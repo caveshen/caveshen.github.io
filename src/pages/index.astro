@@ -2,6 +2,11 @@
 import Base from '../layouts/Base.astro';
 import ThemeToggle from '../components/ThemeToggle.astro';
 import HoodedFigure from '../components/HoodedFigure.astro';
+// REMOVE-BEFORE-SHIP (PRD §27 interim toggle): ponytail: delete this import and
+// every <Badger .../> render call below once the real figure-vs-Badger
+// selection mechanism lands (see the toggle button/script/CSS further down —
+// all part of the same scaffold).
+import Badger from '../components/Badger.astro';
 import CityScape from '../components/CityScape.astro';
 import tree from '../data/dialogue.json';
 const root = tree.root;
@@ -99,6 +104,8 @@ const FIG = {
       <line x1="0" y1="624" x2="1200" y2="624" stroke-width="4" opacity="0.8" />
     </g>
     <HoodedFigure x={FIG.std.x} y={FIG.std.y} scale={FIG.std.scale} />
+    <!-- REMOVE-BEFORE-SHIP (PRD §27 interim toggle) -->
+    <Badger x={FIG.std.x} y={FIG.std.y} scale={FIG.std.scale} />
   </svg>
 
   <!-- ============ WIDE 1750×750 (21:9) ============ -->
@@ -155,6 +162,8 @@ const FIG = {
       <line x1="0" y1="624" x2="1750" y2="624" stroke-width="4" opacity="0.8" />
     </g>
     <HoodedFigure x={FIG.wide.x} y={FIG.wide.y} scale={FIG.wide.scale} />
+    <!-- REMOVE-BEFORE-SHIP (PRD §27 interim toggle) -->
+    <Badger x={FIG.wide.x} y={FIG.wide.y} scale={FIG.wide.scale} />
   </svg>
 
   <!-- ============ TALL 600×1067 (portrait / mobile) ============ -->
@@ -207,6 +216,8 @@ const FIG = {
       <line x1="0" y1="726" x2="600" y2="726" stroke-width="4" opacity="0.8" />
     </g>
     <HoodedFigure x={FIG.tall.x} y={FIG.tall.y} scale={FIG.tall.scale} />
+    <!-- REMOVE-BEFORE-SHIP (PRD §27 interim toggle) -->
+    <Badger x={FIG.tall.x} y={FIG.tall.y} scale={FIG.tall.scale} />
   </svg>
 
   </div><!-- /.camera -->
@@ -283,12 +294,63 @@ const FIG = {
   </div><!-- /.stage-frame -->
 
   <p class="page-foot">PLACEHOLDER — attribution line. All copy is placeholder; the real script is Caveshen's to write.</p>
+
+  <!-- REMOVE-BEFORE-SHIP (PRD §27 interim TEST-ONLY character toggle):
+       ponytail: delete this button, its script and CSS below, the Badger
+       imports/render calls above, and e2e/p27.spec.js once the real
+       figure-vs-Badger selection mechanism lands — this is scaffolding, not
+       the final mechanism. Default = hooded figure; no localStorage
+       persistence (kept minimal, unlike the theme toggle). Placed last in
+       DOM (CSS positions it beside the theme toggle regardless) so it
+       doesn't shift the toggle→approach-prompt tab order the existing P4
+       tests rely on. -->
+  <button class="character-toggle" id="character-toggle" aria-label="Switch to Badger">badger</button>
+  <script>
+    const charToggle = document.getElementById('character-toggle') as HTMLButtonElement;
+    charToggle.addEventListener('click', () => {
+      const isBadger = document.documentElement.dataset.character === 'badger';
+      document.documentElement.dataset.character = isBadger ? 'figure' : 'badger';
+      charToggle.textContent = isBadger ? 'badger' : 'figure';
+      charToggle.setAttribute('aria-label', isBadger ? 'Switch to Badger' : 'Switch to hooded figure');
+      // Reuse the existing resize-driven positionPrompt() (main script below)
+      // so the approach prompt re-measures whichever character is now shown.
+      window.dispatchEvent(new Event('resize'));
+    });
+  </script>
+  <!-- /REMOVE-BEFORE-SHIP -->
 </Base>
 
 <style is:global>
   /* Night/day layer visibility — driven by :root[data-time] */
   :root[data-time="day"] .night-only          { display: none; }
   :root:not([data-time="day"]) .day-only      { display: none; }
+
+  /* REMOVE-BEFORE-SHIP (PRD §27 interim TEST-ONLY character toggle): both
+     characters render (see the Badger import/calls above); this block is
+     what actually switches between them via [data-character] on <html>.
+     Default (no attribute, and no-JS since the toggle needs JS to set it) =
+     hooded figure, Badger absent — no layout shift either way since the
+     hidden one is display:none. ponytail: delete this whole block with the
+     rest of the scaffold once the real selection mechanism lands. */
+  .badger-figure { display: none; }
+  :root[data-character="badger"] .hooded-figure { display: none; }
+  :root[data-character="badger"] .badger-figure { display: block; }
+  .character-toggle {
+    position: absolute;
+    top: 1rem;
+    right: 7rem;
+    z-index: 1;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    color: var(--option);
+    background: var(--card);
+    border: 1.5px solid var(--option-border);
+    border-radius: 999px;
+    padding: 0.45rem 0.95rem;
+    cursor: pointer;
+  }
+  /* /REMOVE-BEFORE-SHIP */
 
   /* ── P4: stage-frame — a full-height stage, not a letterbox strip ─────────── */
   /* ponytail: stage-frame is position:relative which makes it a positioned element
@@ -727,7 +789,9 @@ const FIG = {
   // PRD §15 D1: floats clear ABOVE the head with a gap (interaction-prompt
   // convention), centred on the figure, clamped inside the stage frame.
   function positionPrompt() {
-    const figEl = [...document.querySelectorAll('.hooded-figure')]
+    // PRD §27: .js-character is shared by the hooded figure and the Badger —
+    // only the visible one has width>0, so this picks whichever is active.
+    const figEl = [...document.querySelectorAll('.js-character')]
       .find((el) => el.getBoundingClientRect().width > 0) as SVGElement | undefined;
     if (!figEl) return;
     const sf  = stageFrame.getBoundingClientRect();
@@ -806,8 +870,10 @@ const FIG = {
     void card.offsetHeight; // force reflow
     card.classList.remove('card-entering');
 
-    // Measure the visible figure and compute the camera transform
-    const figEl = [...document.querySelectorAll('.hooded-figure')]
+    // Measure the visible character (figure or Badger — PRD §27) and compute
+    // the camera transform. .js-character is shared by both; only the
+    // visible one has width>0.
+    const figEl = [...document.querySelectorAll('.js-character')]
       .find((el) => el.getBoundingClientRect().width > 0) as SVGElement | undefined;
     if (figEl) {
       const sf  = stageFrame.getBoundingClientRect();

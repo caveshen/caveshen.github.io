@@ -1773,10 +1773,12 @@ Visual — prototype, screenshot the three aspects, he rules, then repo.
 
 ## 27. A second character — the Badger avatar
 
-Requested by Caveshen 2026-07-23. **ACCEPTED — not yet built.** A secondary
-option for the on-stage character: alongside the current hooded figure, his
-commissioned **Badger** avatar (his identity across most sites), selectable
-"depending on who I decide is the subject being spoken to."
+Requested by Caveshen 2026-07-23. **BUILT 2026-07-24** as the approved
+scene-matched Badger plus the interim TEST-ONLY toggle (see below); the real
+figure-vs-Badger selection mechanism remains open. A secondary option for the
+on-stage character: alongside the current hooded figure, his commissioned
+**Badger** avatar (his identity across most sites), selectable "depending on
+who I decide is the subject being spoken to."
 
 ### Rights — this one ships
 

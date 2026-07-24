@@ -265,15 +265,14 @@ for (const vp of [
 // Reviewer follow-up 1b — positionPrompt()'s beside-the-figure fallback (the
 // "not enough headroom above the head" branch) sets top but never clamped
 // left/right, so it could leave .stage-frame. At 240×280 the standard-variant
-// stage-frame is small enough (150px tall) that the headroom above the head
-// is less than the gap + button height, forcing the fallback branch — proven
-// by the same overlap check above still holding at this size.
-// PRD §17.1a: height was raised from 160 to 280 — under the new height-limited
-// max-width formula, 160px of viewport height is mostly eaten by the 120px
-// reserve, producing a degenerate ~64px-wide frame that's smaller than the
-// prompt button itself (a frame no real window would ever present at this
-// aspect). 280px keeps the same 240×150 frame this test was written against,
-// by staying in the width-bound branch of the formula (100% < height-formula).
+// stage-frame is small enough that the headroom above the head is less than
+// the gap + button height, forcing the fallback branch — proven by the same
+// overlap check above still holding at this size.
+// PRD §17.2 RULED 2026-07-23: since the stage is now full-bleed, the frame at
+// this viewport is simply 240×280 (no formula to derive — it's always
+// exactly the viewport). Still verified to force the fallback branch (the
+// scaled-down figure at this size still leaves less headroom than the gap +
+// button height) — this test still fails loudly if that ever stops holding.
 test('beside-the-figure fallback keeps the prompt inside the stage frame — forced narrow viewport (240×280)', async ({ page }) => {
   await page.setViewportSize({ width: 240, height: 280 });
   await page.goto('/');
@@ -283,16 +282,65 @@ test('beside-the-figure fallback keeps the prompt inside the stage frame — for
 });
 
 // ── PRD §17.1 — wide variant goes full-bleed ─────────────────────────────────
-// The 1200px cap stops applying at the 21:9 breakpoint; the stage grows until
-// limited by available height instead, so it never exceeds the viewport.
+// PRD §17.2 RULED 2026-07-23 — full-window is the DEFAULT, not a toggle. It
+// supersedes both §17.1 (wide variant grows beyond 1200px, height-bound) and
+// §17.1a (standard variant gets the same height-limited fit + vertical
+// centring): the stage-frame is now always exactly the viewport's width AND
+// height, at every aspect. Each scene's own preserveAspectRatio="xMidYMax
+// slice" crops rather than stretches to fit whatever box that is — proved
+// below, and separately by the Table Mountain 2.4194 invariant (§13/§14) in
+// p4.spec.js, which is untouched by this change and still passes.
+//
+// Corrections below (behaviour overturned by the ruling, not weakened tests
+// — same pattern as the §17.1a corrections that preceded these; the old
+// tests are described, not silently deleted):
+// - "ultra-wide (2560×1080) stage-frame grows beyond 1200px, bounded by
+//   viewport height" (asserted §17.1's own height-limited-fit target) —
+//   removed; replaced by the fill assertion below, strictly stronger (100%
+//   of both dimensions, not just "beyond 1200px, at most the viewport").
+// - "portrait phone (390×844) stage-frame geometry is unchanged" (390×693.5,
+//   §17.1's height-limited portrait cap) — removed; portrait now also fills
+//   100% of the viewport (390×844), asserted below.
+// - "wide (2560×1080) stage-frame geometry is unchanged by §17.1a" (2240×960,
+//   §17.1's height-limited wide cap) — removed; wide now fills 100% too
+//   (2560×1080), asserted below.
+// - "standard desktop (1920×1080) stage-frame is ≥80% of viewport width" —
+//   removed; superseded by the strictly stronger 100%-fill assertion below.
+// - "standard desktop (1920×1080) has no dead space pooled below the footer"
+//   — removed outright, not replaced: the footer no longer lays out below
+//   the stage-frame at all. §17.2's chrome-overlay change (index.astro) made
+//   it a fixed top-left overlay, so "dead space pooled below the footer" is
+//   not a concept that exists any more.
+// - "standard-aspect frame is vertically centred when the window leaves
+//   slack" (1200×1400) — removed; there is no more slack to centre, the
+//   frame fills the full 1200×1400 box. The same viewport is reused below to
+//   assert the new fill behaviour and the Table Mountain invariant instead.
 
-test('ultra-wide (2560×1080) stage-frame grows beyond 1200px, bounded by viewport height', async ({ page }) => {
-  await page.setViewportSize({ width: 2560, height: 1080 });
-  await page.goto('/');
-  const box = await page.locator('.stage-frame').boundingBox();
-  expect(box.width).toBeGreaterThan(1400); // meaningfully greater than the 1200px cap
-  expect(box.height).toBeLessThanOrEqual(1080);
-});
+const FULL_WINDOW_VIEWPORTS = [
+  { name: 'ultra-wide (2560×1080)',    width: 2560, height: 1080 },
+  { name: 'standard (1920×1080)',      width: 1920, height: 1080 },
+  { name: 'tall window (1200×1400)',   width: 1200, height: 1400 },
+  { name: 'portrait (390×844)',        width: 390,  height: 844  },
+];
+
+for (const vp of FULL_WINDOW_VIEWPORTS) {
+  test(`stage-frame fills 100% of the viewport — ${vp.name}`, async ({ page }) => {
+    await page.setViewportSize({ width: vp.width, height: vp.height });
+    await page.goto('/');
+    const box = await page.locator('.stage-frame').boundingBox();
+    expect(box.width).toBeCloseTo(vp.width, 0);
+    expect(box.height).toBeCloseTo(vp.height, 0);
+  });
+
+  test(`no horizontal page overflow — ${vp.name}`, async ({ page }) => {
+    await page.setViewportSize({ width: vp.width, height: vp.height });
+    await page.goto('/');
+    const overflow = await page.evaluate(() =>
+      document.documentElement.scrollWidth > document.documentElement.clientWidth
+    );
+    expect(overflow).toBe(false);
+  });
+}
 
 test('ultra-wide (2560×1080) has no page scroll, vertical or horizontal', async ({ page }) => {
   await page.setViewportSize({ width: 2560, height: 1080 });
@@ -305,82 +353,85 @@ test('ultra-wide (2560×1080) has no page scroll, vertical or horizontal', async
   expect(overflow.h).toBe(false);
 });
 
-// PRD §17.1a SUPERSEDES the test that used to live here ("standard desktop
-// stage-frame geometry is unchanged", asserting 1200×750). That baseline was
-// captured for §17.1, which scoped the height-limited fit to the wide variant
-// only — §17.1a rules that scoping wrong: it left ordinary 16:9 desktops in
-// exactly the top-strip state §17.1 was meant to fix. The standard variant's
-// geometry is *supposed* to change now; the tests below assert the new,
-// accepted target instead of the old one.
-
-test('portrait phone (390×844) stage-frame geometry is unchanged', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/');
-  const box = await page.locator('.stage-frame').boundingBox();
-  expect(box.width).toBeCloseTo(390, 0);
-  expect(box.height).toBeCloseTo(693.5, 0);
-});
-
-// Wide variant (2560×1080) baseline, captured from the §17.1-built code
-// before §17.1a — the wide variant is explicitly out of scope for §17.1a and
-// must render byte-identically.
-test('wide (2560×1080) stage-frame geometry is unchanged by §17.1a', async ({ page }) => {
-  await page.setViewportSize({ width: 2560, height: 1080 });
-  await page.goto('/');
-  const box = await page.locator('.stage-frame').boundingBox();
-  expect(box.width).toBeCloseTo(2240, 0);
-  expect(box.height).toBeCloseTo(960, 0);
-});
-
-// ── PRD §17.1a — standard variant gets the height-limited fit too ───────────
-
-test('standard desktop (1920×1080) stage-frame is ≥80% of viewport width', async ({ page }) => {
-  await page.setViewportSize({ width: 1920, height: 1080 });
-  await page.goto('/');
-  const box = await page.locator('.stage-frame').boundingBox();
-  expect(box.width).toBeGreaterThanOrEqual(1920 * 0.8);
-});
-
-// The old top-aligned layout let ALL slack pool below the footer — at
-// 1920×1080 under the old 1200px cap that was ~214px of dead space between
-// the footer and the viewport bottom. The height-limited max-width mostly
-// closes that gap by itself (the stage grows to use the freed budget); the
-// centring is what accounts for whatever small remainder is left, splitting
-// it instead of dumping it all below. Assert the pooled gap stays small
-// (bounded well under the old ~214px) rather than exact pixel symmetry
-// between two edges that carry different fixed margins (stage-frame's 1rem
-// top vs the footer's own 2.5rem bottom) by design.
-test('standard desktop (1920×1080) has no dead space pooled below the footer', async ({ page }) => {
-  await page.setViewportSize({ width: 1920, height: 1080 });
-  await page.goto('/');
-  const gapBelowFooter = await page.evaluate(() => {
-    const foot = document.querySelector('.page-foot').getBoundingClientRect();
-    return window.innerHeight - foot.bottom;
-  });
-  expect(gapBelowFooter).toBeLessThan(60);
-});
-
-// §17.1a centring guard. At 16:9 the height-limited fit already fills almost
-// the whole height, so centring only nudges the frame a few px and no test can
-// tell it from top-aligned there (that gap is why this test exists). Centring
-// is only *measurable* when the standard-aspect frame leaves real vertical
-// slack — i.e. a tall-but-still-standard window. At 1200×1400 the frame is
-// 750 tall in 1400px: centred splits the ~590px slack ≈283 above / ≈307 below;
-// top-aligned would be 16 above / ≈574 below. Assert the split is roughly even
-// — this FAILS (558px asymmetry) the moment the centring rule is removed.
-test('standard-aspect frame is vertically centred when the window leaves slack', async ({ page }) => {
-  await page.setViewportSize({ width: 1200, height: 1400 }); // aspect 0.857 → standard variant
+// 1200×1400 (aspect 0.857) is above the tall breakpoint's 4/5=0.8 cut-off, so
+// it must still select the standard variant, not tall — full-bleed sizing
+// makes this viewport's crop look nothing like the scene's own 1200×750
+// aspect, which is exactly why it's worth confirming the *variant* selection
+// (§14's width cut-offs, independent of §17.2's sizing) hasn't drifted.
+test('tall window (1200×1400) still selects scene-standard, not scene-tall', async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 1400 });
   await page.goto('/');
   await expect(page.locator('.scene-standard')).toBeVisible();
-  const { gapAbove, gapBelowFooter } = await page.evaluate(() => {
-    const f = document.querySelector('.stage-frame').getBoundingClientRect();
-    const foot = document.querySelector('.page-foot').getBoundingClientRect();
-    return { gapAbove: f.top, gapBelowFooter: window.innerHeight - foot.bottom };
-  });
-  // Both gaps are large (proves it's not top-aligned) and near-symmetric.
-  expect(gapAbove).toBeGreaterThan(150);
-  expect(Math.abs(gapAbove - gapBelowFooter)).toBeLessThan(80);
+  await expect(page.locator('.scene-wide')).not.toBeVisible();
+  await expect(page.locator('.scene-tall')).not.toBeVisible();
 });
+
+// Table Mountain invariant, at the one representative viewport not already
+// covered by p4.spec.js's standard/wide/tall checks (1920×1080/2560×1080/
+// 390×844). 1200×1400 puts the standard scene (1200×750, aspect 1.6) inside
+// a box of aspect 0.857 — about as far from its own aspect as this task's
+// viewports get — so a ratio that still comes out at 2.4194 here is good
+// proof the fill is a crop, never a stretch, even under a severe mismatch.
+test('Table Mountain aspect ratio (2.4194) still holds at 1200×1400', async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 1400 });
+  await page.goto('/');
+  const box = await page.locator('.scene-standard .table-mountain').evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    return { width: r.width, height: r.height };
+  });
+  expect(box.height).toBeGreaterThan(0);
+  expect(box.width / box.height).toBeCloseTo(2.4194, 3);
+});
+
+// Guard the crop (PRD §17.2 implementation note): full-bleed sizing crops
+// far more aggressively than the old height-limited/near-scene-aspect box
+// ever did, so re-prove the figure and dialogue card survive it at the two
+// most extreme tested aspects. xMidYMax anchoring crops sky/sea off the top
+// (never the bottom-anchored foreground) and centres horizontal cropping on
+// the authored world's midpoint, where the figure already sits — this is
+// what should make both checks pass without further layout changes.
+for (const vp of [
+  { name: 'ultra-wide (2560×1080)', width: 2560, height: 1080 },
+  { name: 'portrait (390×844)',     width: 390,  height: 844  },
+]) {
+  test(`figure and dialogue card are not clipped by the crop — ${vp.name}`, async ({ page }) => {
+    await page.setViewportSize({ width: vp.width, height: vp.height });
+    await page.goto('/');
+    const viewport = { x: 0, y: 0, width: vp.width, height: vp.height };
+    const figureBox = await visibleRect(page, '.hooded-figure');
+    expect(rectContains(viewport, figureBox)).toBe(true);
+
+    await page.locator('#approach-prompt').click();
+    const cardBox = await page.locator('.card').boundingBox();
+    expect(rectContains(viewport, cardBox)).toBe(true);
+  });
+}
+
+// Chrome-overlay layout (PRD §17.2 implementation note: footer/toggle/
+// fullscreen button now overlay the full-bleed stage — placement was
+// implementer's discretion, flagged in the report). Assert the three floating
+// controls occupy distinct corners and never overlap each other.
+// Run at all four tested aspects, not just 1920×1080: the fullscreen button
+// relocates to top:4rem under the portrait (max-aspect-ratio:4/5) override, so
+// the corners it can collide with genuinely differ by aspect.
+for (const vp of [
+  { name: '1920×1080',           width: 1920, height: 1080 },
+  { name: 'ultra-wide 2560×1080', width: 2560, height: 1080 },
+  { name: 'tall 1200×1400',       width: 1200, height: 1400 },
+  { name: 'portrait 390×844',     width: 390,  height: 844  },
+]) {
+  test(`theme toggle, footer, and fullscreen button do not overlap each other — ${vp.name}`, async ({ page }) => {
+    await forceFullscreenEnabled(page);
+    await page.setViewportSize({ width: vp.width, height: vp.height });
+    await page.goto('/');
+    const toggleBox = await page.locator('#toggle').boundingBox();
+    const footBox   = await page.locator('.page-foot').boundingBox();
+    const fsBox     = await page.locator('#fullscreen-toggle').boundingBox();
+    expect(rectsIntersect(toggleBox, footBox)).toBe(false);
+    expect(rectsIntersect(toggleBox, fsBox)).toBe(false);
+    expect(rectsIntersect(footBox, fsBox)).toBe(false);
+  });
+}
 
 test.describe('no page scroll at 1920×1080 and 2560×1440', () => {
   for (const vp of [{ width: 1920, height: 1080 }, { width: 2560, height: 1440 }]) {
@@ -445,9 +496,9 @@ test('fullscreen button is present, near the bottom-right corner, with an access
   // "Bottom-right of the screen" — measured against .stage-frame, not the
   // raw viewport: the button lives inside .stage-frame (it must, to stay
   // visible/operable once real fullscreen is entered — see the markup
-  // comment), and outside fullscreen the frame is ~80% of viewport width by
-  // design (PRD §17.1a), not edge-to-edge. Its corner IS the screen's corner
-  // the moment fullscreen is actually entered.
+  // comment). PRD §17.2 RULED 2026-07-23: the frame is now full-bleed by
+  // default (not just in real Fullscreen API mode), so .stage-frame's corner
+  // already IS the viewport's corner outside fullscreen too.
   const frame = await page.locator('.stage-frame').boundingBox();
   expect(box.x + box.width).toBeGreaterThan(frame.x + frame.width - 100);
   expect(box.y + box.height).toBeGreaterThan(frame.y + frame.height - 100);

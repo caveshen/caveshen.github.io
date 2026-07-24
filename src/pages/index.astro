@@ -28,7 +28,6 @@ const FIG = {
 <Base
   title="The Interview — Caveshen Rajman"
   description="PLACEHOLDER — Caveshen Rajman's interactive portfolio. An adventure-game-styled CV for games industry and tech contacts."
-  bodyClass="stage-page"
 >
   <!-- Toggle: first in DOM so it's first in tab order -->
   <ThemeToggle />
@@ -301,42 +300,25 @@ const FIG = {
     position: relative;
     overflow: hidden;
     pointer-events: none;
-    /* PRD §17.1a: the standard variant gets the same height-limited fit as
-       the wide breakpoint below, so it fills the viewport on ordinary 16:9
-       windows instead of sitting capped at 1200px with slack pooling round
-       it. 1200/750 is the standard viewBox ratio; 120px is the SAME measured
-       toggle+footer reserve justified at the wide breakpoint — reused, not
-       re-derived, since the vertical budget above/below the stage doesn't
-       change with which scene is showing. */
-    max-width: min(100%, calc((100svh - 120px) * 1200 / 750));
-    /* Explicit width:100% (not the default auto) — inside the flex-centred
-       body below, auto margins on a flex item's cross axis disable stretch
-       sizing in favour of shrink-to-fit, which would collapse the frame to
-       its content's intrinsic width instead of filling out to max-width.
-       An explicit width still lets the auto margins centre the capped box —
-       this only matters once body is flex; harmless no-op in block layout. */
+    /* PRD §17.2 RULED 2026-07-23 — full-window is the DEFAULT, not a toggle:
+       the stage fills 100% of the viewport at any window size. This
+       supersedes §17.1a's height-limited max-width + vertical centring (the
+       body-flex block that used to sit here, and the per-breakpoint
+       aspect-ratio/max-width overrides below, are both gone — nothing left
+       to centre once the frame always fills the viewport). Each scene's own
+       preserveAspectRatio="xMidYMax slice" crops the overflow rather than
+       stretching it, so an arbitrary window shape still renders a correctly
+       proportioned crop of whichever variant §14's width cut-offs select —
+       proof is the Table Mountain 2.4194 screen-space invariant (§13),
+       unaffected by this change. 100svh (not 100vh) for the same
+       dynamic-toolbar-safety reason used elsewhere in this file. */
     width: 100%;
-    margin: 1rem auto 0;
-    border-radius: 14px;
-    border: 1px solid var(--card-edge);
+    height: 100svh;
+    margin: 0;
+    border-radius: 0;
+    border: none;
     background: var(--sky);
-    aspect-ratio: 1200 / 750;
     transition: background 0.4s ease, border-color 0.4s ease;
-  }
-  /* PRD §17.1a: the page centres the stage vertically so any leftover height
-     splits evenly above/below instead of pooling below a top-aligned stage.
-     Scoped to the standard aspect range only (the same complement the wide/
-     portrait media queries below carve out) — wide and portrait already have
-     their own sizing story and must render byte-identically to before. Flex
-     also sidesteps margin collapse on its own (flex items never collapse
-     margins with their container), so this needs no flow-root-style hack. */
-  @media (min-aspect-ratio: 4/5) and (max-aspect-ratio: 15/8) {
-    body.stage-page {
-      min-height: 100svh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
   }
   .camera {
     transform-origin: 0 0;
@@ -348,28 +330,19 @@ const FIG = {
     .camera { transition: none; }
   }
 
-  /* Aspect-ratio scene switching: standard is default; wide/tall take over at the
-     extremes. The stage-frame's own aspect-ratio follows the visible scene's viewBox
-     so the SVG fills it exactly (no letterboxing, no cropping). */
+  /* Aspect-ratio scene switching: standard is default; wide/tall take over at
+     the extremes (§14's width cut-offs — unchanged by §17.2). The stage-frame
+     itself no longer has a per-variant aspect-ratio/max-width to set here: it
+     is always 100% of the viewport (see .stage-frame above), and each scene's
+     own preserveAspectRatio="xMidYMax slice" crops to fit whatever box that
+     is. */
   .scene { display: block; width: 100%; height: 100%; }
   .scene-wide, .scene-tall { display: none; }
   @media (min-aspect-ratio: 15/8) {
-    .stage-frame { aspect-ratio: 1750 / 750; }
     .scene-standard { display: none; }
     .scene-wide { display: block; }
-    /* PRD §17.1: the 1200px cap stops applying here — the wide stage instead
-       grows until it runs out of *height*, so it never exceeds the viewport.
-       7/3 is the wide viewBox ratio (1750/750). 120px is the measured
-       vertical cost of everything stacked above/below the stage-frame at
-       this breakpoint: its own 1rem top margin (16px) + the footer's 2rem
-       top margin (32px) + the footer's own height (28px) + the footer's
-       2.5rem bottom margin (40px) = 116px, rounded up for breathing room.
-       (PRD's suggested 100px undershot this and left a 16px vertical
-       scrollbar at 2560×1080 — verified by measurement, not taste.) */
-    .stage-frame { max-width: min(100%, calc((100svh - 120px) * 7 / 3)); }
   }
   @media (max-aspect-ratio: 4/5) {
-    .stage-frame { aspect-ratio: 600 / 1067; max-width: 480px; }
     .scene-standard { display: none; }
     .scene-tall { display: block; }
   }
@@ -667,15 +640,40 @@ const FIG = {
     font-size: 0.85rem;
   }
   .noscript-note a { color: var(--option); }
+  /* PRD §17.2 RULED 2026-07-23: the stage is now full-bleed, so the footer
+     can no longer sit in normal flow below it (that would add page height
+     the full-height frame doesn't leave room for, forcing a scrollbar).
+     It becomes a floating overlay instead — top-left, mirroring the theme
+     toggle's top-right placement, so the two corners read as a pair and
+     neither competes with the bottom-centre card or the fullscreen button.
+     Chrome-layout call, flagged for Caveshen's look in the report.
+     Same glass-chip treatment as .approach-prompt/.fullscreen-toggle, for
+     legibility over the scene in both themes. Declared after .stage-frame in
+     the DOM, so as a fixed element it already paints above the full-bleed
+     frame by paint order; z-index:1 is kept only as belt-and-braces against a
+     future reorder (the theme toggle, which precedes the frame, genuinely
+     needs its own z-index). max-width caps well short of the toggle's corner
+     even at the narrowest tested viewport (390px). */
   .page-foot {
-    max-width: 620px;
-    margin: 2rem auto 2.5rem;
-    padding: 0 2rem;
+    position: fixed;
+    left: 1rem;
+    top: 1rem;
+    z-index: 1;
+    max-width: min(260px, 48vw);
     font-family: var(--mono);
-    font-size: 0.72rem;
+    font-size: 0.68rem;
+    line-height: 1.4;
     letter-spacing: 0.06em;
-    color: var(--dim);
-    text-align: center;
+    color: var(--text);
+    background: rgba(10, 8, 22, 0.55);
+    border: 1px solid rgba(233, 226, 207, 0.22);
+    border-radius: 12px;
+    padding: 0.5rem 0.85rem;
+    backdrop-filter: blur(3px);
+  }
+  :root[data-time="day"] .page-foot {
+    background: rgba(253, 251, 245, 0.65);
+    border-color: rgba(37, 48, 56, 0.22);
   }
 
   @media (max-width: 680px) {

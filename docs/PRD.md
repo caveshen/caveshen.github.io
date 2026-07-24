@@ -1065,8 +1065,15 @@ with the mode before deciding whether it becomes the default.
   stage-frame top margin + 32px footer top margin + 28px footer height + 40px
   footer bottom margin = 116px, rounded up. The 100px used in the accepted
   prototype was wrong and left a 16px scrollbar at 2560×1080.
-- **17.2 — NOT BUILT.** Unblocked 2026-07-23 (see clarification below); one
-  open question remains before it can be built.
+- **17.2 — BUILT** 2026-07-24 on `item/landing-v2-avatar` per the "RULED —
+  default" block below. `.stage-frame` is now `width:100%; height:100svh`
+  (no cap, no centring); the §17.1a fit/centre rules and their tests were
+  removed as corrections. Site chrome overlays the full-bleed stage — the
+  footer became a fixed top-left glass chip (it can't sit below a full-height
+  frame), mirroring the theme toggle's top-right corner. Crop guard verified:
+  bottom-anchored `xMidYMax` trims sky/sea, never the figure/card, at ultrawide
+  and portrait. Chrome-non-overlap tested at all four aspects. **Awaiting
+  Caveshen's live look** at the chrome-overlay layout.
 
 ### Clarified intent — Caveshen 2026-07-23
 

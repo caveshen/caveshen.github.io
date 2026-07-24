@@ -1577,9 +1577,10 @@ silently destroy the old scene.
 
 ## 24. Ambient banner plane
 
-Requested by Caveshen 2026-07-23. **ACCEPTED — not yet built, not scheduled.**
-A small flourish: a plane crosses the sky towing an advertising banner, the
-kind that drones along a coastline on a summer afternoon.
+Requested by Caveshen 2026-07-23. **BUILT 2026-07-24** (feel approved by
+Caveshen; reviewer: approve). A small flourish: a plane crosses the sky towing
+an advertising banner, the kind that drones along a coastline on a summer
+afternoon.
 
 ### Behaviour
 
@@ -1610,23 +1611,19 @@ kind that drones along a coastline on a summer afternoon.
   gracefully rather than freeze mid-sky — decide at build time (finish the
   pass off-screen, or fade). Not specified by Caveshen; flag for his look.
 
-### Constraints and open points
+### Constraints and rulings (Caveshen "go" 2026-07-24 — the open points below taken with delegated discretion)
 
 - Purely decorative: `pointer-events: none`, never intercepts interaction,
   never shifts layout. JS-driven timing; absent on the no-JS path is fine.
-- **Honours `prefers-reduced-motion`** — a plane tracking across the sky is
-  exactly the kind of motion that setting exists to suppress. Under reduced
-  motion it should not fly; whether it appears static or not at all is a
-  build-time call to confirm with Caveshen.
+- **Reduced motion — RULED: no plane.** Under `prefers-reduced-motion: reduce`
+  it does not fly at all (not static-shown).
 - Cheap: one transform-animated element on an occasional timer; must not cost
   render budget against success criterion 6 (Lighthouse ≥ 95).
-- **Open — which aspect variants.** "Across the scene" reads as the wide and
-  standard skies naturally; on the narrow tall (portrait) scene a horizontal
-  fly-through is shorter and may read oddly. Applies in the zoomed-out state
-  regardless of aspect unless Caveshen decides to limit it; flag on his look.
-- **Open — direction of travel.** Left-to-right or right-to-left, unspecified.
-  Could lean into the harbour side of §20. His call, or the implementer's if
-  he does not mind.
+- **Aspect — RULED: standard + wide only, not portrait.** The horizontal
+  fly-through reads oddly on the narrow tall scene, so it's suppressed there.
+- **Direction — RULED: left-to-right**, leaning into the harbour side of §20.
+- **Approach mid-flight — RULED: fade out** (not finish-off-screen), matching
+  the §21/§28 fade language rather than freezing or a hard cut.
 
 ### Note
 

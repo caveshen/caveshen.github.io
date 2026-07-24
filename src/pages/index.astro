@@ -550,6 +550,55 @@ const FIG = {
     border: none;
   }
 
+  /* ── PRD §24: ambient banner plane — screen-space overlay, JS-created only ──
+     (no static markup, so the no-JS path never renders it — see JS below).
+     vw-based flight path rather than scene-relative: a screen-space overlay
+     like .fullscreen-toggle, it need not track the SVG's slice crop. */
+  .banner-plane {
+    position: absolute;
+    top: 14%;
+    left: 0;
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+    color: var(--text);
+    animation-name: plane-fly;
+    animation-timing-function: linear;
+    opacity: 1;
+    transition: opacity 400ms ease; /* PRD §24 RULED: fade out, matching §21/§28 */
+  }
+  .banner-plane.plane-fade-out { opacity: 0; }
+  @keyframes plane-fly {
+    from { transform: translateX(-18vw); }
+    to   { transform: translateX(118vw); }
+  }
+  .plane-icon { flex: none; }
+  .banner-tow { flex: none; width: 26px; height: 2px; background: currentColor; }
+  .banner-rect {
+    flex: none;
+    background: #000;
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    padding: 0.25rem 0.7rem;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  /* PRD §24 RULED: standard + wide only, not portrait — the horizontal
+     fly-through reads oddly on the narrow tall scene. */
+  @media (max-aspect-ratio: 4/5) {
+    .banner-plane { display: none; }
+  }
+  /* PRD §24 RULED: no plane at all under reduced motion. JS already never
+     schedules one (reducedMotion() gate in flyPlane()); this is belt-and-
+     braces for the same edge case the other ambient animations cover (see
+     .wind, .camera above) — the setting flips mid-session. */
+  @media (prefers-reduced-motion: reduce) {
+    .banner-plane { display: none; }
+  }
+
   /* ── P4: end-dialogue button (inside .card; styled like .system options) ── */
   .end-dialogue {
     display: block;
@@ -856,6 +905,9 @@ const FIG = {
     // An inline style would outrank the media query and reinstate the zoom.
     if (!reducedMotion()) camera.style.transition = ENTRY_TRANSITION;
 
+    // PRD §24: an in-flight banner plane bows out rather than freezing mid-sky.
+    fadeOutPlane();
+
     // Show card, hide prompt
     card.hidden    = false;
     endDlgBtn.hidden = false;
@@ -925,6 +977,73 @@ const FIG = {
     // Return focus to the approach prompt (SC6)
     approachBtn.focus();
   }
+
+  // ── PRD §24: ambient banner plane ───────────────────────────────────────────
+  // A rare flourish: a plane tows a "MAVERICKS" banner across the sky, only in
+  // the zoomed-out full scene. Gating is a live approached/reducedMotion() check
+  // at each scheduled tick (not a cancelled timer) — simplest way to guarantee
+  // only one timer chain ever runs, since schedulePlane() always clears the
+  // previous one before arming the next.
+  const PLANE_FIRST_MS = 10_000;
+  const PLANE_INTERVAL_MS = 120_000;
+  const PLANE_JITTER_MS = 30_000; // ± around the interval — "not a metronome"
+  const PLANE_FLIGHT_MS = 16_000; // knob: crossing speed
+  let planeTimer: ReturnType<typeof setTimeout>;
+  let planeEl: HTMLElement | null = null;
+
+  const nextPlaneDelay = () => PLANE_INTERVAL_MS + (Math.random() * 2 - 1) * PLANE_JITTER_MS;
+  function schedulePlane(delay: number) {
+    clearTimeout(planeTimer);
+    planeTimer = setTimeout(flyPlane, delay);
+  }
+
+  function flyPlane() {
+    // Re-checked live rather than at schedule time: approached()/reducedMotion()
+    // can change during the wait, and this is the only gate that matters.
+    if (approached || reducedMotion()) {
+      schedulePlane(nextPlaneDelay());
+      return;
+    }
+    const el = document.createElement('div');
+    el.className = 'banner-plane';
+    el.setAttribute('aria-hidden', 'true');
+    el.style.animationDuration = `${PLANE_FLIGHT_MS}ms`;
+    // Banner trails behind (left, since flight is left-to-right — PRD §24
+    // RULED direction) with the plane leading on the right. Copy is
+    // Caveshen's own ("MAVERICKS"), not placeholder — see PRD §24.
+    el.innerHTML = `
+      <span class="banner-rect">MAVERICKS</span>
+      <span class="banner-tow"></span>
+      <svg class="plane-icon" width="30" height="14" viewBox="0 0 30 14" aria-hidden="true">
+        <path d="M0 6 H20 V8 H0 Z M20 5 L28 7 L20 9 Z M8 6 L16 0 L20 6 Z M8 8 L16 14 L20 8 Z" fill="currentColor" />
+      </svg>`;
+    el.addEventListener('animationend', endPlane);
+    stageFrame.appendChild(el);
+    planeEl = el;
+  }
+
+  // Natural end of a completed crossing: remove and reschedule.
+  function endPlane() {
+    planeEl?.remove();
+    planeEl = null;
+    schedulePlane(nextPlaneDelay());
+  }
+
+  // Interrupted by approach: fade rather than freeze or hard-cut (PRD §24
+  // RULED). Detaches the animationend listener first so the still-running
+  // flight animation can't also fire endPlane() once the fade has already
+  // rescheduled — that would double-run the timer chain.
+  function fadeOutPlane() {
+    if (!planeEl) return;
+    const el = planeEl;
+    planeEl = null;
+    el.removeEventListener('animationend', endPlane);
+    el.addEventListener('transitionend', () => el.remove(), { once: true });
+    el.classList.add('plane-fade-out');
+    schedulePlane(nextPlaneDelay());
+  }
+
+  schedulePlane(PLANE_FIRST_MS);
 
   // ── Fullscreen toggle (PRD §18 / §17.2) ─────────────────────────────────────
   // Degrade honestly: only reveal the button if the API is actually usable —

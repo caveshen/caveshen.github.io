@@ -1,16 +1,52 @@
 # PRD — Caveshen Rajman, Personal Portfolio ("The Interview")
 
-**Status:** v1.4 — updated 2026-07-19. **P0–P3 complete and LIVE at
-https://caveshen.github.io** (public repo `caveshen/caveshen.github.io`;
-Pages via the test-gated Actions workflow; criteria 8+9 verified in
-production). Test matrix is tri-engine (Chromium / WebKit / Firefox,
-47 unit + 600 e2e); CV shows the rolled-up single Derivco entry. Copy is
-PLACEHOLDER by his explicit choice — iterating in public until his words
-land. Accepted design reference:
-Sample C artifact (claude.ai/code/artifact/4468f873-b55c-4d0e-a236-535aa5fb6d15,
-supersedes 0b8cd6e0); in-repo reference `docs/design-sample-c.html`.
+**Status:** v1.5 — reconciled 2026-07-25.
+
+**`main`** — P0–P3, LIVE at https://caveshen.github.io (public repo
+`caveshen/caveshen.github.io`; Pages via the test-gated Actions workflow;
+criteria 8+9 verified in production). Serves the pre-landing-v2 site.
+
+**`item/landing-v2-avatar`** — P4 + P5, **34 commits ahead of `main`, unmerged
+and not deployed.** Suite: 60 unit + 1272 e2e, tri-engine (Chromium / WebKit /
+Firefox). This is where all of §17–§29 lives. The `main` cutover is §23 and is
+gated on Caveshen.
+
+Copy is PLACEHOLDER by his explicit choice — iterating in public until his
+words land. Accepted design reference: Sample C artifact
+(claude.ai/code/artifact/4468f873-b55c-4d0e-a236-535aa5fb6d15, supersedes
+0b8cd6e0); in-repo reference `docs/design-sample-c.html` — **note that this
+reference now predates §20/§25/§26 and no longer matches the shipped scene.**
 **Owner:** Caveshen (all writing/copy). **Orchestrator:** Claude (Fable 5).
 See §14 for the amendments log.
+
+### Status board — items §15 onward
+
+Added 2026-07-25 after a reconciliation pass found nine sections whose headline
+status contradicted their own bodies (typically "ACCEPTED — not yet built" atop
+a section recording that it was built and accepted days earlier). **This table
+is the index; the section is the detail.** When an item moves, move it here in
+the same commit.
+
+| § | Item | Status |
+|---|------|--------|
+| 15 | Known defects D1–D4 | ✅ all closed |
+| 16 | Visual validation in e2e | 💭 intent only, never designed |
+| 17 | Stage sizing → full-window default | ✅ built, accepted |
+| 18 | Fullscreen button | ✅ built, accepted |
+| 19 | Background/foreground | ◐ refactor built; **locking not built** |
+| 20 | Wider world (industry + waves) | ✅ built, accepted |
+| 21 | Camera zoom easing | ✅ built, accepted |
+| 22 | Dialogue rework | ⏸ parked, no design |
+| 23 | The "attic" + cutover | ⏸ noted, not scheduled |
+| 24 | Ambient banner plane | ✅ built, accepted |
+| 25 | Blue-black palette | ✅ built, accepted |
+| 26 | Devil's Peak + Lion's Head | ✅ built, accepted |
+| 27 | Badger avatar | ◐ built; **selection mechanism open, toggle is scaffold** |
+| 28 | Dialogue fade-in | ✅ built, accepted |
+| 29 | Badger two-frame idle | 📋 drafted, not built |
+
+Also open and not owned by any section above: **all copy** (§23 checklist item
+1), and the **stale OG/touch-icon render** (§7 debt).
 
 ## 1. Purpose
 
@@ -48,6 +84,21 @@ Priority of audiences:
   checks tests exist and pass before any commit.
 
 ## 3. Visual identity (locked — Sample C)
+
+> **Reconciliation note 2026-07-25.** This section is the *original* Sample C
+> lock and is kept as the historical record. Three later items have moved
+> parts of it on `item/landing-v2-avatar`; read them as the current truth:
+> - **Palette table below — SUPERSEDED by §25.** The night ground tokens are no
+>   longer violet. `tokens.css` is the live source; the table records where the
+>   scene started, not what it renders.
+> - **`meet` / "the artwork never crops" — SUPERSEDED by §17.2.** Every scene
+>   SVG is `xMidYMax slice` and the stage fills the window, cropping sky/sea
+>   by design. The no-stretch invariant is untouched.
+> - **"The trio only… nothing beyond either end" — SUPERSEDED by §20 + §26.**
+>   The world now runs to world-x ≈ −295 (industrial district) and the chain is
+>   a quartet (Devil's Peak added). "Nothing beyond either end" was a statement
+>   about the 1750-unit standard viewBox; the world is wider than that viewBox
+>   now and the cameras pan across it.
 
 Concept: flat-vector Cape Town scene above a narrative-game dialogue card.
 
@@ -196,7 +247,9 @@ placeholder until real art exists), SCUMM-style option hover (lavender → yello
       And the same for day (his call, same day): NO purple in light mode
       either — day `--option`/`--option-border` page-scoped to a deep sky
       blue (#2e5c96, AA on the cream panels). The sheet is now purple-free
-      in both themes; `/` keeps the Sample C lavender.
+      in both themes; `/` keeps the Sample C lavender. **(No longer true —
+      §25 pulled `/` into the same blue-black family on 2026-07-24; the whole
+      site is purple-free now.)**
     - GATES RESOLVED 2026-07-19: **EM start = May 2025.** Convention set
       by Caveshen: each Backstory entry shows the HIGHEST role achieved in
       that tenure — so the sheet's Derivco Cape Town entry stays
@@ -266,6 +319,19 @@ JSON, authored/edited directly by Caveshen (proven shape from the samples):
   `public/favicon.svg` (moon mark), `apple-touch-icon.png` (180×180) and
   `og-image.png` (1200×630) rendered from an inline night-scene SVG via
   `docs/render-og.js`. Re-run that script if the scene changes materially.
+  - **DEBT, logged 2026-07-25 — the scene HAS changed materially and these
+    have not been re-rendered.** §20 (industrial district), §25 (blue-black
+    palette) and §26 (Devil's Peak) all landed after P3. `docs/render-og.js`
+    still hard-codes the *old* violet palette (`#14121f`, `#262138`), so
+    `og-image.png` and `apple-touch-icon.png` show the retired scene. Worse,
+    `public/favicon.svg` was hand-patched to the new `--bg` (`#0f1826`,
+    commit 05ce607) while the generator was not — **re-running
+    `docs/render-og.js` as it stands would silently revert the favicon.**
+    Fix is one job: retune the generator's inline SVG to the current
+    `tokens.css` night values (and, if wanted, the new skyline), re-render all
+    three, verify the favicon still matches its unit test in
+    `src/tests/p3.test.js`. Not urgent — it is invisible until the site is
+    shared as a link — but it must happen before the §23 cutover.
 
 ## 8. Success criteria (verifiable)
 
@@ -292,6 +358,13 @@ config, device matrix) lands with P1.
 - **P0 — Scaffold: ✅ 2026-07-15.** Astro project, tokens, base layout, deploy
   action. ("Deploys to Pages" deferred with the push decision — the workflow
   exists and is CI-gated, unexercised until the remote is created.)
+  **That parenthetical is long obsolete** (corrected 2026-07-25): the remote
+  exists, `main` is live at https://caveshen.github.io, and the test-gated
+  deploy workflow has run green on every push to `main` — last on 2026-07-20.
+  **Success criterion 8 is verified in production.** What has *not* happened is
+  a `main` deploy carrying any of the P5 work; `main` still serves the
+  pre-landing-v2 site, 34 commits behind. So the workflow is proven; the
+  cutover is a content change, not a first flight.
 - **P1 — The Interview: ✅ 2026-07-16 (4ab79eb; stretch 8c7e5c6).** Scene SVG
   (night+day), dialogue card, JSON-driven engine island, theme toggle with
   persistence, aspect-ratio compositions. Criteria 2, 3, 5.
@@ -374,6 +447,24 @@ config, device matrix) lands with P1.
 
   **Non-goals:** real character art; any change to the locked scene
   composition; new dialogue nodes (Caveshen's copy); sound.
+
+  **P4 shipped**, and then kept going. Everything from §17 onward happened on
+  this same branch *after* P4's own criteria were met, item by item, rather
+  than as a new numbered phase — which is why the phase list appeared to stop
+  here. Two of P4's non-goals were subsequently and deliberately overturned by
+  Caveshen: real character art (§27's Badger) and changes to the locked scene
+  composition (§20, §25, §26). Recorded so the overturn is visible rather than
+  looking like drift.
+
+- **P5 — Landing v2 continued (`item/landing-v2-avatar`), 2026-07-22 → 07-24.**
+  Not planned as a phase; assembled from items §17–§29 as Caveshen raised and
+  ruled on them. Roll-up of what shipped, each worker→reviewer→commit:
+  §15 D1/D2/D4 fixes · §17.1 → §17.1a → §17.2 full-window stage · §18
+  fullscreen button · §19 background/foreground refactor (seams only) · §20
+  wider world (industrial district + waves) · §21 zoom easing split · §24
+  banner plane · §25 blue-black palette · §26 Devil's Peak + softened Lion's
+  Head · §27 Badger + TEST-ONLY toggle · §28 dialogue fade-in.
+  34 commits, unmerged. **Nothing is on `main`.**
 
 Parallel, non-worker: ~~Claude drafts the ATS CV~~ (✅ approved & rendered
 2026-07-16 — see §7); Caveshen writes the real dialogue script and sheet copy.
@@ -511,6 +602,19 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
   Known infrastructure flake (pre-existing, unfixed by choice): back-to-back
   local e2e runs can race on the port-4321 handover between preview servers —
   re-run rather than patch.
+- **Suite size as of 2026-07-25** (`item/landing-v2-avatar`, 34 commits ahead
+  of `main`): **60 unit, 1272 e2e** (159 test bodies × 8 projects). Unit run
+  verified green at this count; the intermediate figures quoted in §20
+  (56/1013) and in §9 P4 criterion 9 (47) are earlier snapshots, left in place
+  as dated records. **Do not treat any number in this document as current —
+  count it.** Six e2e files: `interview.spec.js`, `p4.spec.js`,
+  `sheet.spec.js`, `p3.spec.js`, `p24.spec.js`, `p27.spec.js`. Note that
+  `p27.spec.js` (6 tests) is REMOVE-BEFORE-SHIP scaffolding and the count drops
+  when it goes.
+- **No snapshot baselines exist in the repo** — verified 2026-07-25, no
+  `*-snapshots/` directory anywhere. The throwaway baselines used to prove
+  §19's refactor was pixel-identical were deleted after use, as intended.
+  §16's "no artefact that grows with test coverage" constraint still holds.
 
 ## 14. Amendments log
 
@@ -838,15 +942,21 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
 
 ---
 
-## 15. Known defects (open)
+## 15. Known defects — ALL CLOSED (log kept)
 
 Logged 2026-07-22, found by screenshot review of the landing-v2 port on
 `item/landing-v2-avatar` **after** the suite went green (757 passed / 3
-pre-existing skips). All three are invisible to the tests — they are
+pre-existing skips). All three were invisible to the tests — they are
 composition faults, not logic faults. Deferred by Caveshen's ruling to a
-following session; the port itself is sound and ships as-is.
+following session; the port itself was sound and shipped as-is.
 
-### D1 — The approach prompt renders on top of the figure's hood
+**Status roll-up 2026-07-25 — nothing in this section is open.** D1 and D2
+fixed in `babf3f3`; D3 closed as a design ruling into §17/§19; D4 fixed in
+`7eced29`. The heading said "(open)" for three days after the last of them
+closed — corrected here. Each entry below now carries its own outcome; the
+symptom/cause text is kept because it is the reasoning that produced §16.
+
+### D1 — The approach prompt renders on top of the figure's hood — FIXED (2026-07-22, `babf3f3`)
 
 **Symptom:** the "Approach the hooded figure" button sits across the
 character's head in all three aspect variants, not beside or above it.
@@ -860,8 +970,15 @@ focusable and clickable. None checks it does not overlap the figure.
 interaction-prompt convention), clamped so it cannot leave the stage frame
 on the tall variant. Add an assertion that the prompt's bounding box does
 not intersect the figure's.
+**Fixed:** as proposed — `positionPrompt()` in `src/pages/index.astro` centres
+the prompt on the figure and floats it `GAP = 14px` clear above the measured
+head, with a beside-the-figure fallback (clamped on all four sides) when there
+is no headroom. Guarded by `e2e/interview.spec.js` — "approach prompt does not
+overlap the figure", parametrised across viewports. Later extended by §27: the
+element is found via the shared `.js-character` class, so the prompt tracks
+whichever character is on stage.
 
-### D2 — The dialogue card occludes the face after the camera zoom
+### D2 — The dialogue card occludes the face after the camera zoom — FIXED (2026-07-22, `babf3f3`)
 
 **Symptom:** approaching zooms to frame the face, then the card covers it.
 Only the crown of the hood remains visible above the card.
@@ -877,8 +994,16 @@ top edge. The constant is unit-tested in `src/tests/camera.test.js` — that
 test moves with it (extended, never weakened, per §9 P4 criterion 9).
 Consider deriving the constant from the measured card height rather than
 hard-coding it, so it cannot drift apart again.
+**Fixed:** the stronger of the two options was taken — the constant is *gone*.
+`faceTargetY` is now `cardTop / 2`, derived from the card's measured rect at
+approach time, so the framing band is defined as "between the top of the stage
+and the top of the card" and the two cannot drift apart again. `faceY` is the
+measured `.face-void` centre passed in directly, so
+`computeCameraTransform`'s 18%-down heuristic no longer applies on this path
+(the heuristic remains as the documented default when `faceY` is omitted, and
+is still unit-tested). §27 reuses both lookups for the Badger.
 
-### D3 — Ultra-wide leaves the bottom half of the page empty
+### D3 — Ultra-wide leaves the bottom half of the page empty — CLOSED as a ruling (2026-07-22)
 
 **Symptom:** at 2560×1080 the scene occupies ~47% of the viewport width and
 the lower half of the page is bare background.
@@ -975,8 +1100,17 @@ the repo that grows as tests are added.
 ## 17. Stage sizing — full-bleed wide, and a full-window toggle
 
 Raised and accepted by Caveshen 2026-07-22, out of the §15 D3 ruling.
-**ACCEPTED — not yet built.** Comparison that produced the ruling:
+**BUILT AND ACCEPTED.** 17.1 built 2026-07-22, 17.1a built 2026-07-23, then
+both superseded by 17.2 (built 2026-07-24, seen live and accepted by Caveshen
+2026-07-24: "it's already looking MUCH better"). Comparison that produced the
+original ruling:
 https://claude.ai/code/artifact/0ec6a101-aee8-4f1f-b35a-3217715f6417
+
+**Read this section back-to-front.** It records three passes at the same
+problem, each superseding the last, and 17.2's "RULED — default" block is the
+one that describes what ships. 17.1 and 17.1a below are kept because they
+explain *why* the answer moved, and because 17.1a's height-limited fit is the
+correct fallback if full-window is ever reversed.
 
 ### 17.1 Wide variant goes full-bleed (the D3 ruling)
 
@@ -1040,23 +1174,36 @@ of letterboxing it, so a stage sized to arbitrary dimensions renders a
 correctly-proportioned *crop* of the world rather than a distorted stretch.
 No new rendering strategy is required; only the sizing rule changes.
 
-**Shipped as a toggle "for now"** — Caveshen's framing, meaning the default
-presentation is not being replaced, and the toggle is the safe way to live
-with the mode before deciding whether it becomes the default.
+~~**Shipped as a toggle "for now"**~~ — **SUPERSEDED twice.** First by §18's
+"one control" ruling (no separate size toggle ships), then by the
+"RULED — default" block below (full-window is the default, not a mode). There
+is no framed/full-window toggle and there never was one in the tree.
 
 ### Acceptance criteria
 
-1. At ≥ 15/8 aspect the stage grows beyond 1200px, limited by available
-   height, and never introduces vertical page scroll.
-2. Standard and portrait variants render byte-identically to before at their
-   existing breakpoints — this change is invisible outside ultra-wide.
-3. A control switches the stage between framed and full-window. State
-   persists across reloads, in the manner of the existing theme toggle.
-4. In full-window mode the scene crops via `slice` and is never stretched:
-   the Table Mountain screen-space aspect invariant (§13) still holds.
-5. No horizontal page overflow in any mode at any tested viewport.
-6. Keyboard-operable with a visible focus ring; honours
-   `prefers-reduced-motion` on any size transition.
+Written against the toggle framing above; annotated where the later rulings
+moved them.
+
+1. ~~At ≥ 15/8 aspect the stage grows beyond 1200px, limited by available
+   height, and never introduces vertical page scroll.~~ **SUPERSEDED** — the
+   stage fills the window at *every* aspect, not only ≥ 15/8. The no-page-scroll
+   half still binds and is tested.
+2. ~~Standard and portrait variants render byte-identically to before at their
+   existing breakpoints — this change is invisible outside ultra-wide.~~
+   **SUPERSEDED by 17.1a, then 17.2** — every variant changed, deliberately.
+3. ~~A control switches the stage between framed and full-window. State
+   persists across reloads.~~ **DROPPED** — §18 ruled one control (fullscreen),
+   and 17.2 became the default, so there is nothing to toggle or persist.
+4. **STANDS.** The scene crops via `slice` and is never stretched: the Table
+   Mountain screen-space aspect invariant (§13) still holds. ✅
+5. **STANDS.** No horizontal page overflow at any tested viewport. ✅
+6. **MOVED to §18** — it was only ever about the toggle's own control, and the
+   fullscreen button carries these requirements now. ✅ there.
+
+Added by the "RULED — default" block and met: site chrome overlays the
+full-bleed stage without occluding the figure, card or prompt (tested at all
+four aspects), and the bottom-anchored crop trims sky/sea rather than the
+subject.
 
 ### Status 2026-07-22
 
@@ -1072,8 +1219,9 @@ with the mode before deciding whether it becomes the default.
   footer became a fixed top-left glass chip (it can't sit below a full-height
   frame), mirroring the theme toggle's top-right corner. Crop guard verified:
   bottom-anchored `xMidYMax` trims sky/sea, never the figure/card, at ultrawide
-  and portrait. Chrome-non-overlap tested at all four aspects. **Awaiting
-  Caveshen's live look** at the chrome-overlay layout.
+  and portrait. Chrome-non-overlap tested at all four aspects. ~~Awaiting
+  Caveshen's live look~~ — **looked at and accepted 2026-07-24** ("it's already
+  looking MUCH better"). §17 is closed.
 
 ### Clarified intent — Caveshen 2026-07-23
 
@@ -1114,7 +1262,10 @@ Implementation notes:
 
 ## 18. Fullscreen toggle button
 
-Requested by Caveshen 2026-07-22. **ACCEPTED — not yet built.**
+Requested by Caveshen 2026-07-22. **BUILT AND ACCEPTED 2026-07-23** (`14f121c`).
+Caveshen 2026-07-23: "the fullscreen button introduced as 18 is its own thing
+and works perfectly, and I have already accepted that." All six acceptance
+criteria below are met and covered by the suite. Nothing open here.
 
 A floating button, **bottom-right of the screen**, carrying the standard
 fullscreen glyph (the four-corner brackets), toggling the browser's
@@ -1176,7 +1327,11 @@ given its own control without rework.
 ## 19. Locked background layer (perspective consistency)
 
 Raised by Caveshen 2026-07-22 as "one twist" on the §15 D3 ruling.
-**ACCEPTED IN PRINCIPLE — implementation blocked on §20.** Prototype:
+**SPLIT IN TWO. The refactor half is BUILT (2026-07-24, `2a3298a`); the
+locking behaviour is NOT BUILT and remains open** — see the REFRAMED block
+immediately below, which is the current status. (The earlier headline,
+"blocked on §20", is superseded: §20 shipped, and Caveshen then chose to take
+only the structural half.) Prototype:
 https://claude.ai/code/artifact/f23b9a5b-81f3-4356-a5d1-0ea9f7c15fbc
 
 ### REFRAMED 2026-07-24 — build as a pure structural refactor (no visual change) — BUILT 2026-07-24
@@ -1285,8 +1440,10 @@ invariant, which §13's Table Mountain screen-space test already guards.
 Raised by Caveshen 2026-07-22 on seeing the §19 prototype: the background
 city "needs to be MUCH larger / widespread… extend it across the entire
 scene in widescreen and then let it naturally adjust to the other views".
-**ACCEPTED — to be workshopped. Explicitly open to creative exploration**
-("we can workshop and/or get creative with this one as well").
+**BUILT AND ACCEPTED.** Direction accepted 2026-07-23 after two prototype
+rounds, ported to `CityScape.astro` the same day (`67e3c67`), waves included,
+and seen live and accepted by Caveshen 2026-07-24. Section closed; the
+workshop record below is kept because §19's locking design leans on it.
 
 ### Why this is the load-bearing item of the three
 
@@ -1403,8 +1560,14 @@ in-flight stage-sizing work.
 world spans x ≈ −295..1150. Waves added in all three scene variants (below).
 New e2e regression tests (industrial district geometry west of x=0; ≥4
 `.f-wave` marks per variant) pass, each proved to fail on revert; full unit
-(56) and e2e (1013) suites plus `npm run build` all green. Awaiting
-Caveshen's live review.
+(56) and e2e (1013) suites plus `npm run build` all green. ~~Awaiting
+Caveshen's live review.~~ **Reviewed live and accepted 2026-07-24.**
+
+One acceptance criterion below is **not yet exercised**, and honestly so:
+criterion 1 is written "at 2560×1080 **with the §19 lock applied**", and the
+lock was not built (§19 took the refactor half only). The left flank fills
+correctly under the current unlocked cameras; whether it fills under a locked
+background is untested and re-enters scope only if §19's locking is ever built.
 
 ### Added scope — wave elements in the water (Caveshen 2026-07-23)
 
@@ -1427,7 +1590,10 @@ subordinate to the moon reflections), new `--wave` token in `tokens.css`
 
 ## 21. Camera zoom easing — the approach lurches
 
-Reported by Caveshen 2026-07-22 from live play. **ACCEPTED — not yet built.**
+Reported by Caveshen 2026-07-22 from live play. **BUILT AND ACCEPTED
+2026-07-23** — entry `550ms cubic-bezier(0.4, 0, 0.2, 1)`, exit untouched. See
+"Status 2026-07-23 — ACCEPTED" at the foot of this section; the values are
+final and the merge caveat is lifted. Nothing open here.
 
 ### Symptom, in his words
 
@@ -1605,6 +1771,37 @@ silently destroy the old scene.
   catch that, or explicitly freeze it as excluded reference — decide when it
   is built, not now.
 
+### Pre-cutover checklist (assembled 2026-07-25)
+
+Several sections say "must be done before the cutover" and none of them said
+it in the same place. This is that place. None of it is scheduled; it is the
+gate, not a plan.
+
+**Blocking — the site is wrong without these:**
+1. **All copy is Caveshen's.** Every `PLACEHOLDER` is his to replace:
+   `src/data/dialogue.json` (all 6 nodes — every `stage`, `speech` and option
+   `label`), the approach prompt and end-dialogue button labels, the page-foot
+   attribution, the meta descriptions on `/` and in `Base.astro`, the 404
+   flavour line, the About section of `public/llms.txt`, and the remaining
+   `/sheet` fields (alignment, quest-log company names and flavour lines,
+   education/training). The CI scanner is warn-only by design (§9 P3) — it will
+   not stop a placeholder shipping.
+2. **Remove the §27 TEST-ONLY character toggle.** Full extent listed in §27;
+   `e2e/p27.spec.js` goes with it. Grep `REMOVE-BEFORE-SHIP` must return
+   nothing.
+3. **Archive the old landing** — the actual subject of this section.
+
+**Should be done, won't break the page:**
+4. **Re-render the OG and touch icons** from the current palette (§7 debt) —
+   and fix `docs/render-og.js` first, or it reverts the favicon.
+5. **Optimise the Badger raster(s)** to displayed size (§27 open point 2) —
+   cheapest done alongside §29, which adds the second frame.
+6. **Watch the first deploy anyway.** The workflow itself is proven (green on
+   every push to `main` through 2026-07-20), so this is not a first flight —
+   but it will be the first time it builds the landing-v2 tree, and the suite
+   it gates is now 1272 e2e tests across three engines. Budget the CI time and
+   look at the deployed page, not just the green tick.
+
 ---
 
 ## 24. Ambient banner plane
@@ -1668,9 +1865,12 @@ under reduced motion) and that it does not intercept pointer events.
 
 ## 25. Palette — from violet night to the sheet's blue-black
 
-Requested by Caveshen 2026-07-23 on the §20 review. **ACCEPTED — not yet
-built.** "Move away from the purple hues and colour-match to our character
-sheet blue-black styling."
+Requested by Caveshen 2026-07-23 on the §20 review. **BUILT AND ACCEPTED
+2026-07-24** (`2ddc259`; favicon follow-up `05ce607`). Caveshen on the
+prototype: "love your proposals, let's commit to that palette." Both themes
+shipped — night blue-black, day cool-coastal-blue, warm gold/cream accents
+kept. Contrast re-verified (5.67–8.22:1, all AA). "Move away from the purple
+hues and colour-match to our character sheet blue-black styling."
 
 ### What this is
 
@@ -1733,16 +1933,26 @@ are kept for legibility and warmth.
 - Warm gold/cream accents (`--celestial`, `--moon`, `--text`) are **kept** in
   both themes as the deliberate warm counterpoint to the cool ground.
 
-### Open (his look)
+### ~~Open (his look)~~ — CLOSED 2026-07-24
 
-- Final sign-off on the night blue-black and the day direction above.
+Signed off on the prototype ("love your proposals, let's commit to that
+palette") and shipped in `2ddc259`. Night is blue-black, day took the proposed
+cool-coastal-blue, warm accents kept. `src/tests/theme.test.js` re-verifies
+every contrast pair against the live token values, so the AA guarantee moves
+with the tokens rather than being asserted once.
+
+**One consequence went unnoticed at the time and is now logged in §7:** the
+palette move orphaned `docs/render-og.js`, which still renders the OG and
+apple-touch images from the retired violet values. `public/favicon.svg` was
+hand-patched to the new `--bg` (`05ce607`) but its *generator* was not.
 
 ---
 
 ## 26. Normalising the mountains — Devil's Peak + soften Lion's Head
 
 Requested by Caveshen 2026-07-23 ("I have been asked to add Devil's Peak… and
-to soften the top of Lion's Head"). **ACCEPTED — not yet built.**
+to soften the top of Lion's Head"). **BUILT AND ACCEPTED 2026-07-24**
+(`789c692`, after one rejected pass — see the as-built block at the foot).
 
 ### What this is
 
@@ -1797,6 +2007,48 @@ Visual — prototype, screenshot the three aspects, he rules, then repo.
 - **Devil's Peak placement accepted:** left flank, rising behind the §20
   harbour as `f-far`, per the placement note above. Exact height/position
   settled on the prototype look.
+
+### AS BUILT 2026-07-24 — the geometry, and the one rejected pass
+
+Recorded because these are hand-tuned numbers that a future edit could undo
+without noticing, and because the first attempt failed in an instructive way.
+
+**Rejected v1.** The Lion's Head softening was applied by *replacing* the
+polygon rather than blunting its tip, which destroyed the body: Caveshen saw
+"a random triangle in the air where I suspect Lion's Head was MEANT to be."
+The lesson is the one §26's own constraints already stated — softening touches
+only the apex vertices, never the shoulders or base.
+
+**Rejected v2 (`crop-dp-v3`).** Devil's Peak descended at roughly 45° into a
+saddle that dropped *below* Table Mountain's plateau. His steer: "instead of
+that 45 degree line down from Devil's Peak, look for a 15 degree line towards
+Table Mountain, just enough to indicate a peak but not so much that it dips
+below Table Mountain."
+
+**Accepted (`CityScape.astro`).** Approved as "You nailed it king".
+- **Devil's Peak** — a NEW polygon, `points="-80,352 70,93 200,124 240,352"`.
+  Apex at `y=93` sits genuinely above Table Mountain's `y=104` plateau, as
+  asked. The descent from apex to `200,124` is the shallow saddle; the
+  crossover lands at Table Mountain's plateau shoulder (`y≈120`) so the saddle
+  never dips below it. **Painted FIRST**, before Table Mountain, so Table
+  Mountain's own polygon overlaps and masks the right-flank descent — that
+  paint order is load-bearing, not incidental.
+- **Lion's Head** — softened in place, apex only:
+  `points="695,352 785,201 795,156 803,151 811,156 825,201 915,352"`. The old
+  single sharp apex `803,149` becomes three vertices (`795,156` / `803,151` /
+  `811,156`), reading as a rounded edge while staying "quite pointed" per the
+  ruling. Shoulders and base are untouched.
+- **Table Mountain — not touched**, as constrained. Still
+  `40,352 130,187 190,120 230,109 300,104 480,106 540,114 585,167 640,352`,
+  and its §13 screen-space aspect invariant still passes unchanged.
+- Lion's Head and Signal Hill were also *translated* left (65 and 40 units) to
+  close the gap the wider world opened; that is a placement change, not a
+  reshaping.
+
+Guarded by a Devil's Peak regression test in `e2e/p4.spec.js`, proved to fail
+on revert. A screenshot-timing trap was found while testing and is worth
+knowing: `transition: fill 0.4s` on the mountains means a screenshot taken too
+soon catches them mid-theme-fade — the test waits 500ms.
 
 ---
 
@@ -1858,10 +2110,16 @@ is precisely this call, and it is resolved with a look, not in the abstract.
 
 ### Acceptance criteria
 
-1. Both characters selectable; the scene renders coherently with either.
-2. Prompt placement, camera face-target and zoom framing are correct for the
-   Badger — computed from its own anchor, not the figure's.
-3. Badger day/night treatment decided and applied.
+1. ~~Both characters selectable~~ **PARTIAL** — the scene renders coherently
+   with either (✅), but "selectable" is currently satisfied only by the
+   TEST-ONLY toggle below. The real mechanism is open.
+2. **MET.** Prompt placement, camera face-target and zoom framing are computed
+   from whichever character is on stage: `positionPrompt()` and the camera both
+   query the shared `.js-character` class and pick the one with `width > 0`,
+   and framing reads that character's own `.face-void`. The Badger carries its
+   own marker, so nothing is measured off the figure.
+3. **MET.** Day = as-is under the scene-matched filter; night = additionally
+   darkened. Applied via CSS filter on the raster.
 
 ### Method
 
@@ -1899,13 +2157,49 @@ must not ship with the toggle present. The Badger's approach/zoom framing
 reuses the existing `.face-void` mechanism (the Badger carries its own face
 marker) so the camera frames whichever character is active.
 
+**Scaffold extent, verified 2026-07-25** (so removal is a checklist, not a
+hunt). `REMOVE-BEFORE-SHIP` appears at `src/pages/index.astro` lines 5
+(import), 110 / 172 / 230 (the three `<Badger>` render calls, one per scene
+variant), 310–318 (the button and its deletion instructions), 332 (script
+close) and 340–365 (the `[data-character]` visibility CSS and button styling).
+`e2e/p27.spec.js` is marked REMOVE-BEFORE-SHIP in its entirety (6 tests).
+Default with no JS and no `data-character` attribute is the hooded figure, and
+the toggle deliberately does **not** persist to localStorage — it is scaffolding.
+
+### Open, carried from this section into §29 / the cutover
+
+Three things the build did not close, recorded so they are not lost:
+
+1. **The real selection mechanism** (site-wide subject vs per-dialogue) — still
+   Caveshen's call. Everything else here ships; this is the only reason the
+   toggle exists.
+2. **The perf constraint above is UNMET.** `public/badger.png` is the full
+   500×500 source displayed at ~200px. `Badger.astro`'s own comment admits the
+   deferral. It has not measurably threatened criterion 6 (Lighthouse ≥ 95),
+   but it is a knowingly-unoptimised asset and §29 is about to add a second
+   one — resize both together, once, rather than twice.
+3. **The approach prompt's copy is figure-specific.** It reads "PLACEHOLDER:
+   Approach the hooded figure" regardless of who is on stage, so with the
+   Badger active it names the wrong character. Acceptance criterion 2 covered
+   *placement*, not the label. It is placeholder copy either way, so it
+   resolves when Caveshen writes the real line — but whoever writes it should
+   know the string may need to vary by character, or be written neutrally.
+4. **The accessibility constraint was met differently than written.** The
+   constraint says the character carries a functional `aria-label`/`role` like
+   the figure; the Badger's was **deliberately removed**. Reason: the scene
+   SVG carries `role="img"` with its own label, which makes it a single atomic
+   accessible object and *prunes* nested labels — a label on the Badger would
+   have been dead weight, and two labelled characters inside one `role="img"`
+   is incoherent besides. The character is inert to assistive tech by design;
+   the dialogue carries the meaning. Recorded as a deviation, not a defect.
+
 ---
 
 ## 28. Dialogue fade-in on zoom
 
-Requested by Caveshen 2026-07-23. **BUILT (2026-07-23) — awaiting Caveshen's
-live look ("feel" is the acceptance method, per §28 Method below).** "A tiny
-fade-in when the zoom-in happens after the hovering button is clicked."
+Requested by Caveshen 2026-07-23. **BUILT (2026-07-23, `7eced29`) — seen live
+and accepted 2026-07-24**, in the same preview that closed §17.2 and §24. "A
+tiny fade-in when the zoom-in happens after the hovering button is clicked."
 
 **Implementation:** `.card`'s existing transition list gains
 `opacity 380ms ease 170ms, transform 380ms ease 170ms` (170ms delay + 380ms

@@ -1846,6 +1846,28 @@ then repo.
 - **Still open (resolved when built for real, not needed for the prototype):**
   what drives the selection — a single site-wide subject vs per-dialogue.
 
+### Interim selection — TEST-ONLY toggle (Caveshen 2026-07-24)
+
+Caveshen hasn't settled the real subject-selection mechanism ("I genuinely
+don't know at the moment"). **For now:** a temporary toggle button beside the
+day/night toggle flips the on-stage character between the hooded figure and the
+Badger, purely for testing. **This button MUST be removed before shipping** —
+it is scaffolding, not the final mechanism; the real figure-vs-Badger selection
+(site-wide vs per-conversation) stays open and is decided later.
+
+What is REAL and stays (the approved visual): the Badger asset in-repo (from
+`BadgerUP.png`, full rights, committed under a neutral name), a self-contained
+Badger component, the **scene-matched** treatment (`grayscale(1)
+contrast(1.05) brightness(.95)`; night additionally `brightness(.7)`) and the
+ground drop-shadow lifted from the hooded figure. Only the visible toggle
+button and the "render both, switch by a UI control" wiring are throwaway.
+
+Removal safety: the scaffold carries a greppable `REMOVE-BEFORE-SHIP` marker
+and a `ponytail:` note so `/ponytail-debt` tracks it; §23's cutover checklist
+must not ship with the toggle present. The Badger's approach/zoom framing
+reuses the existing `.face-void` mechanism (the Badger carries its own face
+marker) so the camera frames whichever character is active.
+
 ---
 
 ## 28. Dialogue fade-in on zoom

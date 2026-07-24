@@ -49,9 +49,9 @@ describe('favicon.svg', () => {
     expect(content.toLowerCase()).toContain('ffd75e');
   });
 
-  it('contains the night background colour (#14121f)', () => {
+  it('contains the night background colour (#0f1826)', () => {
     const content = readFileSync(join(root, 'public/favicon.svg'), 'utf8');
-    expect(content.toLowerCase()).toContain('14121f');
+    expect(content.toLowerCase()).toContain('0f1826');
   });
 });
 

@@ -1,15 +1,15 @@
 /* Design tokens — PRD §3. Night is default; day overrides on data-time="day". */
 :root {
-  --bg:          #14121f;
-  --sky:         #14121f;
-  --mountain:    #262138;
-  --mountain-far:#3a3457;
-  --sea:         #223240;
+  --bg:          #0f1826;
+  --sky:         #0f1826;
+  --mountain:    #1c2a44;
+  --mountain-far:#2e4066;
+  --sea:         #1b2c3c;
   --celestial:   #ffd75e;
-  --card:        #1e1a2e;
+  --card:        #121a2e;
   --text:        #e9e2cf;
   --stage:       #7d95a0;
-  --option:      #a48fd8;
+  --option:      #8fb4d8;
 
   --serif: Georgia, "Times New Roman", serif;
   --mono:  "Cascadia Code", ui-monospace, Consolas, monospace;
@@ -17,17 +17,17 @@
   --theme-transition: background-color 0.4s ease, color 0.4s ease;
 
   /* Extended tokens — shared via tokens.css; some consumed only by / */
-  --card-edge:        #2e2946;
+  --card-edge:        #26324c;
   --card-shadow:      0 16px 40px rgba(0, 0, 0, 0.45);
-  --dim:              #9b93b8; /* night: WCAG AA ≥4.5:1 on both --card and --bg */
-  --option-border:    rgba(164, 143, 216, 0.35);
+  --dim:              #9aabc6; /* night: WCAG AA ≥4.5:1 on both --card and --bg */
+  --option-border:    rgba(143, 180, 216, 0.35);
   --btn-hover-bg:     transparent;
   --btn-hover-border: #ffd75e;
   --btn-hover-text:   #ffd75e;
   --chip-bg:          #ffd75e;
-  --chip-text:        #14121f;
-  --avatar-ring:      #a48fd8;
-  --hair:             #14121f;
+  --chip-text:        #0f1826;
+  --avatar-ring:      #8fb4d8;
+  --hair:             #0f1826;
 
   /* Sheet panel surface: AMOLED ink-wash — dark blue sinking into black */
   --panel-grad:       linear-gradient(180deg, #121a2e 0%, #0a0e1a 100%);
@@ -41,7 +41,7 @@
      ambient wind motes. */
   --moon:   #e7e3cf;
   --crater: #cbc6ae;
-  --rail:   #474163;
+  --rail:   #2c3850;
   --ground: #0e0d16;
   --mote:      #d8c9a0;
   --mote-op:   .30;
@@ -52,27 +52,27 @@
 }
 
 :root[data-time="day"] {
-  --bg:          #e9f0ee;
-  --sky:         #cfe6e3;
-  --mountain:    #46615c;
-  --mountain-far:#6f938d;
-  --sea:         #7fb5b0;
+  --bg:          #e7f0f5;
+  --sky:         #cfe0f0;
+  --mountain:    #5a6f88;
+  --mountain-far:#8ba3bd;
+  --sea:         #86b8d0;
   --celestial:   #f2b544;
   --card:        #fdfbf5;
   --text:        #253038;
   --stage:       #5d7470;
-  --option:      #4d3f80;
+  --option:      #3f5f88;
 
   --card-edge:        rgba(37, 48, 56, 0.12);
   --card-shadow:      0 12px 32px rgba(37, 48, 56, 0.18);
-  --dim:              #4d6260; /* day: WCAG AA ≥4.5:1 on both --card and --bg */
-  --option-border:    rgba(77, 63, 128, 0.35);
+  --dim:              #4a5f7a; /* day: WCAG AA ≥4.5:1 on both --card and --bg */
+  --option-border:    rgba(63, 95, 136, 0.35);
   --btn-hover-bg:     #f2b544;
   --btn-hover-border: #f2b544;
   --btn-hover-text:   #253038;
   --chip-bg:          #f2b544;
   --chip-text:        #253038;
-  --avatar-ring:      #7fb5b0;
+  --avatar-ring:      #86b8d0;
   --hair:             #253038;
 
   /* Sheet panel surface: parchment wash — cream warming at the base */
@@ -84,7 +84,7 @@
      lighten for the day sky. */
   --moon:   #e7e3cf;
   --crater: #cbc6ae;
-  --rail:   #809892;
+  --rail:   #7b93ac;
   --ground: #33403c;
   --mote:      #5f7068;
   --mote-op:   .28;

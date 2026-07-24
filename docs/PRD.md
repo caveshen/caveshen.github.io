@@ -1962,3 +1962,55 @@ soft reveal, not a slow curtain.
 Feel — a quick look to confirm "tiny" reads right, but small enough to also
 assert in the suite (opacity transition present on approach; absent under
 reduced motion).
+
+---
+
+## 29. Badger two-frame idle animation
+
+Requested by Caveshen 2026-07-24. **ACCEPTED — not yet built.** Give the §27
+Badger a simple, characterful idle by animating between two commissioned
+frames — arms up and arms down.
+
+### What this is
+
+- **Two frames**, both full rights, both 500×500 (same canvas as the shipped
+  up frame, so they register — only the arms move):
+  - **up** — the current asset (`public/badger.png`, from `BadgerUP.png`).
+  - **down** — new asset (from `E:\Internet Downloads\Downloaded Pictures\BadgerDown.png`),
+    to enter the repo under a neutral name alongside the up frame.
+- Alternate the two to produce a gentle looping idle (arms bobbing up/down) —
+  a two-frame sprite swap, **just the two frames for now**.
+- **Future (noted, NOT now):** interpolate in-between frames (tweening) for a
+  smoother motion. Explicitly out of scope for the first build — two frames
+  only, per "for now, let's keep to just two".
+
+### Scope / constraints
+
+- Only relevant when the Badger is the active character (§27); the hooded
+  figure is unaffected.
+- Both frames carry the §27 scene-matched treatment (grayscale/contrast,
+  darker at night) and the same ground shadow — the swap must not make the
+  filter or shadow jump.
+- Registration: both frames are 500×500 with the body/feet in the same place;
+  confirm on a look that only the arms move and the feet/shadow stay planted
+  (no vertical jump between frames).
+- **Honours `prefers-reduced-motion`:** under reduced motion, no animation —
+  hold a single static frame (up).
+- Cheap: a two-frame swap on a timer / CSS steps animation, no per-pixel work,
+  no new dependency; must not threaten Lighthouse ≥95 (criterion 6).
+- No-JS: a single static frame is fine (as today).
+
+### Open points (feel — his look)
+
+- **Cadence** — how fast the two frames alternate (a slow ~0.6–1s bob vs a
+  quicker wave). Feel call on a look.
+- **Naming** — rename the existing `public/badger.png` → `badger-up.png` for
+  symmetry with `badger-down.png`, or keep `badger.png` as the up frame.
+  Implementer's discretion unless Caveshen minds.
+
+### Method
+
+Prototype/screenshot both frames composited, confirm registration and cadence
+on a look before it enters the repo — like §16, the *feel* isn't suite-judgeable
+(the suite can assert both frames exist and that reduced-motion holds a single
+frame).

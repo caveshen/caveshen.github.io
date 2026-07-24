@@ -49,6 +49,7 @@ const FIG = {
   <svg class="scene scene-standard" viewBox="0 0 1200 750" preserveAspectRatio="xMidYMax slice" role="img"
        aria-label="Cape Town's Table Mountain, Lion's Head and Signal Hill above the city bowl, by night or day, with a hooded figure on the promenade">
     <rect class="f-sky" width="1200" height="750" />
+    <g class="bg-layer">
     <g class="f-star night-only">
       <circle cx="95"   cy="70"  r="1.6" opacity="0.8" />
       <circle cx="240"  cy="120" r="1.2" opacity="0.5" />
@@ -76,6 +77,8 @@ const FIG = {
       <rect x="620" y="105" width="110" height="20" rx="10" fill="#fff" opacity="0.7" />
     </g>
     <CityScape camera={CAMERA.std} />
+    </g>
+    <g class="fg-layer">
     <!-- sea -->
     <rect class="f-sea" y="480" width="1200" height="120" />
     <g class="f-moon night-only">
@@ -106,12 +109,14 @@ const FIG = {
     <HoodedFigure x={FIG.std.x} y={FIG.std.y} scale={FIG.std.scale} />
     <!-- REMOVE-BEFORE-SHIP (PRD §27 interim toggle) -->
     <Badger x={FIG.std.x} y={FIG.std.y} scale={FIG.std.scale} />
+    </g>
   </svg>
 
   <!-- ============ WIDE 1750×750 (21:9) ============ -->
   <svg class="scene scene-wide" viewBox="0 0 1750 750" preserveAspectRatio="xMidYMax slice" role="img"
        aria-label="Cape Town skyline panorama, by night or day, with a hooded figure on the promenade">
     <rect class="f-sky" width="1750" height="750" />
+    <g class="bg-layer">
     <g class="f-star night-only">
       <circle cx="95" cy="70" r="1.6" opacity="0.8" /><circle cx="340" cy="120" r="1.2" opacity="0.5" />
       <circle cx="610" cy="55" r="1.4" opacity="0.7" /><circle cx="860" cy="105" r="1.1" opacity="0.45" />
@@ -134,6 +139,8 @@ const FIG = {
       <rect x="1480" y="185" width="130" height="20" rx="10" fill="#fff" opacity="0.75" />
     </g>
     <CityScape camera={CAMERA.wide} />
+    </g>
+    <g class="fg-layer">
     <!-- foreground: same camera height as Standard, so sea/promenade/rail share y -->
     <rect class="f-sea" y="480" width="1750" height="120" />
     <g class="f-moon night-only">
@@ -164,12 +171,14 @@ const FIG = {
     <HoodedFigure x={FIG.wide.x} y={FIG.wide.y} scale={FIG.wide.scale} />
     <!-- REMOVE-BEFORE-SHIP (PRD §27 interim toggle) -->
     <Badger x={FIG.wide.x} y={FIG.wide.y} scale={FIG.wide.scale} />
+    </g>
   </svg>
 
   <!-- ============ TALL 600×1067 (portrait / mobile) ============ -->
   <svg class="scene scene-tall" viewBox="0 0 600 1067" preserveAspectRatio="xMidYMax slice" role="img"
        aria-label="Cape Town skyline in portrait, by night or day, with a hooded figure on the promenade">
     <rect class="f-sky" width="600" height="1067" />
+    <g class="bg-layer">
     <g class="f-star night-only">
       <circle cx="60" cy="80" r="1.6" opacity="0.8" /><circle cx="170" cy="150" r="1.2" opacity="0.5" />
       <circle cx="280" cy="60" r="1.4" opacity="0.7" /><circle cx="90" cy="260" r="1.1" opacity="0.45" />
@@ -190,6 +199,8 @@ const FIG = {
       <rect x="300" y="360" width="100" height="18" rx="9" fill="#fff" opacity="0.7" />
     </g>
     <CityScape camera={CAMERA.tall} />
+    </g>
+    <g class="fg-layer">
     <!-- portrait carries the extra height as water: further back, more of the bay in view -->
     <rect class="f-sea" y="480" width="600" height="220" />
     <g class="f-moon night-only">
@@ -218,6 +229,7 @@ const FIG = {
     <HoodedFigure x={FIG.tall.x} y={FIG.tall.y} scale={FIG.tall.scale} />
     <!-- REMOVE-BEFORE-SHIP (PRD §27 interim toggle) -->
     <Badger x={FIG.tall.x} y={FIG.tall.y} scale={FIG.tall.scale} />
+    </g>
   </svg>
 
   </div><!-- /.camera -->

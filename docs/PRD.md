@@ -1179,6 +1179,38 @@ Raised by Caveshen 2026-07-22 as "one twist" on the §15 D3 ruling.
 **ACCEPTED IN PRINCIPLE — implementation blocked on §20.** Prototype:
 https://claude.ai/code/artifact/f23b9a5b-81f3-4356-a5d1-0ea9f7c15fbc
 
+### REFRAMED 2026-07-24 — build as a pure structural refactor (no visual change) — BUILT 2026-07-24
+
+**Status: BUILT** — `bg-layer`/`fg-layer` seams added to all three scenes;
+pixel-identical (0-diff) across every variant/theme/state; a seam test guards
+it; no existing test changed. The clamp/locking design below stays unbuilt,
+for later.
+
+Caveshen, after seeing §20 + §17.2 live: the *locking behaviour* (the
+differential background/foreground transform + the clamp below) is **NOT built
+now**. Instead, do the refactor half only — **separate background from
+foreground in the DOM so the scene can be controlled independently later**,
+while changing **nothing** about how it currently looks. His words: "a
+refactoring exercise that does not change up the looks but rather separates
+'background' from 'foreground' to allow for greater scene control later."
+
+Scope of the refactor:
+- Per scene SVG, wrap the seam elements in two named groups — `bg-layer`
+  (stars, moon/sun, `<CityScape>`/`.world`) and `fg-layer` (sea, moon
+  reflection, waves, ground, rail, figure, Badger) — leaving the sky fill rect
+  as the untransformed always-cover base before them. Paint order preserved
+  exactly.
+- **No differential transform applied.** Both layers render exactly as today;
+  the groups are transparent seams for future use.
+- Success = **pixel-identical** output across all three variants, day/night,
+  approached and not, figure and Badger (verify by before/after screenshot
+  diff, since geometry tests won't catch paint changes). All existing tests
+  stay green and unchanged.
+
+The clamp/scale-factor machinery below is preserved as the design for the
+*eventual* locking change, if we ever choose to apply a differential transform
+to `bg-layer`; it is out of scope for this refactor.
+
 ### The intent, in his words
 
 The background — mountains and buildings — "must persist in screen space…

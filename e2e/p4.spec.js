@@ -294,6 +294,22 @@ test('each sea variant has at least 4 wave marks, visible in both day and night'
 // standalone f-far polygons, and both sit to the right of and below Table
 // Mountain's summit, so neither can satisfy the check below.
 
+// ── PRD §19 refactor: bg-layer/fg-layer seam ────────────────────────────────
+// Pure structural refactor (no visual change) — separates background
+// (mountains/city) from foreground (sea, ground, character) in the DOM so
+// the scene can be controlled independently later. Asserts the seam exists
+// and holds, so a future edit can't silently flatten it back together.
+
+test('each scene has a bg-layer (containing the mountain) and fg-layer (containing the sea and character)', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 }); // forces the standard variant on
+  await page.goto('/');
+  for (const variant of ['scene-standard', 'scene-wide', 'scene-tall']) {
+    await expect(page.locator(`.${variant} .bg-layer .table-mountain`)).toHaveCount(1);
+    await expect(page.locator(`.${variant} .fg-layer .f-sea`)).toHaveCount(1);
+    await expect(page.locator(`.${variant} .fg-layer .hooded-figure`)).toHaveCount(1);
+  }
+});
+
 test("Devil's Peak: an f-far polygon apex sits above and left of Table Mountain's summit", async ({ page }) => {
   const found = await page.locator('.scene-standard .world').evaluate((worldEl) => {
     const parsePoints = (el) => el.getAttribute('points').trim().split(/\s+/)

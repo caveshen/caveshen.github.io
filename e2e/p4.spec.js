@@ -283,3 +283,31 @@ test('each sea variant has at least 4 wave marks, visible in both day and night'
   await page.locator('#toggle').click();
   await expect(page.locator('.scene-standard .f-wave').first()).toBeVisible();
 });
+
+// ── PRD §26: Devil's Peak + softened Lion's Head ───────────────────────────
+// World geometry is authored once (local SVG coordinate space); the "west of
+// x=0" test above proves the same point in the same way, so we mirror that
+// pattern rather than measuring screen-space post-camera-transform.
+// The §20 negative-x test already passes via the industrial district and
+// does NOT prove Devil's Peak exists — this test specifically bites if the
+// new polygon is removed: only Lion's Head/Signal Hill remain as other
+// standalone f-far polygons, and both sit to the right of and below Table
+// Mountain's summit, so neither can satisfy the check below.
+
+test("Devil's Peak: an f-far polygon apex sits above and left of Table Mountain's summit", async ({ page }) => {
+  const found = await page.locator('.scene-standard .world').evaluate((worldEl) => {
+    const parsePoints = (el) => el.getAttribute('points').trim().split(/\s+/)
+      .map((pair) => pair.split(',').map(Number));
+
+    const tmPoints = parsePoints(worldEl.querySelector('polygon.table-mountain'));
+    const tmSummitY = Math.min(...tmPoints.map(([, y]) => y));
+    const tmSummitX = tmPoints.find(([, y]) => y === tmSummitY)[0];
+
+    const otherFarPolys = [...worldEl.querySelectorAll('polygon.f-far')]
+      .filter((el) => !el.classList.contains('table-mountain'));
+
+    return otherFarPolys.some((el) => parsePoints(el)
+      .some(([x, y]) => y < tmSummitY && x < tmSummitX));
+  });
+  expect(found, "expected an f-far polygon (Devil's Peak) with a vertex higher and left of Table Mountain's summit").toBe(true);
+});

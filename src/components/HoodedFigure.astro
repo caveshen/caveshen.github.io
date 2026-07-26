@@ -109,4 +109,11 @@ const { x, y, scale = 1 } = Astro.props;
   @media (prefers-reduced-motion: reduce) {
     .sway { animation: none; }
   }
+
+  /* Night: plain brightness dim. Flat SVG fills need no grayscale/contrast
+     correction the way Badger's raster does (Badger.astro:40-47) — one
+     filter, one value (below) to retune. */
+  :root:not([data-time="day"]) .hooded-figure {
+    filter: brightness(0.8);
+  }
 </style>

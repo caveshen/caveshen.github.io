@@ -40,8 +40,9 @@ const { x, y, scale = 1 } = Astro.props;
   .badger-image {
     filter: grayscale(1) contrast(1.05) brightness(.95);
   }
-  /* Night: additionally darkened. A raster can't recolour like the SVG
-     figure's literal-hex fills, so this is its whole day/night treatment. */
+  /* Night: additionally darkened. The raster's grayscale/contrast day
+     treatment stacks another brightness step for night; the SVG hooded
+     figure needs no such correction and just dims (HoodedFigure.astro). */
   :root:not([data-time="day"]) .badger-image {
     filter: grayscale(1) contrast(1.05) brightness(.95) brightness(.7);
   }

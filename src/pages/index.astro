@@ -251,7 +251,10 @@ const FIG = {
     PLACEHOLDER: Approach the hooded figure
   </button>
 
-  <main class="card">
+  <!-- PRD §15 D5: card ships hidden so it is never painted before JS runs.
+       noscript overrides [hidden] with display:block for the no-JS path. -->
+  <noscript><style>.card[hidden] { display: block; }</style></noscript>
+  <main class="card" hidden>
     <div class="card-head">
       <!-- ponytail: abstract placeholder avatar — no likeness guessed -->
       <svg class="avatar" width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">
@@ -834,10 +837,9 @@ const FIG = {
   // Initial render is immediate — static content is already in place from SSR.
   render('root', true);
 
-  // ── P4: progressive enhancement — hide card, reveal approach prompt ───────
-  // The `hidden` attribute is added here, never in default CSS, so the no-JS
-  // path keeps the card visible exactly as before.
-  card.hidden = true;
+  // ── P4: progressive enhancement — reveal approach prompt ────────────────
+  // PRD §15 D5: card ships with [hidden] in the markup so it is never painted
+  // visible before this script runs. No assignment here; exit() re-arms it.
   // PRD §28: same reasoning — the fade's opacity:0 starting class is added
   // here in JS only, never as a static .card rule, so the no-JS card (which
   // never runs this script) stays fully visible.

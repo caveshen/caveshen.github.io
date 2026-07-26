@@ -1,8 +1,9 @@
 # PRD — Caveshen Rajman, Personal Portfolio ("The Interview")
 
-**Status:** v1.9 — §19 closed (locking withdrawn); §31 re-scoped as **the admin
-page**, IN DESIGN, no go-ahead — all 2026-07-26. (v1.8: §29 built, D5 fixed, §30
-debt ledger with five of seven items built, §31/§32 raised.)
+**Status:** v2.0 — the 404 becomes a real page: **D-4 fully specified and
+unblocked**, §23's attic **withdrawn** (cutover only), §33 raised for the card
+avatar — all 2026-07-26. (v1.9: §19 closed, §31 re-scoped as the admin page.
+v1.8: §29 built, D5 fixed, §30 ledger five-of-seven built.)
 
 **`main`** — P0–P3, LIVE at https://caveshen.github.io (public repo
 `caveshen/caveshen.github.io`; Pages via the test-gated Actions workflow;
@@ -39,16 +40,17 @@ the same commit.
 | 20 | Wider world (industry + waves) | ✅ built, accepted |
 | 21 | Camera zoom easing | ✅ built, accepted |
 | 22 | Dialogue rework | ⏸ parked, no design |
-| 23 | The "attic" + cutover | ⏸ noted, not scheduled |
+| 23 | ~~Attic +~~ the `main` cutover | ⏸ **archive WITHDRAWN 2026-07-26**; cutover only, prerequisite = the interactive 404 ships first |
 | 24 | Ambient banner plane | ✅ built, accepted |
 | 25 | Blue-black palette | ✅ built, accepted |
 | 26 | Devil's Peak + Lion's Head | ✅ built, accepted |
 | 27 | Badger avatar | ◐ built; **selection mechanism open, toggle is scaffold** |
 | 28 | Dialogue fade-in | ✅ built, accepted |
 | 29 | Badger two-frame idle | ✅ built & accepted 2026-07-26; cadence held at 800ms |
-| 30 | Technical debt ledger (D-1…D-7) | ◐ D-1/2/3/5/7 ✅ built & accepted 2026-07-26; D-4 source RULED, awaits the 404 build; D-6 re-scoped onto §31 |
+| 30 | Technical debt ledger (D-1…D-7) | ◐ D-1/2/3/5/7 ✅ built & accepted 2026-07-26; **D-4 UNBLOCKED** — 404 is its own component, no longer waits on §23; D-6 re-scoped onto §31 |
 | 31 | Admin page (dev-only) | 🎨 **IN DESIGN** — one section, RULED; scope = toggles + dialogue/actions/CV sync; **no go-ahead**; persistence undecided |
 | 32 | Social preview imagery — creative pass | ⏸ noted 2026-07-26, not scheduled; current images accepted as-is |
+| 33 | The card avatar — extract, then refine | 🎨 IN DESIGN 2026-07-26 — extraction well-defined (authored 2× today, 3× with the 404); art brief outstanding |
 
 Also open and not owned by any section above: **all copy** (§23 checklist item
 1). The **stale OG/touch-icon render** (§7 debt) is now tracked as §30 D-2.
@@ -1812,10 +1814,28 @@ wants a look, in the manner of §16 and §21 — pacing is felt, not asserted.
 
 ---
 
-## 23. Preserving the current main landing — the "attic"
+## 23. ~~Preserving the current main landing — the "attic"~~ → **the `main` cutover**
 
 Raised by Caveshen 2026-07-23, tied to the eventual `main` cutover. Two
 concerns: switchover discipline, and archival.
+
+### RULED 2026-07-26 — **the archival half is WITHDRAWN. §23 is the cutover.**
+
+> "Once our interactive 404 is up, we can replace what's in `main` with
+> confidence."
+
+The attic existed to guarantee the original landing survived the overwrite. The
+interactive 404 (§30 D-4) now carries that design forward **as a living page**,
+built from git and reusing the v2 scene — which is a better outcome than a frozen
+reference folder that bit-rots (the very risk this section flagged as open).
+
+So: **no `src/attic/`, no `/attic` route, no archive folder.** The retired
+palette and the original markup survive in git history, which is sufficient
+precisely *because* nothing depends on resurrecting them.
+
+**§23 now has one job — the cutover — and one prerequisite: the interactive 404
+ships first.** Everything below is retained as historical record of the archival
+design; do not build from it.
 
 ### Switchover
 
@@ -1835,14 +1855,23 @@ something that reads as an archive or reference. Candidates, undecided:
 `src/reference/`, `src/attic/`, or an unlisted `/attic` route. It stays
 buildable so it can be resurrected wholesale, not as dead text.
 
-### Candidate destination — an interactive 404
+### ~~Candidate destination — an interactive 404~~ — RESOLVED 2026-07-26, and it is no longer this section's business
 
 Astro's not-found page is `src/pages/404.astro`. Wiring the preserved scene
 there would give the archive a home and make the 404 itself a small
 interactive scene. Caveshen: "An interactive 404 seems like something nobody
-has done before." **Not decided** — the archive stands on its own regardless
-of whether, or where, it is later mounted. Other future pages are equally
-open.
+has done before." ~~**Not decided**~~
+
+**RESOLVED 2026-07-26 (see §30 D-4).** The interactive 404 is happening — but
+**it does not mount this archive.** It is built as its own component, lifting
+the `main` landing's design straight out of git and reusing the v2 scene, with
+its own dialogue tree. **D-4 no longer depends on §23**, and the ordering that
+made this section a blocker is gone.
+
+**Which leaves §23 an open question rather than a settled plan:** if the 404
+takes nothing from the attic, does the attic still need to exist? Either the
+archive stands on its own merit as an archive, or §23 shrinks to the `main`
+cutover alone. **Caveshen's call, unanswered.**
 
 ### Status
 
@@ -2637,7 +2666,104 @@ accordingly.** The archive is **not** lossless: it takes the current tokens, and
 the retired violet survives in git history only. That is the instruction, not an
 open question.
 
-Depends on §23 being scheduled.
+~~Depends on §23 being scheduled.~~ **SUPERSEDED — see immediately below.**
+
+#### REFRAMED 2026-07-26 — the 404 is its own component; **D-4 no longer depends on §23**
+
+Caveshen:
+
+> "I don't even think you need §23's archive — you can get it off the git diff
+> since it's currently on main, and then hook it into the 404 page as its own
+> component, so we inherit themes and styles, but can build a second, separate
+> dialogue tree in its own json file with its own dialogue options. Realistically
+> it's a fancy 404 page that takes the same design as the currently-deployed
+> version of the site from main, but as its own component entirely. We can still
+> re-purpose the scene we built for the background. We can still apply themes,
+> day/night toggles, all other styling."
+
+**The dependency inverts.** The old ordering was §23 archives the landing → the
+404 mounts the archive → the mock retires. The landing is on `main` *right now*
+and git is a perfectly good source for a one-time lift (`git show
+main:src/pages/index.astro`, 414 lines). Nothing needs archiving first, so
+**D-4 is unblocked and buildable independently of §23.**
+
+Shape:
+
+- A **component of its own**, mounted in `src/pages/404.astro` (which today is a
+  minimal card, 79 lines, and is replaced).
+- **Layout** takes the currently-deployed `main` landing's design — the simple
+  always-present dialogue card centred over the backdrop.
+- **Background reuses the v2 scene we built** — not `main`'s older inline SVG.
+- **Themes, day/night, tokens and all other styling are inherited**, not
+  re-authored. The retired violet does not come with it (already ruled).
+- **Its own dialogue tree, in its own JSON file**, with its own options —
+  separate from `src/data/dialogue.json`.
+- On delivery, `docs/design-sample-c.html` retires, per the ruling above.
+
+**This costs nothing in the dialogue engine.** `src/scripts/dialogue.js` already
+exposes `initEngine(tree, els, navigate, opts)` — the tree is *already* a
+parameter. A second data file needs **no engine change**, which is the whole
+reason this is cheap. Do not fork the engine.
+
+**One trap, flagged rather than claimed:** `main`'s `index.astro` paints via
+`fill="var(--token)"` presentation attributes. §14 established that this pattern
+does not hold in v2, and every fill moved to CSS classes. Taking the v2 scene
+rather than `main`'s sidesteps most of it — but **any markup lifted verbatim
+from `main` must be re-checked against the class-based fill convention** before
+it is trusted to theme.
+
+##### Open — Caveshen's to answer before build
+
+1. **Camera.** All three variants (std / wide / tall), as `/` has, or one fixed?
+2. **Characters.** Does the scene carry the figure / Badger, or is it scenery
+   only (as the OG image is)?
+3. **Interaction model.** `main`'s landing shows its card immediately — no
+   approach step, no camera zoom. Confirm the 404 keeps that: you land, the
+   dialogue is simply there.
+4. **Where the options go.** Do they navigate within the 404's own tree, route
+   home to `/` and `/sheet`, or both? (`isPath()` already supports links.)
+5. **Dev chrome.** Does the 404 inherit §31's dev-only toggle cluster, or is it
+   exempt?
+6. **`noindex`.** Recommended for a 404; the sitemap already excludes it. Cheap,
+   but it is a change to shipped behaviour, so it is asked rather than assumed.
+
+##### ANSWERED 2026-07-26 — all six, plus the §23 consequence
+
+1. **Camera — simpler than `/`.** Caveshen: *"the view is simpler, as it's a
+   centralised dialogue, so as long as the page transforms so that the dialogue
+   remains central and does not bleed out of screen, we are solid."* So the
+   three-camera apparatus of §14 is **not** a requirement here. The success
+   criterion is behavioural, not structural: **the dialogue stays centred and
+   fully on-screen at every viewport.** How the background is framed behind it is
+   an implementation choice, not a spec.
+2. **No characters** — no hooded figure, no Badger. **But the card avatar comes
+   with it**, and Caveshen wants it refined and extracted. See **§33**, raised
+   for it.
+3. **Interaction — confirmed.** No approach step, no camera zoom. You land and
+   the dialogue is simply there.
+4. **Options navigate, via actions.** Caveshen: *"dialogue options would do the
+   navigation, so we would need them to fire actions. For now, we can simply
+   have a static option to 'return home' and have it route to `/`."* So: **a
+   static "return home" option routing to `/` is enough for this build** —
+   `isPath()` already supports it and no new mechanism is needed. The general
+   dialogue→action mapping remains **§31 B**, and this is its first real use
+   case, not its implementation.
+5. **Dev chrome inherited.** The day/night toggle is wanted. The Badger button
+   will do nothing on this page — *"that's fine for dev mode"* — so no
+   per-page suppression is required.
+6. **`noindex` agreed.** For the avoidance of doubt, the ask was a one-line
+   `<meta name="robots" content="noindex">` so search engines don't index the
+   error page itself. Agreed, and it ships with this build.
+
+##### RULED — §23's archive is dissolved
+
+> "Yes to your final question — once our interactive 404 is up, we can replace
+> what's in `main` with confidence."
+
+So the attic is **not needed**. The 404 carries the old landing's design forward
+as a living page, which is what the archive existed to guarantee. **§23 reduces
+to the `main` cutover alone**, and it now has a prerequisite: the interactive 404
+ships first. Recorded in §23.
 
 ### D-5 — `playwright.config.js:27` → `devices['Pixel 8']` — ✅ DONE 2026-07-26
 
@@ -2994,3 +3120,58 @@ or compose from the real components at an OG-specific layout.
 ### Status
 
 ⏸ **NOTED, not scheduled.** Current images accepted as-is in the meantime.
+
+---
+
+## 33. The card avatar — extract, then refine
+
+Raised by Caveshen 2026-07-26, answering §30 D-4's "does the 404 get characters?"
+
+> "No characters, but there is that avatar drawn in there, and in a prior PRD
+> version I noted wanting to go edit that avatar — I still want that, and I
+> suspect it would become its own component that exists across dialogues,
+> perhaps even as part of the dialogue engine itself."
+
+### Which avatar this is
+
+**Not** the hooded figure (§14) and **not** the Badger (§27). This is the small
+blinking portrait in the dialogue card's head — 64×64, abstract, sitting beside
+the name. §3 lists it as a micro-signature to keep: *"blinking avatar (abstract
+placeholder until real art exists)"*. §7 already noted *"real avatar art
+optional, later"*; this section is that "later", now with scope.
+
+### Extraction — justified today, not speculative
+
+The same 11-line SVG is authored **twice right now**: `main:index.astro:209` and
+`src/pages/index.astro:260`, byte-identical. The 404 (§30 D-4) makes it three.
+That is precisely the authored-once-copied-by-hand disease §30 exists to treat,
+and unlike the `Cloud.astro` misfire it is **verified duplication**, not
+inferred. It also carries live CSS: the `.eyes` blink animation, a
+`prefers-reduced-motion` opt-out, and `--avatar-ring` / `--hair` tokens.
+
+Extract to an Astro component alongside `Badger.astro` and `HoodedFigure.astro`.
+
+### "Perhaps part of the dialogue engine itself" — RECOMMENDED AGAINST, not ruled
+
+`src/scripts/dialogue.js` is logic: pure functions plus `initEngine`. The avatar
+is presentation. Putting artwork inside the engine welds the two together and
+gives the engine a reason to change that has nothing to do with dialogue.
+
+The recommendation, if per-node portraits are ever wanted: **the tree names the
+speaker, the engine passes the value through, the component decides what to
+draw.** The engine stays ignorant of art; the avatar stays a component. That
+delivers "an avatar that exists across dialogues" without the weld.
+
+**Caveshen's call. Recorded as a recommendation only.**
+
+### Refining the art
+
+Standing rule applies: **no generated art assets.** The current avatar is
+sculpted SVG, so refining it in SVG is in bounds; anything else Caveshen
+supplies. Direction not yet given — "I still want that" establishes intent, not
+a brief.
+
+### Status
+
+🎨 **IN DESIGN.** The extraction is well-defined and could ship with the 404;
+the art refinement needs a brief from Caveshen first. Sequencing not decided.

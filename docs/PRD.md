@@ -1,6 +1,7 @@
 # PRD — Caveshen Rajman, Personal Portfolio ("The Interview")
 
-**Status:** v1.5 — reconciled 2026-07-25.
+**Status:** v1.7 — reconciled 2026-07-25; §30 debt ledger added and five of its
+seven items built 2026-07-26; §31 raised 2026-07-26.
 
 **`main`** — P0–P3, LIVE at https://caveshen.github.io (public repo
 `caveshen/caveshen.github.io`; Pages via the test-gated Actions workflow;
@@ -43,10 +44,13 @@ the same commit.
 | 26 | Devil's Peak + Lion's Head | ✅ built, accepted |
 | 27 | Badger avatar | ◐ built; **selection mechanism open, toggle is scaffold** |
 | 28 | Dialogue fade-in | ✅ built, accepted |
-| 29 | Badger two-frame idle | 📋 **STAGED — next up**, ready to build on his go |
+| 29 | Badger two-frame idle | 📋 **NEXT UP** — cadence accepted at ~800ms (2026-07-26); awaiting his go to build |
+| 30 | Technical debt ledger (D-1…D-7) | ◐ D-1/2/3/5/7 ✅ built & accepted 2026-07-26; D-4 blocked on the 404 build, D-6 re-scoped onto §31 |
+| 31 | Dev-only admin mode | 💭 raised 2026-07-26; **open question on the day/night toggle** before any build |
+| 32 | Social preview imagery — creative pass | ⏸ noted 2026-07-26, not scheduled; current images accepted as-is |
 
 Also open and not owned by any section above: **all copy** (§23 checklist item
-1), and the **stale OG/touch-icon render** (§7 debt).
+1). The **stale OG/touch-icon render** (§7 debt) is now tracked as §30 D-2.
 
 ## 1. Purpose
 
@@ -2355,3 +2359,373 @@ Prototype/screenshot both frames composited, confirm registration and cadence
 on a look before it enters the repo — like §16, the *feel* isn't suite-judgeable
 (the suite can assert both frames exist and that reduced-motion holds a single
 frame).
+
+---
+
+## 30. Technical debt ledger
+
+Assembled 2026-07-26 at Caveshen's request ("let's clean up the house"), from a
+read-only sweep of all 31 source files plus `/ponytail-audit` and
+`/ponytail-debt`. Items are **independently schedulable** — one per session, any
+order — except where marked BLOCKED.
+
+**Headline: there is no dead code.** Every component, script export, token,
+`public/` asset and npm dependency is referenced. Nothing to delete outright.
+What the codebase has is a single recurring disease: **something authored once,
+then copied by hand.** Every item below is a case of it.
+
+### Method note — the ledger grep under-reports
+
+`/ponytail-debt` greps for `ponytail:` at the *start* of a comment. Four markers
+are embedded mid-comment and were silently dropped, including the three that
+constitute the §27 scaffold — the largest single deletion in the tree. **Grep the
+bare token, not the comment prefix.** True count: 15 markers, 9 with no trigger.
+
+Only two markers name a trigger that has actually fired: `render-og.js:17`
+(fired four times, unnoticed each time) and `playwright.config.js:27`.
+
+---
+
+### D-1 — Extract the sky and foreground layers (LARGE, highest value)
+
+`src/pages/index.astro:49-113`, `116-175`, `178-233` are three *complete* `<svg>`
+elements. All three render into the DOM on every load; two are `display:none`.
+
+§14 extracted the **world** into `CityScape.astro` precisely because three
+hand-drawn copies had caused a bug ("the three-different-mountains bug"). The
+**sky and foreground layers never got that treatment.** Still hand-copied ×3:
+
+- moon + 4 crater circles — **absolute** coords (`cx="914"` against a moon at
+  `930`), so each variant required re-doing the arithmetic by hand
+- sun + day clouds — 7 `fill="#fff"` rects, bypassing tokens entirely
+- stars, sea strip, moonlight glints
+
+Do these as **one job**, not three: they occupy the same three blocks, and
+splitting them means touching each block three times.
+
+Per-variant *placement* is legitimately free to differ (§14: "Foreground
+placement per aspect — free to differ per view (unlike the world)"). The fix is
+components taking per-variant props, exactly as `CityScape.astro` takes `camera`.
+
+**This is also the groundwork for the locked-camera-with-motion-data direction
+Caveshen raised 2026-07-26** — the cleanup and that feature are the same job
+approached from opposite ends. Sequence them together if that item is picked up.
+
+**AS BUILT 2026-07-26 — and the headline estimate was wrong.** Only the moon
+glyph was genuinely triplicated. Extracted to `Moon.astro` (craters now offsets
+from the moon's centre) plus a `CELESTIAL` constant, since moon and sun share a
+centre per variant and each variant wrote that pair twice.
+
+**Net cost: about +22 lines, not the ~85 saved this item originally claimed.**
+`index.astro` is +16/−18; `Moon.astro` is 24 lines. The value is drift-proofing,
+not line reduction — the same trade §14 made, at a similar price. Recorded so the
+ledger is not read as a size argument.
+
+**A `Cloud.astro` was built and reverted the same day.** The audit described the
+day clouds as "triplicated". They are not — they are seven distinct rects at
+seven distinct positions that merely share a fill. The extraction produced a
+six-prop wrapper around a single `<rect>`, which is the `yagni:` "wrapper that
+only delegates" this ledger exists to remove. **Lesson: verify that something is
+genuinely authored twice before extracting it.** The audit's framing was taken on
+trust and should not have been.
+
+Stars, sea strip and glints were left duplicated deliberately — they differ per
+variant by design (§14 permits foreground divergence).
+
+Verified: pixel-identical render across all three variants in both themes; full
+tri-engine suite 1269 passed / 3 skipped.
+
+### D-2 — Rebuild `render-og.js` off the real scene — ✅ BUILT & ACCEPTED 2026-07-26
+
+`docs/render-og.js:21-92` inlines a hand-maintained copy of the scene. It has
+fallen behind on **every** scene change since it was written — §14 positions
+(Lion's Head 65px, Signal Hill 40px), §20's harbour (absent entirely), §25's
+palette, §26's Devil's Peak. Four for four. Its own header claims "Pattern
+mirrors `docs/render-cv.js`" — it does not: `render-cv.js` does
+`page.goto(pathToFileURL(docs/cv.html))`, rendering a real source file. The
+correct pattern has been one file away the whole time.
+
+**Caveshen's ruling 2026-07-26:**
+- Camera: reuse `CAMERA.std` (viewBox 1200×750 vs OG frame 1200×630 — near enough)
+- Keep the "CAVESHEN RAJMAN" title overlay, composited on
+- **Scenery only** — no figure, no Badger. "The OG should read as a place, not a
+  scene mid-dialogue."
+
+Side benefit: §20's harbour finally appears in the OG image.
+
+Note: the interim palette/geometry patch (uncommitted as of 2026-07-26) makes the
+shipped assets correct *today*. This item supersedes it structurally.
+
+**Do not remove** the hand-built ICO container header (`render-og.js:147-159`).
+Node ships no ICO writer; a dependency would be the worse trade.
+
+~70 lines saved. Independent.
+
+### D-3 — Give the hooded figure a day/night treatment — ✅ BUILT & ACCEPTED 2026-07-26
+
+`HoodedFigure.astro` has **zero** day/night hooks and 14 hard-coded hex fills.
+`Badger.astro` dims at night. The two characters occupying the same slot behave
+differently.
+
+Worse, `Badger.astro:43` justifies its own filter by saying a raster "can't
+recolour like the SVG figure's literal-hex fills" — describing a capability the
+figure has never actually used. The comment documents an intention that was never
+built.
+
+**Caveshen's ruling 2026-07-26: option (b) — build it.** Mechanism (filter to
+match the Badger, vs tokenising the fills) is open; it is a look question and
+wants his eye on the result, not a decision in the abstract.
+
+Independent.
+
+### D-4 — Dispose of `docs/design-sample-c.html` — ⏸ BLOCKED on the 404 build
+
+391 lines. Nothing imports it. Carries the retired violet palette, a hand-rolled
+duplicate of the `dialogue.js` engine (`:320-391`), a duplicate of
+`ThemeToggle.astro`'s logic (`:381-388`), and a `ponytail:` comment citing
+"Samples A and B" — files that no longer exist.
+
+**Entangled with §23** (the attic / interactive-404 question). Note the
+distinction that matters: this is the *design mock*. The thing §23 preserves is
+the built `main` landing. They are not the same artefact and must not be
+conflated.
+
+**Caveshen 2026-07-26:** *"Recall I wanted that mock for the 404 page, if that's
+done then we can retire it."* So the mock is not retired outright — it is the
+source for the interactive 404, and retired only once that page exists.
+
+**OPEN — one question must be answered before this can be built.** §23 records
+the archive as the **built `main` landing**, and the interactive 404 as a
+candidate destination for *that*. Caveshen's wording above points at the **mock**
+(`docs/design-sample-c.html`). These are different artefacts and produce different
+pages. Do not proceed on a guess — this is the exact conflation he warned against
+on 2026-07-26.
+
+Depends on §23 and on that question.
+
+### D-5 — `playwright.config.js:27` → `devices['Pixel 8']` — ✅ DONE 2026-07-26
+
+The `ponytail:` comment says "update when PW adds a Pixel 8 descriptor."
+Verified 2026-07-26: `Pixel 8`, `Pixel 8 Pro` and `Pixel 8a` all ship in the
+installed `@playwright/test`. One-line swap. Independent. Do this first.
+
+### D-6 — ~~Remove~~ **gate** the §27 scaffold — 🔄 RE-SCOPED 2026-07-26, now depends on §31
+
+Eight sites in `src/pages/index.astro` (lines 5, 110, 172, 230, 310, 332, 340,
+365) plus the whole of `e2e/p27.spec.js` (79 lines).
+
+Originally: delete it, blocked on §27's figure-vs-Badger selection ruling (not
+§29, which is only the idle animation). `Badger.astro` itself is real and ships;
+only the toggle mechanism is scaffolding.
+
+**RE-SCOPED 2026-07-26.** Caveshen's answer to the §27 question was not "pick a
+character" but *"I suspect we'll need an admin mode for the site to help with
+toggling stuff — for now, let's scope it to dev mode so it doesn't show up in the
+hosted/prod version."* So the scaffold is **not deleted** — it becomes a
+dev-only admin control (see §31). The `REMOVE-BEFORE-SHIP` markers become
+"dev-only", and the ship test changes from *"`grep REMOVE-BEFORE-SHIP` returns
+nothing"* to *"the production build contains no admin controls"*.
+
+This means §27's selection mechanism is **deferred, not decided** — the toggle
+survives as a dev affordance rather than being replaced by a real mechanism.
+
+Blocked on §31.
+
+### D-7 — `docs/research-avatar-scene.md` records a recommendation that wasn't built — ✅ DONE 2026-07-26
+
+`:329-343` recommends "#1 — separate SVG avatar, isolated from the scene." What
+shipped is its own second-ranked option: `HoodedFigure` as a `<g>` inside each
+scene SVG. Nothing depends on the doc being current.
+
+**Annotate, don't rewrite** — it is a dated research artefact and correctly
+records what was thought at the time. One dated line noting what was actually
+built is sufficient.
+
+---
+
+### Decisions recorded — no action required
+
+**Icon moon stays the warm disc (RULED 2026-07-26, option b).** `favicon.svg`,
+`apple-touch-icon.png` and `favicon.ico` draw `#ffd75e`/`#e6b944`; the scene's
+moon has been the pale `--moon`/`--crater` since the P4 restage. This divergence
+is **deliberate**: the icon is branding, not scene furniture, and a cream disc on
+dark blue has markedly less punch at 32×32. `src/tests/p3.test.js` pins `ffd75e`
+and should stay pinned. `favicon.svg:5`'s `ponytail:` comment already pointed
+this way. **Recorded so it is not "fixed" later by mistake.**
+
+**`AGENTS.md` and `CLAUDE.md` stay twins (RULED 2026-07-26).** Byte-identical at
+the repo root. `AGENTS.md` is the cross-tool convention non-Claude agents read;
+`CLAUDE.md` is Claude Code's. On a public repo, two copies of a short
+instructions file is the cheapest way to serve both, and a pointer file risks an
+agent that will not follow it. `wontfix`. **Recorded so it is not re-raised.**
+
+---
+
+### Explicitly not cut
+
+- The hand-built ICO header (`render-og.js:147-159`) — no stdlib alternative.
+- `camera.js` / `dialogue.js` as single-export modules — they exist to be
+  unit-testable, which is earning its keep.
+- All five npm dependencies are used.
+- The nine no-trigger `ponytail:` markers are mostly benign rationale notes (the
+  `matchMedia` guard, the pointer-events explanation) and should stay.
+
+### Ledger total
+
+`net: ~-550 lines, -0 deps` — revised down from an initial ~-650 once D-1 turned
+out to cost lines rather than save them. Most of the remaining figure is D-4
+(391) and D-6 (~110), both of which are gated on decisions rather than effort.
+
+**Treat line counts here as the weakest argument for any item.** The real case
+for every one of these is that something is authored twice and will drift; D-1
+proved the size estimate can be badly wrong while the drift argument still holds.
+
+---
+
+### §30 build log — 2026-07-26
+
+All five actionable items built and verified the same day. Full tri-engine suite
+green after each (1269 passed / 3 skipped). Nothing in this ledger required a
+new dependency.
+
+**D-2 as built.** `file://` on the build output was tried first (to mirror
+`render-cv.js` exactly) and **genuinely fails**: Astro emits root-absolute asset
+paths that 404 outside a server root, and the module `<script>` is blocked by
+CORS under `origin: null`. So the script now runs `astro build` → `astro preview`
+→ `goto`. **It is no longer standalone** — that is the real cost of killing the
+drift, and it is worth naming. It is also now Windows-coupled (`taskkill` to
+reap the preview's process tree; `preview.kill()` only kills the shell wrapper).
+Carries a `ponytail:` marker with the upgrade path.
+
+Two things worth knowing:
+- **A quirk in the `CAMERA.std` ruling:** at a bare 1200×630 viewport the media
+  query selects the **wide** variant (the aspect ratio crosses `15/8`), so the
+  script force-shows `.scene-standard`. The OG is therefore not literally "the
+  page at 1200×630" — it is an override to honour the ruling.
+- It also hides the §27 toggle pill and the page-foot chip, which were not in
+  the brief but are plainly UI chrome.
+
+**Accepted as-is by Caveshen, with a known trade recorded:** the composition is
+worse than the hand-made poster it replaced. The bottom quarter is dead dark
+foreground (where the figure normally stands), the title sits on it, and the
+harbour crane is bisected at the left edge. His call: *"I'm fine to accept this
+for now."* **The crop is the obvious future improvement** — shift the clip up,
+pull the left edge off the crane. Correctness was the goal; composition was the
+price.
+
+**D-3 as built.** One CSS rule on `.hooded-figure`, mirroring `Badger.astro`'s
+selector pattern. The 14 literal fills were deliberately **not** tokenised —
+fourteen edits to achieve what one filter achieves is the over-engineering this
+ledger exists to remove, and a single value retunes in seconds.
+
+Shipped at `brightness(0.7)`, reviewed on local dev, **accepted at `0.8`** —
+`0.7` cost the hood its edge against the sky and dulled the drawstrings.
+`Badger.astro:43`'s comment, which claimed the figure recolours (it never did),
+corrected to describe what actually happens.
+
+Verified the filter does not leak into the scene: `.hooded-figure` wraps only the
+figure's `<g>`, and an untouched build drifts up to 137 per pixel over 3.5s from
+ambient animation alone — comfortably more than the background variance observed.
+**Method note: the markup answered this in one grep; two pixel-diff experiments
+were run first. Read the code before building the laboratory.**
+
+---
+
+## 31. Dev-only admin mode
+
+Raised by Caveshen 2026-07-26, in answer to the §27 selection question. Rather
+than choosing a figure-vs-Badger mechanism, he re-framed it:
+
+> "I suspect we'll need an admin mode for the site to help with toggling stuff.
+> For now, let's scope it to dev mode so it doesn't show up in the hosted/prod
+> version. Same buttons along the top-right, and we can hide them all — so in
+> other words even the day/night toggle."
+
+### What this is
+
+A cluster of development affordances in the **top-right**, present when running
+locally and **absent from the production build**. The §27 character toggle stops
+being scaffolding-to-delete (§30 D-6) and becomes the first inhabitant.
+
+### Consequences
+
+- **§27's selection mechanism is deferred, not decided.** The toggle survives as
+  a dev affordance. A real user-facing mechanism remains an open question.
+- **§30 D-6 is re-scoped** from deletion to gating.
+- The ship test changes from *"`grep REMOVE-BEFORE-SHIP` returns nothing"* to
+  *"the production build contains no admin controls"* — which needs a real test,
+  since a build-time gate that silently fails is worse than a visible toggle.
+
+### OPEN — must be answered before this is built
+
+**Does the day/night toggle disappear in production?** Read literally, "even the
+day/night toggle" says yes. But §3 makes the theme toggle a **signature
+user-facing feature** — *"the theme toggle is the time of day"* — and removing it
+from the shipped site would delete a headline feature, not a dev affordance.
+
+Two readings, materially different:
+1. The admin cluster gets its **own** day/night control for testing, while the
+   user-facing toggle stays exactly as it is.
+2. The theme toggle genuinely becomes dev-only and the public site ships with a
+   fixed time of day.
+
+**Do not guess.** Reading 2 is a significant product change and would want its
+own justification.
+
+### Not yet designed
+
+No mechanism chosen. `import.meta.env.DEV` is the obvious Astro-native gate and
+costs nothing, but that decision belongs with the build, not here.
+
+---
+
+## 32. Social preview imagery — creative pass
+
+Raised by Caveshen 2026-07-26, on seeing the rebuilt OG image (§30 D-2):
+
+> "We should actually workshop those images as well later — I would much rather
+> have creative control over those images. Accept for now, PRD item for later."
+
+### What this is
+
+`public/og-image.png` (1200×630) and `public/apple-touch-icon.png` (180×180) are
+currently **derived automatically** from the live scene. §30 D-2 made that
+derivation faithful, which killed four years' worth of silent drift — but
+faithful is not the same as composed.
+
+The current OG is a crop of a page designed to hold a character in its lower
+third. With characters stripped for the social card, that space reads as dead
+foreground, the title sits on it, and the harbour crane is bisected at the left
+edge.
+
+### The tension to resolve — this is the actual design question
+
+Automatic derivation and creative control pull in opposite directions:
+
+- **Derived** (today) — can never again show a scene the site does not have.
+  That property was expensive to win and should not be given back casually.
+- **Composed** — looks deliberate, but reintroduces exactly the drift §30 D-2
+  spent the day eliminating.
+
+**A hand-authored poster is not an acceptable answer on its own** — that is
+precisely what was just retired, and it drifted on all four scene changes.
+Anything composed needs a mechanism that keeps it honest.
+
+Middle grounds worth exploring when this is picked up: tune the crop and camera
+of the derived render; add an OG-specific camera to `index.astro` alongside the
+existing three so the framing is authored *in the scene* rather than beside it;
+or compose from the real components at an OG-specific layout.
+
+### Constraints
+
+- **Art assets are Caveshen's** (standing rule). No generated artwork. Sculpt in
+  SVG and web elements, or he supplies it.
+- Must survive a scene change without human intervention, or carry a test that
+  fails when it stops matching.
+- Also covers `apple-touch-icon.png`. **Not** `favicon.svg` / `favicon.ico` —
+  those are the warm-disc brand mark, deliberately divergent (see §30's recorded
+  decisions), and are out of scope here.
+
+### Status
+
+⏸ **NOTED, not scheduled.** Current images accepted as-is in the meantime.

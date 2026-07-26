@@ -1,7 +1,8 @@
 # PRD — Caveshen Rajman, Personal Portfolio ("The Interview")
 
-**Status:** v1.8 — §29 built, D5 found and fixed, §30 debt ledger with five of
-seven items built, §31/§32 raised — all 2026-07-26.
+**Status:** v1.9 — §19 closed (locking withdrawn); §31 re-scoped as **the admin
+page**, IN DESIGN, no go-ahead — all 2026-07-26. (v1.8: §29 built, D5 fixed, §30
+debt ledger with five of seven items built, §31/§32 raised.)
 
 **`main`** — P0–P3, LIVE at https://caveshen.github.io (public repo
 `caveshen/caveshen.github.io`; Pages via the test-gated Actions workflow;
@@ -34,7 +35,7 @@ the same commit.
 | 16 | Visual validation in e2e | 💭 intent only, never designed |
 | 17 | Stage sizing → full-window default | ✅ built, accepted |
 | 18 | Fullscreen button | ✅ built, accepted |
-| 19 | Background/foreground | ◐ refactor built; **locking not built** |
+| 19 | Background/foreground | ✅ closed 2026-07-26 — refactor built; **locking WITHDRAWN**, goal met by §20/§21 |
 | 20 | Wider world (industry + waves) | ✅ built, accepted |
 | 21 | Camera zoom easing | ✅ built, accepted |
 | 22 | Dialogue rework | ⏸ parked, no design |
@@ -46,7 +47,7 @@ the same commit.
 | 28 | Dialogue fade-in | ✅ built, accepted |
 | 29 | Badger two-frame idle | ✅ built & accepted 2026-07-26; cadence held at 800ms |
 | 30 | Technical debt ledger (D-1…D-7) | ◐ D-1/2/3/5/7 ✅ built & accepted 2026-07-26; D-4 source RULED, awaits the 404 build; D-6 re-scoped onto §31 |
-| 31 | Dev-only admin mode | 📋 RULED 2026-07-26 — buttons dev-only, theme functionality preserved; not yet built |
+| 31 | Admin page (dev-only) | 🎨 **IN DESIGN** — one section, RULED; scope = toggles + dialogue/actions/CV sync; **no go-ahead**; persistence undecided |
 | 32 | Social preview imagery — creative pass | ⏸ noted 2026-07-26, not scheduled; current images accepted as-is |
 
 Also open and not owned by any section above: **all copy** (§23 checklist item
@@ -1397,11 +1398,29 @@ given its own control without rework.
 
 Raised by Caveshen 2026-07-22 as "one twist" on the §15 D3 ruling.
 **SPLIT IN TWO. The refactor half is BUILT (2026-07-24, `2a3298a`); the
-locking behaviour is NOT BUILT and remains open** — see the REFRAMED block
-immediately below, which is the current status. (The earlier headline,
-"blocked on §20", is superseded: §20 shipped, and Caveshen then chose to take
-only the structural half.) Prototype:
+locking behaviour is WITHDRAWN — see CLOSED below.** Prototype:
 https://claude.ai/code/artifact/f23b9a5b-81f3-4356-a5d1-0ea9f7c15fbc
+
+### CLOSED 2026-07-26 — locking WITHDRAWN, section complete
+
+Caveshen: *"the original goal was simply to split the background and foreground
+elements so that the background could remain relatively static when adjusting
+to different aspect ratios, but I feel we have achieved a very happy
+middle-ground with our current branch, so this is no longer necessary."*
+
+So §19 ends at the structural refactor. The differential transform, the
+waterline anchor, the `k = S_REF / (s · cameraScale)` factor and the unruled
+`Math.min(1, …)` clamp are all **withdrawn, not deferred** — the wider world
+(§20) and the camera easing (§21) between them closed the perceptual gap the
+lock was meant to close, and the clamp's own measured failure at 390×844
+(mountains entirely cropped) means the remedy cost more identity than the
+problem did.
+
+The `bg-layer` / `fg-layer` seams and their guard test **stay**. They cost
+nothing, they change no pixels, and they are the cheap option value if scene
+control is ever wanted again. Everything below this block is preserved as
+**historical design record only** — do not build from it without a fresh
+ruling.
 
 ### REFRAMED 2026-07-24 — build as a pure structural refactor (no visual change) — BUILT 2026-07-24
 
@@ -1483,6 +1502,9 @@ pull-back and keeps its mountain.
 **§20 may make the clamp unnecessary at the wide end** and it must be
 re-evaluated once the world is wider — hence this section is blocked on that
 one, not built alongside it.
+
+*(Historical. §20 shipped; the re-evaluation was answered by withdrawing the
+lock entirely — see CLOSED at the head of this section.)*
 
 ### Known consequence to art-direct, not to test away
 
@@ -2745,7 +2767,7 @@ were run first. Read the code before building the laboratory.**
 
 ---
 
-## 31. Dev-only admin mode
+## 31. Admin page (dev-only)
 
 Raised by Caveshen 2026-07-26, in answer to the §27 selection question. Rather
 than choosing a figure-vs-Badger mechanism, he re-framed it:
@@ -2805,6 +2827,120 @@ with nothing to unpick.
 
 No mechanism chosen. `import.meta.env.DEV` is the obvious Astro-native gate and
 costs nothing, but that decision belongs with the build, not here.
+
+---
+
+### SCOPE GIVEN 2026-07-26 — **IN DESIGN, no go-ahead**
+
+Caveshen widened this considerably. §31 was "hide some buttons in production";
+he has now described an **authoring mode for the site's content**. His words,
+condensed:
+
+> "Realistically what we need is a mode that configures the configurable parts
+> of the site."
+
+**A. Dialogue trees — fully editable.** Add, edit, remove and **re-order**
+dialogue flows.
+
+**B. Dialogue → action mapping.** A dialogue option can fire an action. The
+actions themselves are **module-based and authored by us in code** — admin mode
+never configures them, it only **exposes the available set as selectable
+options** for a trigger. (The §31 RULED note above already names the first
+candidate: a dialogue option that turns day to night.)
+
+**C. Character sheet — every section editable, and it syncs to the CV.** Adding,
+editing or removing work history, or changing a title, must update **both** the
+character sheet **and** the ATS-friendly CV page. One edit, two renderings.
+
+**C.1 — not one record rendered twice.** Refined by Caveshen 2026-07-26:
+
+> "A CV can contain A LOT more details, but the character sheet contains more
+> like 'headlines' or summarised versions — so perhaps a grouping of these?"
+
+So the relationship is **projection, not mirroring**. The CV is the fuller
+record; the sheet shows headline or summarised forms of the same underlying
+entries. A naive shared object rendered by two templates does not express that —
+the sheet is not the CV with fewer CSS rules.
+
+Open, and **for `/wayfinder` to resolve** — recorded so the questions survive:
+
+- Is the summary a **separate authored field** per entry (a role carries both a
+  long description and a headline), or **derived** from the detail? Authored
+  costs discipline; derived costs fidelity.
+- What is the unit of "grouping"? Per entry, per section, or a named view
+  ("sheet" / "cv") that selects fields?
+- Which side is the source of truth when they disagree?
+- Does anything appear on the sheet that has **no** CV counterpart — the
+  game-flavoured framing (stats, traits, class) may be sheet-only by nature.
+
+**Today's state, for whoever picks this up:** `src/pages/sheet.astro` and
+`docs/cv.html` (which renders `public/cv.pdf`) are authored entirely separately.
+There is no shared data file — `src/data/` holds only `dialogue.json`. This is
+the same authored-once-copied-by-hand disease §30 exists to treat, and it is
+already live in the repo, independent of whether an admin page is ever built.
+
+**No code.** Constraints noted; design deferred.
+
+His own caveat, recorded verbatim because it is the crux:
+
+> "All of this may be extremely overkill, since I could just work with you on
+> editing the site directly — either way I own the source code and can do this."
+
+**Status: IN DESIGN.** Scope captured, **not approved, not scheduled.** Caveshen
+is considering whether this warrants a `/wayfinder` exercise rather than a
+straight build.
+
+#### The open question this scope must answer first
+
+**Today** this is a static site on GitHub Pages: no server, no database, so an
+authoring mode has nowhere to write. Every version of A/B/C above is easy in the
+browser and hard at the point of *persistence*.
+
+**But "today" is the operative word,** and the PRD already says so — §6 names
+the purchased domain + **personal** Cloudflare account as the later hosting
+target, §10 lists "Custom domain + Cloudflare setup" as out of scope *for now*,
+§12 notes the repo can go private at that cutover, and §13 says the suite "later
+ports unchanged to the Cloudflare pipeline". §10 already anticipates a small
+Worker for the contact form. Caveshen, 2026-07-26: *"the GitHub static page is a
+TODAY thing… this may become a hosted site — I am considering Cloudflare + some
+domain host. It would be a much much much later thing."*
+
+So persistence is **not a wall, it is a dependency** — and the standing
+constraint is the ordering:
+
+- **Admin mode must not be the thing that forces the migration.** If the design
+  concludes "this needs a Worker and a KV store", that is a finding to hand to
+  the hosting decision, not a licence to bring the hosting decision forward.
+- Anything achievable under today's constraints — export-a-JSON-file, edit-in-
+  browser-then-paste-into-the-repo, or simply better-structured source data —
+  can proceed on its own merit.
+- The wider question ("what *is* the platform?") outranks this section and is
+  not §31's to answer.
+
+Recorded as a question, not a recommendation.
+
+Nothing about C is blocked by it, incidentally: a **single source of truth for
+CV data, rendered twice**, is worth having whether or not an editor ever exists
+— today the character sheet and the CV page are authored separately, which is
+precisely the "authored once, copied by hand" disease §30 was opened to treat.
+
+#### RULED 2026-07-26 — one section, not two
+
+A split was proposed (gate here, authoring mode elsewhere). **Rejected.**
+Caveshen:
+
+> "No, it's one job — you are taking me very literally. I am now explicitly
+> saying, this IS the scope of an admin page, and my first mention of this was
+> the toggle buttons."
+
+So §31 is **the admin page**, whole. The dev-only toggle cluster was never a
+separate feature — it was the first thing that happened to need one. Read the
+RULED note above in that light: the gate is §31's **first inhabitant**, not its
+definition.
+
+This is a scoping ruling, not a sequencing one: the gate remains individually
+buildable as §31's first slice, so **§30 D-6 and the §23 cutover are not held
+hostage** to the authoring design.
 
 ---
 

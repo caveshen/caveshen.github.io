@@ -1,7 +1,7 @@
 # PRD — Caveshen Rajman, Personal Portfolio ("The Interview")
 
-**Status:** v1.7 — reconciled 2026-07-25; §30 debt ledger added and five of its
-seven items built 2026-07-26; §31 raised 2026-07-26.
+**Status:** v1.8 — §29 built, D5 found and fixed, §30 debt ledger with five of
+seven items built, §31/§32 raised — all 2026-07-26.
 
 **`main`** — P0–P3, LIVE at https://caveshen.github.io (public repo
 `caveshen/caveshen.github.io`; Pages via the test-gated Actions workflow;
@@ -30,7 +30,7 @@ the same commit.
 
 | § | Item | Status |
 |---|------|--------|
-| 15 | Known defects D1–D4 | ✅ all closed |
+| 15 | Known defects D1–D5 | ✅ all closed; D5 (card flash on load) fixed 2026-07-26 |
 | 16 | Visual validation in e2e | 💭 intent only, never designed |
 | 17 | Stage sizing → full-window default | ✅ built, accepted |
 | 18 | Fullscreen button | ✅ built, accepted |
@@ -44,7 +44,7 @@ the same commit.
 | 26 | Devil's Peak + Lion's Head | ✅ built, accepted |
 | 27 | Badger avatar | ◐ built; **selection mechanism open, toggle is scaffold** |
 | 28 | Dialogue fade-in | ✅ built, accepted |
-| 29 | Badger two-frame idle | 📋 **NEXT UP** — cadence accepted at ~800ms (2026-07-26); awaiting his go to build |
+| 29 | Badger two-frame idle | ✅ built & accepted 2026-07-26; cadence held at 800ms |
 | 30 | Technical debt ledger (D-1…D-7) | ◐ D-1/2/3/5/7 ✅ built & accepted 2026-07-26; D-4 source RULED, awaits the 404 build; D-6 re-scoped onto §31 |
 | 31 | Dev-only admin mode | 📋 RULED 2026-07-26 — buttons dev-only, theme functionality preserved; not yet built |
 | 32 | Social preview imagery — creative pass | ⏸ noted 2026-07-26, not scheduled; current images accepted as-is |
@@ -1052,6 +1052,71 @@ standalone. Add a no-JS assertion that `#end-dialogue` is not visible.
 **Fixed:** applied verbatim, mirroring `.fullscreen-toggle[hidden]` exactly.
 `e2e/p4.spec.js` — "no-JS: end-dialogue button is not visible" — proven red
 before the fix, green after.
+
+### D5 — The dialogue card flashes on page load — FIXED (2026-07-26)
+
+**Reported by Caveshen**, watching a real cold load: *"on page load there's a
+split-second where an empty dialogue renders… centre-bottom of the screen and
+disappears after 500ms probably."*
+
+**Reproduced and measured 2026-07-26**, not inferred. It does not appear on a
+warm headless load — the init script wins the race against first paint — so it
+was reproduced by throttling the CPU 20×, which is what a real cold load does to
+script execution. Under throttle, `.card` paints at t≈987ms with the `hidden`
+attribute **absent**, `display: block`, `opacity: 1`, height 250px at y=792.
+Centre-bottom, exactly as reported.
+
+**Root cause — a consequence of the progressive-enhancement design, not a
+mistake in it.** `<main class="card">` ships **visible** in the markup so the
+page works with JavaScript disabled (the §9 P3 rule, and the reason D4 exists).
+`index.astro:840` then sets `card.hidden = true` during init. Between first paint
+and script execution the card is therefore genuinely on screen. On a fast warm
+load the gap is invisible; on a cold load it is a clear flash.
+
+This is the same class of problem as D4 — the no-JS path leaking into the JS
+path — but in the time dimension rather than the DOM.
+
+**Intended fix (native, no new JS):**
+1. Ship the card hidden: `<main class="card" hidden>`. It is then hidden at
+   first paint, so there is no flash. `.card` sets no `display` of its own, so
+   the UA `[hidden] { display: none }` rule applies cleanly — no author-origin
+   reassertion is needed here, unlike `.fullscreen-toggle[hidden]`.
+2. Restore the no-JS path with `<noscript><style>.card[hidden] { display: block;
+   }</style></noscript>`. `<noscript>` is exactly the platform feature for this;
+   it needs no script and cannot itself flash.
+
+`card.hidden = true` at init becomes redundant, though it may be worth keeping as
+an explicit re-arm. Whoever fixes this decides, and says which and why.
+
+**Do not solve this with an inline head script** setting a `js` class. It works,
+but it adds a render-blocking script and a second source of truth for a state
+`<noscript>` already expresses.
+
+**Must not regress:** the existing no-JS assertions, D4's fix, and the §28
+`.card-entering` fade.
+
+**FIXED 2026-07-26 exactly as specified.** `<main class="card" hidden>` plus
+`<noscript><style>.card[hidden] { display: block; }</style></noscript>`
+immediately before it. The PRD's assumption held: `.card` carries no
+author-origin `display`, so the UA `[hidden]` rule applied cleanly and no
+`.card[hidden]` reassertion was needed.
+
+`card.hidden = true` at init was **removed**, not kept. With `hidden` in the
+markup it set an attribute that was already set; the re-arm that matters is the
+`card.hidden = true` in `exit()`, untouched.
+
+**Proven red before green**, which mattered here: the defect does not reproduce
+on a warm headless load — the init script wins the race against first paint — so
+it survived a 1309-test suite unnoticed. `e2e/d5.spec.js` reproduces it by
+throttling the CPU 20x via CDP, navigating with `waitUntil: 'commit'`, and
+sampling `.card` from `document_start`. It failed on the old code and passes on
+the new. Independently re-confirmed by the orchestrator: zero painted frames
+under the same throttle that previously showed the card at t~987ms.
+
+**Known limit of the guard:** CDP throttling is Chromium-only, so this test runs
+on 4 of the 8 projects and skips on WebKit and Firefox. The defect is
+engine-independent, so this is accepted — but the regression guard is narrower
+than the rest of the suite.
 
 ---
 
@@ -2269,9 +2334,9 @@ reduced motion).
 
 ## 29. Badger two-frame idle animation
 
-Requested by Caveshen 2026-07-24. **ACCEPTED — not yet built.** Give the §27
-Badger a simple, characterful idle by animating between two commissioned
-frames — arms up and arms down.
+Requested by Caveshen 2026-07-24. **BUILT AND ACCEPTED 2026-07-26** (see the
+as-built block at the foot). Give the §27 Badger a simple, characterful idle by
+animating between two commissioned frames — arms up and arms down.
 
 ### What this is
 
@@ -2363,6 +2428,41 @@ Prototype/screenshot both frames composited, confirm registration and cadence
 on a look before it enters the repo — like §16, the *feel* isn't suite-judgeable
 (the suite can assert both frames exist and that reduced-motion holds a single
 frame).
+
+---
+
+### AS BUILT — 2026-07-26
+
+Built, reviewed on local dev by Caveshen, accepted. **Cadence stayed at 800ms**
+per frame (1.6s cycle) — the staged recommendation held on the look.
+
+- `public/badger.png` renamed to `public/badger-up.png`; `badger-down.png` added
+  from the commissioned second frame. XMP checked on both: Adobe Photoshop tool,
+  dates and edit history, **no PII**.
+- Two stacked `<image>` elements, swapped by a CSS `steps(1, end)` keyframe pair
+  — a hard cut, no cross-fade. **CSS only, so it works with JavaScript
+  disabled**, asserted by test rather than assumed.
+- One constant: `--badger-cadence: 800ms` on `:root` in `Badger.astro`; the
+  animation duration derives from it as `calc(var(--badger-cadence) * 2)`.
+- `prefers-reduced-motion: reduce` holds the up frame with `animation: none`.
+- Shadow and filter are shared by both frames, so neither jumps.
+
+**Raster left alone, deliberately.** §27's open point assumed the 500x500 source
+was oversized for a ~200px display. Measured: 200 SVG units render at ~320 CSS px
+at 1920 wide, and ~852 device px at 2560 with HiDPI. The source is roughly
+correct and mildly *under*-sized on large high-DPI displays. **The right answer
+to "optimise this" was "don't"** — §27 open point 2 is closed on that basis.
+
+Tests: 5 unit + 5 e2e (frames served, reduced-motion holds one frame, and the
+no-JS animation assertion). Suite 1309 passed / 3 skipped at the time of landing.
+
+**One defect found in review, and it was not the code.** Caveshen reported the
+Badger going invisible for half of every cycle. The opacity swap measured
+correct; the dev server he was given had been started before the second frame
+existed and served `/badger-down.png` as a 404, so the swap was faithfully
+revealing a missing image. Restarting the server fixed it. **When a bug report
+contradicts a passing test, check what the browser is actually being served
+before suspecting the code.**
 
 ---
 

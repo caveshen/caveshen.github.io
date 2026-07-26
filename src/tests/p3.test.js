@@ -73,6 +73,35 @@ describe('404 page', () => {
   });
 });
 
+// ── §29 Badger two-frame idle ─────────────────────────────────────────────────
+
+describe('badger idle frames', () => {
+  it('badger-up.png exists', () => {
+    expect(existsSync(join(root, 'public/badger-up.png'))).toBe(true);
+  });
+
+  it('badger-down.png exists', () => {
+    expect(existsSync(join(root, 'public/badger-down.png'))).toBe(true);
+  });
+
+  it('Badger.astro references /badger-up.png', () => {
+    const src = readFileSync(join(root, 'src/components/Badger.astro'), 'utf8');
+    expect(src).toContain('/badger-up.png');
+  });
+
+  it('Badger.astro references /badger-down.png', () => {
+    const src = readFileSync(join(root, 'src/components/Badger.astro'), 'utf8');
+    expect(src).toContain('/badger-down.png');
+  });
+
+  it('Badger.astro has prefers-reduced-motion rule holding the up frame', () => {
+    const src = readFileSync(join(root, 'src/components/Badger.astro'), 'utf8');
+    expect(src).toContain('prefers-reduced-motion: reduce');
+    // down frame must be zeroed out under reduced motion
+    expect(src).toMatch(/prefers-reduced-motion[\s\S]*\.badger-down[\s\S]*opacity:\s*0/);
+  });
+});
+
 // ── PLACEHOLDER checker ───────────────────────────────────────────────────────
 
 describe('placeholder-check', () => {

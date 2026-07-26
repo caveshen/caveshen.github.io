@@ -45,8 +45,8 @@ the same commit.
 | 27 | Badger avatar | ◐ built; **selection mechanism open, toggle is scaffold** |
 | 28 | Dialogue fade-in | ✅ built, accepted |
 | 29 | Badger two-frame idle | 📋 **NEXT UP** — cadence accepted at ~800ms (2026-07-26); awaiting his go to build |
-| 30 | Technical debt ledger (D-1…D-7) | ◐ D-1/2/3/5/7 ✅ built & accepted 2026-07-26; D-4 blocked on the 404 build, D-6 re-scoped onto §31 |
-| 31 | Dev-only admin mode | 💭 raised 2026-07-26; **open question on the day/night toggle** before any build |
+| 30 | Technical debt ledger (D-1…D-7) | ◐ D-1/2/3/5/7 ✅ built & accepted 2026-07-26; D-4 source RULED, awaits the 404 build; D-6 re-scoped onto §31 |
+| 31 | Dev-only admin mode | 📋 RULED 2026-07-26 — buttons dev-only, theme functionality preserved; not yet built |
 | 32 | Social preview imagery — creative pass | ⏸ noted 2026-07-26, not scheduled; current images accepted as-is |
 
 Also open and not owned by any section above: **all copy** (§23 checklist item
@@ -2494,14 +2494,35 @@ conflated.
 done then we can retire it."* So the mock is not retired outright — it is the
 source for the interactive 404, and retired only once that page exists.
 
-**OPEN — one question must be answered before this can be built.** §23 records
-the archive as the **built `main` landing**, and the interactive 404 as a
-candidate destination for *that*. Caveshen's wording above points at the **mock**
-(`docs/design-sample-c.html`). These are different artefacts and produce different
-pages. Do not proceed on a guess — this is the exact conflation he warned against
-on 2026-07-26.
+**RESOLVED 2026-07-26.** Asked which artefact the 404 gets — the mock, or the
+built `main` landing. Caveshen:
 
-Depends on §23 and on that question.
+> "The 404 page should get exactly the landing page that is on main today, ie.
+> the sample-c with a simple dialogue screen in the middle (although, with our
+> new CSS / styling, instead of the old purple-based theme)."
+
+So: **the 404 gets the built `main` landing** (§23's archive), **restyled to the
+current tokens**. `docs/design-sample-c.html` — the *mock* — is not the source;
+it is retired once the 404 exists, as a stale reference that has served its
+purpose.
+
+**⚠ This contradicts §23 and the conflict must be resolved when the 404 is
+built.** §23 states: *"Preservation is lossless: the archived scene renders
+identically to today's `main` landing when resurrected."* A restyle to the
+current palette is by definition not lossless — the retired violet was a
+defining characteristic of that page.
+
+Two coherent resolutions, undecided:
+1. **Archive stays frozen and lossless** (violet intact, a true historical
+   record), and the 404 is a *derivative* of it in the current palette. Two
+   artefacts, one preserved, one live.
+2. **Drop the lossless constraint** — the archive simply becomes the 404, moves
+   with the tokens, and the original palette survives only in git history.
+
+Resolution 1 honours §23's stated intent; resolution 2 is less to maintain and
+avoids a second thing that can rot. **Caveshen's call when this is scheduled.**
+
+Depends on §23 and on that choice.
 
 ### D-5 — `playwright.config.js:27` → `devices['Pixel 8']` — ✅ DONE 2026-07-26
 
@@ -2656,21 +2677,37 @@ being scaffolding-to-delete (§30 D-6) and becomes the first inhabitant.
   *"the production build contains no admin controls"* — which needs a real test,
   since a build-time gate that silently fails is worse than a visible toggle.
 
-### OPEN — must be answered before this is built
+### RULED 2026-07-26 — the button goes, the feature stays
 
-**Does the day/night toggle disappear in production?** Read literally, "even the
-day/night toggle" says yes. But §3 makes the theme toggle a **signature
-user-facing feature** — *"the theme toggle is the time of day"* — and removing it
-from the shipped site would delete a headline feature, not a dev affordance.
+Asked whether the day/night toggle really disappears in production, given §3
+makes it a signature feature. Caveshen:
 
-Two readings, materially different:
-1. The admin cluster gets its **own** day/night control for testing, while the
-   user-facing toggle stays exactly as it is.
-2. The theme toggle genuinely becomes dev-only and the public site ships with a
-   fixed time of day.
+> "Yes that's what I'm saying — keep the day/night toggle for dev mode, hide for
+> production (along with the other button toggles we will add), but of course
+> keep all of the functionality, as it could be very cool to make it interactive
+> so that a dialogue option triggers the day/night cycle instead."
 
-**Do not guess.** Reading 2 is a significant product change and would want its
-own justification.
+So the concern was misplaced. **The theme system is not being removed — its
+trigger is being relocated**, from a piece of UI chrome to a narrative beat.
+
+Three consequences, and the third is the point:
+
+1. The toggle **button** is dev-only, alongside the §27 character toggle and
+   whatever else joins the cluster.
+2. **All theme functionality is preserved intact** — tokens, `data-time`, the
+   `night-only`/`day-only` classes, `resolveTheme`, and every test that covers
+   them. Nothing about the mechanism changes; only who can reach it.
+3. **The intended replacement trigger is a dialogue option.** Choosing a line
+   turns day to night. That is a better version of the feature than a button in
+   the corner — the time of day becomes something the visitor *causes* rather
+   than something they toggle.
+
+**Point 3 is an idea, not yet a commitment** ("could be very cool"). It is
+recorded here because it changes how point 1 should be built: production must
+retain a *programmatic* route to switch the theme even with no button rendered,
+or the dialogue trigger cannot be added later without unpicking this work.
+
+**Do not build point 1 in a way that closes point 3.**
 
 ### Not yet designed
 

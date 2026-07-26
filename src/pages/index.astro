@@ -8,6 +8,7 @@ import HoodedFigure from '../components/HoodedFigure.astro';
 // all part of the same scaffold).
 import Badger from '../components/Badger.astro';
 import CityScape from '../components/CityScape.astro';
+import Moon from '../components/Moon.astro';
 import tree from '../data/dialogue.json';
 const root = tree.root;
 
@@ -18,6 +19,15 @@ const CAMERA = {
   std:  'translate(0,128)',
   wide: 'translate(280,128)',
   tall: 'translate(-20,262) scale(0.62)',
+};
+
+// Moon and sun share the same slot per variant (PRD §30 D-1) — one position
+// source of truth instead of the hand-computed absolute coordinates each
+// variant used to carry separately.
+const CELESTIAL = {
+  std:  { cx: 930,  cy: 150 },
+  wide: { cx: 1290, cy: 150 },
+  tall: { cx: 452,  cy: 200 },
 };
 
 // Foreground placement per aspect — free to differ per view (unlike the world).
@@ -64,15 +74,11 @@ const FIG = {
     </g>
     <!-- moon (night) — pale and cratered, radius locked at 46 -->
     <g class="night-only">
-      <circle class="f-moon" cx="930" cy="150" r="46" />
-      <g class="f-crater" opacity="0.55">
-        <circle cx="914" cy="136" r="8" /><circle cx="947" cy="164" r="5.5" />
-        <circle cx="939" cy="128" r="3.5" /><circle cx="908" cy="166" r="4.5" />
-      </g>
+      <Moon cx={CELESTIAL.std.cx} cy={CELESTIAL.std.cy} />
     </g>
     <!-- sun + clouds (day) -->
     <g class="day-only">
-      <circle class="f-cel" cx="930" cy="150" r="50" />
+      <circle class="f-cel" cx={CELESTIAL.std.cx} cy={CELESTIAL.std.cy} r="50" />
       <rect x="120" y="140" width="150" height="22" rx="11" fill="#fff" opacity="0.85" />
       <rect x="620" y="105" width="110" height="20" rx="10" fill="#fff" opacity="0.7" />
     </g>
@@ -126,14 +132,10 @@ const FIG = {
       <circle cx="1560" cy="55" r="1.3" opacity="0.6" /><circle cx="760" cy="190" r="1.0" opacity="0.35" />
     </g>
     <g class="night-only">
-      <circle class="f-moon" cx="1290" cy="150" r="46" />
-      <g class="f-crater" opacity="0.55">
-        <circle cx="1274" cy="136" r="8" /><circle cx="1307" cy="164" r="5.5" />
-        <circle cx="1299" cy="128" r="3.5" /><circle cx="1268" cy="166" r="4.5" />
-      </g>
+      <Moon cx={CELESTIAL.wide.cx} cy={CELESTIAL.wide.cy} />
     </g>
     <g class="day-only">
-      <circle class="f-cel" cx="1290" cy="150" r="50" />
+      <circle class="f-cel" cx={CELESTIAL.wide.cx} cy={CELESTIAL.wide.cy} r="50" />
       <rect x="250" y="140" width="150" height="22" rx="11" fill="#fff" opacity="0.85" />
       <rect x="900" y="105" width="110" height="20" rx="10" fill="#fff" opacity="0.7" />
       <rect x="1480" y="185" width="130" height="20" rx="10" fill="#fff" opacity="0.75" />
@@ -187,14 +189,10 @@ const FIG = {
       <circle cx="140" cy="380" r="1.2" opacity="0.5" /><circle cx="560" cy="90" r="1.4" opacity="0.65" />
     </g>
     <g class="night-only">
-      <circle class="f-moon" cx="452" cy="200" r="46" />
-      <g class="f-crater" opacity="0.55">
-        <circle cx="436" cy="186" r="8" /><circle cx="469" cy="214" r="5.5" />
-        <circle cx="461" cy="178" r="3.5" /><circle cx="430" cy="216" r="4.5" />
-      </g>
+      <Moon cx={CELESTIAL.tall.cx} cy={CELESTIAL.tall.cy} />
     </g>
     <g class="day-only">
-      <circle class="f-cel" cx="452" cy="200" r="50" />
+      <circle class="f-cel" cx={CELESTIAL.tall.cx} cy={CELESTIAL.tall.cy} r="50" />
       <rect x="60" y="270" width="130" height="20" rx="10" fill="#fff" opacity="0.85" />
       <rect x="300" y="360" width="100" height="18" rx="9" fill="#fff" opacity="0.7" />
     </g>

@@ -1766,8 +1766,12 @@ silently destroy the old scene.
 
 ### Constraints and one open question
 
-- Preservation is lossless: the archived scene renders identically to today's
-  `main` landing when resurrected.
+- ~~Preservation is lossless: the archived scene renders identically to today's
+  `main` landing when resurrected.~~ **SUPERSEDED 2026-07-26** (see §30 D-4).
+  Preservation is of the *page* — its scene, dialogue and layout — **not its
+  palette.** The archive takes the current tokens; the retired violet survives
+  in git history only. Caveshen: *"with our new CSS / styling, instead of the
+  old purple-based theme."*
 - Same repo rules apply to the archived assets: no PII, no email, copy stays
   `PLACEHOLDER` until it is Caveshen's.
 - **Open:** kept buildable, the archive can bit-rot silently as shared tokens
@@ -2506,23 +2510,12 @@ current tokens**. `docs/design-sample-c.html` — the *mock* — is not the sour
 it is retired once the 404 exists, as a stale reference that has served its
 purpose.
 
-**⚠ This contradicts §23 and the conflict must be resolved when the 404 is
-built.** §23 states: *"Preservation is lossless: the archived scene renders
-identically to today's `main` landing when resurrected."* A restyle to the
-current palette is by definition not lossless — the retired violet was a
-defining characteristic of that page.
+**This supersedes §23's "lossless preservation" clause, which has been corrected
+accordingly.** The archive is **not** lossless: it takes the current tokens, and
+the retired violet survives in git history only. That is the instruction, not an
+open question.
 
-Two coherent resolutions, undecided:
-1. **Archive stays frozen and lossless** (violet intact, a true historical
-   record), and the 404 is a *derivative* of it in the current palette. Two
-   artefacts, one preserved, one live.
-2. **Drop the lossless constraint** — the archive simply becomes the 404, moves
-   with the tokens, and the original palette survives only in git history.
-
-Resolution 1 honours §23's stated intent; resolution 2 is less to maintain and
-avoids a second thing that can rot. **Caveshen's call when this is scheduled.**
-
-Depends on §23 and on that choice.
+Depends on §23 being scheduled.
 
 ### D-5 — `playwright.config.js:27` → `devices['Pixel 8']` — ✅ DONE 2026-07-26
 
@@ -2702,12 +2695,11 @@ Three consequences, and the third is the point:
    the corner — the time of day becomes something the visitor *causes* rather
    than something they toggle.
 
-**Point 3 is an idea, not yet a commitment** ("could be very cool"). It is
-recorded here because it changes how point 1 should be built: production must
-retain a *programmatic* route to switch the theme even with no button rendered,
-or the dialogue trigger cannot be added later without unpicking this work.
-
-**Do not build point 1 in a way that closes point 3.**
+**Point 3 is an idea, not yet a commitment** ("could be very cool"), recorded so
+it is not lost. It needs no special provision in point 1: the dev build keeps the
+button and the whole mechanism, and production only *hides the button*. The code
+behind it is untouched either way, so a dialogue trigger can be wired up later
+with nothing to unpick.
 
 ### Not yet designed
 

@@ -683,12 +683,16 @@ test('prefers-reduced-motion skips the camera transition entirely, entry and exi
 
 test('Escape mid-zoom leaves the camera coherent — no stuck or doubled transform', async ({ page }) => {
   await page.locator('#approach-prompt').click();
-  // Interrupt before the (550ms) entry transition settles.
+  // Interrupt before the (550ms) entry transition settles. 100ms leaves
+  // 450ms of slack before the transition would complete on its own, unlike
+  // the sleeps below — this is comfortably not the same race (PRD d10).
   await page.waitForTimeout(100);
   await page.keyboard.press('Escape');
-  await page.waitForTimeout(700); // let any in-flight transition finish settling
-  const transform = await page.locator('.camera').evaluate((el) => getComputedStyle(el).transform);
-  // 'none' is the exited state's target — a single coherent value, not stuck
-  // mid-transition and not some doubled/compounded matrix.
-  expect(transform).toBe('none');
+  // Retry instead of guessing a settle duration (PRD d10) — 'none' is the
+  // exited state's target — a single coherent value, not stuck mid-transition
+  // and not some doubled/compounded matrix.
+  await expect(async () => {
+    const transform = await page.locator('.camera').evaluate((el) => getComputedStyle(el).transform);
+    expect(transform).toBe('none');
+  }).toPass();
 });

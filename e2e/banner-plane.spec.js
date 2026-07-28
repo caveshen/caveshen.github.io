@@ -40,14 +40,16 @@ test('an in-flight pass fades out on approach rather than freezing or vanishing'
   await expect(plane).toBeAttached();
   await page.locator('#approach-prompt').click();
   await expect(plane).toHaveClass(/plane-fade-out/);
-  // Mid-fade: opacity is strictly between 1 and 0 — proves a gradual
-  // transition (not a hard cut straight to invisible/removed).
-  await page.waitForTimeout(150);
-  const midOpacity = await plane.evaluate((el) => parseFloat(getComputedStyle(el).opacity));
-  expect(midOpacity).toBeGreaterThan(0);
-  expect(midOpacity).toBeLessThan(1);
+  // Proves gradual (not a hard cut to invisible/removed) via the declared
+  // transition rather than sampling a magic instant mid-flight — CSS
+  // transitions run on the compositor and aren't faked by page.clock, so
+  // a wall-clock sleep here races the real 400ms window (see PRD d10).
+  await expect(plane).toHaveCSS('transition-duration', '0.4s');
+  await expect(plane).toHaveCSS('transition-property', 'opacity');
   // Fade completes and the element is cleaned up — proves it doesn't freeze
-  // mid-sky forever either.
+  // mid-sky forever either. transitionend (which drives this removal) only
+  // fires for a transition that actually ran, so this also confirms the
+  // fade genuinely played out rather than being a declared-but-inert rule.
   await expect(plane).toHaveCount(0);
 });
 

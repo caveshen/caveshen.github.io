@@ -23,18 +23,21 @@ test('404 responds and renders the dialogue card', async ({ page }) => {
 // sits fully inside the viewport and stays centred, to the pixel.
 
 async function expectCardCentredAndOnScreen(page) {
-  await page.waitForTimeout(700); // let the entrance transition (550ms) finish settling
-  const card = await page.locator('.card').boundingBox();
-  const viewport = page.viewportSize();
-  expect(card).not.toBeNull();
-  expect(card.x).toBeGreaterThanOrEqual(0);
-  expect(card.y).toBeGreaterThanOrEqual(0);
-  expect(card.x + card.width).toBeLessThanOrEqual(viewport.width);
-  expect(card.y + card.height).toBeLessThanOrEqual(viewport.height);
-  const cardCentreX = card.x + card.width / 2;
-  expect(Math.abs(cardCentreX - viewport.width / 2)).toBeLessThanOrEqual(1);
-  const cardCentreY = card.y + card.height / 2;
-  expect(Math.abs(cardCentreY - viewport.height / 2)).toBeLessThanOrEqual(1);
+  // Retry instead of guessing when the entrance transition (550ms) has
+  // settled (PRD d10) — a fixed sleep here races the real transition.
+  await expect(async () => {
+    const card = await page.locator('.card').boundingBox();
+    const viewport = page.viewportSize();
+    expect(card).not.toBeNull();
+    expect(card.x).toBeGreaterThanOrEqual(0);
+    expect(card.y).toBeGreaterThanOrEqual(0);
+    expect(card.x + card.width).toBeLessThanOrEqual(viewport.width);
+    expect(card.y + card.height).toBeLessThanOrEqual(viewport.height);
+    const cardCentreX = card.x + card.width / 2;
+    expect(Math.abs(cardCentreX - viewport.width / 2)).toBeLessThanOrEqual(1);
+    const cardCentreY = card.y + card.height / 2;
+    expect(Math.abs(cardCentreY - viewport.height / 2)).toBeLessThanOrEqual(1);
+  }).toPass();
 }
 
 test('the card is centred and fully on-screen', async ({ page }) => {

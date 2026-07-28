@@ -51,7 +51,7 @@ the document body under their original `§` headings as history.
 | d7 | Test strategy — PRD-focused assertions | *new* | ⏳ ruled, not built |
 | d8 | Dev-only gate | §31 (first slice) + §30 D-6 | ⏳ ruled, not built |
 | d9 | The `main` cutover | §23 | ⏸ blocked |
-| d10 | `banner-plane.spec.js` timing race | §30 D-8 | ⏳ |
+| d10 | Fixed-sleep timing races | §30 D-8 | ✅ fixed 2026-07-29 — caught by CI, 3 of 4 sleeps removed |
 | d11 | Card CSS authored twice (~90 lines) | §30 D-9 | ⏳ |
 | d12 | Scene markup authored four times | §30 D-10 | ⏳ |
 | d13 | `Avatar.astro` uses `is:global` needlessly | §30 D-12 | ⏳ |
@@ -3137,6 +3137,45 @@ changes from a grep to a real assertion that no admin control renders.
 ---
 
 ## d10. Fixed-sleep timing races in the suite (was §30 D-8)
+
+### FIXED 2026-07-29 — found by CI, exactly as predicted
+
+Raised as debt on 2026-07-27 with the note that *"a test that fails one run in
+two is a test that will eventually fail your deploy gate."* It did so on the
+branch's **first ever CI run** (PR #1), two failures on the Linux runner:
+
+```
+banner-plane.spec.js:48   expect(midOpacity).toBeLessThan(1)   Expected: < 1
+```
+
+**One correction to the original diagnosis.** It predicted the 150ms sleep would
+*overshoot* the 400ms fade and sample opacity at 0. It failed at the other end —
+opacity still `1`, the transition not yet visibly started on a loaded runner. The
+mechanism was right, the direction was not: a wall-clock sleep racing an
+animation fails **whichever way the machine drifts**, which is the stronger
+argument for removing it.
+
+**The fix.** The mid-flight sample is gone. The fade is now proved by its
+*declared* transition (`transition-property: opacity`, `transition-duration:
+0.4s`) plus completion via the existing `toHaveCount(0)` — and that completion is
+load-bearing, because removal is driven by `transitionend`, which only fires for
+a transition that actually ran. A hard cut fails the declared assertions; an
+inert rule never reaches count zero. **Strictly stronger than what it replaced**,
+satisfying P4 criterion 9's "extended, never weakened".
+
+Of the four sleeps: one removed outright, two (`interview.spec.js`,
+`not-found.spec.js`) converted to `expect(...).toPass()` retried observations,
+and **one retained deliberately** — `interview.spec.js`'s 100ms, which
+*interrupts* a 550ms transition rather than waiting for it. It must fire early;
+its 450ms of slack runs in the safe direction. Removing it would have broken a
+test that needs its timing.
+
+Verified: **1393 passed / 7 skipped / 0 failed**, reconciling to the full 1400
+discovered.
+
+**Local greenness is not evidence.** This was green 1393 times on
+msedge/Windows while genuinely broken, and died on first contact with Linux. That
+is the case for d6's PR gate, in one sentence.
 
 > **Scope broadened 2026-07-27.** Originally one flaky test; it is a *pattern*.
 > Four fixed sleeps exist: `banner-plane.spec.js:45` (150ms — the original

@@ -289,7 +289,7 @@ test('beside-the-figure fallback keeps the prompt inside the stage frame — for
 // height, at every aspect. Each scene's own preserveAspectRatio="xMidYMax
 // slice" crops rather than stretches to fit whatever box that is — proved
 // below, and separately by the Table Mountain 2.4194 invariant (§13/§14) in
-// p4.spec.js, which is untouched by this change and still passes.
+// approach.spec.js, which is untouched by this change and still passes.
 //
 // Corrections below (behaviour overturned by the ruling, not weakened tests
 // — same pattern as the §17.1a corrections that preceded these; the old
@@ -367,7 +367,7 @@ test('tall window (1200×1400) still selects scene-standard, not scene-tall', as
 });
 
 // Table Mountain invariant, at the one representative viewport not already
-// covered by p4.spec.js's standard/wide/tall checks (1920×1080/2560×1080/
+// covered by approach.spec.js's standard/wide/tall checks (1920×1080/2560×1080/
 // 390×844). 1200×1400 puts the standard scene (1200×750, aspect 1.6) inside
 // a box of aspect 0.857 — about as far from its own aspect as this task's
 // viewports get — so a ratio that still comes out at 2.4194 here is good
@@ -515,7 +515,7 @@ test('fullscreen button is keyboard-focusable with a visible outline', async ({ 
   expect(outlineStyle).not.toBe('none');
 });
 
-// Non-occlusion (§16 hypothesis, geometrically assertable) across all three
+// Non-occlusion (d18 hypothesis, was §16, geometrically assertable) across all three
 // aspect variants, against whichever of {approach prompt, card} is on screen.
 for (const vp of [
   { name: 'wide (2560×1080)',     width: 2560, height: 1080 },

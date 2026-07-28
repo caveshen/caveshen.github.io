@@ -1,59 +1,86 @@
 # PRD — Caveshen Rajman, Personal Portfolio ("The Interview")
 
-**Status:** v2.0 — the 404 becomes a real page: **D-4 fully specified and
-unblocked**, §23's attic **withdrawn** (cutover only), §33 raised for the card
-avatar — all 2026-07-26. (v1.9: §19 closed, §31 re-scoped as the admin page.
-v1.8: §29 built, D5 fixed, §30 ledger five-of-seven built.)
+**Status:** v2.2 — d1, the interactive 404 (was §30 D-4), and d2, the card
+avatar extraction (was §33a), are built and reviewer-approved, awaiting
+Caveshen's look. See the status board.
+
+**Numbering (2026-07-28):** the `§`/`D-` dual numbering is retired going
+forward, at Caveshen's request — it was confusing and hard to type. Only
+*outstanding* work carries a number from here, and it is `d1`, `d2`, …
+(never `§`). Closed and accepted work keeps its historical `§` heading
+unchanged; nothing old is renumbered or deleted. Every `d` item's own
+heading or board row names its previous identity (e.g. "was §30 D-4") so
+old cross-references and commit messages stay resolvable.
 
 **`main`** — P0–P3, LIVE at https://caveshen.github.io (public repo
 `caveshen/caveshen.github.io`; Pages via the test-gated Actions workflow;
 criteria 8+9 verified in production). Serves the pre-landing-v2 site.
 
-**`item/landing-v2-avatar`** — P4 + P5, **34 commits ahead of `main`, unmerged
-and not deployed.** Suite: 60 unit + 1272 e2e, tri-engine (Chromium / WebKit /
-Firefox). This is where all of §17–§29 lives. The `main` cutover is §23 and is
-gated on Caveshen.
+**`item/landing-v2-avatar`** — P4 + P5, **unmerged and not deployed.** Suite:
+tri-engine (Chromium / WebKit / Firefox) — see §13 for current counts. This is
+where all of §17–§29 lives. The `main` cutover is §23 and is gated on Caveshen.
 
 Copy is PLACEHOLDER by his explicit choice — iterating in public until his
 words land. Accepted design reference: Sample C artifact
 (claude.ai/code/artifact/4468f873-b55c-4d0e-a236-535aa5fb6d15, supersedes
-0b8cd6e0); in-repo reference `docs/design-sample-c.html` — **note that this
-reference now predates §20/§25/§26 and no longer matches the shipped scene.**
+0b8cd6e0). The in-repo mirror `docs/design-sample-c.html` was **deleted
+2026-07-27** on Caveshen's authorisation — it predated §20/§25/§26, no longer
+matched the shipped scene, and the interactive 404 (d1) now carries that design
+forward as a living page. It is in git history if ever needed.
 **Owner:** Caveshen (all writing/copy). **Orchestrator:** Claude (Fable 5).
 See §14 for the amendments log.
 
-### Status board — items §15 onward
+### Status board — `d` items (outstanding work only)
 
 Added 2026-07-25 after a reconciliation pass found nine sections whose headline
 status contradicted their own bodies (typically "ACCEPTED — not yet built" atop
 a section recording that it was built and accepted days earlier). **This table
 is the index; the section is the detail.** When an item moves, move it here in
-the same commit.
+the same commit. Renumbered 2026-07-28 to `d` numbers (see the note under
+Status above) — **closed items drop off this board entirely**; they remain in
+the document body under their original `§` headings as history.
 
-| § | Item | Status |
-|---|------|--------|
-| 15 | Known defects D1–D5 | ✅ all closed; D5 (card flash on load) fixed 2026-07-26 |
-| 16 | Visual validation in e2e | 💭 intent only, never designed |
-| 17 | Stage sizing → full-window default | ✅ built, accepted |
-| 18 | Fullscreen button | ✅ built, accepted |
-| 19 | Background/foreground | ✅ closed 2026-07-26 — refactor built; **locking WITHDRAWN**, goal met by §20/§21 |
-| 20 | Wider world (industry + waves) | ✅ built, accepted |
-| 21 | Camera zoom easing | ✅ built, accepted |
-| 22 | Dialogue rework | ⏸ parked, no design |
-| 23 | ~~Attic +~~ the `main` cutover | ⏸ **archive WITHDRAWN 2026-07-26**; cutover only, prerequisite = the interactive 404 ships first |
-| 24 | Ambient banner plane | ✅ built, accepted |
-| 25 | Blue-black palette | ✅ built, accepted |
-| 26 | Devil's Peak + Lion's Head | ✅ built, accepted |
-| 27 | Badger avatar | ◐ built; **selection mechanism open, toggle is scaffold** |
-| 28 | Dialogue fade-in | ✅ built, accepted |
-| 29 | Badger two-frame idle | ✅ built & accepted 2026-07-26; cadence held at 800ms |
-| 30 | Technical debt ledger (D-1…D-7) | ◐ D-1/2/3/5/7 ✅ built & accepted 2026-07-26; **D-4 UNBLOCKED** — 404 is its own component, no longer waits on §23; D-6 re-scoped onto §31 |
-| 31 | Admin page (dev-only) | 🎨 **IN DESIGN** — one section, RULED; scope = toggles + dialogue/actions/CV sync; **no go-ahead**; persistence undecided |
-| 32 | Social preview imagery — creative pass | ⏸ noted 2026-07-26, not scheduled; current images accepted as-is |
-| 33 | The card avatar — extract, then refine | 🎨 IN DESIGN 2026-07-26 — extraction well-defined (authored 2× today, 3× with the 404); art brief outstanding |
+| d | Item | Was | Status |
+|---|---|---|---|
+| d1 | The interactive 404 | §30 D-4 | ✅ built & reviewer-approved 2026-07-27, awaiting Caveshen's visual sign-off |
+| d2 | Card avatar extraction | §33a | ✅ built & reviewer-approved 2026-07-27, awaiting sign-off |
+| d3 | 404 backdrop re-anchor (moon lost above ~2.1 AR) | §30 D-15 | ✅ built & accepted 2026-07-27 — viewBox 1200→1900 |
+| d4 | 404 day clouds | §30 D-11 | ✅ built 2026-07-27 — two `.day-only` rects, offset to d3's camera |
+| d5 | Card geometry test (pins the centred/on-screen criterion) | §30 D-14 | ✅ built 2026-07-27 — 3 tests × 8 projects, red-green proven |
+| d6 | CI pipeline | *new* | ⏳ ruled, not built |
+| d7 | Test strategy — PRD-focused assertions | *new* | ⏳ ruled, not built |
+| d8 | Dev-only gate | §31 (first slice) + §30 D-6 | ⏳ ruled, not built |
+| d9 | The `main` cutover | §23 | ⏸ blocked |
+| d10 | `banner-plane.spec.js` timing race | §30 D-8 | ⏳ |
+| d11 | Card CSS authored twice (~90 lines) | §30 D-9 | ⏳ |
+| d12 | Scene markup authored four times | §30 D-10 | ⏳ |
+| d13 | `Avatar.astro` uses `is:global` needlessly | §30 D-12 | ⏳ |
+| d14 | `not-found.spec.js` coupled to placeholder copy | §30 D-13 | ⏳ |
+| d15 | Admin page | §31 (remainder) | 🎨 IN DESIGN, no go-ahead |
+| d16 | Card avatar art refinement | §33b | 🎨 IN DESIGN, brief outstanding |
+| d17 | Badger selection mechanism | §27 (remainder) | ◐ open, toggle is scaffold |
+| d18 | Visual validation in e2e | §16 | 💭 intent only |
+| d19 | Dialogue rework | §22 | ⏸ parked |
+| d20 | Social preview imagery | §32 | ⏸ unscheduled |
+| d21 | All copy | §23 checklist item 1 | Caveshen's alone; every `PLACEHOLDER` stands |
+| d22 | Standardise test filenames — descriptive, not tracker IDs | *new* | ✅ built 2026-07-27 — 8 renames, counts unmoved |
 
-Also open and not owned by any section above: **all copy** (§23 checklist item
-1). The **stale OG/touch-icon render** (§7 debt) is now tracked as §30 D-2.
+**Convention set by d22 (2026-07-27): name a test after what it tests, never
+after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
+today, leaving `d5.spec.js` (a closed §15 defect) colliding with PRD item d5.
+Subjects don't move. Caveshen's ruling: *"We're introducing technical debt if we
+preserve old naming that becomes ambiguous to future endeavours."* Renames used
+`git mv` so blame survives. Corollary, and the reason this is recorded here
+rather than left as done-and-dusted: **the tracker must never constrain the
+code** — the misnamed file had been left alone precisely *because* the PRD
+referenced it, which is backwards.
+
+d1, d3–d5, d6–d8, d10–d14 are written up as their own `## dN` sections
+(§30's old D-4/D-6/D-8/D-9…D-13 subsections moved there, not duplicated —
+see the note at each old location). d2, d9, d15–d21 have no separate `d`
+section: their detail still lives at the `§` heading named in "Was", which
+is unchanged. **§7's OG/touch-icon debt is closed** — see §30 D-2 (built
+2026-07-26).
 
 ## 1. Purpose
 
@@ -79,6 +106,15 @@ Priority of audiences:
   approval. Clarified 2026-07-16 (pre-remote workflow, Caveshen OK'd): local
   commits proceed freely after the reviewer pass; **his approval gates push
   and deploy**. He may harden this to "gate commits on my review" at any time.
+- **Recovery, not rollback (ruled 2026-07-27, standing rule):** never run
+  `git revert`, unless explicitly asked. Caveshen: *"rollback in this case
+  would be a best-attempt to deploy from a previous commit-hash, or a
+  re-deploy, in which case 'rollback' as a term is not the true meaning and
+  so the functionality is not needed. This is meant to be a project repo
+  anyway, not a productionised SaaS."* Recovery means redeploying an earlier
+  commit hash — nothing more. General principle: do not fit production-SaaS
+  operational machinery (marker branches, rollback runbooks) to a project
+  repo. Decided, not open.
 - **Branch per PRD item (adopted 2026-07-19, post-launch):** `main` is
   production — every push deploys. Work on an accepted PRD item happens on
   its own branch (`item/<slug>`); commits land there after the reviewer
@@ -118,7 +154,9 @@ decal used as **inspiration only**: never ship, trace, or commit it):
 - Night: **lit windows in the buildings** (celestial yellow, varying opacity)
   are the city lights; sea strip with moonlight glints. Day: plain buildings,
   sun, clouds.
-Implemented in the design reference (`docs/design-sample-c.html`).
+Originally prototyped in `docs/design-sample-c.html` (deleted 2026-07-27 — see
+the header note); the shipped implementation is `src/pages/index.astro` and, for
+the 404, `src/pages/404.astro`.
 
 Responsive scene (2026-07-15): `preserveAspectRatio="xMidYMax meet"` plus a
 sky/sea gradient on the scene element, so the artwork never crops and the
@@ -140,18 +178,8 @@ landform closes inside the artwork (no viewBox-edge cliffs).
 Dark (default) = night: stars, moon, sea glints, city-bowl lights.
 Light = day: sun, clouds. 0.4s crossfade; none under reduced motion.
 
-| Token | Night (default) | Day |
-|---|---|---|
-| bg | `#14121f` | `#e9f0ee` |
-| scene sky | `#14121f` | `#cfe6e3` |
-| mountain / far | `#262138` / `#3a3457` | `#46615c` / `#6f938d` |
-| sea | `#223240` | `#7fb5b0` |
-| celestial (moon/sun) | `#ffd75e` | `#f2b544` |
-| card | `#1e1a2e` | `#fdfbf5` |
-| text | `#e9e2cf` | `#253038` |
-| stage direction | `#7d95a0` | `#5d7470` |
-| option (SCUMM lavender) | `#a48fd8` | `#4d3f80` |
-| hover (verb-line yellow) | `#ffd75e` | `#f2b544` (filled) |
+Original night tokens were violet; superseded by §25 — `tokens.css` is the
+live source.
 
 Type: **Georgia** (speech/prose), **Cascadia Code / ui-monospace** (options,
 labels, chrome). Micro-signatures to keep: blinking avatar (abstract
@@ -199,64 +227,14 @@ placeholder until real art exists), SCUMM-style option hover (lavender → yello
   - Unchanged invariants: **"Download Character Sheet"** button → `/cv.pdf`;
     "Back to the interview" link → `/` (plain anchor, no JS); contact =
     LinkedIn + GitHub links only, no email (spam caution); fully static.
-  - **Round 3 (2026-07-18, approved "go for it"):**
-    - Tiles: kill the flat "LLM purple" — panel surfaces become an ink-wash
-      gradient sinking the plum into black at the base (new sheet-scoped
-      token `--panel-grad`; night ≈ #1c1830→#151220, day = parchment wash).
-      The `/` dialogue card keeps plain `--card` unless Caveshen extends it.
-    - Spacing: one notch up across the sheet (panel padding, grid/list gaps,
-      prose line-height) so content fills the stretched panels.
-    - Content from his LinkedIn dump (facts, PII-scrubbed — the dump's email
-      never enters the repo):
-      · Quest log gains a side quest: Managing Editor — EGMR
-        (Feb 2011 – Dec 2015), flavour line PLACEHOLDER.
-      · Spellbook gains a Divination tier (the school of finding hidden
-        truths = his QA arsenal): Cypress, Selenium, K6, NUnit, XUnit,
-        WebDriverIO.
-      · Name box gains his own authored epithet under the name:
-        "Problem solver, coffee enjoyer, 10x human" (his words from
-        LinkedIn — not invented, no PLACEHOLDER needed).
-      · Skills panel gains Games Journalism (proficient, Narrative).
-    - **Round 4 (2026-07-18):** colour APPROVED (ink-wash stays). Page still
-      slightly long/busy. Forced bottom-alignment REMOVED by design: the
-      ability rail returns to natural height (no space-between stretch), and
-      panels no longer flex-grow. Balance comes from content instead —
-      **The Quartet moves to the middle column** (Skills → Spellbook →
-      Quartet); right column = Quest Log → Features & Traits. Columns end at
-      natural height, approximately matched by this redistribution. The
-      measured bottom-alignment e2e test is retired with the mechanism.
-      Round-3 spacing scale stays. Still workshopping.
-    - **Round 5 (2026-07-18): The Quartet is CUT** — removed from the page
-      (markup + CSS; resurrect from git history at 0f8ec09 if he changes his
-      mind — backburner, not banished). Height-alignment returns, scoped:
-      only the MIDDLE column's last panel grows so the middle bottom meets
-      the right column's (right is naturally longest — fine); the ability
-      rail stays natural height. Middle = Skills → Spellbook; right =
-      Quest Log → Features & Traits.
-    - **Round 6 (2026-07-19): a splash of blue — nebular.** Sheet-scoped
-      background token `--sheet-bg`: night = deep plum-black base with two
-      soft radial blue/violet nebula glows; day = pale daytime-sky blue
-      wash mirroring the interview scene's day sky. `--panel-grad` night
-      stops shift a few degrees from plum toward blue-violet. Accents
-      (lavender/celestial), text tokens, and `/` untouched.
-    - **Round 7 (2026-07-19): night goes AMOLED blue/black.** The purple
-      tiles are retired in night mode: sheet night tokens tone-shift to
-      darker blues on near-black — `--sheet-bg` = faint blue nebula glows
-      on a near-black base; `--panel-grad` = dark blue sinking to black;
-      page-scoped night overrides for `--card-edge`, `--dim`, and `--bg`
-      (bluer edge, blue-grey dim, black-blue grounds) with day values
-      reset untouched. Day mode APPROVED as of round 6 — unchanged.
-      Accents (lavender/celestial) unchanged pending his reaction.
-      Follow-up same day: the lavender read as leftover purple — night
-      `--option`/`--option-border` also page-scoped to a soft azure
-      (#8fb3e6) so skill mods, tier heads, dots, chips, and the toggle
-      join the blue family. Celestial yellow stays. Day untouched.
-      And the same for day (his call, same day): NO purple in light mode
-      either — day `--option`/`--option-border` page-scoped to a deep sky
-      blue (#2e5c96, AA on the cream panels). The sheet is now purple-free
-      in both themes; `/` keeps the Sample C lavender. **(No longer true —
-      §25 pulled `/` into the same blue-black family on 2026-07-24; the whole
-      site is purple-free now.)**
+  - **As accepted (rounds 1–7, 2026-07-18/19):** ink-wash `--panel-grad`
+    (plum sinking to black at the panel base); night goes AMOLED blue/black,
+    day a cool coastal blue; both themes purple-free (`/` matches too, per
+    §25); the Quartet is CUT from the page (resurrect from git `0f8ec09` if
+    wanted back); height alignment scoped to the middle column only (its
+    last panel grows to meet the right column's natural bottom); the
+    round-3 spacing scale (panel padding, grid/list gaps, prose line-height)
+    stands.
     - GATES RESOLVED 2026-07-19: **EM start = May 2025.** Convention set
       by Caveshen: each Backstory entry shows the HIGHEST role achieved in
       that tenure — so the sheet's Derivco Cape Town entry stays
@@ -326,19 +304,8 @@ JSON, authored/edited directly by Caveshen (proven shape from the samples):
   `public/favicon.svg` (moon mark), `apple-touch-icon.png` (180×180) and
   `og-image.png` (1200×630) rendered from an inline night-scene SVG via
   `docs/render-og.js`. Re-run that script if the scene changes materially.
-  - **DEBT, logged 2026-07-25 — the scene HAS changed materially and these
-    have not been re-rendered.** §20 (industrial district), §25 (blue-black
-    palette) and §26 (Devil's Peak) all landed after P3. `docs/render-og.js`
-    still hard-codes the *old* violet palette (`#14121f`, `#262138`), so
-    `og-image.png` and `apple-touch-icon.png` show the retired scene. Worse,
-    `public/favicon.svg` was hand-patched to the new `--bg` (`#0f1826`,
-    commit 05ce607) while the generator was not — **re-running
-    `docs/render-og.js` as it stands would silently revert the favicon.**
-    Fix is one job: retune the generator's inline SVG to the current
-    `tokens.css` night values (and, if wanted, the new skyline), re-render all
-    three, verify the favicon still matches its unit test in
-    `src/tests/p3.test.js`. Not urgent — it is invisible until the site is
-    shared as a link — but it must happen before the §23 cutover.
+  - Re-rendered off the real built site since §30 D-2 (2026-07-26); no longer
+    drifts.
 
 ## 8. Success criteria (verifiable)
 
@@ -370,8 +337,8 @@ config, device matrix) lands with P1.
   deploy workflow has run green on every push to `main` — last on 2026-07-20.
   **Success criterion 8 is verified in production.** What has *not* happened is
   a `main` deploy carrying any of the P5 work; `main` still serves the
-  pre-landing-v2 site, 34 commits behind. So the workflow is proven; the
-  cutover is a content change, not a first flight.
+  pre-landing-v2 site, unmerged and not deployed. So the workflow is proven;
+  the cutover is a content change, not a first flight.
 - **P1 — The Interview: ✅ 2026-07-16 (4ab79eb; stretch 8c7e5c6).** Scene SVG
   (night+day), dialogue card, JSON-driven engine island, theme toggle with
   persistence, aspect-ratio compositions. Criteria 2, 3, 5.
@@ -420,20 +387,9 @@ config, device matrix) lands with P1.
     option Caveshen later writes back out. No new dialogue nodes invented here.
 
   **Success criteria (verifiable):**
-  1. Unit: the camera-transform maths is a pure exported function with tests
-     (stage rect + figure rect + scale → translate), so it isn't only e2e-covered.
-  2. On load with JS: card not visible; the approach prompt is visible and has
-     an accessible name.
-  3. Approaching shows the card, applies a non-identity camera transform, and
-     hides the prompt.
-  4. The prompt is reachable by Tab and activates with both Enter and Space.
-  5. After approach, focus lands on the first dialogue option.
-  6. "End dialogue" and Escape each return to the wide shot: card hidden,
-     transform back to none, prompt visible **and focused**.
-  7. Under `prefers-reduced-motion: reduce` the camera jump-cuts (transition
-     duration 0s).
-  8. Toggling day↔night leaves the figure's computed fills **unchanged**
-     (the character never changes with the theme — §14 ambition).
+
+  Criteria 1–8, 10–12 met and covered by the suite (see git for the list).
+
   9. All 47 unit tests and all existing e2e tests still pass. **Amended
      2026-07-21** — the original wording ("unmodified") was wrong and the
      worker correctly escalated rather than quietly editing around it: five
@@ -447,10 +403,6 @@ config, device matrix) lands with P1.
      before. Assertions may be *extended* with the approach step; none may be
      weakened, deleted, or have its expectation relaxed. Every other test
      stays untouched.
-  10. No-JS: card visible and the `/sheet` path still reachable (criterion 1).
-  11. Lighthouse holds 100/100/100/100 on `/`.
-  12. No new dependencies, no generated assets, no PII; invented copy carries
-      `PLACEHOLDER`.
 
   **Non-goals:** real character art; any change to the locked scene
   composition; new dialogue nodes (Caveshen's copy); sound.
@@ -471,7 +423,7 @@ config, device matrix) lands with P1.
   wider world (industrial district + waves) · §21 zoom easing split · §24
   banner plane · §25 blue-black palette · §26 Devil's Peak + softened Lion's
   Head · §27 Badger + TEST-ONLY toggle · §28 dialogue fade-in.
-  34 commits, unmerged. **Nothing is on `main`.**
+  Unmerged. **Nothing is on `main`.**
 
 Parallel, non-worker: ~~Claude drafts the ATS CV~~ (✅ approved & rendered
 2026-07-16 — see §7); Caveshen writes the real dialogue script and sheet copy.
@@ -614,10 +566,11 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
   verified green at this count; the intermediate figures quoted in §20
   (56/1013) and in §9 P4 criterion 9 (47) are earlier snapshots, left in place
   as dated records. **Do not treat any number in this document as current —
-  count it.** Six e2e files: `interview.spec.js`, `p4.spec.js`,
-  `sheet.spec.js`, `p3.spec.js`, `p24.spec.js`, `p27.spec.js`. Note that
-  `p27.spec.js` (6 tests) is REMOVE-BEFORE-SHIP scaffolding and the count drops
-  when it goes.
+  count it.** See `e2e/` for the current file list. Note that `badger.spec.js`
+  (7 tests) is REMOVE-BEFORE-SHIP scaffolding and the count drops when it goes.
+- **Suite size as of 2026-07-27** (§30 D-4, the interactive 404): **65 unit,
+  1369 e2e** (7 skipped, 0 failed) — tri-engine. Supersedes the 2026-07-25
+  figures above.
 - **No snapshot baselines exist in the repo** — verified 2026-07-25, no
   `*-snapshots/` directory anywhere. The throwaway baselines used to prove
   §19's refactor was pixel-identical were deleted after use, as intended.
@@ -830,23 +783,9 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
   vitals-row and Quartet ideas. Merged `item/*` branches retained locally
   for archaeology.
 
-- **2026-07-19 — FIREFOX DESKTOP PICKED UP.** Caveshen gave the go on
-  `item/firefox-desktop` today — cross-browser coverage ahead of the
-  upcoming main-page workshopping, and he tests in Firefox himself.
-  One desktop project only (Playwright's Firefox cannot emulate mobile);
-  ~5 lines of config, `firefox` added to the CI install step, ~75 extra
-  test runs.
-
-- **2026-07-19 (morning) — TRI-ENGINE RULING.** Caveshen accepted the
-  engine-coverage advice: **WebKit proceeds** (queue item 1 resumes — the
-  three Apple device projects move to real WebKit, since every iOS browser
-  is WebKit and the current descriptors only emulate viewport/UA on
-  Chromium). **Firefox is DEFERRED** as its own later item
-  (`item/firefox-desktop`): weak audience case (low desktop share, standards-
-  clean static site) and Playwright's Firefox cannot emulate mobile, so it
-  would be one desktop project only — ~5 lines of config plus adding
-  `firefox` to the CI install step, ~75 extra test runs. Pick it up after
-  WebKit merges, if appetite allows.
+- **2026-07-19 (morning) — TRI-ENGINE RULING.** WebKit proceeds for the three
+  Apple device projects; Firefox deferred as its own later item
+  (`item/firefox-desktop`), picked up after WebKit merges.
 
 - **2026-07-19 — CV ROLLUP RULING (item/cv-rollup).** Caveshen ruled: the
   two split Derivco Cape Town entries (EM May 2025–Present + Senior SDET L1
@@ -862,23 +801,11 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
 
 - **2026-07-19 (evening close) — WORK QUEUE.** Session ended deliberately;
   pick these up in order of appetite, one at a time, branch-per-item:
-  1. **item/webkit-matrix — IN PROGRESS, PAUSED.** Branch exists; WIP
-     commit `eba2a52` ("UNVERIFIED, do not merge") has the config/workflow/
-     spec edits but the full suite was NOT re-run against them. Resume:
-     free port 4321, `npx playwright test` (expect 525; 3 Apple projects on
-     real WebKit), fix honestly, reviewer pass, his approval, merge.
-  2. **CV consistency roll-up — AWAITING CAVESHEN'S VERDICT.** Claude's
-     recommendation on the table: collapse the SDET split back into one
-     entry "Software Engineering Manager, Derivco, June 2024 – Present"
-     plus a bullet "Joined as Senior SDET (Level 1); promoted to
-     Engineering Manager in May 2025" — consistent with the other squashed
-     entries, honest against LinkedIn. On his go: branch, edit cv.html,
-     re-render cv.pdf, PII re-verify.
-  3. **Caveshen's copy — IN PROGRESS (his side).** Dialogue JSON, sheet
+  1. **Caveshen's copy — IN PROGRESS (his side).** Dialogue JSON, sheet
      copy, llms.txt, meta descriptions, 404 line. Claude nags gently.
-  4. **Interview page feedback — his play-through impressions** open the
+  2. **Interview page feedback — his play-through impressions** open the
      main-page workshop; items branch as accepted.
-  5. Parked as before: vitals-row rework; the Quartet (backburner).
+  3. Parked as before: vitals-row rework; the Quartet (backburner).
   Node-version action bumps are DONE (73f8b5f, CI green).
 
 - **2026-07-19 (later):** Character sheet PARKED in its accepted state after
@@ -936,17 +863,6 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
   examples); Caveshen writes the real dialogue JSON + sheet copy; push
   decision (create the public `caveshen.github.io` remote).
 
-- **2026-07-19 — item/webkit-matrix VERIFIED.** Full e2e suite ran on
-  real WebKit (iPhone SE, iPhone 15 Pro, iPad) plus Chromium (Pixel 8,
-  3 desktops): 525 tests, 522 passed, 3 skipped, 0 failed. The 3 skips
-  are the keyboard Tab-walk test on the 3 Apple WebKit projects (WebKit
-  does not Tab-focus `<a>` by default — platform behaviour, skip is
-  engine-guarded with a comment). No product bugs found; no assertions
-  were loosened. One back-to-back-run race condition observed (og-image
-  content-type on iphone-se, passes in isolation and in clean runs) —
-  pre-existing infrastructure behaviour, not introduced by this item.
-  PRD §13 as-built updated with current suite size (75 × 7 = 525).
-
 ---
 
 ## 15. Known defects — ALL CLOSED (log kept)
@@ -973,10 +889,6 @@ its top, which is precisely where the head is. Carried forward unchanged
 from the pre-restage build.
 **Why the tests miss it:** every assertion checks the button is present,
 focusable and clickable. None checks it does not overlap the figure.
-**Proposed fix:** float the prompt clear above the head with a gap (game
-interaction-prompt convention), clamped so it cannot leave the stage frame
-on the tall variant. Add an assertion that the prompt's bounding box does
-not intersect the figure's.
 **Fixed:** as proposed — `positionPrompt()` in `src/pages/index.astro` centres
 the prompt on the figure and floats it `GAP = 14px` clear above the measured
 head, with a beside-the-figure fallback (clamped on all four sides) when there
@@ -996,11 +908,6 @@ each other.
 **Why the tests miss it:** the camera tests assert the transform is
 non-identity and numerically correct; the card tests assert visibility and
 focus order. Neither compares their geometry.
-**Proposed fix:** raise the framing constant so the head clears the card's
-top edge. The constant is unit-tested in `src/tests/camera.test.js` — that
-test moves with it (extended, never weakened, per §9 P4 criterion 9).
-Consider deriving the constant from the measured card height rather than
-hard-coding it, so it cannot drift apart again.
 **Fixed:** the stronger of the two options was taken — the constant is *gone*.
 `faceTargetY` is now `cardTop / 2`, derived from the card's measured rect at
 approach time, so the framing band is defined as "between the top of the stage
@@ -1053,7 +960,7 @@ fixed in that diff — out of its scope, and pre-existing.
 whether to fold it into the next branch that touches this file or take it
 standalone. Add a no-JS assertion that `#end-dialogue` is not visible.
 **Fixed:** applied verbatim, mirroring `.fullscreen-toggle[hidden]` exactly.
-`e2e/p4.spec.js` — "no-JS: end-dialogue button is not visible" — proven red
+`e2e/approach.spec.js` — "no-JS: end-dialogue button is not visible" — proven red
 before the fix, green after.
 
 ### D5 — The dialogue card flashes on page load — FIXED (2026-07-26)
@@ -1079,17 +986,9 @@ load the gap is invisible; on a cold load it is a clear flash.
 This is the same class of problem as D4 — the no-JS path leaking into the JS
 path — but in the time dimension rather than the DOM.
 
-**Intended fix (native, no new JS):**
-1. Ship the card hidden: `<main class="card" hidden>`. It is then hidden at
-   first paint, so there is no flash. `.card` sets no `display` of its own, so
-   the UA `[hidden] { display: none }` rule applies cleanly — no author-origin
-   reassertion is needed here, unlike `.fullscreen-toggle[hidden]`.
-2. Restore the no-JS path with `<noscript><style>.card[hidden] { display: block;
-   }</style></noscript>`. `<noscript>` is exactly the platform feature for this;
-   it needs no script and cannot itself flash.
-
-`card.hidden = true` at init becomes redundant, though it may be worth keeping as
-an explicit re-arm. Whoever fixes this decides, and says which and why.
+**Intended fix (native, no new JS):** ship the card hidden at first paint, and
+restore the no-JS path with `<noscript>` — exactly the platform feature for
+this; it needs no script and cannot itself flash.
 
 **Do not solve this with an inline head script** setting a `js` class. It works,
 but it adds a render-blocking script and a second source of truth for a state
@@ -1110,7 +1009,7 @@ markup it set an attribute that was already set; the re-arm that matters is the
 
 **Proven red before green**, which mattered here: the defect does not reproduce
 on a warm headless load — the init script wins the race against first paint — so
-it survived a 1309-test suite unnoticed. `e2e/d5.spec.js` reproduces it by
+it survived a 1309-test suite unnoticed. `e2e/card-flash.spec.js` reproduces it by
 throttling the CPU 20x via CDP, navigating with `waitUntil: 'commit'`, and
 sampling `.card` from `document_start`. It failed on the old code and passes on
 the new. Independently re-confirmed by the orchestrator: zero painted frames
@@ -1253,24 +1152,8 @@ is no framed/full-window toggle and there never was one in the tree.
 
 ### Acceptance criteria
 
-Written against the toggle framing above; annotated where the later rulings
-moved them.
-
-1. ~~At ≥ 15/8 aspect the stage grows beyond 1200px, limited by available
-   height, and never introduces vertical page scroll.~~ **SUPERSEDED** — the
-   stage fills the window at *every* aspect, not only ≥ 15/8. The no-page-scroll
-   half still binds and is tested.
-2. ~~Standard and portrait variants render byte-identically to before at their
-   existing breakpoints — this change is invisible outside ultra-wide.~~
-   **SUPERSEDED by 17.1a, then 17.2** — every variant changed, deliberately.
-3. ~~A control switches the stage between framed and full-window. State
-   persists across reloads.~~ **DROPPED** — §18 ruled one control (fullscreen),
-   and 17.2 became the default, so there is nothing to toggle or persist.
-4. **STANDS.** The scene crops via `slice` and is never stretched: the Table
-   Mountain screen-space aspect invariant (§13) still holds. ✅
-5. **STANDS.** No horizontal page overflow at any tested viewport. ✅
-6. **MOVED to §18** — it was only ever about the toggle's own control, and the
-   fullscreen button carries these requirements now. ✅ there.
+Criteria 1–3 superseded by 17.2 + §18 (no toggle, every aspect fills the
+window). 4 and 5 stand and are tested; 6 moved to §18.
 
 Added by the "RULED — default" block and met: site chrome overlays the
 full-bleed stage without occluding the figure, card or prompt (tested at all
@@ -1294,22 +1177,6 @@ subject.
   and portrait. Chrome-non-overlap tested at all four aspects. ~~Awaiting
   Caveshen's live look~~ — **looked at and accepted 2026-07-24** ("it's already
   looking MUCH better"). §17 is closed.
-
-### Clarified intent — Caveshen 2026-07-23
-
-The §18 overlap is **resolved: §17.2 and §18 are independent.** §18 (the
-fullscreen button) is its own accepted, shipped control and is not touched by
-§17.2. §17.2 is purely the *windowed* sizing behaviour: "the scene stretches
-to fit the window regardless of the size, and then transitions between the
-three scenes according to the width cut-offs."
-
-"Stretches to fit" means **fill the window, cropping via `slice`** — not a
-non-uniform distortion. The three-camera system (§14) already selects the
-correctly-proportioned variant per width cut-off and scales it uniformly; in
-full-window mode the selected variant fills the viewport and the overflow is
-cropped, so the mountains never squash. This is the mechanism already
-described above — the clarification only confirms the intent and separates it
-from §18.
 
 ### RULED 2026-07-23 — default (not a toggle)
 
@@ -1456,75 +1323,10 @@ The clamp/scale-factor machinery below is preserved as the design for the
 *eventual* locking change, if we ever choose to apply a differential transform
 to `bg-layer`; it is out of scope for this refactor.
 
-### The intent, in his words
-
-The background — mountains and buildings — "must persist in screen space…
-perspective should not vary that much based on aspect ratio". The foreground
-may scale freely with the stage ("essentially, zoom-in-zoom-out").
-
-### Why this is right, and bigger than ultra-wide
-
-The problem it fixes is already shipped and is worst on **mobile**, not on
-ultra-wide. The tall camera carries `scale(0.62)`, so Table Mountain is
-genuinely 38% smaller on a phone than on a desktop — same mountain, different
-apparent distance, for no reason but the viewport's shape. Locking the
-background makes the skyline a stable identity across all three aspects and
-demotes the aspect ratio to deciding only *how much of the world you see*.
-
-### The mechanism (prototyped, measured, works)
-
-- **The seam follows paint order.** Foreground is the sky fill (which must
-  always cover), and everything painted from `.f-sea` onward: sea, moon
-  reflection, ground, railing, figure. Background is everything before it:
-  stars, moon/sun, and `.world` (mountains, buildings, lit windows). The
-  existing `CityScape.astro` `.world` group is *already* exactly the
-  mountains-and-buildings layer, so the split needs no re-authoring.
-- **The anchor is the waterline.** The world's base (`y=352`) lands on
-  `y=480` under all three cameras, so scaling the background about that point
-  keeps the city's feet on the water at every size.
-- **The reference is desktop as it looks today** — 1 screen pixel per world
-  unit, i.e. the standard scene at its 1200px cap. Standard is therefore
-  unchanged by definition.
-- Scale factor `k = S_REF / (s · cameraScale)`, where `s` is the scene's
-  measured px-per-unit. Measured: 0.766 at 2560×1080 wide, 1.002 at standard
-  (i.e. unchanged), 2.494 at 390×844 tall.
-
-### The measured failure, and the proposed clamp — NOT RULED
-
-At 390×844 a locked background must magnify 2.494×, and a 390px frame can
-then show only 27% of the world's width. In the prototype Table Mountain,
-Lion's Head and Signal Hill are **all cropped away entirely** — the entire
-visual identity of the scene is lost and only anonymous building tops remain.
-
-Proposed, not accepted: clamp the factor with `Math.min(1, …)` so the lock
-may only ever *shrink* the background, never magnify it. Ultra-wide gets the
-intended behaviour, standard is untouched, portrait keeps its authored
-pull-back and keeps its mountain.
-
-**§20 may make the clamp unnecessary at the wide end** and it must be
-re-evaluated once the world is wider — hence this section is blocked on that
-one, not built alongside it.
-
-*(Historical. §20 shipped; the re-evaluation was answered by withdrawing the
-lock entirely — see CLOSED at the head of this section.)*
-
-### Known consequence to art-direct, not to test away
-
-With the background locked and the foreground scaling, the figure grows
-relative to the skyline — roughly 1.3× at 2560×1080. There is no atmospheric
-depth cue in the scene (no haze, no overlap, no converging ground plane), so
-past some ratio the figure stops reading as *nearer the camera* and starts
-reading as *enormous*. The parapet railing is the only element arguing for
-depth, and it is in the scaling layer. Either accept a bounded scale range or
-introduce a real depth cue; this is a drawing decision, not a code one.
-
-### Relationship to §3
-
-This **refines, and does not repeal, "one world, three cameras"**. There is
-still exactly one authored world and no variant ever stretches it. What
-changes is that the world now has two depth layers with independent scale
-rules, both uniform. Any future change must preserve the no-stretch
-invariant, which §13's Table Mountain screen-space test already guards.
+The withdrawn locking design (differential bg/fg transform, waterline anchor,
+`k = S_REF/(s·cameraScale)`, the `Math.min(1,…)` clamp and the measured
+390×844 failure) is in git history at c3fc5cd~1. Do not build from it without
+a fresh ruling.
 
 ---
 
@@ -1537,16 +1339,6 @@ scene in widescreen and then let it naturally adjust to the other views".
 rounds, ported to `CityScape.astro` the same day (`67e3c67`), waves included,
 and seen live and accepted by Caveshen 2026-07-24. Section closed; the
 workshop record below is kept because §19's locking design leans on it.
-
-### Why this is the load-bearing item of the three
-
-It is not a polish pass; §19 depends on it. A locked background is a
-statement that a larger stage **reveals more world** rather than magnifying
-it — which only holds while there is more world to reveal. The city currently
-spans x 40–1150 of a 1750-wide scene, so the ultra-wide prototype ran out of
-city and filled the difference with empty sky. That emptiness was read as a
-flaw in locking; it is actually a flaw in the world's extent. Widen the world
-and the lock stops being a trade-off and simply becomes correct.
 
 ### Scope to workshop
 
@@ -1656,12 +1448,6 @@ New e2e regression tests (industrial district geometry west of x=0; ≥4
 (56) and e2e (1013) suites plus `npm run build` all green. ~~Awaiting
 Caveshen's live review.~~ **Reviewed live and accepted 2026-07-24.**
 
-One acceptance criterion below is **not yet exercised**, and honestly so:
-criterion 1 is written "at 2560×1080 **with the §19 lock applied**", and the
-lock was not built (§19 took the refactor half only). The left flank fills
-correctly under the current unlocked cameras; whether it fills under a locked
-background is untested and re-enters scope only if §19's locking is ever built.
-
 ### Added scope — wave elements in the water (Caveshen 2026-07-23)
 
 "A few more 'wave' elements in the water would complete this backdrop." Add a
@@ -1751,29 +1537,9 @@ Easing is a felt quality and the suite cannot judge it — criterion 1 is
 measurable, but "dramatic" is not. This wants a look before it commits, in
 the manner of §16.
 
-### Status 2026-07-22 — BUILT, values PROVISIONAL
-
-Implemented on `item/landing-v2-avatar` while Caveshen was away, on his
-instruction to work through the items that did not need him. Entry is
-`550ms cubic-bezier(0.4, 0, 0.2, 1)`; the exit is untouched, and is left that
-way structurally rather than by copying its values — `exit()` clears the
-inline override so the original CSS rule remains the single source of the
-exit transition and cannot drift.
-
-Two things above were **not** resolved before building, and are recorded here
-rather than quietly closed:
-
-1. The "faster on zoom-in / slower on zoom-out" against "zoom-out is actually
-   perfect" ambiguity was never put to Caveshen. The working interpretation
-   was applied: the exit is untouchable, and "faster" means a shorter entry.
-   If he meant the exit should genuinely slow, that is a one-line change.
-2. The promised visual look has not happened. Criterion 1 is objectively
-   satisfied — first-frame advance drops from 12.0% to under 4%, asserted in
-   the suite — so the *lurch* is provably gone. Whether 550ms feels
-   **dramatic** is unjudged.
-
-The numbers are therefore provisional and expected to move. This must not be
-merged to `main` before Caveshen has looked at the entry animation.
+The "faster in / slower out" vs "zoom-out is perfect" ambiguity was never put
+to him; the working interpretation (exit untouchable, faster = shorter entry)
+was applied and accepted. A one-line change if he meant otherwise.
 
 ### Status 2026-07-23 — ACCEPTED
 
@@ -1837,63 +1603,8 @@ precisely *because* nothing depends on resurrecting them.
 ships first.** Everything below is retained as historical record of the archival
 design; do not build from it.
 
-### Switchover
-
-When `item/landing-v2-avatar` merges to `main` it replaces the current
-landing — the original **Sample C** scene with the simpler dialogue over the
-Cape Town backdrop, the first thing built on this project. That original is a
-finished, working page and **must not be lost to the overwrite.** Git history
-is not sufficient: Caveshen wants it kept as a live, resurrectable reference
-in the tree, not an archaeology dig through old commits.
-
-### Archival
-
-Before or as part of the cutover, lift the original landing's assets — its
-scene SVG / components, its dialogue data, its page — into a self-contained
-reference folder. **Not named "Sample C view"** (his explicit steer); pick
-something that reads as an archive or reference. Candidates, undecided:
-`src/reference/`, `src/attic/`, or an unlisted `/attic` route. It stays
-buildable so it can be resurrected wholesale, not as dead text.
-
-### ~~Candidate destination — an interactive 404~~ — RESOLVED 2026-07-26, and it is no longer this section's business
-
-Astro's not-found page is `src/pages/404.astro`. Wiring the preserved scene
-there would give the archive a home and make the 404 itself a small
-interactive scene. Caveshen: "An interactive 404 seems like something nobody
-has done before." ~~**Not decided**~~
-
-**RESOLVED 2026-07-26 (see §30 D-4).** The interactive 404 is happening — but
-**it does not mount this archive.** It is built as its own component, lifting
-the `main` landing's design straight out of git and reusing the v2 scene, with
-its own dialogue tree. **D-4 no longer depends on §23**, and the ordering that
-made this section a blocker is gone.
-
-**Which leaves §23 an open question rather than a settled plan:** if the 404
-takes nothing from the attic, does the attic still need to exist? Either the
-archive stands on its own merit as an archive, or §23 shrinks to the `main`
-cutover alone. **Caveshen's call, unanswered.**
-
-### Status
-
-**NOTED, not scheduled.** No work until Caveshen calls it, and likely
-sequenced around the real `main` cutover — itself gated on his approval and a
-local preview per the branch rule. It is recorded now so the cutover cannot
-silently destroy the old scene.
-
-### Constraints and one open question
-
-- ~~Preservation is lossless: the archived scene renders identically to today's
-  `main` landing when resurrected.~~ **SUPERSEDED 2026-07-26** (see §30 D-4).
-  Preservation is of the *page* — its scene, dialogue and layout — **not its
-  palette.** The archive takes the current tokens; the retired violet survives
-  in git history only. Caveshen: *"with our new CSS / styling, instead of the
-  old purple-based theme."*
-- Same repo rules apply to the archived assets: no PII, no email, copy stays
-  `PLACEHOLDER` until it is Caveshen's.
-- **Open:** kept buildable, the archive can bit-rot silently as shared tokens
-  and layouts move under it. Either keep it in the build/test path enough to
-  catch that, or explicitly freeze it as excluded reference — decide when it
-  is built, not now.
+Historical: the archive design (reference folder, `/attic` route,
+lossless-preservation clause) is superseded — see git history.
 
 ### Pre-cutover checklist (assembled 2026-07-25)
 
@@ -1911,13 +1622,17 @@ gate, not a plan.
    education/training). The CI scanner is warn-only by design (§9 P3) — it will
    not stop a placeholder shipping.
 2. **Remove the §27 TEST-ONLY character toggle.** Full extent listed in §27;
-   `e2e/p27.spec.js` goes with it. Grep `REMOVE-BEFORE-SHIP` must return
+   `e2e/badger.spec.js` goes with it. Grep `REMOVE-BEFORE-SHIP` must return
    nothing.
-3. **Archive the old landing** — the actual subject of this section.
+3. ~~**Archive the old landing.**~~ **STRUCK 2026-07-28** — this checklist item
+   was never updated when the RULED block above withdrew the archive entirely
+   on 2026-07-26. Left standing it would block the cutover on cancelled work.
+   The interactive 404 (d1) carries the old landing's design forward instead;
+   there is nothing left to archive.
 
 **Should be done, won't break the page:**
-4. **Re-render the OG and touch icons** from the current palette (§7 debt) —
-   and fix `docs/render-og.js` first, or it reverts the favicon.
+4. **OG and touch icons** — already re-rendered off the real built site
+   (§30 D-2, 2026-07-26); nothing further needed here.
 5. **Optimise the Badger raster(s)** to displayed size (§27 open point 2) —
    cheapest done alongside §29, which adds the second frame.
 6. **Watch the first deploy anyway.** The workflow itself is proven (green on
@@ -2169,7 +1884,7 @@ below Table Mountain."
   close the gap the wider world opened; that is a placement change, not a
   reshaping.
 
-Guarded by a Devil's Peak regression test in `e2e/p4.spec.js`, proved to fail
+Guarded by a Devil's Peak regression test in `e2e/approach.spec.js`, proved to fail
 on revert. A screenshot-timing trap was found while testing and is worth
 knowing: `transition: fill 0.4s` on the mountains means a screenshot taken too
 soon catches them mid-theme-fade — the test waits 500ms.
@@ -2281,14 +1996,10 @@ must not ship with the toggle present. The Badger's approach/zoom framing
 reuses the existing `.face-void` mechanism (the Badger carries its own face
 marker) so the camera frames whichever character is active.
 
-**Scaffold extent, verified 2026-07-25** (so removal is a checklist, not a
-hunt). `REMOVE-BEFORE-SHIP` appears at `src/pages/index.astro` lines 5
-(import), 110 / 172 / 230 (the three `<Badger>` render calls, one per scene
-variant), 310–318 (the button and its deletion instructions), 332 (script
-close) and 340–365 (the `[data-character]` visibility CSS and button styling).
-`e2e/p27.spec.js` is marked REMOVE-BEFORE-SHIP in its entirety (6 tests).
-Default with no JS and no `data-character` attribute is the hooded figure, and
-the toggle deliberately does **not** persist to localStorage — it is scaffolding.
+**Scaffold extent:** grep `REMOVE-BEFORE-SHIP` in `src/pages/index.astro`;
+plus all of `e2e/badger.spec.js`. Default with no JS and no `data-character`
+attribute is the hooded figure, and the toggle deliberately does **not**
+persist to localStorage — it is scaffolding.
 
 ### Open, carried from this section into §29 / the cutover
 
@@ -2338,7 +2049,7 @@ paints before the transition fires; under reduced motion it removes the
 class synchronously with no reflow, so no frame is ever painted with it
 applied (transition is also `none` there, via the existing catch-all
 reduced-motion block, which already covers `.card`). Tests added in
-`e2e/p4.spec.js`, each proven to bite on a targeted revert.
+`e2e/approach.spec.js`, each proven to bite on a targeted revert.
 
 ### What this is
 
@@ -2426,52 +2137,13 @@ animating between two commissioned frames — arms up and arms down.
   `public/badger.png` → `badger-up.png` alongside `badger-down.png`. The two
   frames are equal citizens now; leaving one called `badger.png` would imply a
   primacy that stops being true the moment the idle runs. One-line change in
-  `Badger.astro`, and `src/tests/p3.test.js` does not reference the filename.
+  `Badger.astro`, and `src/tests/hygiene.test.js` does not reference the filename.
 
 ### STAGED 2026-07-25 — registration measured, not eyeballed
 
-§29's own scope demanded confirmation that "only the arms move and the
-feet/shadow stay planted (no vertical jump between frames)". Measured rather
-than guessed: both PNGs decoded to a canvas, ink bounding box computed per
-frame (ink = opaque and not near-white). Both are 500×500 as promised.
-
-| Edge | up | down | delta |
-|---|---|---|---|
-| top (ears) | 32 | 55 | **+23** |
-| bottom (feet) | 488 | 489 | **+1** |
-| left | 33 | 62 | +29 |
-| right | 466 | 436 | −30 |
-
-**The feet are planted.** A 1px delta at the bottom edge is imperceptible and,
-crucially, means the ground shadow will not jump — the single failure mode the
-scope named. Registration passes where it has to.
-
-**The arms narrow by 59px**, symmetrically (+29 left, −30 right). Exactly the
-intended difference: horizontal-out becomes angled-down.
-
-**But the head sits 23px lower in the down frame** — the figure is 22px shorter
-overall, all of it lost at the top. That is ~5% of the badger's height, and at
-the shipped display size (~200px) it lands as a **~10px head bob**.
-
-This is flagged, not fixed. It is very likely *correct* — a body settling as
-the arms come down is a squash-and-stretch cue and reads as breathing rather
-than as a broken sprite swap; a rigid two-frame arm swap with a perfectly
-static head would look more mechanical, not less. But it means the two frames
-are not the pure arm-only swap the section assumed when it was drafted, and
-**cadence now matters more than it did**: a 10px head bob at a slow ~0.9s is a
-gentle breath, while the same bob at ~0.3s is a jitter. The two open points are
-therefore coupled, and the cadence call cannot be made from the stills.
-
-**Recommended starting point for the look: ~800ms per frame** (1.6s full
-cycle), which reads as an idle breath rather than a wave. Trivially retuned —
-it wants to be one named constant, not a magic number.
-
-**Ready to build on his go.** No blockers. Order: bring `BadgerDown.png` into
-`public/` under a neutral name (PII/metadata check as `badger.png` had), rename
-the up frame, swap frames on a timer or CSS `steps()` animation honouring
-`prefers-reduced-motion` (hold the up frame), keep both under the §27
-scene-matched filter and the shared ground shadow so neither jumps. Then a look
-at the motion, and expect the cadence constant to move.
+Staged 2026-07-25: frames measured 500×500, feet planted to 1px, head sits 23px
+lower in the down frame (a ~10px bob at display size — read as breathing, not a
+broken swap, which is why cadence mattered). Recommended 800ms; it held.
 
 ### Method
 
@@ -2543,28 +2215,10 @@ Only two markers name a trigger that has actually fired: `render-og.js:17`
 
 ### D-1 — Extract the sky and foreground layers (LARGE, highest value)
 
-`src/pages/index.astro:49-113`, `116-175`, `178-233` are three *complete* `<svg>`
-elements. All three render into the DOM on every load; two are `display:none`.
-
-§14 extracted the **world** into `CityScape.astro` precisely because three
-hand-drawn copies had caused a bug ("the three-different-mountains bug"). The
-**sky and foreground layers never got that treatment.** Still hand-copied ×3:
-
-- moon + 4 crater circles — **absolute** coords (`cx="914"` against a moon at
-  `930`), so each variant required re-doing the arithmetic by hand
-- sun + day clouds — 7 `fill="#fff"` rects, bypassing tokens entirely
-- stars, sea strip, moonlight glints
-
-Do these as **one job**, not three: they occupy the same three blocks, and
-splitting them means touching each block three times.
-
-Per-variant *placement* is legitimately free to differ (§14: "Foreground
-placement per aspect — free to differ per view (unlike the world)"). The fix is
-components taking per-variant props, exactly as `CityScape.astro` takes `camera`.
-
-**This is also the groundwork for the locked-camera-with-motion-data direction
-Caveshen raised 2026-07-26** — the cleanup and that feature are the same job
-approached from opposite ends. Sequence them together if that item is picked up.
+`src/pages/index.astro` triplicated the sky/foreground layers (moon, sun,
+clouds, stars, sea, glints) across three scene copies, hand-copied and
+drift-prone. The fix: extract to components taking per-variant props, as
+`CityScape.astro` already does for the world.
 
 **AS BUILT 2026-07-26 — and the headline estimate was wrong.** Only the moon
 glyph was genuinely triplicated. Extracted to `Moon.astro` (craters now offsets
@@ -2633,137 +2287,9 @@ wants his eye on the result, not a decision in the abstract.
 
 Independent.
 
-### D-4 — Dispose of `docs/design-sample-c.html` — ⏸ BLOCKED on the 404 build
-
-391 lines. Nothing imports it. Carries the retired violet palette, a hand-rolled
-duplicate of the `dialogue.js` engine (`:320-391`), a duplicate of
-`ThemeToggle.astro`'s logic (`:381-388`), and a `ponytail:` comment citing
-"Samples A and B" — files that no longer exist.
-
-**Entangled with §23** (the attic / interactive-404 question). Note the
-distinction that matters: this is the *design mock*. The thing §23 preserves is
-the built `main` landing. They are not the same artefact and must not be
-conflated.
-
-**Caveshen 2026-07-26:** *"Recall I wanted that mock for the 404 page, if that's
-done then we can retire it."* So the mock is not retired outright — it is the
-source for the interactive 404, and retired only once that page exists.
-
-**RESOLVED 2026-07-26.** Asked which artefact the 404 gets — the mock, or the
-built `main` landing. Caveshen:
-
-> "The 404 page should get exactly the landing page that is on main today, ie.
-> the sample-c with a simple dialogue screen in the middle (although, with our
-> new CSS / styling, instead of the old purple-based theme)."
-
-So: **the 404 gets the built `main` landing** (§23's archive), **restyled to the
-current tokens**. `docs/design-sample-c.html` — the *mock* — is not the source;
-it is retired once the 404 exists, as a stale reference that has served its
-purpose.
-
-**This supersedes §23's "lossless preservation" clause, which has been corrected
-accordingly.** The archive is **not** lossless: it takes the current tokens, and
-the retired violet survives in git history only. That is the instruction, not an
-open question.
-
-~~Depends on §23 being scheduled.~~ **SUPERSEDED — see immediately below.**
-
-#### REFRAMED 2026-07-26 — the 404 is its own component; **D-4 no longer depends on §23**
-
-Caveshen:
-
-> "I don't even think you need §23's archive — you can get it off the git diff
-> since it's currently on main, and then hook it into the 404 page as its own
-> component, so we inherit themes and styles, but can build a second, separate
-> dialogue tree in its own json file with its own dialogue options. Realistically
-> it's a fancy 404 page that takes the same design as the currently-deployed
-> version of the site from main, but as its own component entirely. We can still
-> re-purpose the scene we built for the background. We can still apply themes,
-> day/night toggles, all other styling."
-
-**The dependency inverts.** The old ordering was §23 archives the landing → the
-404 mounts the archive → the mock retires. The landing is on `main` *right now*
-and git is a perfectly good source for a one-time lift (`git show
-main:src/pages/index.astro`, 414 lines). Nothing needs archiving first, so
-**D-4 is unblocked and buildable independently of §23.**
-
-Shape:
-
-- A **component of its own**, mounted in `src/pages/404.astro` (which today is a
-  minimal card, 79 lines, and is replaced).
-- **Layout** takes the currently-deployed `main` landing's design — the simple
-  always-present dialogue card centred over the backdrop.
-- **Background reuses the v2 scene we built** — not `main`'s older inline SVG.
-- **Themes, day/night, tokens and all other styling are inherited**, not
-  re-authored. The retired violet does not come with it (already ruled).
-- **Its own dialogue tree, in its own JSON file**, with its own options —
-  separate from `src/data/dialogue.json`.
-- On delivery, `docs/design-sample-c.html` retires, per the ruling above.
-
-**This costs nothing in the dialogue engine.** `src/scripts/dialogue.js` already
-exposes `initEngine(tree, els, navigate, opts)` — the tree is *already* a
-parameter. A second data file needs **no engine change**, which is the whole
-reason this is cheap. Do not fork the engine.
-
-**One trap, flagged rather than claimed:** `main`'s `index.astro` paints via
-`fill="var(--token)"` presentation attributes. §14 established that this pattern
-does not hold in v2, and every fill moved to CSS classes. Taking the v2 scene
-rather than `main`'s sidesteps most of it — but **any markup lifted verbatim
-from `main` must be re-checked against the class-based fill convention** before
-it is trusted to theme.
-
-##### Open — Caveshen's to answer before build
-
-1. **Camera.** All three variants (std / wide / tall), as `/` has, or one fixed?
-2. **Characters.** Does the scene carry the figure / Badger, or is it scenery
-   only (as the OG image is)?
-3. **Interaction model.** `main`'s landing shows its card immediately — no
-   approach step, no camera zoom. Confirm the 404 keeps that: you land, the
-   dialogue is simply there.
-4. **Where the options go.** Do they navigate within the 404's own tree, route
-   home to `/` and `/sheet`, or both? (`isPath()` already supports links.)
-5. **Dev chrome.** Does the 404 inherit §31's dev-only toggle cluster, or is it
-   exempt?
-6. **`noindex`.** Recommended for a 404; the sitemap already excludes it. Cheap,
-   but it is a change to shipped behaviour, so it is asked rather than assumed.
-
-##### ANSWERED 2026-07-26 — all six, plus the §23 consequence
-
-1. **Camera — simpler than `/`.** Caveshen: *"the view is simpler, as it's a
-   centralised dialogue, so as long as the page transforms so that the dialogue
-   remains central and does not bleed out of screen, we are solid."* So the
-   three-camera apparatus of §14 is **not** a requirement here. The success
-   criterion is behavioural, not structural: **the dialogue stays centred and
-   fully on-screen at every viewport.** How the background is framed behind it is
-   an implementation choice, not a spec.
-2. **No characters** — no hooded figure, no Badger. **But the card avatar comes
-   with it**, and Caveshen wants it refined and extracted. See **§33**, raised
-   for it.
-3. **Interaction — confirmed.** No approach step, no camera zoom. You land and
-   the dialogue is simply there.
-4. **Options navigate, via actions.** Caveshen: *"dialogue options would do the
-   navigation, so we would need them to fire actions. For now, we can simply
-   have a static option to 'return home' and have it route to `/`."* So: **a
-   static "return home" option routing to `/` is enough for this build** —
-   `isPath()` already supports it and no new mechanism is needed. The general
-   dialogue→action mapping remains **§31 B**, and this is its first real use
-   case, not its implementation.
-5. **Dev chrome inherited.** The day/night toggle is wanted. The Badger button
-   will do nothing on this page — *"that's fine for dev mode"* — so no
-   per-page suppression is required.
-6. **`noindex` agreed.** For the avoidance of doubt, the ask was a one-line
-   `<meta name="robots" content="noindex">` so search engines don't index the
-   error page itself. Agreed, and it ships with this build.
-
-##### RULED — §23's archive is dissolved
-
-> "Yes to your final question — once our interactive 404 is up, we can replace
-> what's in `main` with confidence."
-
-So the attic is **not needed**. The 404 carries the old landing's design forward
-as a living page, which is what the archive existed to guarantee. **§23 reduces
-to the `main` cutover alone**, and it now has a prerequisite: the interactive 404
-ships first. Recorded in §23.
+### D-4 — moved to **d1** (the interactive 404); see the status board and
+`## d1` near the end of this document for the full record, including its
+follow-ups d3/d4/d5.
 
 ### D-5 — `playwright.config.js:27` → `devices['Pixel 8']` — ✅ DONE 2026-07-26
 
@@ -2771,27 +2297,8 @@ The `ponytail:` comment says "update when PW adds a Pixel 8 descriptor."
 Verified 2026-07-26: `Pixel 8`, `Pixel 8 Pro` and `Pixel 8a` all ship in the
 installed `@playwright/test`. One-line swap. Independent. Do this first.
 
-### D-6 — ~~Remove~~ **gate** the §27 scaffold — 🔄 RE-SCOPED 2026-07-26, now depends on §31
-
-Eight sites in `src/pages/index.astro` (lines 5, 110, 172, 230, 310, 332, 340,
-365) plus the whole of `e2e/p27.spec.js` (79 lines).
-
-Originally: delete it, blocked on §27's figure-vs-Badger selection ruling (not
-§29, which is only the idle animation). `Badger.astro` itself is real and ships;
-only the toggle mechanism is scaffolding.
-
-**RE-SCOPED 2026-07-26.** Caveshen's answer to the §27 question was not "pick a
-character" but *"I suspect we'll need an admin mode for the site to help with
-toggling stuff — for now, let's scope it to dev mode so it doesn't show up in the
-hosted/prod version."* So the scaffold is **not deleted** — it becomes a
-dev-only admin control (see §31). The `REMOVE-BEFORE-SHIP` markers become
-"dev-only", and the ship test changes from *"`grep REMOVE-BEFORE-SHIP` returns
-nothing"* to *"the production build contains no admin controls"*.
-
-This means §27's selection mechanism is **deferred, not decided** — the toggle
-survives as a dev affordance rather than being replaced by a real mechanism.
-
-Blocked on §31.
+### D-6 — moved to **d8** (dev-only gate); see the status board and `## d8`
+near the end of this document.
 
 ### D-7 — `docs/research-avatar-scene.md` records a recommendation that wasn't built — ✅ DONE 2026-07-26
 
@@ -2805,13 +2312,24 @@ built is sufficient.
 
 ---
 
+### D-8 — moved to **d10** (`banner-plane.spec.js` timing race); see the status board
+and `## d10` near the end of this document.
+
+---
+
+### D-9 … D-13 — moved to **d11–d14** (D-11/clouds moved to **d4**); see the
+status board and `## d11–d14` / `## d1` (d4 nests there) near the end of this
+document.
+
+---
+
 ### Decisions recorded — no action required
 
 **Icon moon stays the warm disc (RULED 2026-07-26, option b).** `favicon.svg`,
 `apple-touch-icon.png` and `favicon.ico` draw `#ffd75e`/`#e6b944`; the scene's
 moon has been the pale `--moon`/`--crater` since the P4 restage. This divergence
 is **deliberate**: the icon is branding, not scene furniture, and a cream disc on
-dark blue has markedly less punch at 32×32. `src/tests/p3.test.js` pins `ffd75e`
+dark blue has markedly less punch at 32×32. `src/tests/hygiene.test.js` pins `ffd75e`
 and should stay pinned. `favicon.svg:5`'s `ponytail:` comment already pointed
 this way. **Recorded so it is not "fixed" later by mistake.**
 
@@ -2837,6 +2355,14 @@ agent that will not follow it. `wontfix`. **Recorded so it is not re-raised.**
 `net: ~-550 lines, -0 deps` — revised down from an initial ~-650 once D-1 turned
 out to cost lines rather than save them. Most of the remaining figure is D-4
 (391) and D-6 (~110), both of which are gated on decisions rather than effort.
+
+**Amended 2026-07-27.** D-4's deletion is now authorised and unblocked, but the
+net figure for it is **misleading**: the 391 lines come off, while the interactive
+404 that replaces the mock adds a page, a component and a dialogue tree. **D-4 is
+net line-positive.** It was always a drift-and-duplication item — a mock carrying
+a hand-rolled copy of the engine and of `ThemeToggle` — not a size item. D-6
+remains gated on §31, and **D-8 is a correctness item with no line argument at
+all.** Which is the point the paragraph below already makes.
 
 **Treat line counts here as the weakest argument for any item.** The real case
 for every one of these is that something is authored twice and will drift; D-1
@@ -3151,6 +2677,31 @@ inferred. It also carries live CSS: the `.eyes` blink animation, a
 
 Extract to an Astro component alongside `Badger.astro` and `HoodedFigure.astro`.
 
+#### CORRECTED 2026-07-27 — the count is cross-branch, and it doesn't change the call
+
+Re-verified before building. On `item/landing-v2-avatar` the avatar is authored
+**once**, at `src/pages/index.astro:259`. The second copy is on `main`, a
+different branch — and `main`'s copy is deleted by the §23 cutover. So "authored
+twice right now" counts a copy already scheduled for demolition; on the branch
+that survives, today's count is **one**.
+
+The justification is therefore **not** existing duplication. It is that **D-4 is
+next and fully specified** and needs this avatar. Extracting first means the 404
+consumes a component; extracting after means hand-copying the SVG a third time
+and then unpicking three copies. Same decision, sounder footing — recorded so
+the §30 ledger isn't resting on evidence that won't survive the cutover.
+
+#### SEQUENCING RULED 2026-07-27 — extraction first, ahead of D-4
+
+Caveshen's go, 2026-07-27, on the **extraction half only**. §33 splits in
+delivery, not in scope:
+
+- **33a — extraction.** ✅ authorised. Pure refactor: no visual change, no
+  behavioural change. Blink cadence, theme transitions and the reduced-motion
+  opt-out preserved verbatim; suite stays green.
+- **33b — art refinement.** ⏸ still IN DESIGN, needs a brief. No generated art;
+  SVG sculpting only.
+
 ### "Perhaps part of the dialogue engine itself" — RECOMMENDED AGAINST, not ruled
 
 `src/scripts/dialogue.js` is logic: pure functions plus `initEngine`. The avatar
@@ -3173,5 +2724,538 @@ a brief.
 
 ### Status
 
-🎨 **IN DESIGN.** The extraction is well-defined and could ship with the 404;
-the art refinement needs a brief from Caveshen first. Sequencing not decided.
+✅ **33a extraction BUILT & REVIEWER-APPROVED 2026-07-27.** `Avatar.astro`, no
+props (one caller at the time; the 404 became the second within the hour).
+`index.astro` net −22 lines, rendering byte-identical. Pending Caveshen's visual
+review; **not committed**. One follow-up logged as **d13** (was §30 D-12,
+`is:global` where scoped would do).
+
+🎨 **33b art refinement remains IN DESIGN** — awaiting Caveshen's brief. No
+generated art; SVG sculpting only.
+
+---
+
+## Outstanding work — `d` items
+
+Sections below are the live counterparts of the status board's `d` numbers.
+Each carries a "was" link note to its previous `§`/`D-` identity. These
+sections **moved here from `§30`'s nested `D-n` subsections** (their old
+locations now hold a one-line pointer, so nothing is duplicated); `d6`–`d8`
+are new. `d2`, `d9`, `d15`–`d21` are not repeated here — their detail still
+lives at the `§` heading named on the board, unchanged.
+
+## d1. The interactive 404 (was §30 D-4)
+
+> **DISPOSAL AUTHORISED 2026-07-27.** Caveshen: *"You can retire design-sample-c
+> completely, once 404 'proper' is ready, even immediately before any reviews, as
+> we can always refine the 404 going forward with design-sample-c deleted
+> forever. I'm at peace with that."*
+>
+> This resolves the ambiguity in "retired once the 404 exists" below: **"exists"
+> means built, not reviewed and not merged.** The file is deleted as soon as the
+> 404 lands on this branch. It is **not** a rollback source — git history is.
+> Refinement of the 404 proceeds without it.
+
+391 lines. Nothing imports it. Carried the retired violet palette, a hand-rolled
+duplicate of the `dialogue.js` engine (`:320-391`), a duplicate of
+`ThemeToggle.astro`'s logic (`:381-388`), and a `ponytail:` comment citing
+"Samples A and B" — files that no longer exist.
+
+**Entangled with §23** (the attic / interactive-404 question). Note the
+distinction that matters: this is the *design mock*. The thing §23 preserves is
+the built `main` landing. They are not the same artefact and must not be
+conflated.
+
+**d1 is independent of §23** (the dependency inverted — see REFRAMED below).
+The 404 takes the built `main` landing's design, restyled to current tokens;
+`design-sample-c.html` retires on delivery.
+
+**Caveshen 2026-07-26:** *"Recall I wanted that mock for the 404 page, if that's
+done then we can retire it."*
+
+**RESOLVED 2026-07-26.** Asked which artefact the 404 gets — the mock, or the
+built `main` landing. Caveshen:
+
+> "The 404 page should get exactly the landing page that is on main today, ie.
+> the sample-c with a simple dialogue screen in the middle (although, with our
+> new CSS / styling, instead of the old purple-based theme)."
+
+### REFRAMED 2026-07-26 — the 404 is its own component; **d1 no longer depends on §23**
+
+Caveshen:
+
+> "I don't even think you need §23's archive — you can get it off the git diff
+> since it's currently on main, and then hook it into the 404 page as its own
+> component, so we inherit themes and styles, but can build a second, separate
+> dialogue tree in its own json file with its own dialogue options. Realistically
+> it's a fancy 404 page that takes the same design as the currently-deployed
+> version of the site from main, but as its own component entirely. We can still
+> re-purpose the scene we built for the background. We can still apply themes,
+> day/night toggles, all other styling."
+
+**The dependency inverts.** The old ordering was §23 archives the landing → the
+404 mounts the archive → the mock retires. The landing is on `main` *right now*
+and git is a perfectly good source for a one-time lift (`git show
+main:src/pages/index.astro`, 414 lines). Nothing needs archiving first, so
+**d1 is unblocked and buildable independently of §23.**
+
+Shape:
+
+- A **component of its own**, mounted in `src/pages/404.astro` (which today is a
+  minimal card, 79 lines, and is replaced).
+- **Layout** takes the currently-deployed `main` landing's design — the simple
+  always-present dialogue card centred over the backdrop.
+- **Background reuses the v2 scene we built** — not `main`'s older inline SVG.
+- **Themes, day/night, tokens and all other styling are inherited**, not
+  re-authored. The retired violet does not come with it (already ruled).
+- **Its own dialogue tree, in its own JSON file**, with its own options —
+  separate from `src/data/dialogue.json`.
+- On delivery, `docs/design-sample-c.html` retires, per the ruling above.
+
+**This costs nothing in the dialogue engine.** `src/scripts/dialogue.js` already
+exposes `initEngine(tree, els, navigate, opts)` — the tree is *already* a
+parameter. A second data file needs **no engine change**, which is the whole
+reason this is cheap. Do not fork the engine.
+
+**One trap, flagged rather than claimed:** `main`'s `index.astro` paints via
+`fill="var(--token)"` presentation attributes. §14 established that this pattern
+does not hold in v2, and every fill moved to CSS classes. Taking the v2 scene
+rather than `main`'s sidesteps most of it — but **any markup lifted verbatim
+from `main` must be re-checked against the class-based fill convention** before
+it is trusted to theme.
+
+#### ANSWERED 2026-07-26 — all six, plus the §23 consequence
+
+1. **Camera — simpler than `/`.** Caveshen: *"the view is simpler, as it's a
+   centralised dialogue, so as long as the page transforms so that the dialogue
+   remains central and does not bleed out of screen, we are solid."* So the
+   three-camera apparatus of §14 is **not** a requirement here. The success
+   criterion is behavioural, not structural: **the dialogue stays centred and
+   fully on-screen at every viewport.** How the background is framed behind it is
+   an implementation choice, not a spec.
+2. **No characters** — no hooded figure, no Badger. **But the card avatar comes
+   with it**, and Caveshen wants it refined and extracted. See **§33**, raised
+   for it.
+3. **Interaction — confirmed.** No approach step, no camera zoom. You land and
+   the dialogue is simply there.
+4. **Options navigate, via actions.** Caveshen: *"dialogue options would do the
+   navigation, so we would need them to fire actions. For now, we can simply
+   have a static option to 'return home' and have it route to `/`."* So: **a
+   static "return home" option routing to `/` is enough for this build** —
+   `isPath()` already supports it and no new mechanism is needed. The general
+   dialogue→action mapping remains **§31 B**, and this is its first real use
+   case, not its implementation.
+5. **Dev chrome inherited.** The day/night toggle is wanted. The Badger button
+   will do nothing on this page — *"that's fine for dev mode"* — so no
+   per-page suppression is required.
+6. **`noindex` agreed.** For the avoidance of doubt, the ask was a one-line
+   `<meta name="robots" content="noindex">` so search engines don't index the
+   error page itself. Agreed, and it ships with this build.
+
+#### RULED — §23's archive is dissolved
+
+> "Yes to your final question — once our interactive 404 is up, we can replace
+> what's in `main` with confidence."
+
+So the attic is **not needed**. The 404 carries the old landing's design forward
+as a living page, which is what the archive existed to guarantee. **§23 reduces
+to the `main` cutover alone**, and it now has a prerequisite: the interactive 404
+ships first. Recorded in §23.
+
+### CLARIFIED 2026-07-27 — answer 4 was a placeholder, not a ceiling
+
+Caveshen, on being asked whether a micro-tree exceeded his own ruling:
+
+> "When I said 'a single static return home would do' what I meant was 'as
+> placeholder until I can add more dialogue' — so your argument is accepted.
+> 2–3 node micro-tree that I can customise accordingly."
+
+**Answer 4 above must not be read as a design minimum.** It set the floor for
+*mechanism* (no action registry needed — `isPath()` suffices), never a limit on
+*content*. The build therefore ships a **2–3 node tree** whose shape Caveshen
+can extend. Mechanism ruling stands unchanged: still no action registry, still
+§31 B's first use case rather than its implementation.
+
+### DESIGN RULED 2026-07-27 — the 404 is in-world; `404` is a stage direction
+
+Design pass run under `/frontend-design` at Caveshen's request ("a bit more
+character, even if it's a 404 page"), constrained by §2 — **the visual language
+is locked to Sample C and was not up for reinvention.** No new palette, no new
+typefaces, no new layout system. Character comes from concept and structure.
+
+**Thesis:** the 404 is not an error page wearing the site's clothes. It is the
+same interview, in which the visitor has opened a door that isn't in the script.
+
+**Signature — the `404` renders as the stage direction, not as a display
+number.** The card already separates three voices, and the separation is
+load-bearing:
+
+| Slot | Role | Existing use |
+|---|---|---|
+| `.stage` | the narrator | italic, `--stage` |
+| `.speech` | the character | Caveshen's line |
+| `.choices button.system` | the machine, out-of-fiction | main's "skip the chat" |
+
+A missing page is a **fact about the world**, not something Caveshen says — so
+it belongs in `.stage`. The way out is a `.system` option, which the design
+language already marks as out-of-fiction. Every element of the signature is
+**inherited vocabulary, not invented decoration**; this is why it can carry
+character without violating §2.
+
+**Explicitly not added: any new motion.** The scene already carries waves, the
+banner plane and the avatar blink. §28's existing fade-in is inherited and
+nothing further is introduced.
+
+**Status: ✅ BUILT & REVIEWER-APPROVED 2026-07-27** — pending Caveshen's visual
+review on local dev; **not committed, not pushed**. Copy remains `PLACEHOLDER`
+and Caveshen's.
+
+Delivered: `src/pages/404.astro` (rewritten), `src/components/NotFound.astro`,
+`src/data/dialogue-404.json` (3 nodes), `e2e/not-found.spec.js`, `noindex` as a
+`Base.astro` prop, and the shared scene rules promoted to `tokens.css`.
+`docs/design-sample-c.html` **deleted** on Caveshen's explicit authorisation.
+
+Two review rounds. Round 1 returned `request-changes` on five items — including
+a real visual defect (`f-ground` omitted, so the sea floated on sky with a hard
+seam at ~78% height, glaring in day theme) and three tests that passed while
+guarding nothing. All five fixed; round 2 **approved**, seam confirmed gone by
+screenshot in both themes.
+
+Suite: **65 unit, 1369 e2e passed / 7 skipped / 0 failed**, build green. The +8
+over the 1361 baseline is the new `noindex` assertion across all 8 device
+projects.
+
+#### PLANNER CONFIRMATION 2026-07-27 — criteria met
+
+All six ANSWERED rulings, all four DESIGN RULED signature clauses, and §33a's
+pure-refactor claim confirmed conformant. §33a verified byte-identical in the
+served output. Four follow-ups logged as **d11–d14** (was §30 D-9…D-13, minus
+D-11 which moved to **d4** below); two more raised as **d5** and **d3** below.
+
+### d5. Card geometry test — pins the centred/on-screen criterion (was §30 D-14)
+
+Measured across 13 viewports in both Chromium and WebKit: 26/26 in-viewport and
+centred to sub-pixel — holds by construction (`width: min(600px, 88%)` and
+`max-height: calc(100svh - 2rem)` both resolve against the fixed element's
+containing block). But `e2e/not-found.spec.js` has no geometry assertion —
+`toBeVisible()` passes even for an off-screen element, and the 8-project matrix
+never exceeds 16:9. **Fix: ~8 lines** — assert `.card`'s `boundingBox()` sits
+inside `viewportSize()` and centres to within a pixel, plus a landscape-phone
+and an ultrawide case.
+
+**RULED 2026-07-27 — build it now.** Caveshen: *"for 3, let's dispatch a worker
+now."* Dispatched alongside d4 and d3.
+
+**Status: ◐ IN PROGRESS.**
+
+### d4. 404 day clouds (was §30 D-11)
+
+`index.astro` puts two cloud rects inside `.day-only`; `404.astro` has only the
+sun, and nothing records that as deliberate. The day scene reads emptier for it.
+**RULED 2026-07-27 — fix it, not debt.** Caveshen: *"you can do the two-line fix
+for the clouds as well."* Port the two `.day-only` cloud rects from
+`index.astro`'s scene-standard variant.
+
+**Status: ◐ IN PROGRESS.**
+
+### d3. 404 backdrop re-anchor — moon lost above ~2.1 AR (was §30 D-15)
+
+Measured:
+
+| Viewport | AR | Moon | Skyline |
+|---|---|---|---|
+| 2560×1440 | 1.78 | visible | visible |
+| 852×393 (landscape phone) | 2.17 | top cut 66px | — |
+| 3440×1440 | 2.39 | **fully cropped** | summit cut 45px |
+| 3840×1080 | 3.56 | **fully cropped** | summit cut 578px |
+
+`xMidYMax slice` anchors to the ground, so the sky is what gets sacrificed —
+within ruling #1's waiver, but a moonless 404 on wide screens is a visual
+consequence Caveshen should judge rather than inherit.
+
+#### BUILT & ACCEPTED 2026-07-27 — the world got wider, not lower
+
+**The literal instruction was geometrically impossible.** At 32:9 a 1200-wide
+viewBox exposes only ~337 vertical units, while the moon-to-shoreline gap in the
+artwork is ~376. Panning the *same-width* viewBox cannot close that gap — both
+ends of it move together. The worker's first attempt (trimming the viewBox
+origin) was caught doing nothing by its own Playwright measurement, because
+`slice` keys off the viewBox's absolute bottom edge, `minY + height`.
+
+**What shipped:** viewBox width **1200 → 1900** — 700 units of flat sky/sea/
+ground either side, no new art — plus the 125-unit downward camera shift the
+ruling actually asked for. Camera and celestial re-centred +375 to stay composed.
+Widening works by *reducing the scale factor*: at 1900 wide, a 3840×1080 viewport
+exposes ~534 vertical units instead of ~337, and moon and ground both fit.
+
+| Viewport | AR | Moon in frame | Bottom-centre pixel |
+|---|---|---|---|
+| 3840×1080 | 3.56 | ✅ | `f-ground` |
+| 3440×1440 | 2.39 | ✅ | `f-ground` |
+| 852×393 | 2.17 | ✅ | `f-ground` |
+| 2560×1440 | 1.78 | ✅ | `f-ground` |
+| 1366×768 | 1.78 | ✅ | `f-ground` |
+| 390×844 (portrait) | 0.46 | ❌ | `f-ground` |
+| 320×320 | 1.00 | ❌ | `f-ground` |
+
+**Ground reaches the bottom edge at every viewport — sky is never exposed
+beneath the sea.** Portrait and 320×320 still hide the moon; that is a
+*horizontal*-crop limitation the original 1200-wide design failed too, not a
+regression from this change.
+
+**Accepted by Caveshen 2026-07-27** on local review: *"Happy with 1, you can keep
+as-is."* Side effect he accepted with it: wide viewports now reveal more of the
+already-authored industrial district (§20 art, nothing new drawn).
+
+**Recorded against the orchestrator, not the worker:** the escalation from "shift
+the scene down" to "widen the world" was forced by a constraint the *brief*
+added — *the ground must reach the bottom edge at every viewport* — which
+Caveshen never asked for. His instruction was that the bottom should fall away.
+Re-anchoring alone would have satisfied him with a far smaller diff, at the cost
+of the shoreline on ultrawide. **Lesson: a brief that hardens a constraint the
+principal did not set will buy a bigger change than the ruling required.**
+
+**RULED 2026-07-27 — re-anchor the crop; do not add a second camera.** Caveshen:
+
+> "Perhaps behind the dialogue let's move the scene down slightly (so, the
+> bottom-side section falls away) so then the moon becomes a non-issue."
+
+Re-anchoring spends the crop on the ground band instead of the sky. **Why this
+beats a second camera:** one attribute change, not a media query plus a second
+camera variant. **Constraint:** the ground/sea must still reach the bottom edge
+at 16:9 and in portrait — must never expose sky beneath the sea (the exact
+defect round 1 fixed via `f-ground`).
+
+**Status: ◐ IN PROGRESS.**
+
+---
+
+## d6. CI pipeline
+
+*New — raised and ruled 2026-07-28, not yet built.*
+
+**Ruling:** lighter checks on branch pushes; **full tri-engine matrix on
+pull requests**; build + deploy only off `main`.
+
+### Why the PR gate is non-negotiable
+
+**This branch has never run CI — not once.** No PR has existed on this repo;
+every green run to date is a push straight to `main`, newest 2026-07-20 at 600
+e2e tests. `item/landing-v2-avatar` is 48 commits and ~1250 e2e tests ahead of
+anything CI has ever seen. Worse, CI runs **Linux with bundled Chromium /
+WebKit / Firefox**, where every local run to date has used the **msedge**
+channel. So the specific unknown is **engine + platform**, together — exactly
+what a light push-only check would fail to exercise. The full tri-engine matrix
+has to run somewhere before this tree ever reaches `main`, and a PR is the only
+place that can happen before the deploy, not after it.
+
+### Also record
+
+Add `timeout-minutes: 30` to the `test` job. Without it, a hung WebKit run
+holds the Pages concurrency group (`cancel-in-progress: false`) for GitHub's
+6-hour default — locking out every other push or PR for that entire window
+over one stuck browser process.
+
+**Status: ⏳ ruled, not built.**
+
+---
+
+## d7. Test strategy — PRD-focused assertions
+
+*New — raised and diagnosed 2026-07-27, not yet built.*
+
+Caveshen's diagnosis: *"our tests feel relatively more dev-oriented rather than
+functionality-oriented (or, PRD-focused)."*
+
+### Three symptoms found 2026-07-27, one root cause
+
+Asserting implementation instead of the PRD's stated criteria:
+
+1. `src/tests/hygiene.test.js`'s flavour-line test passed off a
+   `<meta name="description">` tag rather than the copy it claimed to guard —
+   every line of dialogue could have been deleted and it stayed green.
+2. `e2e/not-found.spec.js` used `toBeVisible()` as a stand-in for "on screen"; it
+   passes for an element parked 4000px outside the viewport (see d5, which
+   fixes this specific instance).
+3. **Nine assertions hard-code the literal string `PLACEHOLDER` as expected
+   page content:** `e2e/not-found.spec.js:48,58,59`, `e2e/interview.spec.js:134`,
+   `e2e/hygiene.spec.js:18`, `e2e/approach.spec.js:19`, `src/tests/dialogue.test.js:126,137`,
+   `src/tests/hygiene.test.js:74`. The scanner `docs/placeholder-check.js` is
+   correct and needs no change; the bite is the inverse — **the day
+   Caveshen's real copy lands, these nine go red and block the deploy, and he
+   is debugging his own prose.**
+
+### Direction
+
+Fix the nine `PLACEHOLDER`-literal assertions to assert **structure** instead —
+non-empty accessible name, speech element has text, option count ≥ 1 — **before**
+the real copy exists, so the tests stay green through the copy landing rather
+than the moment it does.
+
+**Status: ⏳ ruled, not built.**
+
+---
+
+## d8. Dev-only gate (was §31 first slice + §30 D-6)
+
+§31's **first slice only** — `import.meta.env.DEV` gating for the §27 toggle
+scaffold. **This is not the admin page (d15) and must not grow into it.** The
+gate is what unblocks d9's `main` cutover; the admin page's scope (dialogue-tree
+editing, action mapping, character-sheet↔CV sync, persistence undecided) is a
+separate, much larger project that the cutover must not wait on.
+
+### Background (was §30 D-6)
+
+Sites in `src/pages/index.astro`: grep `REMOVE-BEFORE-SHIP`; plus all of
+`e2e/badger.spec.js` (79 lines).
+
+Originally: delete it, blocked on §27's figure-vs-Badger selection ruling (not
+§29, which is only the idle animation). `Badger.astro` itself is real and ships;
+only the toggle mechanism is scaffolding.
+
+**RE-SCOPED 2026-07-26.** Caveshen's answer to the §27 question was not "pick a
+character" but *"I suspect we'll need an admin mode for the site to help with
+toggling stuff — for now, let's scope it to dev mode so it doesn't show up in the
+hosted/prod version."* So the scaffold is **not deleted** — it becomes a
+dev-only admin control (see §31). The `REMOVE-BEFORE-SHIP` markers become
+"dev-only", and the ship test changes from *"`grep REMOVE-BEFORE-SHIP` returns
+nothing"* to *"the production build contains no admin controls"*.
+
+This means §27's selection mechanism is **deferred, not decided** — the toggle
+survives as a dev affordance rather than being replaced by a real mechanism.
+
+### What to build
+
+`import.meta.env.DEV` (Astro-native, costs nothing) gates the §27 character
+toggle and the day/night toggle button in the top-right cluster, per §31's
+RULED block ("the button goes, the feature stays" — theme mechanism is
+untouched, only the button's presence changes). The production-build test
+changes from a grep to a real assertion that no admin control renders.
+
+**Status: ⏳ ruled, not built.**
+
+---
+
+## d10. Fixed-sleep timing races in the suite (was §30 D-8)
+
+> **Scope broadened 2026-07-27.** Originally one flaky test; it is a *pattern*.
+> Four fixed sleeps exist: `banner-plane.spec.js:45` (150ms — the original
+> flake, samples a magic instant inside a 400ms transition and **is** racy),
+> `interview.spec.js:687` (100ms), `interview.spec.js:689` (700ms) and
+> `not-found.spec.js:26` (700ms, added by d5).
+>
+> **The two 700ms sleeps are a different, milder class**: they wait for a 550ms
+> transition to *finish* before asserting a settled value, rather than sampling
+> mid-flight. Waiting past an animation is far safer than sampling within one —
+> but the margin is 150ms, and under a loaded eight-project matrix that is the
+> same shape of assumption the original flake made. `expect().toPass()` or
+> `expect.poll` retries the assertion instead of guessing a duration, and would
+> remove the guess entirely.
+>
+> The d5 sleep was **not** invented — it reuses `interview.spec.js:689`'s
+> existing idiom, so it is consistent with the codebase rather than novel debt.
+> Recorded because that idiom is itself the thing d10 exists to remove. Fix all
+> four together, or none.
+
+Caught during the §33a extraction run: `e2e/banner-plane.spec.js:37` — *"an in-flight
+pass fades out on approach rather than freezing or vanishing"* — failed once on
+`desktop-1920`, then passed green when re-run in isolation. Unrelated to the
+avatar; the extraction is not the cause. Caveshen's ruling, 2026-07-27:
+**flaky tests are not tolerated**, so it is on the ledger rather than in
+someone's memory.
+
+### Root cause — a real race, not mystery flake
+
+The plane fades via `index.astro:573` — `transition: opacity 400ms ease` — and
+`fadeOutPlane()` (`:1028-1037`) removes the element on `transitionend`. The test
+asserts the fade is *gradual* by sampling a magic instant:
+
+```js
+await page.waitForTimeout(150);
+const midOpacity = await plane.evaluate((el) => parseFloat(getComputedStyle(el).opacity));
+expect(midOpacity).toBeGreaterThan(0);
+expect(midOpacity).toBeLessThan(1);
+```
+
+The helper calls `page.clock.install()`, which fakes the page's timers — but a
+**CSS transition is driven by the compositor and is not faked by it**. So the
+150ms sleep is real wall-clock racing a real 400ms window, leaving **250ms of
+slack**. Overshoot it and one of two things happens: opacity has already reached
+`0` and `toBeGreaterThan(0)` fails, or `transitionend` has fired, the element is
+removed, and the `evaluate` has nothing to run against. Losing 250ms to
+scheduling latency across an eight-project matrix is entirely ordinary — this
+will recur, and it currently sits on the deploy gate.
+
+### Direction (not yet built)
+
+The assertion's *intent* is sound: prove the plane fades rather than hard-cutting
+to invisible. The **timing sample is the wrong instrument for that intent**.
+Provable without a race:
+
+- assert the declared transition (`transition-duration` is `400ms`, property is
+  `opacity`) plus the `plane-fade-out` class — a hard cut would have neither; then
+- assert completion via the existing `await expect(plane).toHaveCount(0)`.
+
+If a genuinely observed mid-fade value is still wanted, `expect.poll` for a
+value strictly inside `(0, 1)` replaces a fixed sleep with a retried
+observation. **Do not "fix" this by lengthening the sleep or the transition** —
+that widens the window without removing the race, and couples a test to a design
+value §24 ruled on.
+
+**Scope:** one test in one file. No source change — `index.astro` is behaving
+correctly and is not on trial here.
+
+**Status: ⏳.**
+
+---
+
+## d11–d14. The 404's follow-up debt (was §30 D-9…D-13)
+
+Four items surfaced by the two review passes on d1 and deliberately **excluded
+from that build** to keep a review-ready diff surgical. None is a defect; all
+four are drift risks or coupling. (A fifth, D-11 — the day clouds — was ruled
+an active fix rather than debt; see **d4** above.)
+
+### d11 — the card vocabulary is authored twice (~90 lines) (was §30 D-9)
+
+`NotFound.astro` and `index.astro` carry byte-identical `.card-head`, `.name`,
+`.stage`, `.speech`, `.choices`, `.choices button` (+ `:hover`/`:focus-visible`),
+`.choices button.system` (+ hover), `.noscript-note`, the `max-width: 680px`
+padding and the reduced-motion block. Only `.card` positioning legitimately
+differs — fixed+centred on /404, bottom-anchored on `/`. Change a button radius
+on `/` and the 404 silently diverges.
+
+*The obvious fix is wrong.* Promoting these to `tokens.css` — which is what
+d1's scene rules did — would **create** a hazard rather than remove one:
+`tokens.css` loads on every page, so the shared `.card` descendants would sit
+ahead of both page-local `.card` overrides. Correct today, a trap the moment
+anyone adds a `.card` rule to `tokens.css`. `tokens.css` is also a token file
+plus SVG fill utilities; a component's CSS is a different kind of thing.
+**Correct shape: a `DialogueCard` component or `src/styles/card.css` imported by
+both pages, with `.card` positioning left per-page.**
+
+### d12 — the scene markup is now authored four times (was §30 D-10)
+
+`index.astro` triplicates it (one per camera) and `404.astro` adds a fourth copy
+of the star field, moon reflection and wave marks. Pre-existing pattern; the 404
+following it is consistent, not a new sin. A `Backdrop.astro` is the obvious
+treatment.
+
+### d13 — `Avatar.astro` uses `is:global` where scoped would do (was §30 D-12)
+
+Every element its rules target lives inside the component, so Astro's scoped
+default works identically. As written it publishes a global `@keyframes blink`
+to every page rendering an avatar. Chosen to match
+`Badger.astro`/`HoodedFigure.astro`, which genuinely need `is:global` (they
+render as `<g>` fragments into a parent SVG). Avatar does not. Harmless today;
+needless reach.
+
+### d14 — `e2e/not-found.spec.js:23` is coupled to placeholder prose (was §30 D-13)
+
+The assertion `toContainText('404')` on `.stage` is correct today and genuinely
+non-vacuous. But when Caveshen's real copy lands, **the stage direction must
+keep the digits "404" or the test goes red for a purely editorial reason.** Not
+a defect — a note for whoever writes the script. See §2: all copy is his.
+
+**Status (d11–d14): ⏳.**
+

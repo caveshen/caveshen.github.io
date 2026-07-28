@@ -6,6 +6,7 @@ export interface Props {
   description?: string;
   ogImage?: string;
   bodyClass?: string;
+  noindex?: boolean;
 }
 
 const {
@@ -13,6 +14,7 @@ const {
   description = "PLACEHOLDER — Caveshen Rajman's portfolio.",
   ogImage = "/og-image.png",
   bodyClass = "",
+  noindex = false,
 } = Astro.props;
 
 const canonicalURL = Astro.url.toString();
@@ -29,6 +31,7 @@ const ogImageURL = new URL(ogImage, Astro.site).toString();
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
     <link rel="canonical" href={canonicalURL} />
     <!-- Open Graph -->
     <meta property="og:type" content="website" />

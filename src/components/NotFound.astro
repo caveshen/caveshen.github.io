@@ -1,0 +1,180 @@
+---
+// NotFound.astro — the 404's dialogue card (PRD §30 D-4). Its own component,
+// its own dialogue tree (dialogue-404.json), reusing Avatar.astro and the
+// same card vocabulary (.stage/.speech/.choices) as index.astro's card — but
+// centred over the backdrop rather than bottom-anchored, since there's no
+// approach step or camera zoom to leave room for (PRD §30 D-4 ANSWERED 1/3).
+import Avatar from './Avatar.astro';
+import tree from '../data/dialogue-404.json';
+const root = tree.root;
+---
+
+<!-- PRD §15 D5: card ships hidden so it is never painted before JS runs.
+     noscript overrides [hidden] with display:block for the no-JS path. -->
+<noscript><style>.card[hidden] { display: block; }</style></noscript>
+<main class="card" hidden>
+  <div class="card-head">
+    <Avatar />
+    <span class="name">Caveshen</span>
+  </div>
+  <!-- Static root content for no-JS path; engine overwrites on init -->
+  <p class="stage" id="stage">{root.stage}</p>
+  <div aria-live="polite">
+    <p class="speech" id="speech">{root.speech}</p>
+  </div>
+  <ul class="choices" id="choices"></ul>
+  <noscript>
+    <p class="noscript-note">
+      <a href="/">&larr; Back to the interview</a>
+    </p>
+  </noscript>
+</main>
+
+<script>
+  import { initEngine } from '../scripts/dialogue.js';
+  import tree from '../data/dialogue-404.json';
+
+  const speechEl  = document.getElementById('speech');
+  const stageEl   = document.getElementById('stage');
+  const choicesEl = document.getElementById('choices');
+  const card      = document.querySelector('.card') as HTMLElement;
+
+  const render = initEngine(
+    tree,
+    { speechEl, stageEl, choicesEl },
+    (path) => { window.location.href = path; }
+  );
+
+  // Initial render is immediate — static content is already in place from SSR.
+  render('root', true);
+
+  // No approach step here (PRD §30 D-4 ANSWERED 3): the card reveals as soon
+  // as JS is ready, rather than waiting on a click. PRD §28's fade is
+  // inherited (see .card-entering below) — just armed then played on load
+  // instead of on approach, mirroring index.astro's approach() sequence
+  // (add the starting class, reveal, force a reflow so the browser actually
+  // paints the opacity:0 frame, then remove the class to play the transition).
+  card.classList.add('card-entering');
+  card.hidden = false;
+  void card.offsetHeight; // force reflow
+  card.classList.remove('card-entering');
+</script>
+
+<style is:global>
+  /* ── Dialogue card: centred over the backdrop, not bottom-anchored ────────
+     Same voices as index.astro's card (.stage/.speech/.choices — PRD §30
+     D-4's "inherited vocabulary, not invented decoration"), but its own
+     positioning: fixed + centred on both axes, since there's no approach
+     prompt or character below it to leave room for. */
+  .card {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(600px, 88%);
+    max-height: calc(100svh - 2rem);
+    overflow-y: auto;
+    padding: 1.75rem 2rem 2rem;
+    background: var(--card);
+    border: 1px solid var(--card-edge);
+    border-radius: 18px;
+    box-shadow: var(--card-shadow);
+    /* PRD §28: inherited fade-in, delay+duration unchanged from index.astro
+       so the two pages settle on the same rhythm. */
+    transition: background 0.4s ease, border-color 0.4s ease,
+      opacity 380ms ease 170ms, transform 380ms ease 170ms;
+  }
+  /* JS-only starting state (see script above) — never a static rule on
+     .card itself, or the no-JS path would render the card invisible. */
+  .card.card-entering {
+    opacity: 0;
+    transform: translate(-50%, -50%) translateY(6px);
+  }
+  .card-head {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .name {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    background: var(--chip-bg);
+    color: var(--chip-text);
+    padding: 0.32rem 0.8rem;
+    border-radius: 999px;
+  }
+  .stage {
+    font-size: 0.92rem;
+    font-style: italic;
+    color: var(--stage);
+    margin: 0 0 0.75rem;
+  }
+  .speech {
+    font-size: 1.1rem;
+    margin: 0 0 1.5rem;
+    transition: opacity 0.25s ease;
+    min-height: 3.2em;
+  }
+  .choices {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .choices button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    color: var(--option);
+    background: transparent;
+    border: 1.5px solid var(--option-border);
+    border-radius: 999px;
+    padding: 0.65rem 1.2rem;
+    cursor: pointer;
+    transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease, transform 0.12s ease;
+  }
+  .choices button:hover,
+  .choices button:focus-visible {
+    color: var(--btn-hover-text);
+    border-color: var(--btn-hover-border);
+    background: var(--btn-hover-bg);
+    transform: translateY(-1px);
+  }
+  .choices button:focus-visible {
+    outline: 2px solid var(--btn-hover-border);
+    outline-offset: 2px;
+  }
+  .choices button.system {
+    border-style: dashed;
+    color: var(--dim);
+    font-size: 0.82rem;
+  }
+  .choices button.system:hover,
+  .choices button.system:focus-visible {
+    color: var(--stage);
+    border-color: var(--stage);
+    background: transparent;
+  }
+  .noscript-note {
+    margin-top: 1rem;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+  }
+  .noscript-note a { color: var(--option); }
+
+  @media (max-width: 680px) {
+    .card { padding: 1.4rem 1.3rem 1.5rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card, .speech, .choices button { transition: none; }
+  }
+</style>

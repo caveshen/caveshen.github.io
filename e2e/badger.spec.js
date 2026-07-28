@@ -1,4 +1,4 @@
-// P27 — Badger avatar + interim TEST-ONLY character toggle (PRD §27).
+// PRD d17 (was §27) — Badger avatar + interim TEST-ONLY character toggle.
 // REMOVE-BEFORE-SHIP: this whole file tests scaffolding (the toggle) and can
 // be deleted wholesale once the real figure-vs-Badger selection lands, aside
 // from whichever assertions get folded into a permanent Badger-rendering

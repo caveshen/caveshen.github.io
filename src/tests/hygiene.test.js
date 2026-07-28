@@ -63,12 +63,14 @@ describe('404 page', () => {
   });
 
   it('404.astro links back to / (home)', () => {
-    const source = readFileSync(join(root, 'src/pages/404.astro'), 'utf8');
-    expect(source).toContain('href="/"');
+    // PRD d1 (was §30 D-4): the home link lives in NotFound.astro's noscript fallback.
+    const notFound = readFileSync(join(root, 'src/components/NotFound.astro'), 'utf8');
+    expect(notFound).toContain('href="/"');
   });
 
-  it('404.astro has PLACEHOLDER flavour line', () => {
-    const source = readFileSync(join(root, 'src/pages/404.astro'), 'utf8');
+  it('dialogue-404.json has PLACEHOLDER flavour line', () => {
+    // The flavour copy moved out of 404.astro into its own dialogue tree.
+    const source = readFileSync(join(root, 'src/data/dialogue-404.json'), 'utf8');
     expect(source).toContain('PLACEHOLDER');
   });
 });

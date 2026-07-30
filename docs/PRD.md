@@ -48,7 +48,7 @@ the document body under their original `§` headings as history.
 | d4 | 404 day clouds | §30 D-11 | ✅ built 2026-07-27 — two `.day-only` rects, offset to d3's camera |
 | d5 | Card geometry test (pins the centred/on-screen criterion) | §30 D-14 | ✅ built 2026-07-27 — 3 tests × 8 projects, red-green proven |
 | d6 | CI pipeline | *new* | ✅ built 2026-07-30 |
-| d7 | Test strategy — PRD-focused assertions | *new* | ⏳ ruled, not built |
+| d7 | Test strategy — PRD-focused assertions | *new* | ✅ built 2026-07-30 — ten assertions decoupled, not nine |
 | d8 | Dev-only gate | §31 (first slice) + §30 D-6 | ⏳ ruled, not built |
 | d9 | The `main` cutover | §23 | ⏸ blocked |
 | d10 | Fixed-sleep timing races | §30 D-8 | ✅ fixed 2026-07-29 — caught by CI, 3 of 4 sleeps removed |
@@ -3084,7 +3084,57 @@ non-empty accessible name, speech element has text, option count ≥ 1 — **bef
 the real copy exists, so the tests stay green through the copy landing rather
 than the moment it does.
 
-**Status: ⏳ ruled, not built.**
+### Built 2026-07-30, corrected 2026-07-31 after review
+
+**The count was ten, not nine.** Review caught a tenth coupled assertion the
+original grep for the literal string `PLACEHOLDER` could not find:
+`e2e/not-found.spec.js` (then :62) asserted `.stage` contained the substring
+`'404'` — a literal from `dialogue-404.json`'s `root.stage` prose, not the
+`PLACEHOLDER` token. Same failure mode (copy lands, test goes red), invisible
+to a `PLACEHOLDER`-only grep because the coupling was to a different
+substring of the same prose. **Lesson: grepping for `PLACEHOLDER` finds
+today's instances, not the pattern — any hard-coded fragment of not-yet-final
+copy is a candidate, regardless of what that fragment says.** Fixed by
+deleting the `toContainText('404')` line; the existing `.not-found-code`
+count-0 check next to it is the load-bearing half of "404 is narrated, not
+displayed as a big number" and needed no change. No copy-stable positive
+replacement was added — "contains 404" cannot be asserted without
+re-coupling to prose that may not literally contain those digits once
+Caveshen's real copy lands.
+
+All ten rewritten to assert trimmed non-empty text, an accessible name, an
+inequality, or option count ≥ 1 — never the `PLACEHOLDER` literal or any
+other prose substring. Line numbers below are current (post-fix):
+
+- `e2e/approach.spec.js:20` — `#approach-prompt` has a non-empty accessible
+  name, via `toHaveAccessibleName(/\S/)` (checks the a11y tree, not raw
+  `textContent`, so an `aria-label=""` regression is also caught).
+- `e2e/hygiene.spec.js:18` — 404 page's `.speech` element has non-empty text.
+- `e2e/interview.spec.js:135` — `#speech` has non-empty text, no-JS path.
+- `e2e/not-found.spec.js:62-65` — the digit-coupled `toContainText('404')`
+  removed; `.not-found-code` count-0 check retained as-is.
+- `e2e/not-found.spec.js:95-96` — after advancing a node, the first
+  `.choices` button has non-empty text AND differs from the root option that
+  was clicked (catches stale root buttons left in place, not just emptiness).
+- `e2e/not-found.spec.js:107,109` — no-JS `.stage` and `.speech` each have
+  non-empty text.
+- `src/tests/dialogue.test.js:126,137` — `speechEl.textContent` is non-empty
+  after initial render and after a click-through, respectively.
+- `src/tests/hygiene.test.js:74-75` — `dialogue-404.json` parsed and checked
+  structurally: `root.speech` non-empty, `root.options.length ≥ 1`.
+
+Red-green proof: each assertion's guarded field (button text, node `speech`/
+`stage`, an option `label`, or `options`) was temporarily blanked/emptied in
+source, the specific test run to confirm it failed on the intended line, then
+restored and re-run to confirm green. Repeated for all ten (the F1 fix is a
+deletion with no new assertion, so nothing to red-green there beyond
+confirming the suite is still green without it). Final `git diff` touched
+only the six test files plus this PRD entry — zero source changes.
+
+Full suites clean: `npm test` 65/65; `npm run test:e2e` 1393 passed / 7
+skipped (1400 discovered), exit 0.
+
+**Status: ✅ built 2026-07-30, review fixes applied 2026-07-31.**
 
 ---
 

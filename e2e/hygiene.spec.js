@@ -12,10 +12,10 @@ test('404 page: navigating to unknown route returns a page with a way home', asy
   await expect(page.locator('.choices button.system')).toBeVisible();
 });
 
-test('404 page: has PLACEHOLDER flavour text (not a blank error)', async ({ page }) => {
+test('404 page: speech element has non-empty flavour text (not a blank error)', async ({ page }) => {
   await page.goto('/this-does-not-exist', { waitUntil: 'domcontentloaded' });
-  const body = await page.textContent('body');
-  expect(body).toContain('PLACEHOLDER');
+  const speech = ((await page.textContent('.speech')) ?? '').trim();
+  expect(speech.length).toBeGreaterThan(0);
 });
 
 test('404 page: readable with JS disabled', async ({ browser }) => {

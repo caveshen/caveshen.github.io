@@ -56,11 +56,15 @@ test('the card is centred and fully on-screen on an ultrawide desktop', async ({
 
 // ── Signature: the 404 fact lives in .stage, not a display number ──────────
 
-test('the 404 fact is in .stage, not rendered as a display number', async ({ page }) => {
+test('the 404 code is not rendered as a display number', async ({ page }) => {
   const stage = page.locator('.stage');
   await expect(stage).toBeVisible();
-  await expect(stage).toContainText('404');
-  // The old placeholder page's display number is gone — no separate element for it.
+  // The old placeholder page's display number is gone — no separate element
+  // for it. (A toContainText('404') check used to sit here too, but that
+  // couples the assertion to root.stage's prose — the same failure mode d7
+  // exists to eliminate, just via a substring rather than the PLACEHOLDER
+  // literal. "404 is narrated, not displayed" has no copy-stable positive
+  // check available; this negative check is the load-bearing half.)
   await expect(page.locator('.not-found-code')).toHaveCount(0);
 });
 
@@ -82,10 +86,14 @@ test('the system option routes to /', async ({ page }) => {
 
 test('a non-system option advances to the next node', async ({ page }) => {
   const speechBefore = await page.locator('.speech').textContent();
+  const optionBefore = await page.locator('.choices button:not(.system)').first().textContent();
   await page.locator('.choices button:not(.system)').first().click();
   await expect(page.locator('.speech')).not.toHaveText(speechBefore ?? '');
-  // The deeper node's own options are now on offer.
-  await expect(page.locator('.choices button').first()).toContainText('PLACEHOLDER');
+  // The deeper node's own options are now on offer: non-empty, and different
+  // from the root option just clicked (catches stale root buttons left in place).
+  const optionText = ((await page.locator('.choices button').first().textContent()) ?? '').trim();
+  expect(optionText.length).toBeGreaterThan(0);
+  expect(optionText).not.toBe((optionBefore ?? '').trim());
 });
 
 // ── No-JS: root content is server-rendered ──────────────────────────────────
@@ -95,8 +103,10 @@ test('no-JS: root stage and speech render, card is visible', async ({ browser })
   const page = await ctx.newPage();
   await page.goto('/404');
   await expect(page.locator('.card')).toBeVisible();
-  await expect(page.locator('.stage')).toContainText('PLACEHOLDER');
-  await expect(page.locator('.speech')).toContainText('PLACEHOLDER');
+  const stage = ((await page.locator('.stage').textContent()) ?? '').trim();
+  expect(stage.length).toBeGreaterThan(0);
+  const speech = ((await page.locator('.speech').textContent()) ?? '').trim();
+  expect(speech.length).toBeGreaterThan(0);
   await expect(page.locator('a[href="/"]')).toBeVisible();
   await ctx.close();
 });

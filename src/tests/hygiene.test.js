@@ -68,10 +68,11 @@ describe('404 page', () => {
     expect(notFound).toContain('href="/"');
   });
 
-  it('dialogue-404.json has PLACEHOLDER flavour line', () => {
+  it('dialogue-404.json root node has a non-empty speech line and at least one option', () => {
     // The flavour copy moved out of 404.astro into its own dialogue tree.
-    const source = readFileSync(join(root, 'src/data/dialogue-404.json'), 'utf8');
-    expect(source).toContain('PLACEHOLDER');
+    const tree = JSON.parse(readFileSync(join(root, 'src/data/dialogue-404.json'), 'utf8'));
+    expect(tree.root.speech.trim().length).toBeGreaterThan(0);
+    expect(tree.root.options.length).toBeGreaterThanOrEqual(1);
   });
 });
 

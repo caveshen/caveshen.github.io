@@ -131,7 +131,8 @@ test('root speech visible without JavaScript', async ({ browser }) => {
   const page = await ctx.newPage();
   await page.goto('/');
   await expect(page.locator('#speech')).toBeVisible();
-  await expect(page.locator('#speech')).toContainText('PLACEHOLDER');
+  const speech = ((await page.locator('#speech').textContent()) ?? '').trim();
+  expect(speech.length).toBeGreaterThan(0);
   await ctx.close();
 });
 

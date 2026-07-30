@@ -12,11 +12,12 @@ test('card not visible on load with JS', async ({ page }) => {
   await expect(page.locator('.card')).not.toBeVisible();
 });
 
-test('approach prompt visible on load and has accessible name containing PLACEHOLDER', async ({ page }) => {
+test('approach prompt visible on load and has a non-empty accessible name', async ({ page }) => {
   const prompt = page.locator('#approach-prompt');
   await expect(prompt).toBeVisible();
-  // Accessible name comes from button text (PLACEHOLDER copy as required by PRD §2)
-  await expect(prompt).toContainText('PLACEHOLDER');
+  // Checked via the accessibility tree (not raw textContent) so an
+  // aria-label="" regression is caught too, not just missing button text.
+  await expect(prompt).toHaveAccessibleName(/\S/);
 });
 
 // ── SC3: approaching shows card, applies camera transform, hides prompt ────────

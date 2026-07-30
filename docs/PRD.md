@@ -47,7 +47,7 @@ the document body under their original `§` headings as history.
 | d3 | 404 backdrop re-anchor (moon lost above ~2.1 AR) | §30 D-15 | ✅ built & accepted 2026-07-27 — viewBox 1200→1900 |
 | d4 | 404 day clouds | §30 D-11 | ✅ built 2026-07-27 — two `.day-only` rects, offset to d3's camera |
 | d5 | Card geometry test (pins the centred/on-screen criterion) | §30 D-14 | ✅ built 2026-07-27 — 3 tests × 8 projects, red-green proven |
-| d6 | CI pipeline | *new* | ⏳ ruled, not built |
+| d6 | CI pipeline | *new* | ✅ built 2026-07-30 |
 | d7 | Test strategy — PRD-focused assertions | *new* | ⏳ ruled, not built |
 | d8 | Dev-only gate | §31 (first slice) + §30 D-6 | ⏳ ruled, not built |
 | d9 | The `main` cutover | §23 | ⏸ blocked |
@@ -3032,31 +3032,23 @@ defect round 1 fixed via `f-ground`).
 
 ## d6. CI pipeline
 
-*New — raised and ruled 2026-07-28, not yet built.*
+Built 2026-07-30 in `.github/workflows/deploy.yml`.
 
-**Ruling:** lighter checks on branch pushes; **full tri-engine matrix on
-pull requests**; build + deploy only off `main`.
+- **Branch pushes** — light check: unit tests + the `desktop-1920` project
+  only (175 e2e, ~30s local). Driven by the `LIGHT` env expression.
+- **Pull requests** — the full tri-engine matrix, all 8 projects.
+- **Build + deploy** — `main` only, gated on `github.ref`, not on event name.
 
-### Why the PR gate is non-negotiable
+**Why the full matrix must run on the PR, not after the merge:** CI is Linux
+with bundled Chromium / WebKit / Firefox; local runs use the **msedge**
+channel. The unknown is engine *and* platform together, which a light check
+cannot exercise. A PR is the only place that runs before the deploy.
 
-**This branch has never run CI — not once.** No PR has existed on this repo;
-every green run to date is a push straight to `main`, newest 2026-07-20 at 600
-e2e tests. `item/landing-v2-avatar` is 48 commits and ~1250 e2e tests ahead of
-anything CI has ever seen. Worse, CI runs **Linux with bundled Chromium /
-WebKit / Firefox**, where every local run to date has used the **msedge**
-channel. So the specific unknown is **engine + platform**, together — exactly
-what a light push-only check would fail to exercise. The full tri-engine matrix
-has to run somewhere before this tree ever reaches `main`, and a PR is the only
-place that can happen before the deploy, not after it.
+`concurrency` is now per-ref with `cancel-in-progress` on branches; the Pages
+group stays on the deploy job so a slow test run cannot hold it.
 
-### Also record
-
-Add `timeout-minutes: 30` to the `test` job. Without it, a hung WebKit run
-holds the Pages concurrency group (`cancel-in-progress: false`) for GitHub's
-6-hour default — locking out every other push or PR for that entire window
-over one stuck browser process.
-
-**Status: ⏳ ruled, not built.**
+**Status: ✅ built. Verified: the light command passes 175/175 locally; the
+full matrix is proven by PR #1.**
 
 ---
 

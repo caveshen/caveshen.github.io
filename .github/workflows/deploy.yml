@@ -1,10 +1,10 @@
 name: Deploy to GitHub Pages
 
 on:
+  # Branch pushes run a light check; PRs run the full tri-engine matrix.
+  # Build and deploy are gated to main below.
   push:
-    branches: [main]
 
-  # PRs run the test job only; build/deploy are gated to main below
   pull_request:
     branches: [main]
 
@@ -16,14 +16,21 @@ permissions:
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment
+# Superseded branch runs are cancelled; main queues. The Pages concurrency
+# group lives on the deploy job so a slow test run can never hold it.
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  # A push to any branch but main is the light check. PRs and main run everything.
+  LIGHT: ${{ github.event_name == 'push' && github.ref != 'refs/heads/main' }}
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    # Without this a hung WebKit run holds the runner for GitHub's 6-hour default.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
 
@@ -43,14 +50,14 @@ jobs:
         run: npm test
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium webkit firefox
+        run: npx playwright install --with-deps ${{ env.LIGHT == 'true' && 'chromium' || 'chromium webkit firefox' }}
 
       - name: Integration tests
-        run: npm run test:e2e
+        run: npm run test:e2e -- ${{ env.LIGHT == 'true' && '--project=desktop-1920' || '' }}
 
   build:
     needs: test
-    if: github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

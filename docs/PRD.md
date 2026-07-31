@@ -49,8 +49,8 @@ the document body under their original `§` headings as history.
 | d5 | Card geometry test (pins the centred/on-screen criterion) | §30 D-14 | ✅ built 2026-07-27 — 3 tests × 8 projects, red-green proven |
 | d6 | CI pipeline | *new* | ✅ built 2026-07-30 |
 | d7 | Test strategy — PRD-focused assertions | *new* | ✅ built 2026-07-30 — ten assertions decoupled, not nine |
-| d8 | Dev-only gate | §31 (first slice) + §30 D-6 | ⏳ ruled, not built |
-| d9 | The `main` cutover | §23 | ⏸ blocked |
+| d8 | Dev-only gate | §31 (first slice) + §30 D-6 | ❌ DISCARDED 2026-07-31 — toggles stay visible in prod |
+| d9 | The `main` cutover | §23 | ⏳ ready — no gates remain; completes on merge of PR #1 |
 | d10 | Fixed-sleep timing races | §30 D-8 | ✅ fixed 2026-07-29 — caught by CI, 3 of 4 sleeps removed |
 | d11 | Card CSS authored twice (~90 lines) | §30 D-9 | ⏳ |
 | d12 | Scene markup authored four times | §30 D-10 | ⏳ |
@@ -64,6 +64,7 @@ the document body under their original `§` headings as history.
 | d20 | Social preview imagery | §32 | ⏸ unscheduled |
 | d21 | All copy | §23 checklist item 1 | Caveshen's alone; every `PLACEHOLDER` stands |
 | d22 | Standardise test filenames — descriptive, not tracker IDs | *new* | ✅ built 2026-07-27 — 8 renames, counts unmoved |
+| d23 | Hosted site — domain + Cloudflare | *new* | ⏳ not started |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -75,7 +76,7 @@ rather than left as done-and-dusted: **the tracker must never constrain the
 code** — the misnamed file had been left alone precisely *because* the PRD
 referenced it, which is backwards.
 
-d1, d3–d5, d6–d8, d10–d14 are written up as their own `## dN` sections
+d1, d3–d5, d6–d8, d10–d14, d23 are written up as their own `## dN` sections
 (§30's old D-4/D-6/D-8/D-9…D-13 subsections moved there, not duplicated —
 see the note at each old location). d2, d9, d15–d21 have no separate `d`
 section: their detail still lives at the `§` heading named in "Was", which
@@ -567,7 +568,7 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
   (56/1013) and in §9 P4 criterion 9 (47) are earlier snapshots, left in place
   as dated records. **Do not treat any number in this document as current —
   count it.** See `e2e/` for the current file list. Note that `badger.spec.js`
-  (7 tests) is REMOVE-BEFORE-SHIP scaffolding and the count drops when it goes.
+  (7 tests) covers the `INTERIM-TOGGLE` scaffold, which now ships (see d8).
 - **Suite size as of 2026-07-27** (§30 D-4, the interactive 404): **65 unit,
   1369 e2e** (7 skipped, 0 failed) — tri-engine. Supersedes the 2026-07-25
   figures above.
@@ -1621,9 +1622,10 @@ gate, not a plan.
    `/sheet` fields (alignment, quest-log company names and flavour lines,
    education/training). The CI scanner is warn-only by design (§9 P3) — it will
    not stop a placeholder shipping.
-2. **Remove the §27 TEST-ONLY character toggle.** Full extent listed in §27;
+2. ~~**Remove the §27 TEST-ONLY character toggle.** Full extent listed in §27;
    `e2e/badger.spec.js` goes with it. Grep `REMOVE-BEFORE-SHIP` must return
-   nothing.
+   nothing.~~ **STRUCK 2026-07-31** — the toggles now stay by decision; see
+   **d8**.
 3. ~~**Archive the old landing.**~~ **STRUCK 2026-07-28** — this checklist item
    was never updated when the RULED block above withdrew the archive entirely
    on 2026-07-26. Left standing it would block the cutover on cancelled work.
@@ -1635,11 +1637,12 @@ gate, not a plan.
    (§30 D-2, 2026-07-26); nothing further needed here.
 5. **Optimise the Badger raster(s)** to displayed size (§27 open point 2) —
    cheapest done alongside §29, which adds the second frame.
-6. **Watch the first deploy anyway.** The workflow itself is proven (green on
-   every push to `main` through 2026-07-20), so this is not a first flight —
-   but it will be the first time it builds the landing-v2 tree, and the suite
-   it gates is now 1272 e2e tests across three engines. Budget the CI time and
-   look at the deployed page, not just the green tick.
+6. **Watch the first deploy anyway.** d6 rewrote `.github/workflows/deploy.yml`
+   2026-07-30; its `main` path has never executed (both runs since correctly
+   skipped build/deploy, so the `github.ref == 'refs/heads/main'` gate has
+   never evaluated true) — the merge is the first time it fires. Budget the CI
+   time and look at the deployed page, not just the green tick. Suite is now
+   1400 e2e tests across 8 projects (1393 pass, 7 skip).
 
 ---
 
@@ -1990,13 +1993,14 @@ contrast(1.05) brightness(.95)`; night additionally `brightness(.7)`) and the
 ground drop-shadow lifted from the hooded figure. Only the visible toggle
 button and the "render both, switch by a UI control" wiring are throwaway.
 
-Removal safety: the scaffold carries a greppable `REMOVE-BEFORE-SHIP` marker
-and a `ponytail:` note so `/ponytail-debt` tracks it; §23's cutover checklist
-must not ship with the toggle present. The Badger's approach/zoom framing
+Replacement safety: the scaffold carries a greppable `INTERIM-TOGGLE` marker
+and a `ponytail:` note so `/ponytail-debt` tracks it. **It now ships** — d8
+discarded the dev-only gate 2026-07-31 and §23's checklist item 2 is struck;
+it stays until d17 lands. The Badger's approach/zoom framing
 reuses the existing `.face-void` mechanism (the Badger carries its own face
 marker) so the camera frames whichever character is active.
 
-**Scaffold extent:** grep `REMOVE-BEFORE-SHIP` in `src/pages/index.astro`;
+**Scaffold extent:** grep `INTERIM-TOGGLE` in `src/pages/index.astro`;
 plus all of `e2e/badger.spec.js`. Default with no JS and no `data-character`
 attribute is the hooded figure, and the toggle deliberately does **not**
 persist to localStorage — it is scaffolding.
@@ -2333,11 +2337,20 @@ dark blue has markedly less punch at 32×32. `src/tests/hygiene.test.js` pins `f
 and should stay pinned. `favicon.svg:5`'s `ponytail:` comment already pointed
 this way. **Recorded so it is not "fixed" later by mistake.**
 
-**`AGENTS.md` and `CLAUDE.md` stay twins (RULED 2026-07-26).** Byte-identical at
-the repo root. `AGENTS.md` is the cross-tool convention non-Claude agents read;
-`CLAUDE.md` is Claude Code's. On a public repo, two copies of a short
-instructions file is the cheapest way to serve both, and a pointer file risks an
-agent that will not follow it. `wontfix`. **Recorded so it is not re-raised.**
+**~~`AGENTS.md` and `CLAUDE.md` stay twins (RULED 2026-07-26)~~ — SUPERSEDED
+2026-08-01: `AGENTS.md` is a pointer to `CLAUDE.md`.** The twins ruling reasoned
+that two copies of a short instructions file is the cheapest way to serve both
+conventions, and that a pointer risks an agent that will not follow it.
+
+**Why it was reversed.** The ruling was never implemented and nothing enforced
+it — no test, no CI check. `AGENTS.md` kept the Astro CLI boilerplate it was
+scaffolded with (committed unread in `17dc448`), so the two files were never
+byte-identical, and the boilerplate told agents *"use `astro dev --background`"*
+while `CLAUDE.md` says **never** spawn `astro dev` (it daemonises and Playwright
+aborts). Two instruction files that drift are worse than one plus a signpost.
+`CLAUDE.md` is now the single source; `AGENTS.md` points at it and holds nothing
+else. **Recorded so the twins approach is not re-attempted without an enforcing
+test.**
 
 ---
 
@@ -2349,6 +2362,11 @@ agent that will not follow it. `wontfix`. **Recorded so it is not re-raised.**
 - All five npm dependencies are used.
 - The nine no-trigger `ponytail:` markers are mostly benign rationale notes (the
   `matchMedia` guard, the pointer-events explanation) and should stay.
+- `camera.js`'s optional `faceTargetY`/`faceY` params look like dead back-compat,
+  but `src/tests/camera.test.js:17,27,37` deliberately call the function
+  without them to exercise the defaults. **Do not delete them.** (Flagged by
+  the 2026-07-31 code review — exactly the kind of thing a future cleanup
+  would get wrong.)
 
 ### Ledger total
 
@@ -2946,7 +2964,7 @@ and an ultrawide case.
 **RULED 2026-07-27 — build it now.** Caveshen: *"for 3, let's dispatch a worker
 now."* Dispatched alongside d4 and d3.
 
-**Status: ◐ IN PROGRESS.**
+**Status: ✅ built 2026-07-27 — 3 tests × 8 projects, red-green proven.**
 
 ### d4. 404 day clouds (was §30 D-11)
 
@@ -2956,7 +2974,7 @@ sun, and nothing records that as deliberate. The day scene reads emptier for it.
 for the clouds as well."* Port the two `.day-only` cloud rects from
 `index.astro`'s scene-standard variant.
 
-**Status: ◐ IN PROGRESS.**
+**Status: ✅ built 2026-07-27 — two `.day-only` rects, offset to d3's camera.**
 
 ### d3. 404 backdrop re-anchor — moon lost above ~2.1 AR (was §30 D-15)
 
@@ -3026,7 +3044,7 @@ camera variant. **Constraint:** the ground/sea must still reach the bottom edge
 at 16:9 and in portrait — must never expose sky beneath the sea (the exact
 defect round 1 fixed via `f-ground`).
 
-**Status: ◐ IN PROGRESS.**
+**Status: ✅ built & accepted 2026-07-27 — viewBox 1200→1900.**
 
 ---
 
@@ -3138,43 +3156,36 @@ skipped (1400 discovered), exit 0.
 
 ---
 
-## d8. Dev-only gate (was §31 first slice + §30 D-6)
+## d8. Dev-only gate — DISCARDED (was §31 first slice + §30 D-6)
 
-§31's **first slice only** — `import.meta.env.DEV` gating for the §27 toggle
-scaffold. **This is not the admin page (d15) and must not grow into it.** The
-gate is what unblocks d9's `main` cutover; the admin page's scope (dialogue-tree
-editing, action mapping, character-sheet↔CV sync, persistence undecided) is a
-separate, much larger project that the cutover must not wait on.
+§31's **first slice** would have been `import.meta.env.DEV` gating for the §27
+toggle scaffold, re-scoped 2026-07-26 from outright deletion into a dev-only
+admin control. **Discarded below before it was built — no gate of any kind.**
 
-### Background (was §30 D-6)
+### RULED 2026-07-31 — no dev-only gate; all toggle buttons stay visible in production
 
-Sites in `src/pages/index.astro`: grep `REMOVE-BEFORE-SHIP`; plus all of
-`e2e/badger.spec.js` (79 lines).
+Caveshen: *"since this is causing more issues than it's worth, let's just keep
+all the toggle buttons present always ... I will re-think my dev-only approach
+here."*
 
-Originally: delete it, blocked on §27's figure-vs-Badger selection ruling (not
-§29, which is only the idle animation). `Badger.astro` itself is real and ships;
-only the toggle mechanism is scaffolding.
+**Reason, recorded so the same approach isn't re-attempted:**
+`playwright.config.js:16` serves e2e from a **production build** (`npm run
+build && npm run preview`), so `import.meta.env.DEV` is `false` under test.
+Gating the toggles would have made `e2e/badger.spec.js` (7 tests × 8 projects)
+plus four theme-toggle-dependent tests (`approach.spec.js:48`,
+`interview.spec.js:424`, `sheet.spec.js:172,183`) fail against the prod build —
+a test-strategy rewrite for no user-visible gain.
 
-**RE-SCOPED 2026-07-26.** Caveshen's answer to the §27 question was not "pick a
-character" but *"I suspect we'll need an admin mode for the site to help with
-toggling stuff — for now, let's scope it to dev mode so it doesn't show up in the
-hosted/prod version."* So the scaffold is **not deleted** — it becomes a
-dev-only admin control (see §31). The `REMOVE-BEFORE-SHIP` markers become
-"dev-only", and the ship test changes from *"`grep REMOVE-BEFORE-SHIP` returns
-nothing"* to *"the production build contains no admin controls"*.
+**Consequences:**
+- **d15** (§31's admin page) stays IN DESIGN — this ruling doesn't touch it.
+- **d17** (§27's selection mechanism) stays open and deferred — nothing here
+  decides it.
+- The `REMOVE-BEFORE-SHIP` markers were renamed to **`INTERIM-TOGGLE`**
+  2026-07-31 (comment text only, 9 sites) — the old token named a deletion
+  that is no longer happening, while the extent is still worth keeping
+  greppable.
 
-This means §27's selection mechanism is **deferred, not decided** — the toggle
-survives as a dev affordance rather than being replaced by a real mechanism.
-
-### What to build
-
-`import.meta.env.DEV` (Astro-native, costs nothing) gates the §27 character
-toggle and the day/night toggle button in the top-right cluster, per §31's
-RULED block ("the button goes, the feature stays" — theme mechanism is
-untouched, only the button's presence changes). The production-build test
-changes from a grep to a real assertion that no admin control renders.
-
-**Status: ⏳ ruled, not built.**
+**Status: ❌ DISCARDED 2026-07-31 — no dev-only gate, toggles stay visible in production.**
 
 ---
 
@@ -3320,7 +3331,9 @@ both pages, with `.card` positioning left per-page.**
 `index.astro` triplicates it (one per camera) and `404.astro` adds a fourth copy
 of the star field, moon reflection and wave marks. Pre-existing pattern; the 404
 following it is consistent, not a new sin. A `Backdrop.astro` is the obvious
-treatment.
+treatment. Independently confirmed by the 2026-07-31 two-axis code review:
+stars/moon/sea/wave-marks/rails repeat across `index.astro`'s three scene
+variants and `404.astro`.
 
 ### d13 — `Avatar.astro` uses `is:global` where scoped would do (was §30 D-12)
 
@@ -3339,4 +3352,14 @@ keep the digits "404" or the test goes red for a purely editorial reason.** Not
 a defect — a note for whoever writes the script. See §2: all copy is his.
 
 **Status (d11–d14): ⏳.**
+
+---
+
+## d23. Hosted site — domain + Cloudflare
+
+Post-merge work. A real domain plus Cloudflare setup are prerequisites for the
+live site. Caveshen supplies an API key; he and Claude do it together in a
+later session. Not designed yet — no architecture, DNS records, or plan here.
+
+**Status: ⏳ not started.**
 

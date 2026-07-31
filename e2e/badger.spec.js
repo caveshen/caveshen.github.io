@@ -1,8 +1,10 @@
-// PRD d17 (was §27) — Badger avatar + interim TEST-ONLY character toggle.
-// REMOVE-BEFORE-SHIP: this whole file tests scaffolding (the toggle) and can
-// be deleted wholesale once the real figure-vs-Badger selection lands, aside
-// from whichever assertions get folded into a permanent Badger-rendering
-// test at that point.
+// PRD d17 (was §27) — Badger avatar + interim character toggle.
+// INTERIM-TOGGLE: this file tests the manual toggle scaffold, which ships
+// to the public (PRD d8, was §31 first slice + §30 D-6, discarded the
+// dev-only gate 2026-07-31) and stays until PRD d17's real figure-vs-Badger
+// selection mechanism lands. These are real, passing tests — not
+// scaffolding to delete — though some assertions may fold into a permanent
+// Badger-rendering test once d17 replaces the toggle.
 import { test, expect } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {

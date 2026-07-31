@@ -1,8 +1,8 @@
 ---
-// 404.astro — the interactive 404 (PRD §30 D-4). Same interview, in-world:
+// 404.astro — the interactive 404 (PRD d1, was §30 D-4). Same interview, in-world:
 // the visitor opened a door that isn't in the script. NotFound.astro carries
 // the dialogue card (its own tree, dialogue-404.json); this page supplies
-// the backdrop — the v2 scene, reused, minus its characters (PRD §30 D-4
+// the backdrop — the v2 scene, reused, minus its characters (PRD d1, was §30 D-4
 // ANSWERED 2: "no characters ... scenery only").
 import Base from '../layouts/Base.astro';
 import ThemeToggle from '../components/ThemeToggle.astro';
@@ -10,7 +10,7 @@ import Moon from '../components/Moon.astro';
 import CityScape from '../components/CityScape.astro';
 import NotFound from '../components/NotFound.astro';
 
-// ponytail: one camera, not index.astro's three. PRD §30 D-4 ruling #1 waives
+// ponytail: one camera, not index.astro's three. PRD d1 (was §30 D-4) ruling #1 waives
 // the tri-variant rig here — the success criterion is behavioural (the card
 // stays centred and on-screen at every viewport, which NotFound.astro's
 // fixed+centred positioning already guarantees), not structural. A single
@@ -19,7 +19,7 @@ import NotFound from '../components/NotFound.astro';
 // either. If this page ever needs the tri-variant rig, take it from
 // index.astro rather than growing this one.
 //
-// PRD §30 D-15: the moon-to-shoreline gap (the fixed vertical distance from
+// PRD d3 (was §30 D-15): the moon-to-shoreline gap (the fixed vertical distance from
 // the moon's top edge down to where the mountains meet the sea) is ~376
 // units — wider than the ~337 units of vertical viewBox a 32:9 crop leaves
 // visible. No amount of panning the *same-width* viewBox up or down closes
@@ -67,7 +67,7 @@ const CELESTIAL = { cx: 1305, cy: 275 }; // index.astro's std (930,150) + (375,1
           <Moon cx={CELESTIAL.cx} cy={CELESTIAL.cy} />
         </g>
         <!-- sun + clouds (day) — clouds ported from index.astro's scene-standard
-             .day-only (PRD §30 D-11), offset +375,+125 to match D-15's camera shift -->
+             .day-only (PRD d4, was §30 D-11), offset +375,+125 to match d3's (was §30 D-15) camera shift -->
         <g class="day-only">
           <circle class="f-cel" cx={CELESTIAL.cx} cy={CELESTIAL.cy} r="50" />
           <rect x="495"  y="265" width="150" height="22" rx="11" fill="#fff" opacity="0.85" />

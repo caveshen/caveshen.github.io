@@ -1,9 +1,9 @@
 ---
-// NotFound.astro — the 404's dialogue card (PRD §30 D-4). Its own component,
+// NotFound.astro — the 404's dialogue card (PRD d1, was §30 D-4). Its own component,
 // its own dialogue tree (dialogue-404.json), reusing Avatar.astro and the
 // same card vocabulary (.stage/.speech/.choices) as index.astro's card — but
 // centred over the backdrop rather than bottom-anchored, since there's no
-// approach step or camera zoom to leave room for (PRD §30 D-4 ANSWERED 1/3).
+// approach step or camera zoom to leave room for (PRD d1, was §30 D-4 ANSWERED 1/3).
 import Avatar from './Avatar.astro';
 import tree from '../data/dialogue-404.json';
 const root = tree.root;
@@ -48,7 +48,7 @@ const root = tree.root;
   // Initial render is immediate — static content is already in place from SSR.
   render('root', true);
 
-  // No approach step here (PRD §30 D-4 ANSWERED 3): the card reveals as soon
+  // No approach step here (PRD d1, was §30 D-4 ANSWERED 3): the card reveals as soon
   // as JS is ready, rather than waiting on a click. PRD §28's fade is
   // inherited (see .card-entering below) — just armed then played on load
   // instead of on approach, mirroring index.astro's approach() sequence
@@ -62,8 +62,8 @@ const root = tree.root;
 
 <style is:global>
   /* ── Dialogue card: centred over the backdrop, not bottom-anchored ────────
-     Same voices as index.astro's card (.stage/.speech/.choices — PRD §30
-     D-4's "inherited vocabulary, not invented decoration"), but its own
+     Same voices as index.astro's card (.stage/.speech/.choices — PRD d1's
+     (was §30 D-4) "inherited vocabulary, not invented decoration"), but its own
      positioning: fixed + centred on both axes, since there's no approach
      prompt or character below it to leave room for. */
   .card {

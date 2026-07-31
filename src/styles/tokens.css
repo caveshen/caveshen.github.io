@@ -113,7 +113,7 @@
 .f-crater{ fill: var(--crater); }
 .f-wave  { fill: var(--wave); }
 
-/* ── Scene layout + day/night visibility (PRD §30 D-4) ─────────────────────
+/* ── Scene layout + day/night visibility (PRD d1, was §30 D-4) ─────────────
    Shared by every page that renders a `.scene` SVG (currently / and /404):
    base sizing, the fill/stroke theme crossfade, and the data-time switch for
    .night-only/.day-only groups. Per-variant sizing (.scene-standard/-wide/

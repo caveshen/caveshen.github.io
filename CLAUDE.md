@@ -18,8 +18,8 @@ Note: Do not use it for tracking code changes, rather rely on the git history.
   Verify with `pdftotext` after any CV re-render.
 - **Always follow TDD principles**: Vitest units + Playwright e2e across the device matrix. The suite gates CI deploy.
 - **Never name a test file after a tracker ID.** Name it for what it tests. IDs get
-  renumbered — that happened today, leaving a file named for one item while a different
-  item had taken that number. Subjects do not move. Current test files follow this:
+  renumbered — that happened on 2026-07-27, leaving a file named for one item while a
+  different item had taken that number. Subjects do not move. Current test files follow this:
   `not-found`, `card-flash`, `banner-plane`, `badger`, `badger-idle`, `approach`,
   `hygiene`, `interview`, `sheet`, `camera`, `dialogue`, `theme`. Renames should use
   `git mv` so blame survives.
@@ -61,6 +61,5 @@ npm run build       # astro build
 - **`var()` does not resolve in SVG presentation attributes.** `fill="var(--token)"` as a
   presentation attribute is unreliable and has already caused a bug. Every fill in the
   current scene is applied via a CSS class instead (`f-sky`, `f-near`, `f-far`, `f-sea`,
-  `f-moon`, `f-crater`, `f-cel`, `f-wave`, `f-ground`), defined in `src/styles/tokens.css`.
-  `main`'s `index.astro` still uses the old presentation-attribute pattern — convert
-  anything lifted from `main` before it will theme correctly.
+  `f-moon`, `f-crater`, `f-cel`, `f-wave`, `f-ground`, `f-rail`, `f-star`), defined in
+  `src/styles/tokens.css`.

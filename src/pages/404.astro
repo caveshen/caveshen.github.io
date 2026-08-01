@@ -62,7 +62,7 @@ const CELESTIAL = { cx: 1305, cy: 275 }; // index.astro's std (930,150) + (375,1
           <circle cx="820"  cy="315" r="1.2" opacity="0.5" />
           <circle cx="150"  cy="355" r="1.0" opacity="0.35" />
         </g>
-        <!-- moon (night) — pale and cratered, radius locked at 46 -->
+        <!-- moon (night) — pale and cratered, radius 95% of the sun's (PRD d12 ruling) -->
         <g class="night-only">
           <Moon cx={CELESTIAL.cx} cy={CELESTIAL.cy} />
         </g>

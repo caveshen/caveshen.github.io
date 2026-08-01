@@ -1,9 +1,14 @@
 ---
-// Moon.astro — the pale/cratered night moon (PRD §14: radius locked at 46 in
-// every view; PRD §30 D-1), authored ONCE and rendered into all three scene
-// SVGs at variant-appropriate centres. The 4 craters used to be hand-computed
-// absolute coordinates redone by hand per variant — they are now offsets from
-// the moon's own centre, so nobody ever redoes that arithmetic again.
+// Moon.astro — the pale/cratered night moon (PRD §14, PRD §30 D-1), authored
+// ONCE and rendered into all three scene SVGs at variant-appropriate centres.
+// The 4 craters used to be hand-computed absolute coordinates redone by hand
+// per variant — they are now offsets from the moon's own centre, so nobody
+// ever redoes that arithmetic again.
+//
+// RULED 2026-08-01 (PRD d12, moon-vs-sun ruling): radius is 95% of the sun's
+// (Scene.astro's day-only `.f-cel`, r=50) — was 46, now 47.5. Crater offsets
+// and radii below are hand-placed art scaled by the same 47.5/46 ratio so
+// they stay proportionally where they were on the smaller disc.
 //
 // Fills are CSS classes, not presentation attributes — var() does not resolve
 // inside SVG presentation attributes (PRD constraint).
@@ -15,10 +20,10 @@ interface Props {
 const { cx, cy } = Astro.props;
 ---
 
-<circle class="f-moon" cx={cx} cy={cy} r="46" />
+<circle class="f-moon" cx={cx} cy={cy} r="47.5" />
 <g class="f-crater" opacity="0.55">
-  <circle cx={cx - 16} cy={cy - 14} r="8" />
-  <circle cx={cx + 17} cy={cy + 14} r="5.5" />
-  <circle cx={cx + 9} cy={cy - 22} r="3.5" />
-  <circle cx={cx - 22} cy={cy + 16} r="4.5" />
+  <circle cx={cx - 16.5} cy={cy - 14.5} r="8.3" />
+  <circle cx={cx + 17.6} cy={cy + 14.5} r="5.7" />
+  <circle cx={cx + 9.3} cy={cy - 22.7} r="3.6" />
+  <circle cx={cx - 22.7} cy={cy + 16.5} r="4.6" />
 </g>

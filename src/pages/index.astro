@@ -1,48 +1,24 @@
 ---
 import Base from '../layouts/Base.astro';
 import ThemeToggle from '../components/ThemeToggle.astro';
+import Scene from '../components/Scene.astro';
 import HoodedFigure from '../components/HoodedFigure.astro';
 import Avatar from '../components/Avatar.astro';
-// INTERIM-TOGGLE (PRD d17, was §27 remainder): this import and every
-// <Badger .../> render call below are part of the manual character-toggle
+// INTERIM-TOGGLE (PRD d17, was §27 remainder): this import and Badger's
+// presence in CHARACTERS below are part of the manual character-toggle
 // scaffold (button/script/CSS further down). PRD d8 (was §31 first slice +
 // §30 D-6) discarded the dev-only gate on 2026-07-31, so this ships to the
 // public and stays until PRD d17's real figure-vs-Badger selection
 // mechanism replaces it. ponytail: shipping the manual toggle rather than
 // building that mechanism now — upgrade when d17 lands.
 import Badger from '../components/Badger.astro';
-import CityScape from '../components/CityScape.astro';
-import Moon from '../components/Moon.astro';
 import tree from '../data/dialogue.json';
 const root = tree.root;
 
-// One world, three cameras (PRD §14) — pan + uniform scale only, never a stretch.
-// This is what fixed the "three different hand-drawn mountains" bug: the world
-// (CityScape.astro) is authored once and each aspect only pans/scales the camera.
-const CAMERA = {
-  std:  'translate(0,128)',
-  wide: 'translate(280,128)',
-  tall: 'translate(-20,262) scale(0.62)',
-};
-
-// Moon and sun share the same slot per variant (PRD §30 D-1) — one position
-// source of truth instead of the hand-computed absolute coordinates each
-// variant used to carry separately.
-const CELESTIAL = {
-  std:  { cx: 930,  cy: 150 },
-  wide: { cx: 1290, cy: 150 },
-  tall: { cx: 452,  cy: 200 },
-};
-
-// Foreground placement per aspect — free to differ per view (unlike the world).
-// Standard/Wide share a camera height, so they share the figure's scale too;
-// Tall steps back. HoodedFigure's y prop is a translate origin, not the feet
-// position, so we convert: the figure's own shoe-line sits at local y=196.
-const FIG = {
-  std:  { x: 700,  y: 700 - 196 * 1.2, scale: 1.2 },
-  wide: { x: 1290, y: 700 - 196 * 1.2, scale: 1.2 },
-  tall: { x: 300,  y: 940 - 196 * 1.3, scale: 1.3 },
-};
+// PRD d12: both characters render into every variant (the CSS toggle below
+// picks between them); Scene.astro places whichever is visible.
+const CHARACTERS = [HoodedFigure, Badger];
+const CHARACTER_LABEL = 'a hooded figure on the promenade';
 ---
 <Base
   title="The Interview — Caveshen Rajman"
@@ -59,180 +35,11 @@ const FIG = {
   <div class="stage-frame">
   <div class="camera">
 
-  <!-- ============ STANDARD 1200×750 ============ -->
-  <svg class="scene scene-standard" viewBox="0 0 1200 750" preserveAspectRatio="xMidYMax slice" role="img"
-       aria-label="Cape Town's Table Mountain, Lion's Head and Signal Hill above the city bowl, by night or day, with a hooded figure on the promenade">
-    <rect class="f-sky" width="1200" height="750" />
-    <g class="bg-layer">
-    <g class="f-star night-only">
-      <circle cx="95"   cy="70"  r="1.6" opacity="0.8" />
-      <circle cx="240"  cy="120" r="1.2" opacity="0.5" />
-      <circle cx="410"  cy="55"  r="1.4" opacity="0.7" />
-      <circle cx="560"  cy="105" r="1.1" opacity="0.45" />
-      <circle cx="700"  cy="45"  r="1.5" opacity="0.75" />
-      <circle cx="1050" cy="60"  r="1.3" opacity="0.6" />
-      <circle cx="1150" cy="140" r="1.1" opacity="0.4" />
-      <circle cx="320"  cy="160" r="1.0" opacity="0.35" />
-      <circle cx="820"  cy="190" r="1.2" opacity="0.5" />
-      <circle cx="150"  cy="230" r="1.0" opacity="0.35" />
-    </g>
-    <!-- moon (night) — pale and cratered, radius locked at 46 -->
-    <g class="night-only">
-      <Moon cx={CELESTIAL.std.cx} cy={CELESTIAL.std.cy} />
-    </g>
-    <!-- sun + clouds (day) -->
-    <g class="day-only">
-      <circle class="f-cel" cx={CELESTIAL.std.cx} cy={CELESTIAL.std.cy} r="50" />
-      <rect x="120" y="140" width="150" height="22" rx="11" fill="#fff" opacity="0.85" />
-      <rect x="620" y="105" width="110" height="20" rx="10" fill="#fff" opacity="0.7" />
-    </g>
-    <CityScape camera={CAMERA.std} />
-    </g>
-    <g class="fg-layer">
-    <!-- sea -->
-    <rect class="f-sea" y="480" width="1200" height="120" />
-    <g class="f-moon night-only">
-      <rect x="900" y="502" width="60" height="3" rx="1.5" opacity="0.35" />
-      <rect x="915" y="530" width="34" height="3" rx="1.5" opacity="0.2" />
-      <rect x="908" y="556" width="44" height="3" rx="1.5" opacity="0.14" />
-    </g>
-    <!-- wave marks (PRD §20 added scope): sparse, static, sea-toned — visible day and night -->
-    <rect class="f-wave" x="70"   y="500" width="38" height="2" rx="1.5" opacity="0.16" />
-    <rect class="f-wave" x="260"  y="524" width="30" height="2" rx="1.5" opacity="0.12" />
-    <rect class="f-wave" x="430"  y="548" width="44" height="2" rx="1.5" opacity="0.14" />
-    <rect class="f-wave" x="610"  y="508" width="32" height="2" rx="1.5" opacity="0.1" />
-    <rect class="f-wave" x="760"  y="560" width="36" height="2" rx="1.5" opacity="0.13" />
-    <rect class="f-wave" x="1080" y="534" width="28" height="2" rx="1.5" opacity="0.11" />
-    <!-- the near shore — promenade the figure stands on -->
-    <rect class="f-ground" y="600" width="1200" height="150" />
-    <!-- semi-foreground railing: in front of the water, behind the figure -->
-    <g class="f-rail" stroke-linecap="round" stroke-width="7">
-      <g stroke-width="5">
-        <line x1="40" y1="590" x2="40" y2="654" /><line x1="200" y1="590" x2="200" y2="654" />
-        <line x1="360" y1="590" x2="360" y2="654" /><line x1="520" y1="590" x2="520" y2="654" />
-        <line x1="680" y1="590" x2="680" y2="654" /><line x1="840" y1="590" x2="840" y2="654" />
-        <line x1="1000" y1="590" x2="1000" y2="654" /><line x1="1160" y1="590" x2="1160" y2="654" />
-      </g>
-      <line x1="0" y1="592" x2="1200" y2="592" />
-      <line x1="0" y1="624" x2="1200" y2="624" stroke-width="4" opacity="0.8" />
-    </g>
-    <HoodedFigure x={FIG.std.x} y={FIG.std.y} scale={FIG.std.scale} />
-    <!-- INTERIM-TOGGLE (PRD d17, was §27 remainder) -->
-    <Badger x={FIG.std.x} y={FIG.std.y} scale={FIG.std.scale} />
-    </g>
-  </svg>
-
-  <!-- ============ WIDE 1750×750 (21:9) ============ -->
-  <svg class="scene scene-wide" viewBox="0 0 1750 750" preserveAspectRatio="xMidYMax slice" role="img"
-       aria-label="Cape Town skyline panorama, by night or day, with a hooded figure on the promenade">
-    <rect class="f-sky" width="1750" height="750" />
-    <g class="bg-layer">
-    <g class="f-star night-only">
-      <circle cx="95" cy="70" r="1.6" opacity="0.8" /><circle cx="340" cy="120" r="1.2" opacity="0.5" />
-      <circle cx="610" cy="55" r="1.4" opacity="0.7" /><circle cx="860" cy="105" r="1.1" opacity="0.45" />
-      <circle cx="1100" cy="45" r="1.5" opacity="0.75" /><circle cx="1450" cy="90" r="1.3" opacity="0.6" />
-      <circle cx="1650" cy="140" r="1.1" opacity="0.4" /><circle cx="520" cy="160" r="1.0" opacity="0.35" />
-      <circle cx="1180" cy="200" r="1.4" opacity="0.7" /><circle cx="240" cy="230" r="1.1" opacity="0.45" />
-      <circle cx="1560" cy="55" r="1.3" opacity="0.6" /><circle cx="760" cy="190" r="1.0" opacity="0.35" />
-    </g>
-    <g class="night-only">
-      <Moon cx={CELESTIAL.wide.cx} cy={CELESTIAL.wide.cy} />
-    </g>
-    <g class="day-only">
-      <circle class="f-cel" cx={CELESTIAL.wide.cx} cy={CELESTIAL.wide.cy} r="50" />
-      <rect x="250" y="140" width="150" height="22" rx="11" fill="#fff" opacity="0.85" />
-      <rect x="900" y="105" width="110" height="20" rx="10" fill="#fff" opacity="0.7" />
-      <rect x="1480" y="185" width="130" height="20" rx="10" fill="#fff" opacity="0.75" />
-    </g>
-    <CityScape camera={CAMERA.wide} />
-    </g>
-    <g class="fg-layer">
-    <!-- foreground: same camera height as Standard, so sea/promenade/rail share y -->
-    <rect class="f-sea" y="480" width="1750" height="120" />
-    <g class="f-moon night-only">
-      <rect x="1290" y="502" width="60" height="3" rx="1.5" opacity="0.35" />
-      <rect x="1305" y="530" width="34" height="3" rx="1.5" opacity="0.2" />
-      <rect x="1298" y="556" width="44" height="3" rx="1.5" opacity="0.14" />
-    </g>
-    <!-- wave marks (PRD §20 added scope): sparse, static, sea-toned — visible day and night -->
-    <rect class="f-wave" x="90"   y="502" width="42" height="2" rx="1.5" opacity="0.15" />
-    <rect class="f-wave" x="340"  y="530" width="30" height="2" rx="1.5" opacity="0.11" />
-    <rect class="f-wave" x="610"  y="550" width="46" height="2" rx="1.5" opacity="0.14" />
-    <rect class="f-wave" x="830"  y="508" width="34" height="2" rx="1.5" opacity="0.1" />
-    <rect class="f-wave" x="1080" y="560" width="38" height="2" rx="1.5" opacity="0.13" />
-    <rect class="f-wave" x="1480" y="534" width="30" height="2" rx="1.5" opacity="0.12" />
-    <rect class="f-ground" y="600" width="1750" height="150" />
-    <g class="f-rail" stroke-linecap="round" stroke-width="7">
-      <g stroke-width="5">
-        <line x1="40" y1="590" x2="40" y2="654" /><line x1="200" y1="590" x2="200" y2="654" />
-        <line x1="360" y1="590" x2="360" y2="654" /><line x1="520" y1="590" x2="520" y2="654" />
-        <line x1="680" y1="590" x2="680" y2="654" /><line x1="840" y1="590" x2="840" y2="654" />
-        <line x1="1000" y1="590" x2="1000" y2="654" /><line x1="1160" y1="590" x2="1160" y2="654" />
-        <line x1="1320" y1="590" x2="1320" y2="654" /><line x1="1480" y1="590" x2="1480" y2="654" />
-        <line x1="1640" y1="590" x2="1640" y2="654" />
-      </g>
-      <line x1="0" y1="592" x2="1750" y2="592" />
-      <line x1="0" y1="624" x2="1750" y2="624" stroke-width="4" opacity="0.8" />
-    </g>
-    <HoodedFigure x={FIG.wide.x} y={FIG.wide.y} scale={FIG.wide.scale} />
-    <!-- INTERIM-TOGGLE (PRD d17, was §27 remainder) -->
-    <Badger x={FIG.wide.x} y={FIG.wide.y} scale={FIG.wide.scale} />
-    </g>
-  </svg>
-
-  <!-- ============ TALL 600×1067 (portrait / mobile) ============ -->
-  <svg class="scene scene-tall" viewBox="0 0 600 1067" preserveAspectRatio="xMidYMax slice" role="img"
-       aria-label="Cape Town skyline in portrait, by night or day, with a hooded figure on the promenade">
-    <rect class="f-sky" width="600" height="1067" />
-    <g class="bg-layer">
-    <g class="f-star night-only">
-      <circle cx="60" cy="80" r="1.6" opacity="0.8" /><circle cx="170" cy="150" r="1.2" opacity="0.5" />
-      <circle cx="280" cy="60" r="1.4" opacity="0.7" /><circle cx="90" cy="260" r="1.1" opacity="0.45" />
-      <circle cx="350" cy="200" r="1.5" opacity="0.75" /><circle cx="520" cy="270" r="1.3" opacity="0.6" />
-      <circle cx="240" cy="320" r="1.1" opacity="0.4" /><circle cx="460" cy="330" r="1.0" opacity="0.35" />
-      <circle cx="140" cy="380" r="1.2" opacity="0.5" /><circle cx="560" cy="90" r="1.4" opacity="0.65" />
-    </g>
-    <g class="night-only">
-      <Moon cx={CELESTIAL.tall.cx} cy={CELESTIAL.tall.cy} />
-    </g>
-    <g class="day-only">
-      <circle class="f-cel" cx={CELESTIAL.tall.cx} cy={CELESTIAL.tall.cy} r="50" />
-      <rect x="60" y="270" width="130" height="20" rx="10" fill="#fff" opacity="0.85" />
-      <rect x="300" y="360" width="100" height="18" rx="9" fill="#fff" opacity="0.7" />
-    </g>
-    <CityScape camera={CAMERA.tall} />
-    </g>
-    <g class="fg-layer">
-    <!-- portrait carries the extra height as water: further back, more of the bay in view -->
-    <rect class="f-sea" y="480" width="600" height="220" />
-    <g class="f-moon night-only">
-      <rect x="420" y="510" width="56" height="3" rx="1.5" opacity="0.35" />
-      <rect x="434" y="548" width="32" height="3" rx="1.5" opacity="0.2" />
-      <rect x="426" y="586" width="44" height="3" rx="1.5" opacity="0.14" />
-    </g>
-    <!-- wave marks (PRD §20 added scope): sparse, static, sea-toned — visible day and night;
-         portrait carries more sea (h=220), so marks scatter across the extra height too -->
-    <rect class="f-wave" x="40"  y="500" width="30" height="2" rx="1.5" opacity="0.15" />
-    <rect class="f-wave" x="150" y="560" width="26" height="2" rx="1.5" opacity="0.11" />
-    <rect class="f-wave" x="90"  y="620" width="34" height="2" rx="1.5" opacity="0.13" />
-    <rect class="f-wave" x="260" y="500" width="24" height="2" rx="1.5" opacity="0.1" />
-    <rect class="f-wave" x="320" y="650" width="30" height="2" rx="1.5" opacity="0.14" />
-    <rect class="f-wave" x="180" y="680" width="22" height="2" rx="1.5" opacity="0.09" />
-    <rect class="f-ground" y="700" width="600" height="367" />
-    <g class="f-rail" stroke-linecap="round" stroke-width="7">
-      <g stroke-width="5">
-        <line x1="30" y1="690" x2="30" y2="756" /><line x1="150" y1="690" x2="150" y2="756" />
-        <line x1="270" y1="690" x2="270" y2="756" /><line x1="390" y1="690" x2="390" y2="756" />
-        <line x1="510" y1="690" x2="510" y2="756" />
-      </g>
-      <line x1="0" y1="692" x2="600" y2="692" />
-      <line x1="0" y1="726" x2="600" y2="726" stroke-width="4" opacity="0.8" />
-    </g>
-    <HoodedFigure x={FIG.tall.x} y={FIG.tall.y} scale={FIG.tall.scale} />
-    <!-- INTERIM-TOGGLE (PRD d17, was §27 remainder) -->
-    <Badger x={FIG.tall.x} y={FIG.tall.y} scale={FIG.tall.scale} />
-    </g>
-  </svg>
+  <!-- PRD d12: scene markup lives once in Scene.astro; only variant + the
+       character(s) differ per call. -->
+  <Scene variant="standard" characters={CHARACTERS} characterLabel={CHARACTER_LABEL} />
+  <Scene variant="wide" characters={CHARACTERS} characterLabel={CHARACTER_LABEL} />
+  <Scene variant="tall" characters={CHARACTERS} characterLabel={CHARACTER_LABEL} />
 
   </div><!-- /.camera -->
 
@@ -398,25 +205,6 @@ const FIG = {
   }
   @media (prefers-reduced-motion: reduce) {
     .camera { transition: none; }
-  }
-
-  /* Aspect-ratio scene switching: standard is default; wide/tall take over at
-     the extremes (§14's width cut-offs — unchanged by §17.2). The stage-frame
-     itself no longer has a per-variant aspect-ratio/max-width to set here: it
-     is always 100% of the viewport (see .stage-frame above), and each scene's
-     own preserveAspectRatio="xMidYMax slice" crops to fit whatever box that
-     is. */
-  /* .scene base sizing + fill/stroke crossfade now live in tokens.css
-     (PRD d1, was §30 D-4 — shared with /404). Only the variant-switching
-     stays here, since only / has more than one camera. */
-  .scene-wide, .scene-tall { display: none; }
-  @media (min-aspect-ratio: 15/8) {
-    .scene-standard { display: none; }
-    .scene-wide { display: block; }
-  }
-  @media (max-aspect-ratio: 4/5) {
-    .scene-standard { display: none; }
-    .scene-tall { display: block; }
   }
 
   /* ── P4: wind — ambient motes drifting on the breeze ───────────────────────── */

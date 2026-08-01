@@ -1,0 +1,79 @@
+---
+import Base from '../layouts/Base.astro';
+import ThemeToggle from '../components/ThemeToggle.astro';
+---
+<Base
+  title="404 — Caveshen Rajman"
+  description="PLACEHOLDER — Page not found. Caveshen Rajman's portfolio."
+>
+  <ThemeToggle />
+
+  <main class="not-found-card">
+    <p class="not-found-code">404</p>
+    <p class="not-found-flavour">PLACEHOLDER — flavour line goes here. Something thematic about a wrong door, a misread map, a dialogue branch that loops back to the start.</p>
+    <a href="/" class="not-found-home">← Back to the interview</a>
+  </main>
+</Base>
+
+<style is:global>
+  /* ponytail: minimal 404 layout — same card language as / and /sheet */
+  .not-found-card {
+    max-width: 520px;
+    margin: 6rem auto 0;
+    padding: 2.5rem 2rem;
+    background: var(--card);
+    border: 1px solid var(--card-edge);
+    border-radius: 18px;
+    box-shadow: var(--card-shadow);
+    text-align: center;
+    transition: background 0.4s ease, border-color 0.4s ease;
+  }
+
+  .not-found-code {
+    font-family: var(--mono);
+    font-size: 4rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--option);
+    margin-bottom: 1rem;
+  }
+
+  .not-found-flavour {
+    font-family: var(--serif);
+    font-size: 1rem;
+    color: var(--text);
+    margin-bottom: 2rem;
+    line-height: 1.6;
+  }
+
+  .not-found-home {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    letter-spacing: 0.06em;
+    color: var(--option);
+    text-decoration: none;
+    border: 1.5px solid var(--option-border);
+    border-radius: 999px;
+    padding: 0.55rem 1.2rem;
+    transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+  }
+
+  .not-found-home:hover, .not-found-home:focus-visible {
+    color: var(--btn-hover-text);
+    border-color: var(--btn-hover-border);
+    background: var(--btn-hover-bg, transparent);
+  }
+
+  .not-found-home:focus-visible {
+    outline: 2px solid var(--btn-hover-border);
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 560px) {
+    .not-found-card { margin: 3rem 1rem 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .not-found-card, .not-found-home { transition: none; }
+  }
+</style>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Night background (#14121f) — matches --bg token -->
+  <rect width="32" height="32" rx="6" fill="#14121f"/>
+  <!-- Moon circle (#ffd75e) — matches --celestial token from the night scene -->
+  <!-- ponytail: always the night mark — no dark-mode variant needed -->
+  <circle cx="16" cy="16" r="11" fill="#ffd75e"/>
+  <!-- Crater details (#e6b944) — same shadow tone as the scene's moon craters -->
+  <circle cx="12" cy="13" r="2.2" fill="#e6b944"/>
+  <circle cx="18.5" cy="18" r="1.6" fill="#e6b944"/>
+</svg>

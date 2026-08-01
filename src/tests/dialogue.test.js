@@ -123,7 +123,7 @@ describe('engine DOM rendering', () => {
 
   it('renders root speech and options', () => {
     mkEngine()('root', true);
-    expect(speechEl.textContent).toContain('PLACEHOLDER');
+    expect(speechEl.textContent.trim().length).toBeGreaterThan(0);
     expect(choicesEl.querySelectorAll('button').length).toBeGreaterThanOrEqual(1);
   });
 
@@ -134,7 +134,7 @@ describe('engine DOM rendering', () => {
       .find(b => !b.classList.contains('system'));
     expect(experienceBtn).toBeDefined();
     experienceBtn.click();
-    expect(speechEl.textContent).toContain('PLACEHOLDER');
+    expect(speechEl.textContent.trim().length).toBeGreaterThan(0);
     expect(speechEl.textContent).not.toBe(rootSpeech);
     // After navigating to experience, there should be exactly one "ask something else" button
     expect(choicesEl.querySelectorAll('button').length).toBe(1);

@@ -49,9 +49,9 @@ describe('favicon.svg', () => {
     expect(content.toLowerCase()).toContain('ffd75e');
   });
 
-  it('contains the night background colour (#14121f)', () => {
+  it('contains the night background colour (#0f1826)', () => {
     const content = readFileSync(join(root, 'public/favicon.svg'), 'utf8');
-    expect(content.toLowerCase()).toContain('14121f');
+    expect(content.toLowerCase()).toContain('0f1826');
   });
 });
 
@@ -63,13 +63,45 @@ describe('404 page', () => {
   });
 
   it('404.astro links back to / (home)', () => {
-    const source = readFileSync(join(root, 'src/pages/404.astro'), 'utf8');
-    expect(source).toContain('href="/"');
+    // PRD d1 (was §30 D-4): the home link lives in NotFound.astro's noscript fallback.
+    const notFound = readFileSync(join(root, 'src/components/NotFound.astro'), 'utf8');
+    expect(notFound).toContain('href="/"');
   });
 
-  it('404.astro has PLACEHOLDER flavour line', () => {
-    const source = readFileSync(join(root, 'src/pages/404.astro'), 'utf8');
-    expect(source).toContain('PLACEHOLDER');
+  it('dialogue-404.json root node has a non-empty speech line and at least one option', () => {
+    // The flavour copy moved out of 404.astro into its own dialogue tree.
+    const tree = JSON.parse(readFileSync(join(root, 'src/data/dialogue-404.json'), 'utf8'));
+    expect(tree.root.speech.trim().length).toBeGreaterThan(0);
+    expect(tree.root.options.length).toBeGreaterThanOrEqual(1);
+  });
+});
+
+// ── §29 Badger two-frame idle ─────────────────────────────────────────────────
+
+describe('badger idle frames', () => {
+  it('badger-up.png exists', () => {
+    expect(existsSync(join(root, 'public/badger-up.png'))).toBe(true);
+  });
+
+  it('badger-down.png exists', () => {
+    expect(existsSync(join(root, 'public/badger-down.png'))).toBe(true);
+  });
+
+  it('Badger.astro references /badger-up.png', () => {
+    const src = readFileSync(join(root, 'src/components/Badger.astro'), 'utf8');
+    expect(src).toContain('/badger-up.png');
+  });
+
+  it('Badger.astro references /badger-down.png', () => {
+    const src = readFileSync(join(root, 'src/components/Badger.astro'), 'utf8');
+    expect(src).toContain('/badger-down.png');
+  });
+
+  it('Badger.astro has prefers-reduced-motion rule holding the up frame', () => {
+    const src = readFileSync(join(root, 'src/components/Badger.astro'), 'utf8');
+    expect(src).toContain('prefers-reduced-motion: reduce');
+    // down frame must be zeroed out under reduced motion
+    expect(src).toMatch(/prefers-reduced-motion[\s\S]*\.badger-down[\s\S]*opacity:\s*0/);
   });
 });
 

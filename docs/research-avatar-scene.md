@@ -328,6 +328,11 @@ These are ordered by fitness to the repo's specific constraints: static Astro, e
 
 ### #1 — Separate SVG avatar + CSS transform zoom (Effort: M, Risk: Low)
 
+> **2026-07-26 note:** What shipped is `#2` below, not this option — `HoodedFigure.astro` is
+> rendered as a `<g>` inside each of the three scene SVGs (see `src/pages/index.astro`), not as
+> an isolated standalone avatar. This entry is preserved as a record of the reasoning at the
+> time, not as current guidance.
+
 **Architecture:** Avatar is a standalone `<svg>` absolutely positioned over the scene via CSS, using the existing `.card` overlap pattern as a template. On click, the `main.card` disappears (opacity fade) and a full-screen avatar overlay scales into view using `transform: scale()` on a container.
 
 **Why this ranks first:**

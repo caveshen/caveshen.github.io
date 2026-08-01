@@ -3,16 +3,19 @@ import { test, expect } from '@playwright/test';
 
 // ── 404 page ──────────────────────────────────────────────────────────────────
 
-test('404 page: navigating to unknown route returns a page with home link', async ({ page }) => {
+test('404 page: navigating to unknown route returns a page with a way home', async ({ page }) => {
   await page.goto('/this-does-not-exist', { waitUntil: 'domcontentloaded' });
   // The page should exist (GitHub Pages / Astro serves 404.html)
-  await expect(page.locator('a[href="/"]')).toBeVisible();
+  // PRD d1 (was §30 D-4): the way home is a dialogue system option (a button that
+  // navigates via isPath()), not a plain anchor — the anchor only exists in
+  // the no-JS noscript fallback (see the JS-disabled test below).
+  await expect(page.locator('.choices button.system')).toBeVisible();
 });
 
-test('404 page: has PLACEHOLDER flavour text (not a blank error)', async ({ page }) => {
+test('404 page: speech element has non-empty flavour text (not a blank error)', async ({ page }) => {
   await page.goto('/this-does-not-exist', { waitUntil: 'domcontentloaded' });
-  const body = await page.textContent('body');
-  expect(body).toContain('PLACEHOLDER');
+  const speech = ((await page.textContent('.speech')) ?? '').trim();
+  expect(speech.length).toBeGreaterThan(0);
 });
 
 test('404 page: readable with JS disabled', async ({ browser }) => {

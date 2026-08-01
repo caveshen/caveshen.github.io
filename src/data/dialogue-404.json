@@ -1,0 +1,23 @@
+{
+  "root": {
+    "stage": "PLACEHOLDER — stage direction: this door isn't in the script. That's the 404, told as narration rather than something Caveshen says.",
+    "speech": "PLACEHOLDER — Caveshen's in-character reaction to a visitor finding a door that hasn't been written yet.",
+    "options": [
+      { "label": "PLACEHOLDER: Ask what was supposed to be through here", "to": "curious" },
+      { "label": "PLACEHOLDER: Leave the way you came", "to": "/", "kind": "system" }
+    ]
+  },
+  "curious": {
+    "speech": "PLACEHOLDER — a second line, going a little further into the joke before the visitor is shown out.",
+    "options": [
+      { "label": "PLACEHOLDER: Keep pushing on the door", "to": "pushing" },
+      { "label": "PLACEHOLDER: Back to the start", "to": "root", "kind": "system" }
+    ]
+  },
+  "pushing": {
+    "speech": "PLACEHOLDER — the deepest node: the door still doesn't open, because there is genuinely nothing behind it yet.",
+    "options": [
+      { "label": "PLACEHOLDER: Leave the way you came", "to": "/", "kind": "system" }
+    ]
+  }
+}

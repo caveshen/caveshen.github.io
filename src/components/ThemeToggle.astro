@@ -26,6 +26,11 @@
     position: absolute;
     top: 1rem;
     right: 1rem;
+    /* PRD §17.2 RULED 2026-07-23: .stage-frame is now full-bleed (spans the
+       whole viewport) rather than capped/inset, so its later DOM position
+       would otherwise paint its background over this earlier sibling. z-index
+       lifts the toggle above it; see the matching note on .page-foot. */
+    z-index: 1;
     font-family: var(--mono);
     font-size: 0.78rem;
     letter-spacing: 0.08em;

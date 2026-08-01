@@ -5,12 +5,16 @@ export interface Props {
   title?: string;
   description?: string;
   ogImage?: string;
+  bodyClass?: string;
+  noindex?: boolean;
 }
 
 const {
   title = "Caveshen Rajman",
   description = "PLACEHOLDER — Caveshen Rajman's portfolio.",
   ogImage = "/og-image.png",
+  bodyClass = "",
+  noindex = false,
 } = Astro.props;
 
 const canonicalURL = Astro.url.toString();
@@ -27,6 +31,7 @@ const ogImageURL = new URL(ogImage, Astro.site).toString();
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
     <link rel="canonical" href={canonicalURL} />
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
@@ -48,7 +53,7 @@ const ogImageURL = new URL(ogImage, Astro.site).toString();
       })();
     </script>
   </head>
-  <body>
+  <body class={bodyClass}>
     <slot />
   </body>
 </html>
@@ -62,5 +67,13 @@ const ogImageURL = new URL(ogImage, Astro.site).toString();
     font-family: var(--serif);
     transition: var(--theme-transition);
     min-height: 100vh;
+    /* PRD §17.1: without this, .stage-frame's own top margin collapses
+       through body (its first in-flow child, since the toggle button is
+       position:absolute), pushing body's whole box 1rem below the viewport
+       and, combined with min-height:100vh, causing a page-height overflow
+       that has nothing to do with actual content. flow-root establishes a
+       new block-formatting context so the margin stays inside body instead.
+       No visible effect at any breakpoint — verified by measurement. */
+    display: flow-root;
   }
 </style>

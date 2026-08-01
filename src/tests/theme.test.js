@@ -86,14 +86,18 @@ function contrast(fg, bg) {
 // Values come from the parsed tokens — a token change is automatically re-checked.
 describe('WCAG AA contrast (≥ 4.5:1)', () => {
   it.each([
-    ['night text',   nightTokens['--text'],   nightTokens['--card']],
-    ['night option', nightTokens['--option'], nightTokens['--card']],
-    ['night stage',  nightTokens['--stage'],  nightTokens['--card']],
-    ['night dim',    nightTokens['--dim'],    nightTokens['--card']],
-    ['day text',     dayTokens['--text'],     dayTokens['--card']],
-    ['day option',   dayTokens['--option'],   dayTokens['--card']],
-    ['day stage',    dayTokens['--stage'],    dayTokens['--card']],
-    ['day dim',      dayTokens['--dim'],      dayTokens['--card']],
+    ['night text',       nightTokens['--text'],   nightTokens['--card']],
+    ['night option/card',nightTokens['--option'], nightTokens['--card']],
+    ['night option/bg',  nightTokens['--option'], nightTokens['--bg']],
+    ['night stage',      nightTokens['--stage'],  nightTokens['--card']],
+    ['night dim/card',   nightTokens['--dim'],    nightTokens['--card']],
+    ['night dim/bg',     nightTokens['--dim'],    nightTokens['--bg']],
+    ['day text',         dayTokens['--text'],     dayTokens['--card']],
+    ['day option/card',  dayTokens['--option'],   dayTokens['--card']],
+    ['day option/bg',    dayTokens['--option'],   dayTokens['--bg']],
+    ['day stage',        dayTokens['--stage'],    dayTokens['--card']],
+    ['day dim/card',     dayTokens['--dim'],      dayTokens['--card']],
+    ['day dim/bg',       dayTokens['--dim'],      dayTokens['--bg']],
   ])('%s: %s on %s', (_name, fg, bg) => {
     expect(fg, 'token value missing').toBeTruthy();
     expect(bg, 'token value missing').toBeTruthy();

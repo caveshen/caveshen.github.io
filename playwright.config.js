@@ -24,8 +24,7 @@ export default defineConfig({
     { name: 'iphone-15pro', use: { ...devices['iPhone 15 Pro'], browserName: 'webkit' } },
     { name: 'ipad',         use: { ...devices['iPad (gen 7)'],  browserName: 'webkit' } },
     // Pixel 8: Chromium emulation (faithful to Android). ch = msedge locally, bundled chromium in CI.
-    // ponytail: Pixel 7 ≈ Pixel 8 form factor; update when PW adds a Pixel 8 descriptor
-    { name: 'pixel-8',      use: { ...devices['Pixel 7'],       ...ch } },
+    { name: 'pixel-8',      use: { ...devices['Pixel 8'],       ...ch } },
     { name: 'desktop-1366', use: { viewport: { width: 1366, height: 768  }, ...ch } },
     { name: 'desktop-1920', use: { viewport: { width: 1920, height: 1080 }, ...ch } },
     { name: 'desktop-2560', use: { viewport: { width: 2560, height: 1440 }, ...ch } },

@@ -1,15 +1,15 @@
 /* Design tokens — PRD §3. Night is default; day overrides on data-time="day". */
 :root {
-  --bg:          #14121f;
-  --sky:         #14121f;
-  --mountain:    #262138;
-  --mountain-far:#3a3457;
-  --sea:         #223240;
+  --bg:          #0f1826;
+  --sky:         #0f1826;
+  --mountain:    #1c2a44;
+  --mountain-far:#2e4066;
+  --sea:         #1b2c3c;
   --celestial:   #ffd75e;
-  --card:        #1e1a2e;
+  --card:        #121a2e;
   --text:        #e9e2cf;
   --stage:       #7d95a0;
-  --option:      #a48fd8;
+  --option:      #8fb4d8;
 
   --serif: Georgia, "Times New Roman", serif;
   --mono:  "Cascadia Code", ui-monospace, Consolas, monospace;
@@ -17,17 +17,17 @@
   --theme-transition: background-color 0.4s ease, color 0.4s ease;
 
   /* Extended tokens — shared via tokens.css; some consumed only by / */
-  --card-edge:        #2e2946;
+  --card-edge:        #26324c;
   --card-shadow:      0 16px 40px rgba(0, 0, 0, 0.45);
-  --dim:              #9b93b8; /* night: WCAG AA ≥4.5:1 on both --card and --bg */
-  --option-border:    rgba(164, 143, 216, 0.35);
+  --dim:              #9aabc6; /* night: WCAG AA ≥4.5:1 on both --card and --bg */
+  --option-border:    rgba(143, 180, 216, 0.35);
   --btn-hover-bg:     transparent;
   --btn-hover-border: #ffd75e;
   --btn-hover-text:   #ffd75e;
   --chip-bg:          #ffd75e;
-  --chip-text:        #14121f;
-  --avatar-ring:      #a48fd8;
-  --hair:             #14121f;
+  --chip-text:        #0f1826;
+  --avatar-ring:      #8fb4d8;
+  --hair:             #0f1826;
 
   /* Sheet panel surface: AMOLED ink-wash — dark blue sinking into black */
   --panel-grad:       linear-gradient(180deg, #121a2e 0%, #0a0e1a 100%);
@@ -35,40 +35,113 @@
   --sheet-bg:         radial-gradient(900px 520px at 82% -6%, rgba(44, 82, 158, 0.26), transparent 65%),
                       radial-gradient(760px 480px at 6% 34%, rgba(36, 64, 128, 0.15), transparent 60%),
                       #07090f;
+
+  /* P4 restage: pale/cratered moon (locked, not the warm disc — a pale sun is
+     wrong so the sun stays --celestial), standing-parapet rail, near-shore ground,
+     ambient wind motes. */
+  --moon:   #e7e3cf;
+  --crater: #cbc6ae;
+  --rail:   #2c3850;
+  --ground: #0e0d16;
+  --mote:      #d8c9a0;
+  --mote-op:   .30;
+
+  /* §20 added scope: sea foam — a lighter tint of --sea, kept distinct from
+     the pale/cream --moon so wave marks read as sea, not moon reflection. */
+  --wave: #3c5a6e;
 }
 
 :root[data-time="day"] {
-  --bg:          #e9f0ee;
-  --sky:         #cfe6e3;
-  --mountain:    #46615c;
-  --mountain-far:#6f938d;
-  --sea:         #7fb5b0;
+  --bg:          #e7f0f5;
+  --sky:         #cfe0f0;
+  --mountain:    #5a6f88;
+  --mountain-far:#8ba3bd;
+  --sea:         #86b8d0;
   --celestial:   #f2b544;
   --card:        #fdfbf5;
   --text:        #253038;
   --stage:       #5d7470;
-  --option:      #4d3f80;
+  --option:      #3f5f88;
 
   --card-edge:        rgba(37, 48, 56, 0.12);
   --card-shadow:      0 12px 32px rgba(37, 48, 56, 0.18);
-  --dim:              #4d6260; /* day: WCAG AA ≥4.5:1 on both --card and --bg */
-  --option-border:    rgba(77, 63, 128, 0.35);
+  --dim:              #4a5f7a; /* day: WCAG AA ≥4.5:1 on both --card and --bg */
+  --option-border:    rgba(63, 95, 136, 0.35);
   --btn-hover-bg:     #f2b544;
   --btn-hover-border: #f2b544;
   --btn-hover-text:   #253038;
   --chip-bg:          #f2b544;
   --chip-text:        #253038;
-  --avatar-ring:      #7fb5b0;
+  --avatar-ring:      #86b8d0;
   --hair:             #253038;
 
   /* Sheet panel surface: parchment wash — cream warming at the base */
   --panel-grad:       linear-gradient(180deg, #fdfbf5 0%, #f4eee0 100%);
   /* Sheet page background: pale daytime-sky blue, mirroring the day scene */
   --sheet-bg:         linear-gradient(180deg, #d7e9f4 0%, #e7f0f5 100%);
+
+  /* Moon stays pale in both themes (it's hidden by day anyway); rail/ground/mote
+     lighten for the day sky. */
+  --moon:   #e7e3cf;
+  --crater: #cbc6ae;
+  --rail:   #7b93ac;
+  --ground: #33403c;
+  --mote:      #5f7068;
+  --mote-op:   .28;
+  --wave:      #a8d4cf;
 }
 
 @media (prefers-reduced-motion: reduce) {
   :root {
     --theme-transition: none;
   }
+}
+
+/* ── Scene fill/stroke utility classes (P4) ────────────────────────────────
+   var() does NOT resolve inside SVG presentation attributes (fill="var(--x)"
+   silently fails on some engines) — themeable SVG fills are driven by these
+   classes instead. Shared by index.astro's scene SVGs and CityScape.astro. */
+.f-sky   { fill: var(--sky); }
+.f-star  { fill: var(--text); }
+.f-cel   { fill: var(--celestial); }
+.f-far   { fill: var(--mountain-far); }
+.f-near  { fill: var(--mountain); }
+.f-sea   { fill: var(--sea); }
+.f-ground{ fill: var(--ground); }
+.f-rail  { stroke: var(--rail); }
+.f-moon  { fill: var(--moon); }
+.f-crater{ fill: var(--crater); }
+.f-wave  { fill: var(--wave); }
+
+/* ── Scene layout + day/night visibility (PRD d1, was §30 D-4) ─────────────
+   Shared by every page that renders a `.scene` SVG (currently / and /404):
+   base sizing, the fill/stroke theme crossfade, and the data-time switch for
+   .night-only/.day-only groups. Per-variant sizing (.scene-standard/-wide/
+   -tall) and the aspect-ratio media queries that pick between them are
+   index.astro-specific (only / has more than one camera) and stay there. */
+.scene { display: block; width: 100%; height: 100%; }
+.scene rect, .scene polygon, .scene circle, .scene line, .scene path {
+  transition: fill 0.4s ease, stroke 0.4s ease;
+}
+:root[data-time="day"] .night-only     { display: none; }
+:root:not([data-time="day"]) .day-only { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .scene rect, .scene polygon, .scene circle, .scene line, .scene path { transition: none; }
+}
+
+/* ── City lights: a low glimmer, night only ────────────────────────────────
+   --o holds each window's own base opacity (emitted inline by CityScape.astro
+   at build time so this stays CSS-only and works with JS disabled); the
+   animation only ever dips below it. */
+.f-cel.night-only rect {
+  animation: glimmer var(--t, 7s) ease-in-out infinite alternate;
+  animation-delay: var(--d, 0s);
+}
+@keyframes glimmer {
+  from { opacity: var(--o, .7); }
+  to   { opacity: calc(var(--o, .7) * .45); }
+}
+:root[data-time="day"] .f-cel.night-only rect { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .f-cel.night-only rect { animation: none; }
 }

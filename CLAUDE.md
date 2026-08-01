@@ -1,22 +1,65 @@
-## Development
+# CLAUDE.md — operational notes for this repository
 
-When starting the dev server, use background mode:
+`docs/PRD.md` is the source of truth: vision, decisions, defects, and the work queue. 
+Read it before starting; update it as part of the work, not after.
+Note: Do not use it for tracking code changes, rather rely on the git history. 
 
+## Standing rules
+
+- **Branch per accepted PRD item** (`item/<slug>`): reviewer pass → commits on branch →
+  local preview → Caveshen's approval → regular merge to main = deploy. 
+- **One item at a time.** Don't one-shot the backlog — queue items in the PRD and pick
+  up a single one on his explicit go.
+- **Caveshen owns all prose.** Site copy, dialogue trees, and CV wording are his. Provide
+  structure, samples, and clearly-marked `PLACEHOLDER` text only.
+- **No generated art.** Vectors and programmatic drawing only. Reference images are
+  inspiration — never trace, ship, or commit them.
+- **No PII.** `cv.pdf` strips phone and email; contact is LinkedIn + the site itself.
+  Verify with `pdftotext` after any CV re-render.
+- **Always follow TDD principles**: Vitest units + Playwright e2e across the device matrix. The suite gates CI deploy.
+- **Never name a test file after a tracker ID.** Name it for what it tests. IDs get
+  renumbered — that happened on 2026-07-27, leaving a file named for one item while a
+  different item had taken that number. Subjects do not move. Current test files follow this:
+  `not-found`, `card-flash`, `banner-plane`, `badger`, `badger-idle`, `approach`,
+  `hygiene`, `interview`, `sheet`, `camera`, `dialogue`, `theme`. Renames should use
+  `git mv` so blame survives.
+
+## Commands
+
+```sh
+npm test            # Vitest units
+npm run test:e2e    # Playwright, multi-engine device matrix
+npm run build       # astro build
 ```
-astro dev --background
-```
 
-Manage the background server with `astro dev stop`, `astro dev status`, and `astro dev logs`.
+## Gotchas that will bite you
 
-## Documentation
-
-Full documentation: https://docs.astro.build
-
-Consult these guides before working on related tasks:
-
-- [Adding pages, dynamic routes, or middleware](https://docs.astro.build/en/guides/routing/)
-- [Working with Astro components](https://docs.astro.build/en/basics/astro-components/)
-- [Using React, Vue, Svelte, or other framework components](https://docs.astro.build/en/guides/framework-components/)
-- [Adding or managing content](https://docs.astro.build/en/guides/content-collections/)
-- [Adding styles or using Tailwind](https://docs.astro.build/en/guides/styling/)
-- [Supporting multiple languages](https://docs.astro.build/en/guides/internationalization/)
+- **Never spawn `astro dev` as a server.** Astro 7 daemonises when stdin isn't a TTY —
+  the parent exits and Playwright aborts with "exited early". Tests use
+  `build && preview` (see the comment in `playwright.config.js`). Clear strays with
+  `npx astro dev stop`.
+- **Assert SVG invariants in screen space.** `getBBox()` returns local geometry and
+  ignores the element's own transform *and* every ancestor transform — a shape test
+  written against it passes under any camera stretch. Use
+  `getBoundingClientRect()`, and prove the test fails before trusting it.
+- **A regression test nobody has watched fail is untested.** Inject the defect, see red,
+  then keep the test.
+- **Eyeball the render.** Every composition defect on this project so far — figure
+  occlusion, cropped skyline, a figure with no arms — passed a green suite and was found
+  by looking at a screenshot. Geometry and overlap assertions are the intended fix; 
+  golden-image baselines are ruled out.
+- Screenshot recipe: write a `.mjs` into the repo root (so `node_modules` resolves),
+  `playwright-core` with `channel: 'msedge'`, delete it afterwards.
+- **e2e port conflict.** `playwright.config.js` sets `reuseExistingServer: false` and its
+  `webServer` wants port 4321 — if an `astro dev` server is already squatting there, the
+  whole matrix fails to start. Three separate agents rediscovered this the same day.
+  Workaround: copy `playwright.config.js` to a temp config **at the repo root** (outside
+  the repo it can't resolve `@playwright/test`), changing only `baseURL` and the
+  `webServer` command/url to port 4322 (`npm run build && npx astro preview --port 4322`),
+  run with `--config`, then delete the temp config — strays have been left behind more
+  than once.
+- **`var()` does not resolve in SVG presentation attributes.** `fill="var(--token)"` as a
+  presentation attribute is unreliable and has already caused a bug. Every fill in the
+  current scene is applied via a CSS class instead (`f-sky`, `f-near`, `f-far`, `f-sea`,
+  `f-moon`, `f-crater`, `f-cel`, `f-wave`, `f-ground`, `f-rail`, `f-star`), defined in
+  `src/styles/tokens.css`.

@@ -1,8 +1,48 @@
 ---
 import Base from '../layouts/Base.astro';
 import ThemeToggle from '../components/ThemeToggle.astro';
+import HoodedFigure from '../components/HoodedFigure.astro';
+import Avatar from '../components/Avatar.astro';
+// INTERIM-TOGGLE (PRD d17, was §27 remainder): this import and every
+// <Badger .../> render call below are part of the manual character-toggle
+// scaffold (button/script/CSS further down). PRD d8 (was §31 first slice +
+// §30 D-6) discarded the dev-only gate on 2026-07-31, so this ships to the
+// public and stays until PRD d17's real figure-vs-Badger selection
+// mechanism replaces it. ponytail: shipping the manual toggle rather than
+// building that mechanism now — upgrade when d17 lands.
+import Badger from '../components/Badger.astro';
+import CityScape from '../components/CityScape.astro';
+import Moon from '../components/Moon.astro';
 import tree from '../data/dialogue.json';
 const root = tree.root;
+
+// One world, three cameras (PRD §14) — pan + uniform scale only, never a stretch.
+// This is what fixed the "three different hand-drawn mountains" bug: the world
+// (CityScape.astro) is authored once and each aspect only pans/scales the camera.
+const CAMERA = {
+  std:  'translate(0,128)',
+  wide: 'translate(280,128)',
+  tall: 'translate(-20,262) scale(0.62)',
+};
+
+// Moon and sun share the same slot per variant (PRD §30 D-1) — one position
+// source of truth instead of the hand-computed absolute coordinates each
+// variant used to carry separately.
+const CELESTIAL = {
+  std:  { cx: 930,  cy: 150 },
+  wide: { cx: 1290, cy: 150 },
+  tall: { cx: 452,  cy: 200 },
+};
+
+// Foreground placement per aspect — free to differ per view (unlike the world).
+// Standard/Wide share a camera height, so they share the figure's scale too;
+// Tall steps back. HoodedFigure's y prop is a translate origin, not the feet
+// position, so we convert: the figure's own shoe-line sits at local y=196.
+const FIG = {
+  std:  { x: 700,  y: 700 - 196 * 1.2, scale: 1.2 },
+  wide: { x: 1290, y: 700 - 196 * 1.2, scale: 1.2 },
+  tall: { x: 300,  y: 940 - 196 * 1.3, scale: 1.3 },
+};
 ---
 <Base
   title="The Interview — Caveshen Rajman"
@@ -11,11 +51,20 @@ const root = tree.root;
   <!-- Toggle: first in DOM so it's first in tab order -->
   <ThemeToggle />
 
-  <svg class="scene scene-standard" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMax meet" role="img"
-       aria-label="Flat illustration of Table Mountain, Lion's Head and Signal Hill behind the Cape Town city skyline, by night or day">
-    <rect width="1200" height="400" fill="var(--sky)" />
-    <!-- stars (night only) -->
-    <g fill="var(--text)" class="night-only">
+  <!--
+    stage-frame: a full-height stage — a place to stand in, not a letterbox strip.
+    overflow:hidden clips the camera zoom; .camera carries the transform.
+    The dialogue card lives inside it as an in-scene overlay (PRD §14 restage).
+  -->
+  <div class="stage-frame">
+  <div class="camera">
+
+  <!-- ============ STANDARD 1200×750 ============ -->
+  <svg class="scene scene-standard" viewBox="0 0 1200 750" preserveAspectRatio="xMidYMax slice" role="img"
+       aria-label="Cape Town's Table Mountain, Lion's Head and Signal Hill above the city bowl, by night or day, with a hooded figure on the promenade">
+    <rect class="f-sky" width="1200" height="750" />
+    <g class="bg-layer">
+    <g class="f-star night-only">
       <circle cx="95"   cy="70"  r="1.6" opacity="0.8" />
       <circle cx="240"  cy="120" r="1.2" opacity="0.5" />
       <circle cx="410"  cy="55"  r="1.4" opacity="0.7" />
@@ -24,197 +73,194 @@ const root = tree.root;
       <circle cx="1050" cy="60"  r="1.3" opacity="0.6" />
       <circle cx="1150" cy="140" r="1.1" opacity="0.4" />
       <circle cx="320"  cy="160" r="1.0" opacity="0.35" />
+      <circle cx="820"  cy="190" r="1.2" opacity="0.5" />
+      <circle cx="150"  cy="230" r="1.0" opacity="0.35" />
     </g>
-    <!-- moon (night) -->
+    <!-- moon (night) — pale and cratered, radius locked at 46 -->
     <g class="night-only">
-      <circle cx="930" cy="100" r="46" fill="var(--celestial)" />
-      <circle cx="914" cy="88"  r="7"  fill="#e6b944" />
-      <circle cx="946" cy="112" r="5"  fill="#e6b944" />
+      <Moon cx={CELESTIAL.std.cx} cy={CELESTIAL.std.cy} />
     </g>
-    <!-- sun (day) -->
-    <circle class="day-only" cx="930" cy="100" r="50" fill="var(--celestial)" />
-    <!-- clouds (day only) -->
-    <g fill="#ffffff" class="day-only">
-      <rect x="120" y="90" width="150" height="22" rx="11" opacity="0.85" />
-      <rect x="620" y="60" width="110" height="20" rx="10" opacity="0.7" />
+    <!-- sun + clouds (day) -->
+    <g class="day-only">
+      <circle class="f-cel" cx={CELESTIAL.std.cx} cy={CELESTIAL.std.cy} r="50" />
+      <rect x="120" y="140" width="150" height="22" rx="11" fill="#fff" opacity="0.85" />
+      <rect x="620" y="105" width="110" height="20" rx="10" fill="#fff" opacity="0.7" />
     </g>
-    <!-- Cape Town landforms (far layer): Table Mountain, Lion's Head, Signal Hill -->
-    <polygon fill="var(--mountain-far)"
-             points="40,352 130,230 190,180 230,172 300,168 480,170 540,176 585,215 640,352" />
-    <polygon fill="var(--mountain-far)"
-             points="760,352 850,240 868,202 890,240 980,352" />
-    <polygon fill="var(--mountain-far)"
-             points="890,352 932,318 984,293 1040,284 1096,293 1148,318 1190,352" />
-    <!-- city-bowl buildings (foreground) -->
-    <g fill="var(--mountain)">
-      <rect x="190" y="262" width="34" height="90" />
-      <rect x="232" y="282" width="26" height="70" />
-      <rect x="266" y="246" width="40" height="106" />
-      <rect x="314" y="292" width="28" height="60" />
-      <rect x="350" y="258" width="36" height="94" />
-      <rect x="394" y="300" width="24" height="52" />
-      <rect x="426" y="238" width="44" height="114" />
-      <rect x="478" y="276" width="30" height="76" />
-      <rect x="516" y="254" width="38" height="98" />
-      <rect x="562" y="296" width="26" height="56" />
-      <rect x="596" y="266" width="42" height="86" />
-      <rect x="646" y="286" width="30" height="66" />
-      <rect x="684" y="252" width="36" height="100" />
-      <rect x="728" y="298" width="26" height="54" />
-      <rect x="766" y="290" width="32" height="62" />
-      <rect x="806" y="304" width="24" height="48" />
+    <CityScape camera={CAMERA.std} />
     </g>
-    <!-- lit windows (night only) -->
-    <g fill="var(--celestial)" class="night-only">
-      <rect x="198" y="274" width="4" height="5" opacity="0.85" />
-      <rect x="212" y="296" width="4" height="5" opacity="0.55" />
-      <rect x="274" y="258" width="4" height="5" opacity="0.9" />
-      <rect x="290" y="284" width="4" height="5" opacity="0.6" />
-      <rect x="298" y="310" width="4" height="5" opacity="0.75" />
-      <rect x="358" y="270" width="4" height="5" opacity="0.8" />
-      <rect x="372" y="300" width="4" height="5" opacity="0.5" />
-      <rect x="436" y="250" width="4" height="5" opacity="0.9" />
-      <rect x="452" y="276" width="4" height="5" opacity="0.65" />
-      <rect x="444" y="316" width="4" height="5" opacity="0.75" />
-      <rect x="486" y="290" width="4" height="5" opacity="0.55" />
-      <rect x="524" y="266" width="4" height="5" opacity="0.85" />
-      <rect x="540" y="298" width="4" height="5" opacity="0.6" />
-      <rect x="606" y="278" width="4" height="5" opacity="0.8" />
-      <rect x="620" y="308" width="4" height="5" opacity="0.5" />
-      <rect x="692" y="264" width="4" height="5" opacity="0.85" />
-      <rect x="706" y="296" width="4" height="5" opacity="0.6" />
-      <rect x="774" y="302" width="4" height="5" opacity="0.7" />
+    <g class="fg-layer">
+    <!-- sea -->
+    <rect class="f-sea" y="480" width="1200" height="120" />
+    <g class="f-moon night-only">
+      <rect x="900" y="502" width="60" height="3" rx="1.5" opacity="0.35" />
+      <rect x="915" y="530" width="34" height="3" rx="1.5" opacity="0.2" />
+      <rect x="908" y="556" width="44" height="3" rx="1.5" opacity="0.14" />
     </g>
-    <!-- sea strip -->
-    <rect y="352" width="1200" height="48" fill="var(--sea)" />
-    <!-- moonlight glints (night only) -->
-    <g class="night-only">
-      <rect x="900" y="360" width="60" height="3" rx="1.5" fill="var(--celestial)" opacity="0.35" />
-      <rect x="915" y="372" width="34" height="3" rx="1.5" fill="var(--celestial)" opacity="0.2" />
+    <!-- wave marks (PRD §20 added scope): sparse, static, sea-toned — visible day and night -->
+    <rect class="f-wave" x="70"   y="500" width="38" height="2" rx="1.5" opacity="0.16" />
+    <rect class="f-wave" x="260"  y="524" width="30" height="2" rx="1.5" opacity="0.12" />
+    <rect class="f-wave" x="430"  y="548" width="44" height="2" rx="1.5" opacity="0.14" />
+    <rect class="f-wave" x="610"  y="508" width="32" height="2" rx="1.5" opacity="0.1" />
+    <rect class="f-wave" x="760"  y="560" width="36" height="2" rx="1.5" opacity="0.13" />
+    <rect class="f-wave" x="1080" y="534" width="28" height="2" rx="1.5" opacity="0.11" />
+    <!-- the near shore — promenade the figure stands on -->
+    <rect class="f-ground" y="600" width="1200" height="150" />
+    <!-- semi-foreground railing: in front of the water, behind the figure -->
+    <g class="f-rail" stroke-linecap="round" stroke-width="7">
+      <g stroke-width="5">
+        <line x1="40" y1="590" x2="40" y2="654" /><line x1="200" y1="590" x2="200" y2="654" />
+        <line x1="360" y1="590" x2="360" y2="654" /><line x1="520" y1="590" x2="520" y2="654" />
+        <line x1="680" y1="590" x2="680" y2="654" /><line x1="840" y1="590" x2="840" y2="654" />
+        <line x1="1000" y1="590" x2="1000" y2="654" /><line x1="1160" y1="590" x2="1160" y2="654" />
+      </g>
+      <line x1="0" y1="592" x2="1200" y2="592" />
+      <line x1="0" y1="624" x2="1200" y2="624" stroke-width="4" opacity="0.8" />
+    </g>
+    <HoodedFigure x={FIG.std.x} y={FIG.std.y} scale={FIG.std.scale} />
+    <!-- INTERIM-TOGGLE (PRD d17, was §27 remainder) -->
+    <Badger x={FIG.std.x} y={FIG.std.y} scale={FIG.std.scale} />
     </g>
   </svg>
 
-  <!-- ============ WIDE (~21:9) — the trio trails off right of the city, ending under the moon/sun ============ -->
-  <svg class="scene scene-wide" viewBox="0 0 2400 400" preserveAspectRatio="xMidYMax meet" role="img" aria-label="Cape Town skyline panorama">
-    <rect width="2400" height="400" fill="var(--sky)" />
-    <g fill="var(--text)" class="night-only">
-      <circle cx="95" cy="70" r="1.6" opacity="0.8"/><circle cx="340" cy="120" r="1.2" opacity="0.5"/>
-      <circle cx="610" cy="55" r="1.4" opacity="0.7"/><circle cx="860" cy="105" r="1.1" opacity="0.45"/>
-      <circle cx="1100" cy="45" r="1.5" opacity="0.75"/><circle cx="1450" cy="90" r="1.3" opacity="0.6"/>
-      <circle cx="1650" cy="140" r="1.1" opacity="0.4"/><circle cx="520" cy="160" r="1.0" opacity="0.35"/>
-      <circle cx="2080" cy="70" r="1.4" opacity="0.7"/><circle cx="2250" cy="130" r="1.1" opacity="0.45"/>
-      <circle cx="2350" cy="55" r="1.3" opacity="0.6"/><circle cx="1280" cy="150" r="1.0" opacity="0.35"/>
+  <!-- ============ WIDE 1750×750 (21:9) ============ -->
+  <svg class="scene scene-wide" viewBox="0 0 1750 750" preserveAspectRatio="xMidYMax slice" role="img"
+       aria-label="Cape Town skyline panorama, by night or day, with a hooded figure on the promenade">
+    <rect class="f-sky" width="1750" height="750" />
+    <g class="bg-layer">
+    <g class="f-star night-only">
+      <circle cx="95" cy="70" r="1.6" opacity="0.8" /><circle cx="340" cy="120" r="1.2" opacity="0.5" />
+      <circle cx="610" cy="55" r="1.4" opacity="0.7" /><circle cx="860" cy="105" r="1.1" opacity="0.45" />
+      <circle cx="1100" cy="45" r="1.5" opacity="0.75" /><circle cx="1450" cy="90" r="1.3" opacity="0.6" />
+      <circle cx="1650" cy="140" r="1.1" opacity="0.4" /><circle cx="520" cy="160" r="1.0" opacity="0.35" />
+      <circle cx="1180" cy="200" r="1.4" opacity="0.7" /><circle cx="240" cy="230" r="1.1" opacity="0.45" />
+      <circle cx="1560" cy="55" r="1.3" opacity="0.6" /><circle cx="760" cy="190" r="1.0" opacity="0.35" />
     </g>
     <g class="night-only">
-      <circle cx="1900" cy="95" r="46" fill="var(--celestial)"/>
-      <circle cx="1884" cy="83" r="7" fill="#e6b944"/><circle cx="1916" cy="107" r="5" fill="#e6b944"/>
+      <Moon cx={CELESTIAL.wide.cx} cy={CELESTIAL.wide.cy} />
     </g>
-    <circle class="day-only" cx="1900" cy="95" r="50" fill="var(--celestial)"/>
-    <g fill="#ffffff" class="day-only">
-      <rect x="250" y="90" width="150" height="22" rx="11" opacity="0.85"/>
-      <rect x="1100" y="60" width="110" height="20" rx="10" opacity="0.7"/>
-      <rect x="2080" y="110" width="130" height="20" rx="10" opacity="0.75"/>
+    <g class="day-only">
+      <circle class="f-cel" cx={CELESTIAL.wide.cx} cy={CELESTIAL.wide.cy} r="50" />
+      <rect x="250" y="140" width="150" height="22" rx="11" fill="#fff" opacity="0.85" />
+      <rect x="900" y="105" width="110" height="20" rx="10" fill="#fff" opacity="0.7" />
+      <rect x="1480" y="185" width="130" height="20" rx="10" fill="#fff" opacity="0.75" />
     </g>
-    <!-- The trio only: Table Mountain (long plateau behind the city), Lion's Head (sharp), Signal Hill (soft, under the moon) — nothing beyond either end -->
-    <polygon fill="var(--mountain-far)" points="520,352 604,218 640,184 684,176 1180,176 1226,184 1262,218 1400,352"/>
-    <polygon fill="var(--mountain-far)" points="1590,352 1692,216 1718,192 1744,216 1834,352"/>
-    <polygon fill="var(--mountain-far)" points="1790,352 1836,316 1892,290 1956,281 2022,290 2078,316 2124,352"/>
-    <g fill="var(--mountain)">
-      <rect x="700" y="262" width="34" height="90"/><rect x="742" y="282" width="26" height="70"/>
-      <rect x="776" y="246" width="40" height="106"/><rect x="824" y="292" width="28" height="60"/>
-      <rect x="860" y="258" width="36" height="94"/><rect x="904" y="300" width="24" height="52"/>
-      <rect x="936" y="238" width="44" height="114"/><rect x="988" y="276" width="30" height="76"/>
-      <rect x="1026" y="254" width="38" height="98"/><rect x="1072" y="296" width="26" height="56"/>
-      <rect x="1106" y="266" width="42" height="86"/><rect x="1156" y="286" width="30" height="66"/>
-      <rect x="1194" y="252" width="36" height="100"/><rect x="1238" y="298" width="26" height="54"/>
-      <rect x="1276" y="290" width="32" height="62"/><rect x="1316" y="304" width="24" height="48"/>
-      <!-- outskirts: sparser, lower -->
-      <rect x="560" y="300" width="28" height="52"/><rect x="600" y="286" width="34" height="66"/>
-      <rect x="646" y="308" width="24" height="44"/>
-      <rect x="1380" y="306" width="26" height="46"/><rect x="1420" y="294" width="32" height="58"/>
-      <rect x="1464" y="312" width="22" height="40"/><rect x="1560" y="316" width="26" height="36"/>
-      <rect x="1600" y="308" width="22" height="44"/>
+    <CityScape camera={CAMERA.wide} />
     </g>
-    <g fill="var(--celestial)" class="night-only">
-      <rect x="708" y="274" width="4" height="5" opacity="0.85"/><rect x="722" y="296" width="4" height="5" opacity="0.55"/>
-      <rect x="784" y="258" width="4" height="5" opacity="0.9"/><rect x="800" y="284" width="4" height="5" opacity="0.6"/>
-      <rect x="808" y="310" width="4" height="5" opacity="0.75"/><rect x="868" y="270" width="4" height="5" opacity="0.8"/>
-      <rect x="882" y="300" width="4" height="5" opacity="0.5"/><rect x="946" y="250" width="4" height="5" opacity="0.9"/>
-      <rect x="962" y="276" width="4" height="5" opacity="0.65"/><rect x="954" y="316" width="4" height="5" opacity="0.75"/>
-      <rect x="996" y="290" width="4" height="5" opacity="0.55"/><rect x="1034" y="266" width="4" height="5" opacity="0.85"/>
-      <rect x="1050" y="298" width="4" height="5" opacity="0.6"/><rect x="1116" y="278" width="4" height="5" opacity="0.8"/>
-      <rect x="1130" y="308" width="4" height="5" opacity="0.5"/><rect x="1202" y="264" width="4" height="5" opacity="0.85"/>
-      <rect x="1216" y="296" width="4" height="5" opacity="0.6"/><rect x="1284" y="302" width="4" height="5" opacity="0.7"/>
-      <rect x="612" y="296" width="4" height="5" opacity="0.6"/><rect x="656" y="318" width="4" height="5" opacity="0.5"/>
-      <rect x="1430" y="304" width="4" height="5" opacity="0.65"/><rect x="1470" y="320" width="4" height="5" opacity="0.5"/>
-      <rect x="1608" y="318" width="4" height="5" opacity="0.55"/>
+    <g class="fg-layer">
+    <!-- foreground: same camera height as Standard, so sea/promenade/rail share y -->
+    <rect class="f-sea" y="480" width="1750" height="120" />
+    <g class="f-moon night-only">
+      <rect x="1290" y="502" width="60" height="3" rx="1.5" opacity="0.35" />
+      <rect x="1305" y="530" width="34" height="3" rx="1.5" opacity="0.2" />
+      <rect x="1298" y="556" width="44" height="3" rx="1.5" opacity="0.14" />
     </g>
-    <rect y="352" width="2400" height="48" fill="var(--sea)"/>
-    <g class="night-only">
-      <rect x="1870" y="360" width="60" height="3" rx="1.5" fill="var(--celestial)" opacity="0.35"/>
-      <rect x="1885" y="372" width="34" height="3" rx="1.5" fill="var(--celestial)" opacity="0.2"/>
+    <!-- wave marks (PRD §20 added scope): sparse, static, sea-toned — visible day and night -->
+    <rect class="f-wave" x="90"   y="502" width="42" height="2" rx="1.5" opacity="0.15" />
+    <rect class="f-wave" x="340"  y="530" width="30" height="2" rx="1.5" opacity="0.11" />
+    <rect class="f-wave" x="610"  y="550" width="46" height="2" rx="1.5" opacity="0.14" />
+    <rect class="f-wave" x="830"  y="508" width="34" height="2" rx="1.5" opacity="0.1" />
+    <rect class="f-wave" x="1080" y="560" width="38" height="2" rx="1.5" opacity="0.13" />
+    <rect class="f-wave" x="1480" y="534" width="30" height="2" rx="1.5" opacity="0.12" />
+    <rect class="f-ground" y="600" width="1750" height="150" />
+    <g class="f-rail" stroke-linecap="round" stroke-width="7">
+      <g stroke-width="5">
+        <line x1="40" y1="590" x2="40" y2="654" /><line x1="200" y1="590" x2="200" y2="654" />
+        <line x1="360" y1="590" x2="360" y2="654" /><line x1="520" y1="590" x2="520" y2="654" />
+        <line x1="680" y1="590" x2="680" y2="654" /><line x1="840" y1="590" x2="840" y2="654" />
+        <line x1="1000" y1="590" x2="1000" y2="654" /><line x1="1160" y1="590" x2="1160" y2="654" />
+        <line x1="1320" y1="590" x2="1320" y2="654" /><line x1="1480" y1="590" x2="1480" y2="654" />
+        <line x1="1640" y1="590" x2="1640" y2="654" />
+      </g>
+      <line x1="0" y1="592" x2="1750" y2="592" />
+      <line x1="0" y1="624" x2="1750" y2="624" stroke-width="4" opacity="0.8" />
+    </g>
+    <HoodedFigure x={FIG.wide.x} y={FIG.wide.y} scale={FIG.wide.scale} />
+    <!-- INTERIM-TOGGLE (PRD d17, was §27 remainder) -->
+    <Badger x={FIG.wide.x} y={FIG.wide.y} scale={FIG.wide.scale} />
     </g>
   </svg>
 
-  <!-- ============ TALL (~9:16 / portrait) — re-cropped: big sky, Table Mountain + Lion's Head ============ -->
-  <svg class="scene scene-tall" viewBox="0 0 600 800" preserveAspectRatio="xMidYMax meet" role="img" aria-label="Cape Town skyline, portrait">
-    <rect width="600" height="800" fill="var(--sky)" />
-    <g fill="var(--text)" class="night-only">
-      <circle cx="60" cy="80" r="1.6" opacity="0.8"/><circle cx="170" cy="150" r="1.2" opacity="0.5"/>
-      <circle cx="280" cy="60" r="1.4" opacity="0.7"/><circle cx="90" cy="260" r="1.1" opacity="0.45"/>
-      <circle cx="350" cy="200" r="1.5" opacity="0.75"/><circle cx="520" cy="270" r="1.3" opacity="0.6"/>
-      <circle cx="240" cy="320" r="1.1" opacity="0.4"/><circle cx="460" cy="330" r="1.0" opacity="0.35"/>
-      <circle cx="140" cy="380" r="1.2" opacity="0.5"/><circle cx="560" cy="90" r="1.4" opacity="0.65"/>
+  <!-- ============ TALL 600×1067 (portrait / mobile) ============ -->
+  <svg class="scene scene-tall" viewBox="0 0 600 1067" preserveAspectRatio="xMidYMax slice" role="img"
+       aria-label="Cape Town skyline in portrait, by night or day, with a hooded figure on the promenade">
+    <rect class="f-sky" width="600" height="1067" />
+    <g class="bg-layer">
+    <g class="f-star night-only">
+      <circle cx="60" cy="80" r="1.6" opacity="0.8" /><circle cx="170" cy="150" r="1.2" opacity="0.5" />
+      <circle cx="280" cy="60" r="1.4" opacity="0.7" /><circle cx="90" cy="260" r="1.1" opacity="0.45" />
+      <circle cx="350" cy="200" r="1.5" opacity="0.75" /><circle cx="520" cy="270" r="1.3" opacity="0.6" />
+      <circle cx="240" cy="320" r="1.1" opacity="0.4" /><circle cx="460" cy="330" r="1.0" opacity="0.35" />
+      <circle cx="140" cy="380" r="1.2" opacity="0.5" /><circle cx="560" cy="90" r="1.4" opacity="0.65" />
     </g>
     <g class="night-only">
-      <circle cx="440" cy="140" r="54" fill="var(--celestial)"/>
-      <circle cx="422" cy="126" r="8" fill="#e6b944"/><circle cx="458" cy="154" r="6" fill="#e6b944"/>
+      <Moon cx={CELESTIAL.tall.cx} cy={CELESTIAL.tall.cy} />
     </g>
-    <circle class="day-only" cx="440" cy="140" r="58" fill="var(--celestial)"/>
-    <g fill="#ffffff" class="day-only">
-      <rect x="60" y="200" width="130" height="20" rx="10" opacity="0.85"/>
-      <rect x="300" y="290" width="100" height="18" rx="9" opacity="0.7"/>
+    <g class="day-only">
+      <circle class="f-cel" cx={CELESTIAL.tall.cx} cy={CELESTIAL.tall.cy} r="50" />
+      <rect x="60" y="270" width="130" height="20" rx="10" fill="#fff" opacity="0.85" />
+      <rect x="300" y="360" width="100" height="18" rx="9" fill="#fff" opacity="0.7" />
     </g>
-    <!-- Table Mountain (dominant, left/centre) + Lion's Head (right, cresting the edge) -->
-    <polygon fill="var(--mountain-far)" points="0,700 34,536 96,444 126,426 372,426 404,446 448,500 500,700"/>
-    <polygon fill="var(--mountain-far)" points="440,700 520,530 548,472 576,530 600,620 600,700"/>
-    <g fill="var(--mountain)">
-      <rect x="40" y="580" width="34" height="120"/><rect x="82" y="606" width="26" height="94"/>
-      <rect x="116" y="560" width="40" height="140"/><rect x="164" y="618" width="28" height="82"/>
-      <rect x="200" y="576" width="36" height="124"/><rect x="244" y="628" width="24" height="72"/>
-      <rect x="276" y="548" width="44" height="152"/><rect x="328" y="600" width="30" height="100"/>
-      <rect x="366" y="572" width="38" height="128"/><rect x="412" y="624" width="26" height="76"/>
-      <rect x="446" y="592" width="42" height="108"/><rect x="496" y="632" width="30" height="68"/>
+    <CityScape camera={CAMERA.tall} />
     </g>
-    <g fill="var(--celestial)" class="night-only">
-      <rect x="48" y="594" width="4" height="5" opacity="0.85"/><rect x="62" y="622" width="4" height="5" opacity="0.55"/>
-      <rect x="124" y="574" width="4" height="5" opacity="0.9"/><rect x="140" y="604" width="4" height="5" opacity="0.6"/>
-      <rect x="148" y="640" width="4" height="5" opacity="0.75"/><rect x="208" y="590" width="4" height="5" opacity="0.8"/>
-      <rect x="222" y="626" width="4" height="5" opacity="0.5"/><rect x="286" y="562" width="4" height="5" opacity="0.9"/>
-      <rect x="302" y="592" width="4" height="5" opacity="0.65"/><rect x="294" y="648" width="4" height="5" opacity="0.75"/>
-      <rect x="336" y="614" width="4" height="5" opacity="0.55"/><rect x="374" y="586" width="4" height="5" opacity="0.85"/>
-      <rect x="390" y="622" width="4" height="5" opacity="0.6"/><rect x="456" y="606" width="4" height="5" opacity="0.8"/>
-      <rect x="470" y="640" width="4" height="5" opacity="0.5"/><rect x="504" y="644" width="4" height="5" opacity="0.65"/>
+    <g class="fg-layer">
+    <!-- portrait carries the extra height as water: further back, more of the bay in view -->
+    <rect class="f-sea" y="480" width="600" height="220" />
+    <g class="f-moon night-only">
+      <rect x="420" y="510" width="56" height="3" rx="1.5" opacity="0.35" />
+      <rect x="434" y="548" width="32" height="3" rx="1.5" opacity="0.2" />
+      <rect x="426" y="586" width="44" height="3" rx="1.5" opacity="0.14" />
     </g>
-    <rect y="700" width="600" height="100" fill="var(--sea)"/>
-    <g class="night-only">
-      <rect x="400" y="716" width="56" height="3" rx="1.5" fill="var(--celestial)" opacity="0.35"/>
-      <rect x="414" y="732" width="32" height="3" rx="1.5" fill="var(--celestial)" opacity="0.2"/>
+    <!-- wave marks (PRD §20 added scope): sparse, static, sea-toned — visible day and night;
+         portrait carries more sea (h=220), so marks scatter across the extra height too -->
+    <rect class="f-wave" x="40"  y="500" width="30" height="2" rx="1.5" opacity="0.15" />
+    <rect class="f-wave" x="150" y="560" width="26" height="2" rx="1.5" opacity="0.11" />
+    <rect class="f-wave" x="90"  y="620" width="34" height="2" rx="1.5" opacity="0.13" />
+    <rect class="f-wave" x="260" y="500" width="24" height="2" rx="1.5" opacity="0.1" />
+    <rect class="f-wave" x="320" y="650" width="30" height="2" rx="1.5" opacity="0.14" />
+    <rect class="f-wave" x="180" y="680" width="22" height="2" rx="1.5" opacity="0.09" />
+    <rect class="f-ground" y="700" width="600" height="367" />
+    <g class="f-rail" stroke-linecap="round" stroke-width="7">
+      <g stroke-width="5">
+        <line x1="30" y1="690" x2="30" y2="756" /><line x1="150" y1="690" x2="150" y2="756" />
+        <line x1="270" y1="690" x2="270" y2="756" /><line x1="390" y1="690" x2="390" y2="756" />
+        <line x1="510" y1="690" x2="510" y2="756" />
+      </g>
+      <line x1="0" y1="692" x2="600" y2="692" />
+      <line x1="0" y1="726" x2="600" y2="726" stroke-width="4" opacity="0.8" />
+    </g>
+    <HoodedFigure x={FIG.tall.x} y={FIG.tall.y} scale={FIG.tall.scale} />
+    <!-- INTERIM-TOGGLE (PRD d17, was §27 remainder) -->
+    <Badger x={FIG.tall.x} y={FIG.tall.y} scale={FIG.tall.scale} />
     </g>
   </svg>
 
-  <main class="card">
+  </div><!-- /.camera -->
+
+  <!-- wind: motes on the breeze, deliberately outside .camera so the breeze stays a
+       constant speed when the camera pushes in. -->
+  <div class="wind" aria-hidden="true">
+    <span class="mote" style="top:44%;animation-duration:17s;animation-delay:0s"></span>
+    <span class="mote" style="top:62%;animation-duration:21s;animation-delay:-6s;width:4px;height:4px"></span>
+    <span class="mote" style="top:53%;animation-duration:14s;animation-delay:-10s;width:6px;height:6px"></span>
+    <span class="mote" style="top:73%;animation-duration:24s;animation-delay:-3s;width:4px;height:4px"></span>
+    <span class="mote" style="top:35%;animation-duration:19s;animation-delay:-14s"></span>
+  </div>
+
+  <!--
+    Approach prompt: a real <button> styled as a videogame NPC interaction prompt.
+    Hidden by default (revealed by JS on init); JS also hides it after approach.
+    Position is approximate right-foreground; JS places it near the measured figure.
+  -->
+  <button class="approach-prompt" id="approach-prompt" hidden>
+    PLACEHOLDER: Approach the hooded figure
+  </button>
+
+  <!-- PRD §15 D5: card ships hidden so it is never painted before JS runs.
+       noscript overrides [hidden] with display:block for the no-JS path. -->
+  <noscript><style>.card[hidden] { display: block; }</style></noscript>
+  <main class="card" hidden>
     <div class="card-head">
-      <!-- ponytail: abstract placeholder avatar — no likeness guessed -->
-      <svg class="avatar" width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">
-        <circle cx="32" cy="32" r="32" fill="var(--avatar-ring)" />
-        <circle cx="32" cy="34" r="20" fill="var(--mountain)" />
-        <g class="eyes">
-          <circle cx="25" cy="41" r="2.6" fill="var(--card)" />
-          <circle cx="39" cy="41" r="2.6" fill="var(--card)" />
-        </g>
-        <rect x="18" y="14" width="28" height="16" rx="8" fill="var(--hair)" />
-      </svg>
+      <Avatar />
       <span class="name">Caveshen</span>
     </div>
     <!-- Static root content for no-JS path; engine overwrites on init -->
@@ -223,6 +269,12 @@ const root = tree.root;
       <p class="speech" id="speech">{root.speech}</p>
     </div>
     <ul class="choices" id="choices"></ul>
+    <!--
+      End dialogue: hidden by default (JS reveals on approach, hides on exit).
+      Styled like the .system options. With JS off this stays hidden — no camera
+      to exit, so no exit control needed in the no-JS path.
+    -->
+    <button class="end-dialogue" id="end-dialogue" hidden>PLACEHOLDER: End dialogue ✕</button>
     <noscript>
       <p class="noscript-note">
         <a href="/sheet">Open the character sheet &rarr;</a>
@@ -230,27 +282,133 @@ const root = tree.root;
     </noscript>
   </main>
 
+  <!--
+    Fullscreen toggle (PRD §18 / §17.2 — one control, and it is fullscreen).
+    Lives INSIDE .stage-frame, not as a body-level sibling like ThemeToggle —
+    the Fullscreen API only keeps descendants of the fullscreened element
+    visible/interactive, so it has to be one to still be clickable (and to
+    exit via a second click) once fullscreen is active.
+    Hidden by default, same spirit as the approach prompt: JS unhides it only
+    if the Fullscreen API is actually usable (degrade honestly), so a no-JS
+    or unsupported-API visitor never sees a dead button.
+  -->
+  <button class="fullscreen-toggle" id="fullscreen-toggle" hidden aria-label="Enter fullscreen">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M4 9V4H9M15 4H20V9M20 15V20H15M9 20H4V15" />
+    </svg>
+  </button>
+
+  </div><!-- /.stage-frame -->
+
   <p class="page-foot">PLACEHOLDER — attribution line. All copy is placeholder; the real script is Caveshen's to write.</p>
+
+  <!-- INTERIM-TOGGLE (PRD d17, was §27 remainder): this button, its script
+       and CSS below, the Badger imports/render calls above, and
+       e2e/badger.spec.js are the character-selection scaffold. PRD d8 (was
+       §31 first slice + §30 D-6) discarded the dev-only gate 2026-07-31, so
+       this now ships to the public — it is interim, not TEST-ONLY, and
+       stays until PRD d17's real figure-vs-Badger selection mechanism
+       replaces it. Default = hooded figure; no localStorage persistence
+       (kept minimal, unlike the theme toggle). Placed last in DOM (CSS
+       positions it beside the theme toggle regardless) so it doesn't shift
+       the toggle→approach-prompt tab order the existing P4 tests rely on.
+       ponytail: manual toggle instead of a real selection mechanism —
+       upgrade when d17 lands. -->
+  <button class="character-toggle" id="character-toggle" aria-label="Switch to Badger">badger</button>
+  <script>
+    const charToggle = document.getElementById('character-toggle') as HTMLButtonElement;
+    charToggle.addEventListener('click', () => {
+      const isBadger = document.documentElement.dataset.character === 'badger';
+      document.documentElement.dataset.character = isBadger ? 'figure' : 'badger';
+      charToggle.textContent = isBadger ? 'badger' : 'figure';
+      charToggle.setAttribute('aria-label', isBadger ? 'Switch to Badger' : 'Switch to hooded figure');
+      // Reuse the existing resize-driven positionPrompt() (main script below)
+      // so the approach prompt re-measures whichever character is now shown.
+      window.dispatchEvent(new Event('resize'));
+    });
+  </script>
+  <!-- /INTERIM-TOGGLE -->
 </Base>
 
 <style is:global>
-  /* Night/day layer visibility — driven by :root[data-time] */
-  :root[data-time="day"] .night-only          { display: none; }
-  :root:not([data-time="day"]) .day-only      { display: none; }
+  /* INTERIM-TOGGLE (PRD d17, was §27 remainder): both characters render
+     (see the Badger import/calls above); this block is what actually
+     switches between them via [data-character] on <html>. Default (no
+     attribute, and no-JS since the toggle needs JS to set it) = hooded
+     figure, Badger absent — no layout shift either way since the hidden one
+     is display:none. This block ships to the public (PRD d8, was §31 first
+     slice + §30 D-6, discarded the dev-only gate 2026-07-31) and stays
+     until PRD d17's real selection mechanism replaces it. */
+  .badger-figure { display: none; }
+  :root[data-character="badger"] .hooded-figure { display: none; }
+  :root[data-character="badger"] .badger-figure { display: block; }
+  .character-toggle {
+    position: absolute;
+    top: 1rem;
+    right: 7rem;
+    z-index: 1;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    color: var(--option);
+    background: var(--card);
+    border: 1.5px solid var(--option-border);
+    border-radius: 999px;
+    padding: 0.45rem 0.95rem;
+    cursor: pointer;
+  }
+  /* /INTERIM-TOGGLE */
 
-  /* Scene SVG */
-  .scene {
-    display: block;
+  /* ── P4: stage-frame — a full-height stage, not a letterbox strip ─────────── */
+  /* ponytail: stage-frame is position:relative which makes it a positioned element
+     that stacks AFTER the toggle (which comes earlier in DOM), so stage-frame's
+     bounding box physically covers the toggle area and intercepts its clicks.
+     pointer-events:none on stage-frame makes it fully transparent to events;
+     interactive children (approach prompt, card) re-enable them individually. */
+  .stage-frame {
+    position: relative;
+    overflow: hidden;
+    pointer-events: none;
+    /* PRD §17.2 RULED 2026-07-23 — full-window is the DEFAULT, not a toggle:
+       the stage fills 100% of the viewport at any window size. This
+       supersedes §17.1a's height-limited max-width + vertical centring (the
+       body-flex block that used to sit here, and the per-breakpoint
+       aspect-ratio/max-width overrides below, are both gone — nothing left
+       to centre once the frame always fills the viewport). Each scene's own
+       preserveAspectRatio="xMidYMax slice" crops the overflow rather than
+       stretching it, so an arbitrary window shape still renders a correctly
+       proportioned crop of whichever variant §14's width cut-offs select —
+       proof is the Table Mountain 2.4194 screen-space invariant (§13),
+       unaffected by this change. 100svh (not 100vh) for the same
+       dynamic-toolbar-safety reason used elsewhere in this file. */
     width: 100%;
-    height: clamp(220px, 38vh, 380px);
-    /* gradient continues sky/sea bands at letterbox edges (meet never crops) */
-    background: linear-gradient(to bottom, var(--sky) 0% 88%, var(--sea) 88% 100%);
+    height: 100svh;
+    margin: 0;
+    border-radius: 0;
+    border: none;
+    background: var(--sky);
+    transition: background 0.4s ease, border-color 0.4s ease;
   }
-  .scene rect, .scene polygon, .scene circle {
-    transition: fill 0.4s ease;
+  .camera {
+    transform-origin: 0 0;
+    will-change: transform;
+    height: 100%;
+    transition: transform 950ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .camera { transition: none; }
   }
 
-  /* Aspect-ratio scene switching: standard is default; wide/tall take over at the extremes */
+  /* Aspect-ratio scene switching: standard is default; wide/tall take over at
+     the extremes (§14's width cut-offs — unchanged by §17.2). The stage-frame
+     itself no longer has a per-variant aspect-ratio/max-width to set here: it
+     is always 100% of the viewport (see .stage-frame above), and each scene's
+     own preserveAspectRatio="xMidYMax slice" crops to fit whatever box that
+     is. */
+  /* .scene base sizing + fill/stroke crossfade now live in tokens.css
+     (PRD d1, was §30 D-4 — shared with /404). Only the variant-switching
+     stays here, since only / has more than one camera. */
   .scene-wide, .scene-tall { display: none; }
   @media (min-aspect-ratio: 15/8) {
     .scene-standard { display: none; }
@@ -258,41 +416,264 @@ const root = tree.root;
   }
   @media (max-aspect-ratio: 4/5) {
     .scene-standard { display: none; }
-    .scene-tall {
-      display: block;
-      height: clamp(320px, 52vh, 560px);
-      /* tall artwork's sea line is 700/800 = 87.5%, vs 88% for the others */
-      background: linear-gradient(to bottom, var(--sky) 0% 87.5%, var(--sea) 87.5% 100%);
-    }
+    .scene-tall { display: block; }
   }
 
-  /* Dialogue card */
+  /* ── P4: wind — ambient motes drifting on the breeze ───────────────────────── */
+  .wind { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+  .mote {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--mote);
+    opacity: 0;
+    animation: drift linear infinite;
+  }
+  @keyframes drift {
+    0%   { left: -4%;  opacity: 0; transform: translateY(0); }
+    12%  { opacity: var(--mote-op); }
+    88%  { opacity: var(--mote-op); }
+    100% { left: 104%; opacity: 0; transform: translateY(-38px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .wind { display: none; }
+    .mote { animation: none; }
+  }
+
+  /* ── P4: approach prompt button ──────────────────────────────────────────── */
+  .approach-prompt {
+    position: absolute;
+    pointer-events: auto; /* re-enable: stage-frame has pointer-events:none */
+    /* JS overrides left/top after measuring the visible figure; CSS is fallback */
+    right: 10%;
+    bottom: 38%;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    color: var(--text);
+    background: rgba(10, 8, 22, 0.55);
+    border: 1px solid rgba(233, 226, 207, 0.22);
+    border-radius: 999px;
+    padding: 0.35rem 0.75rem;
+    cursor: pointer;
+    backdrop-filter: blur(3px);
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+  .approach-prompt:hover,
+  .approach-prompt:focus-visible {
+    color: var(--btn-hover-text);
+    border-color: var(--btn-hover-border);
+    background: rgba(10, 8, 22, 0.75);
+  }
+  .approach-prompt:focus-visible {
+    outline: 2px solid var(--btn-hover-border);
+    outline-offset: 2px;
+  }
+  /* Day theme: lighter glass-morphism */
+  :root[data-time="day"] .approach-prompt {
+    background: rgba(253, 251, 245, 0.65);
+    border-color: rgba(37, 48, 56, 0.22);
+  }
+  :root[data-time="day"] .approach-prompt:hover,
+  :root[data-time="day"] .approach-prompt:focus-visible {
+    background: rgba(253, 251, 245, 0.88);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .approach-prompt { transition: none; }
+  }
+
+  /* ── PRD §18: fullscreen toggle — floating, bottom-right of the stage ─────── */
+  .fullscreen-toggle {
+    position: absolute;
+    right: 1rem;
+    bottom: 1rem;
+    pointer-events: auto; /* re-enable: stage-frame has pointer-events:none */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    color: var(--text);
+    background: rgba(10, 8, 22, 0.55);
+    border: 1px solid rgba(233, 226, 207, 0.22);
+    border-radius: 999px;
+    cursor: pointer;
+    backdrop-filter: blur(3px);
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+  /* display:flex above is author-origin CSS, which outranks the UA
+     stylesheet's [hidden]{display:none} regardless of selector specificity —
+     left alone it would render the button even while `hidden` is set.
+     Reassert it explicitly so JS (or its absence, on the no-JS path) stays
+     the only thing that can ever reveal this button. */
+  .fullscreen-toggle[hidden] { display: none; }
+  .fullscreen-toggle:hover,
+  .fullscreen-toggle:focus-visible {
+    color: var(--btn-hover-text);
+    border-color: var(--btn-hover-border);
+    background: rgba(10, 8, 22, 0.75);
+  }
+  .fullscreen-toggle:focus-visible {
+    outline: 2px solid var(--btn-hover-border);
+    outline-offset: 2px;
+  }
+  /* Day theme: lighter glass-morphism — same treatment as the approach prompt */
+  :root[data-time="day"] .fullscreen-toggle {
+    background: rgba(253, 251, 245, 0.65);
+    border-color: rgba(37, 48, 56, 0.22);
+  }
+  :root[data-time="day"] .fullscreen-toggle:hover,
+  :root[data-time="day"] .fullscreen-toggle:focus-visible {
+    background: rgba(253, 251, 245, 0.88);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fullscreen-toggle { transition: none; }
+  }
+  /* Portrait: the dialogue card runs almost the full height of the frame
+     (min(600px,88%) wide, bottom-anchored, tall enough on a phone screen
+     that its own top edge sits well above the frame's bottom) — there is no
+     clear bottom-right corner left once the card is showing. The one band
+     that's reliably clear of the toggle above, the card below, and the
+     figure/approach-prompt in between is just under the toggle, so the
+     button moves there for this aspect only; every other variant has room
+     to spare at the literal bottom-right and is left alone. */
+  @media (max-aspect-ratio: 4/5) {
+    .fullscreen-toggle { top: 4rem; bottom: auto; }
+  }
+  /* PRD §17.2: fullscreen IS the full-window mode — the stage fills the
+     screen instead of sitting inside its framed/capped box. The scenes
+     already carry preserveAspectRatio="xMidYMax slice", so an oversized
+     stage crops rather than stretches; no new scaling strategy needed here,
+     only the frame's own box gets to be arbitrary. Explicit width/height
+     override the aspect-ratio (it only fills in a missing dimension), so no
+     separate aspect-ratio:auto override is needed. */
+  .stage-frame:fullscreen {
+    max-width: none;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    border-radius: 0;
+    border: none;
+  }
+
+  /* ── PRD §24: ambient banner plane — screen-space overlay, JS-created only ──
+     (no static markup, so the no-JS path never renders it — see JS below).
+     vw-based flight path rather than scene-relative: a screen-space overlay
+     like .fullscreen-toggle, it need not track the SVG's slice crop. */
+  .banner-plane {
+    position: absolute;
+    top: 14%;
+    left: 0;
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+    color: var(--text);
+    animation-name: plane-fly;
+    animation-timing-function: linear;
+    opacity: 1;
+    transition: opacity 400ms ease; /* PRD §24 RULED: fade out, matching §21/§28 */
+  }
+  .banner-plane.plane-fade-out { opacity: 0; }
+  @keyframes plane-fly {
+    from { transform: translateX(-18vw); }
+    to   { transform: translateX(118vw); }
+  }
+  .plane-icon { flex: none; }
+  .banner-tow { flex: none; width: 26px; height: 2px; background: currentColor; }
+  .banner-rect {
+    flex: none;
+    background: #000;
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    padding: 0.25rem 0.7rem;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  /* PRD §24 RULED: standard + wide only, not portrait — the horizontal
+     fly-through reads oddly on the narrow tall scene. */
+  @media (max-aspect-ratio: 4/5) {
+    .banner-plane { display: none; }
+  }
+  /* PRD §24 RULED: no plane at all under reduced motion. JS already never
+     schedules one (reducedMotion() gate in flyPlane()); this is belt-and-
+     braces for the same edge case the other ambient animations cover (see
+     .wind, .camera above) — the setting flips mid-session. */
+  @media (prefers-reduced-motion: reduce) {
+    .banner-plane { display: none; }
+  }
+
+  /* ── P4: end-dialogue button (inside .card; styled like .system options) ── */
+  .end-dialogue {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    color: var(--dim);
+    background: transparent;
+    border: 1.5px dashed var(--option-border);
+    border-radius: 999px;
+    padding: 0.65rem 1.2rem;
+    cursor: pointer;
+    margin-top: 0.75rem;
+    transition: color 0.12s ease, border-color 0.12s ease;
+  }
+  /* display:block above is author-origin CSS, which outranks the UA
+     stylesheet's [hidden]{display:none} regardless of selector specificity —
+     left alone it would render the button even while `hidden` is set.
+     Reassert it explicitly so JS (or its absence, on the no-JS path) stays
+     the only thing that can ever reveal this button. */
+  .end-dialogue[hidden] { display: none; }
+  .end-dialogue:hover,
+  .end-dialogue:focus-visible {
+    color: var(--stage);
+    border-color: var(--stage);
+    background: transparent;
+  }
+  .end-dialogue:focus-visible {
+    outline: 2px solid var(--stage);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .end-dialogue { transition: none; }
+  }
+
+  /* ── Dialogue card: an IN-SCENE overlay, not a block below the scene ──────── */
   .card {
-    max-width: 620px;
-    margin: -72px auto 0;
+    position: absolute;
+    left: 50%;
+    bottom: 3.5%;
+    transform: translateX(-50%);
+    width: min(600px, 88%);
+    pointer-events: auto; /* re-enable: stage-frame has pointer-events:none */
     padding: 1.75rem 2rem 2rem;
     background: var(--card);
     border: 1px solid var(--card-edge);
     border-radius: 18px;
     box-shadow: var(--card-shadow);
-    position: relative;
-    transition: background 0.4s ease, border-color 0.4s ease;
+    /* PRD §28: opacity/transform tail on the existing transition list — the
+       fade. 170ms delay + 380ms duration lands at 550ms, so the card settles
+       exactly as the §21 zoom (550ms) does. */
+    transition: background 0.4s ease, border-color 0.4s ease,
+      opacity 380ms ease 170ms, transform 380ms ease 170ms;
+  }
+  /* PRD §28: the fade's starting state. JS-only (added by `approach()`'s
+     init and re-armed by `exit()`) — never a static rule on .card itself,
+     or the no-JS path (which never adds this class) would render the card
+     invisible. */
+  .card.card-entering {
+    opacity: 0;
+    transform: translateX(-50%) translateY(6px);
   }
   .card-head {
     display: flex;
     align-items: center;
     gap: 1rem;
     margin-bottom: 1rem;
-  }
-  .avatar { flex: none; }
-  .avatar circle, .avatar rect { transition: fill 0.4s ease; }
-  .avatar .eyes {
-    animation: blink 5s infinite;
-    transform-origin: center 41px;
-  }
-  @keyframes blink {
-    0%, 92%, 100% { transform: scaleY(1); }
-    95%            { transform: scaleY(0.1); }
   }
   .name {
     font-family: var(--mono);
@@ -367,41 +748,69 @@ const root = tree.root;
     font-size: 0.85rem;
   }
   .noscript-note a { color: var(--option); }
+  /* PRD §17.2 RULED 2026-07-23: the stage is now full-bleed, so the footer
+     can no longer sit in normal flow below it (that would add page height
+     the full-height frame doesn't leave room for, forcing a scrollbar).
+     It becomes a floating overlay instead — top-left, mirroring the theme
+     toggle's top-right placement, so the two corners read as a pair and
+     neither competes with the bottom-centre card or the fullscreen button.
+     Chrome-layout call, flagged for Caveshen's look in the report.
+     Same glass-chip treatment as .approach-prompt/.fullscreen-toggle, for
+     legibility over the scene in both themes. Declared after .stage-frame in
+     the DOM, so as a fixed element it already paints above the full-bleed
+     frame by paint order; z-index:1 is kept only as belt-and-braces against a
+     future reorder (the theme toggle, which precedes the frame, genuinely
+     needs its own z-index). max-width caps well short of the toggle's corner
+     even at the narrowest tested viewport (390px). */
   .page-foot {
-    max-width: 620px;
-    margin: 2rem auto 2.5rem;
-    padding: 0 2rem;
+    position: fixed;
+    left: 1rem;
+    top: 1rem;
+    z-index: 1;
+    max-width: min(260px, 48vw);
     font-family: var(--mono);
-    font-size: 0.72rem;
+    font-size: 0.68rem;
+    line-height: 1.4;
     letter-spacing: 0.06em;
-    color: var(--dim);
-    text-align: center;
+    color: var(--text);
+    background: rgba(10, 8, 22, 0.55);
+    border: 1px solid rgba(233, 226, 207, 0.22);
+    border-radius: 12px;
+    padding: 0.5rem 0.85rem;
+    backdrop-filter: blur(3px);
+  }
+  :root[data-time="day"] .page-foot {
+    background: rgba(253, 251, 245, 0.65);
+    border-color: rgba(37, 48, 56, 0.22);
   }
 
   @media (max-width: 680px) {
-    .card { margin: 0.75rem 1rem 0; padding: 1.4rem 1.3rem 1.5rem; }
-  }
-
-  /* portrait aspect: card sits below the scene, never over it (after .card base so it wins) */
-  @media (max-aspect-ratio: 4/5) {
-    .card { margin: 0.75rem auto 0; width: calc(100% - 2rem); }
+    .card { padding: 1.4rem 1.3rem 1.5rem; }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .avatar .eyes { animation: none; }
-    body, .scene rect, .scene polygon, .scene circle,
-    .card, .avatar circle, .avatar rect,
-    .speech, .choices button { transition: none; }
+    /* .scene rect/polygon/circle/line/path reduced-motion now lives in
+       tokens.css alongside the base rule it's disabling (PRD d1, was §30
+       D-4). */
+    body, .card, .speech, .choices button { transition: none; }
   }
 </style>
 
 <script>
   import { initEngine } from '../scripts/dialogue.js';
+  import { computeCameraTransform } from '../scripts/camera.js';
   import tree from '../data/dialogue.json';
 
-  const speechEl  = document.getElementById('speech');
-  const stageEl   = document.getElementById('stage');
-  const choicesEl = document.getElementById('choices');
+  const speechEl    = document.getElementById('speech');
+  const stageEl     = document.getElementById('stage');
+  const choicesEl   = document.getElementById('choices');
+  const card        = document.querySelector('.card') as HTMLElement;
+  const camera      = document.querySelector('.camera') as HTMLElement;
+  const stageFrame  = document.querySelector('.stage-frame') as HTMLElement;
+  const approachBtn = document.getElementById('approach-prompt') as HTMLButtonElement;
+  const endDlgBtn   = document.getElementById('end-dialogue') as HTMLButtonElement;
+
+  // ── Dialogue engine ───────────────────────────────────────────────────────
 
   const render = initEngine(
     tree,
@@ -411,4 +820,278 @@ const root = tree.root;
 
   // Initial render is immediate — static content is already in place from SSR.
   render('root', true);
+
+  // ── P4: progressive enhancement — reveal approach prompt ────────────────
+  // PRD §15 D5: card ships with [hidden] in the markup so it is never painted
+  // visible before this script runs. No assignment here; exit() re-arms it.
+  // PRD §28: same reasoning — the fade's opacity:0 starting class is added
+  // here in JS only, never as a static .card rule, so the no-JS card (which
+  // never runs this script) stays fully visible.
+  card.classList.add('card-entering');
+  approachBtn.hidden = false;
+
+  // Position the prompt near the visible figure's measured location in screen space.
+  // PRD §15 D1: floats clear ABOVE the head with a gap (interaction-prompt
+  // convention), centred on the figure, clamped inside the stage frame.
+  function positionPrompt() {
+    // PRD §27: .js-character is shared by the hooded figure and the Badger —
+    // only the visible one has width>0, so this picks whichever is active.
+    const figEl = [...document.querySelectorAll('.js-character')]
+      .find((el) => el.getBoundingClientRect().width > 0) as SVGElement | undefined;
+    if (!figEl) return;
+    const sf  = stageFrame.getBoundingClientRect();
+    const fig = figEl.getBoundingClientRect();
+    const GAP = 14; // clearance between the prompt and the head
+
+    // Centre horizontally on the figure first — the button's available width
+    // (and so its measured height, below) depends on this left offset.
+    const left = (fig.left + fig.width / 2) - sf.left;
+    approachBtn.style.left      = `${left}px`;
+    approachBtn.style.right     = 'auto';
+    approachBtn.style.bottom    = 'auto';
+    approachBtn.style.transform = 'translateX(-50%)';
+
+    // The button is already unhidden by now, so its real (measured) height is
+    // available rather than a guess.
+    const btnHeight = approachBtn.getBoundingClientRect().height;
+    let top = (fig.top - sf.top) - GAP - btnHeight;
+    if (top < 8) {
+      // Not enough headroom above the head to clear it inside the frame —
+      // sit beside the figure instead of pushing the prompt down onto it.
+      top = Math.max(8, fig.top - sf.top);
+      approachBtn.style.transform = 'none';
+      // Reviewer follow-up 1b: this branch sets left/top directly (no
+      // translateX centring to absorb an edge overrun), so both must be
+      // clamped into the frame itself — a figure near the stage edge could
+      // otherwise push the prompt out of .stage-frame on any side.
+      const btnWidth  = approachBtn.getBoundingClientRect().width;
+      const wantsLeft = (fig.right - sf.left) + GAP;
+      const left      = Math.min(Math.max(8, wantsLeft), Math.max(8, sf.width - btnWidth - 8));
+      approachBtn.style.left = `${left}px`;
+      top = Math.min(top, Math.max(8, sf.height - btnHeight - 8));
+    }
+    approachBtn.style.top = `${top}px`;
+  }
+  positionPrompt();
+  window.addEventListener('resize', positionPrompt, { passive: true });
+
+  // ── Camera zoom ───────────────────────────────────────────────────────────
+
+  // PRD §21: the shared 950ms/(0.16,1,.3,1) curve reads as a lurch-then-crawl
+  // on entry (it's ~97% done by half its duration) but reads correctly on
+  // exit (a fast departure that settles) — approved as-is, unchanged below.
+  // Entry gets its own curve, set inline only for the zoom-in transition, so
+  // it can differ from the exit without touching the shared CSS transition
+  // (the exit's authoritative source, so it can never drift from "unchanged").
+  // cubic-bezier(0.4, 0, 0.2, 1) is the Material "standard" ease-in-out — its
+  // first control point has y=0, so the curve starts from true rest (no
+  // first-frame jump) rather than the old curve's ~6x-speed launch.
+  const ENTRY_TRANSITION = 'transform 550ms cubic-bezier(0.4, 0, 0.2, 1)';
+  const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let approached = false;
+
+  function approach() {
+    if (approached) return;
+    approached = true;
+
+    // Inline transition override for the entry only (PRD §21). Under
+    // reduced-motion we simply never set it, so the stylesheet's
+    // `transition: none` applies unopposed — there is no cascade contest.
+    // An inline style would outrank the media query and reinstate the zoom.
+    if (!reducedMotion()) camera.style.transition = ENTRY_TRANSITION;
+
+    // PRD §24: an in-flight banner plane bows out rather than freezing mid-sky.
+    fadeOutPlane();
+
+    // Show card, hide prompt
+    card.hidden    = false;
+    endDlgBtn.hidden = false;
+    approachBtn.hidden = true;
+
+    // PRD §28: fade the card in, synced with the zoom above. Force a style
+    // flush before removing the entering class so the browser paints the
+    // opacity:0 starting frame — without it, both style changes could
+    // coalesce into one frame and the transition would never fire. Under
+    // reduced-motion the flush is a harmless no-op (the CSS `transition: none`
+    // catch-all makes the class removal instant), so no branch is needed.
+    void card.offsetHeight; // force reflow
+    card.classList.remove('card-entering');
+
+    // Measure the visible character (figure or Badger — PRD §27) and compute
+    // the camera transform. .js-character is shared by both; only the
+    // visible one has width>0.
+    const figEl = [...document.querySelectorAll('.js-character')]
+      .find((el) => el.getBoundingClientRect().width > 0) as SVGElement | undefined;
+    if (figEl) {
+      const sf  = stageFrame.getBoundingClientRect();
+      const fig = figEl.getBoundingClientRect();
+      const scale = 2.2;
+      // PRD §15 D2: frame the face in the band between the top of the stage
+      // and the top of the (already-visible) card, derived from the measured
+      // card rather than a hard-coded constant, so the two cannot drift apart.
+      // Reviewer follow-up 1a: pass the measured .face-void centre directly
+      // as faceY, rather than relying on computeCameraTransform's built-in
+      // 18%-down-the-figure heuristic — no correction term needed.
+      const faceVoidEl = [...document.querySelectorAll('.face-void')]
+        .find((el) => el.getBoundingClientRect().width > 0) as SVGElement | undefined;
+      const cardTop = card.getBoundingClientRect().top - sf.top;
+      const faceTargetY = cardTop / 2;
+      const faceY = faceVoidEl
+        ? (faceVoidEl.getBoundingClientRect().top + faceVoidEl.getBoundingClientRect().height / 2) - sf.top
+        : undefined;
+      const { tx, ty } = computeCameraTransform({ stage: sf, figure: fig, scale, faceTargetY, faceY });
+      camera.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+    }
+
+    // Focus the first dialogue option (SC5)
+    const firstChoice = choicesEl.querySelector('button') as HTMLButtonElement | null;
+    firstChoice?.focus();
+  }
+
+  function exit() {
+    if (!approached) return;
+    approached = false;
+
+    // Clear the entry's inline transition override — this restores the
+    // stylesheet's own transition (unchanged, exit's authoritative source),
+    // whether or not reduced-motion is active.
+    camera.style.transition = '';
+
+    // Restore state
+    card.hidden    = true;
+    // PRD §28 AC4: re-arm the fade's entering state so a later re-approach
+    // fades in again instead of popping (a leftover opacity:1 from a prior
+    // fade would otherwise carry over, and mid-fade this also snaps the
+    // card's opacity/position cleanly back rather than leaving it stuck
+    // half-faded — hidden takes over the same tick so nothing is visible).
+    card.classList.add('card-entering');
+    endDlgBtn.hidden = true;
+    approachBtn.hidden = false;
+    camera.style.transform = 'none';
+
+    // Return focus to the approach prompt (SC6)
+    approachBtn.focus();
+  }
+
+  // ── PRD §24: ambient banner plane ───────────────────────────────────────────
+  // A rare flourish: a plane tows a "MAVERICKS" banner across the sky, only in
+  // the zoomed-out full scene. Gating is a live approached/reducedMotion() check
+  // at each scheduled tick (not a cancelled timer) — simplest way to guarantee
+  // only one timer chain ever runs, since schedulePlane() always clears the
+  // previous one before arming the next.
+  const PLANE_FIRST_MS = 10_000;
+  const PLANE_INTERVAL_MS = 120_000;
+  const PLANE_JITTER_MS = 30_000; // ± around the interval — "not a metronome"
+  const PLANE_FLIGHT_MS = 16_000; // knob: crossing speed
+  let planeTimer: ReturnType<typeof setTimeout>;
+  let planeEl: HTMLElement | null = null;
+
+  const nextPlaneDelay = () => PLANE_INTERVAL_MS + (Math.random() * 2 - 1) * PLANE_JITTER_MS;
+  function schedulePlane(delay: number) {
+    clearTimeout(planeTimer);
+    planeTimer = setTimeout(flyPlane, delay);
+  }
+
+  function flyPlane() {
+    // Re-checked live rather than at schedule time: approached()/reducedMotion()
+    // can change during the wait, and this is the only gate that matters.
+    if (approached || reducedMotion()) {
+      schedulePlane(nextPlaneDelay());
+      return;
+    }
+    const el = document.createElement('div');
+    el.className = 'banner-plane';
+    el.setAttribute('aria-hidden', 'true');
+    el.style.animationDuration = `${PLANE_FLIGHT_MS}ms`;
+    // Banner trails behind (left, since flight is left-to-right — PRD §24
+    // RULED direction) with the plane leading on the right. Copy is
+    // Caveshen's own ("MAVERICKS"), not placeholder — see PRD §24.
+    el.innerHTML = `
+      <span class="banner-rect">MAVERICKS</span>
+      <span class="banner-tow"></span>
+      <svg class="plane-icon" width="30" height="14" viewBox="0 0 30 14" aria-hidden="true">
+        <path d="M0 6 H20 V8 H0 Z M20 5 L28 7 L20 9 Z M8 6 L16 0 L20 6 Z M8 8 L16 14 L20 8 Z" fill="currentColor" />
+      </svg>`;
+    el.addEventListener('animationend', endPlane);
+    stageFrame.appendChild(el);
+    planeEl = el;
+  }
+
+  // Natural end of a completed crossing: remove and reschedule.
+  function endPlane() {
+    planeEl?.remove();
+    planeEl = null;
+    schedulePlane(nextPlaneDelay());
+  }
+
+  // Interrupted by approach: fade rather than freeze or hard-cut (PRD §24
+  // RULED). Detaches the animationend listener first so the still-running
+  // flight animation can't also fire endPlane() once the fade has already
+  // rescheduled — that would double-run the timer chain.
+  function fadeOutPlane() {
+    if (!planeEl) return;
+    const el = planeEl;
+    planeEl = null;
+    el.removeEventListener('animationend', endPlane);
+    el.addEventListener('transitionend', () => el.remove(), { once: true });
+    el.classList.add('plane-fade-out');
+    schedulePlane(nextPlaneDelay());
+  }
+
+  schedulePlane(PLANE_FIRST_MS);
+
+  // ── Fullscreen toggle (PRD §18 / §17.2) ─────────────────────────────────────
+  // Degrade honestly: only reveal the button if the API is actually usable —
+  // an unhidden-but-dead button is worse than no button. The stage itself
+  // (not <html>) is what goes fullscreen, so the approach prompt / card /
+  // this button — all descendants of .stage-frame — stay visible and
+  // operable while fullscreen (the Fullscreen API hides everything that
+  // isn't a descendant of the fullscreened element).
+  const fsBtn = document.getElementById('fullscreen-toggle') as HTMLButtonElement;
+
+  if (document.fullscreenEnabled) {
+    fsBtn.hidden = false;
+
+    // Four-corner brackets, hand-derived rather than swapping the whole SVG:
+    // ENTER has each bracket's vertex AT the box corner, arms reaching in;
+    // EXIT mirrors it — vertex pulled inward, arms reaching back out to the
+    // same points — the standard expand/compress pairing.
+    const ENTER_D = 'M4 9V4H9M15 4H20V9M20 15V20H15M9 20H4V15';
+    const EXIT_D  = 'M4 9H9V4M20 9H15V4M20 15H15V20M4 15H9V20';
+    const fsPath  = fsBtn.querySelector('path') as SVGPathElement;
+
+    function syncFullscreenButton() {
+      const isFs = document.fullscreenElement === stageFrame;
+      fsBtn.setAttribute('aria-label', isFs ? 'Exit fullscreen' : 'Enter fullscreen');
+      fsPath.setAttribute('d', isFs ? EXIT_D : ENTER_D);
+    }
+
+    fsBtn.addEventListener('click', () => {
+      if (document.fullscreenElement === stageFrame) {
+        document.exitFullscreen();
+      } else {
+        // Refused/unavailable at click time (e.g. permission policy) — fail
+        // quietly rather than an unhandled rejection; the button simply
+        // stays in its current state, which fullscreenchange keeps honest.
+        stageFrame.requestFullscreen().catch(() => {});
+      }
+    });
+
+    // Must stay correct when the user leaves fullscreen via Escape rather
+    // than the button — fullscreenchange covers both paths (PRD §18 AC2).
+    document.addEventListener('fullscreenchange', syncFullscreenButton);
+  }
+
+  // ── Event wiring ─────────────────────────────────────────────────────────
+
+  approachBtn.addEventListener('click', approach);
+  endDlgBtn.addEventListener('click', exit);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && approached) {
+      e.preventDefault();
+      exit();
+    }
+  });
 </script>

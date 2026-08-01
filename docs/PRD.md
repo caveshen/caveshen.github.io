@@ -53,18 +53,19 @@ the document body under their original `§` headings as history.
 | d9 | The `main` cutover | §23 | ⏳ ready — no gates remain; completes on merge of PR #1 |
 | d10 | Fixed-sleep timing races | §30 D-8 | ✅ fixed 2026-07-29 — caught by CI, 3 of 4 sleeps removed |
 | d11 | Card CSS authored twice (~90 lines) | §30 D-9 | ⏳ |
-| d12 | Scene markup authored four times | §30 D-10 | ⏳ |
+| d12 | Shared scene component — the scene is authored four times | §30 D-10 | ⏳ **blocks d17** — pure refactor + the one ruled moon fix |
 | d13 | `Avatar.astro` uses `is:global` needlessly | §30 D-12 | ⏳ |
 | d14 | `not-found.spec.js` coupled to placeholder copy | §30 D-13 | ⏳ |
 | d15 | Admin page | §31 (remainder) | 🎨 IN DESIGN, no go-ahead |
 | d16 | Card avatar art refinement | §33b | 🎨 IN DESIGN, brief outstanding |
-| d17 | One character per route — Badger on `/`, hooded figure on `/404`; the toggle dies | §27 (remainder) | ⏳ RULED 2026-08-01, not built — own branch after PR #1 |
+| d17 | One character per route — Badger on `/`, hooded figure on `/404`; the 404 goes 1:1 with the landing; the toggle dies | §27 (remainder) | ⏳ RULED 2026-08-01 and **amended the same day**, not built — **gated on d12** |
 | d18 | Visual validation in e2e | §16 | 💭 intent only |
 | d19 | Dialogue rework | §22 | ⏸ parked |
 | d20 | Social preview imagery | §32 | ⏸ unscheduled |
 | d21 | All copy | §23 checklist item 1 | Caveshen's alone; every `PLACEHOLDER` stands |
 | d22 | Standardise test filenames — descriptive, not tracker IDs | *new* | ✅ built 2026-07-27 — 8 renames, counts unmoved |
 | d23 | Hosted site — domain + Cloudflare | *new* | ⏳ not started |
+| d24 | The Badger on `/sheet` — character-select framing, outside the scene | *new* | 🎨 DESIGN STAGE — brief and his go outstanding |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -76,7 +77,7 @@ rather than left as done-and-dusted: **the tracker must never constrain the
 code** — the misnamed file had been left alone precisely *because* the PRD
 referenced it, which is backwards.
 
-d1, d3–d5, d6–d8, d10–d14, d17, d23 are written up as their own `## dN`
+d1, d3–d5, d6–d8, d10–d14, d17, d23, d24 are written up as their own `## dN`
 sections (§30's old D-4/D-6/D-8/D-9…D-13 subsections moved there, not
 duplicated — see the note at each old location). d2, d9, d15, d16, d18–d21
 have no separate `d` section: their detail still lives at the `§` heading
@@ -573,6 +574,16 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
 - **Suite size as of 2026-07-27** (§30 D-4, the interactive 404): **65 unit,
   1369 e2e** (7 skipped, 0 failed) — tri-engine. Supersedes the 2026-07-25
   figures above.
+- **Badger-count recount 2026-08-01** (asked for by the d17 draft, done against
+  the files at `2157118`, not inferred): `e2e/badger.spec.js` holds **7 test
+  bodies** — the 2026-07-25 figure above is still correct, not stale. d17 takes
+  that file to **5** (two toggle tests deleted, two inverted, three keep their
+  assertions minus the toggle click) and *adds* bodies to `e2e/not-found.spec.js`
+  (per-route character presence, the migrated theme-independence assertion, the
+  `/404` bg/fg seam, and the card-occlusion test ruled in 2026-08-01). The net is
+  **not predictable from this note — count it when d17 lands** and write the new
+  totals here as a dated line. 65/1369 remains the last *measured* pair and stays
+  the baseline until then.
 - **No snapshot baselines exist in the repo** — verified 2026-07-25, no
   `*-snapshots/` directory anywhere. The throwaway baselines used to prove
   §19's refactor was pixel-identical were deleted after use, as intended.
@@ -2863,6 +2874,15 @@ it is trusted to theme.
    criterion is behavioural, not structural: **the dialogue stays centred and
    fully on-screen at every viewport.** How the background is framed behind it is
    an implementation choice, not a spec.
+
+   **Not reversed, but overtaken 2026-08-01 (d17 + d12).** The 404 does gain the
+   landing's three aspect-ratio variants — not because this criterion changed
+   (it is still behavioural, and the card still simply has to stay centred and
+   on-screen) but because the scene becomes a **shared component** and both
+   routes render from it. `src/pages/404.astro`'s own comment anticipated
+   exactly this: *"If this page ever needs the tri-variant rig, take it from
+   index.astro rather than growing this one."* That is what happens. The waiver
+   stands — nothing here *required* the rig, and nothing here forbids it.
 2. **~~No characters — no hooded figure, no Badger.~~ — SUPERSEDED 2026-08-01
    by d17: the 404 gets the hooded figure.** The original ruling is quoted in
    the page's own header comment, `src/pages/404.astro:5-6` — *"no characters
@@ -3334,6 +3354,10 @@ from that build** to keep a review-ready diff surgical. None is a defect; all
 four are drift risks or coupling. (A fifth, D-11 — the day clouds — was ruled
 an active fix rather than debt; see **d4** above.)
 
+**Amended 2026-08-01: d12 is no longer optional.** It became d17's hard
+prerequisite when Caveshen ruled the 404 scene 1:1 with the landing. The other
+three keep their original standing.
+
 ### d11 — the card vocabulary is authored twice (~90 lines) (was §30 D-9)
 
 `NotFound.astro` and `index.astro` carry byte-identical `.card-head`, `.name`,
@@ -3352,14 +3376,119 @@ plus SVG fill utilities; a component's CSS is a different kind of thing.
 **Correct shape: a `DialogueCard` component or `src/styles/card.css` imported by
 both pages, with `.card` positioning left per-page.**
 
-### d12 — the scene markup is now authored four times (was §30 D-10)
+### d12 — the shared scene component (the scene is authored four times) (was §30 D-10)
 
-`index.astro` triplicates it (one per camera) and `404.astro` adds a fourth copy
-of the star field, moon reflection and wave marks. Pre-existing pattern; the 404
-following it is consistent, not a new sin. A `Backdrop.astro` is the obvious
-treatment. Independently confirmed by the 2026-07-31 two-axis code review:
-stars/moon/sea/wave-marks/rails repeat across `index.astro`'s three scene
-variants and `404.astro`.
+**RESCOPED 2026-08-01 — no longer a cleanup nicety; it is d17's prerequisite.**
+Caveshen ruled that `/404`'s scene becomes **1:1 with the landing across all
+three aspect-ratio variants**. Hand-authoring that would take the count of
+hand-authored scene copies from **four to six**. Extraction is the only answer
+that does not, so **d17 does not start until this lands.** Same item, wider
+mandate — not a new number.
+
+**The four copies today, verified at `2157118`:**
+
+| Copy | Where | viewBox | Camera |
+|---|---|---|---|
+| standard | `src/pages/index.astro:63` | `0 0 1200 750` | `translate(0,128)` |
+| wide | `src/pages/index.astro:126` | `0 0 1750 750` | `translate(280,128)` |
+| tall | `src/pages/index.astro:184` | `0 0 600 1067` | `translate(-20,262) scale(0.62)` |
+| the 404 | `src/pages/404.astro:49` | `0 0 1900 750` | `translate(375,253)` |
+
+Each repeats `f-sky`, the ten-circle star field, the `night-only` `Moon`, the
+`day-only` sun plus two cloud rects, `CityScape`, `f-sea`, the three-bar
+`f-moon` reflection, six `f-wave` marks and `f-ground`; `/`'s three add the
+`f-rail` promenade railing. Independently confirmed by the 2026-07-31 two-axis
+code review.
+
+**Shape — recommended, not ruled.** `src/components/Scene.astro`, one prop
+`variant: 'standard' | 'wide' | 'tall'` selecting viewBox / `CAMERA` /
+`CELESTIAL` / `FIG` from tables the component owns, plus:
+
+- **The character arrives as a component *prop*, not a slot.** Astro slots
+  cannot receive props, and the character's placement (`FIG[variant]`) is
+  precisely what must stop being hand-tuned per page. `<Scene variant="wide"
+  character={Badger} />` lets the scene pass `x`/`y`/`scale` down itself.
+  `Badger.astro` and `HoodedFigure.astro` already share one prop contract —
+  *"local y=196 is the ground/shoe line"*, `Badger.astro:9-11` — so they are
+  interchangeable there with no placement maths at the call site.
+- **`characterLabel` for the `aria-label` tail.** The landing's three labels end
+  *"…with a hooded figure on the promenade"*; the 404's carries no character
+  clause. That string is the one thing that legitimately differs per route.
+- **The variant-switching media queries move into the component.** They sit at
+  `index.astro:412-419` today and target the component's own root element, so
+  Astro's scoped styles reach them and the rule bundles once however many
+  callers exist. `.scene` base sizing already lives in `tokens.css` (put there
+  by d1) and stays there.
+
+**Pure refactor, and its proof is already written — with exactly one sanctioned
+exception, below.** No visual change, no behavioural change: **the existing e2e
+suite passes unchanged** — not one test edited, no baseline regenerated. If a
+test needs touching, the refactor is wrong. The same standard §19 and §33a were
+held to, and the same reason it is cheap: the proof already exists.
+
+**RULED 2026-08-01 — the wide variant's moon is the one visual change in this
+item.** Caveshen, on the ultrawide moon question d17's amendment raised:
+
+> "I do want it to be 1:1 but I am happy with us making creative choices that
+> benefit both views, that still keeps it 1:1 in terms of both views."
+
+**1:1 means the two routes agree — it does not mean freezing today's geometry.**
+A creative choice that improves both views is still 1:1. So the moon is fixed
+**inside the shared component**, once, and both routes inherit it.
+
+**The measurements, verified against the files at `2157118` — do not re-derive
+these.** Both SVGs fill the viewport (`.scene { width:100%; height:100% }`,
+`tokens.css:122`), so `xMidYMax slice` exposes `width / AR` user units anchored
+to the bottom edge. The moon radius is hardcoded at 46 (`Moon.astro:17`).
+
+| Scene | viewBox | Moon `cy` | Fully visible while | Entirely gone above |
+|---|---|---|---|---|
+| `/404` today | `0 0 1900 750` (`404.astro:49`) | 275 | **AR < 3.647** | AR 4.43 |
+| `scene-wide` | `0 0 1750 750` (`index.astro:126`) | 150 (`index.astro:33`) | **AR < 2.709** | AR 3.159 |
+
+`index.astro:413` selects `scene-wide` at `@media (min-aspect-ratio: 15/8)`
+(1.875), so every ultrawide qualifies. **The reframing that decided this: the
+landing already loses its moon entirely at 3840×1080 today.** Going 1:1 does not
+introduce a defect — it *propagates an existing one*, currently masked by the two
+pages disagreeing. **The root cause is `scene-wide`'s `cy=150`, not the 404's
+viewBox**, which is why the fix belongs here and not in d17.
+
+**Criterion:** the moon is **fully visible at 3840×1080** — i.e. the wide
+variant's cutoff clears **AR 3.56**. **Constraint:** d3's accepted look at
+ordinary aspect ratios must not shift; check 1920×1080, 2560×1440 and 3440×1440
+in both themes before and after.
+
+**Scope of the exception, stated so it cannot be stretched.** The wide variant's
+moon **y-coordinate is the sole permitted pixel-level difference in this item.**
+It is not licence to re-tune the celestial x, the radius, the standard or tall
+variants, the camera, the skyline, or anything else that catches the eye during
+the extraction. Everything else in d12 stays byte-identical. Anything further
+goes back to Caveshen as a question.
+
+**The one expected exception to the "zero files under `e2e/` modified" proof —
+and it may not be needed. Checked: no assertion anywhere pins the moon's
+position.** The two near-misses, named so nobody hunts for a third:
+`e2e/interview.spec.js:206` asserts `.scene-standard .night-only` is *visible*
+at 1920×1080 — standard variant, visibility only, untouched by a wide-variant
+`cy`; and `src/tests/hygiene.test.js:46` checks the favicon file contains
+`#ffd75e`, which is a colour token, not geometry. **So the proof should hold
+intact.** If the moon fix does turn a test red, that single file is the
+sanctioned exception — name it in the commit message and say why.
+
+**Scope boundary — `/404` does not move in this item.** The page keeps its
+1900-wide single scene until **d17** swaps it for three `<Scene>` renders.
+Folding that in here would make this item visually non-neutral and cost it its
+only cheap proof. Rejected alternative: give `Scene.astro` a fourth `notfound`
+variant carrying the 1900 camera so the 404 can render from it with zero visual
+change — a variant built to die two commits later.
+
+**Found in passing; log, do not chase.** `404.astro`'s star field (`cx`
+95…1150) and its six `f-wave` marks (`x` 70…1080) are the landing's original
+**1200-space coordinates and never received the +375 horizontal offset** d3
+applied to the camera, celestial and moon reflection. Harmless — both read as
+scatter — but the stars sit left-of-world, and it will surface the moment
+anyone diffs the two files. **It resolves itself when `/404` adopts the shared
+component in d17.** No separate item.
 
 ### d13 — `Avatar.astro` uses `is:global` where scoped would do (was §30 D-12)
 
@@ -3389,11 +3518,10 @@ a defect — a note for whoever writes the script. See §2: all copy is his.
 the hooded figure and the Badger. Caveshen's answer is that **nothing does**.
 
 - **`/` — the Badger.** `src/pages/index.astro` renders `Badger.astro` in all
-  three scene variants, as it does today. `HoodedFigure.astro` does not render
-  on this page at all.
+  three scene variants. `HoodedFigure.astro` does not render on this page at all.
 - **`/404` — the hooded figure.** `src/pages/404.astro` renders
-  `HoodedFigure.astro` once, in its single-camera scene. `Badger.astro` does
-  not render on this page at all.
+  `HoodedFigure.astro` in all three scene variants. `Badger.astro` does not
+  render on this page at all.
 - **Same scene, different character, different dialogue tree.** The trees are
   already separate (`dialogue.json` / `dialogue-404.json`, split by d1); no
   engine change, no data change.
@@ -3408,6 +3536,42 @@ button, its script, its CSS block, and the second character on each page.
 §27's open point 1 closes with it, and d8's note that d17 "stays open and
 deferred" is spent.
 
+### AMENDED 2026-08-01 — the 404 is 1:1 with the landing, which gates this item on d12
+
+Caveshen's amendment, made after the first draft of this section was written
+and before any code existed:
+
+> The `/404` scene becomes **1:1 with the landing page**, scene-wise — the same
+> scenery across **all three aspect-ratio variants**. Only the route and the
+> dialogue tree differ.
+
+Four consequences, all of them structural:
+
+1. **The 404's single camera dies.** It authors its scene once at viewBox
+   `0 0 1900 750` with `preserveAspectRatio="xMidYMax slice"`
+   (`src/pages/404.astro:49`). It now takes the landing's standard / wide /
+   tall treatment instead — the same viewBoxes, the same cameras, the same
+   celestial slots, the same media-query switching. `404.astro`'s local
+   `CAMERA` and `CELESTIAL` constants delete with it.
+2. **Hand-authoring that would take the scene from four copies to six. That is
+   the wrong answer.** The accepted answer is **d12's shared scene component**
+   (viewBox/camera per variant, character as a prop), so both routes render
+   from one source. **d12 is therefore a hard prerequisite of this item, not an
+   optional cleanup** — see d12, rescoped the same day. Sequencing Caveshen
+   approved: **d12 lands first as a pure refactor with no visual change, then
+   this item is a small diff on top.**
+3. **The figure's placement on `/404` stops being a design decision.** It is
+   inherited from `FIG[variant]` in the shared component, exactly as `/`'s is.
+   Nothing is hand-tuned for the 404.
+4. **This costs `/404` weight, and the ruling is worth it anyway — say so
+   plainly.** The page goes from one authored scene in the DOM to three (two
+   hidden at any aspect ratio) and from zero characters to three instances to
+   render one. Extraction removes *authored source*, not *shipped DOM*: the
+   built HTML for `/` is unchanged by d12, and the built HTML for `/404` roughly
+   triples. This is a consistency ruling bought with bytes on the page nobody is
+   meant to land on. Recorded so nobody later reads the performance rationale
+   below and concludes the two are in conflict — they are, and Caveshen chose.
+
 ### SUPERSEDES d1's ANSWERED 2 — the 404 is no longer scenery-only
 
 d1 ANSWERED 2 ruled *"no characters — no hooded figure, no Badger"*, and
@@ -3416,18 +3580,20 @@ d1 ANSWERED 2 ruled *"no characters — no hooded figure, no Badger"*, and
 404 supersedes that ruling.** It is struck and annotated at d1 above; the
 header comment is corrected as part of this build. Recorded in both places
 **so nobody re-derives "the 404 is scenery-only" later** from the comment,
-from the answer list, or from the fact that the page has no camera.
+from the answer list, or from the fact that the page has no camera zoom.
 
-What did *not* change: d1 ANSWERED 1 and 3 still stand — no approach step, no
-camera zoom, no tri-camera rig on the 404. The figure there is **scenery that
-happens to be a person**, not an interactive NPC. It carries `.js-character`
-(it is the same component) but no script on that page queries it.
+What did *not* change: **d1 ANSWERED 3 stands — no approach step, no camera
+zoom on the 404.** The figure there is **scenery that happens to be a person**,
+not an interactive NPC. It carries `.js-character` (it is the same component)
+but no script on that page queries it. **d1 ANSWERED 1 is overtaken, not
+reversed**: it waived the tri-camera rig as *not required*; the rig now arrives
+anyway because the scene is shared. Annotated at d1 above.
 
 ### The performance rationale — stated honestly
 
-Caveshen's stated motive is browser weight: fewer hidden elements on a routed
-page. That is real, and it is **small**. Measured here so it is not overstated
-later:
+Caveshen's original motive was browser weight: fewer hidden elements on a
+routed page. That is real, and it is **small**. Measured here so it is not
+overstated later:
 
 - **`/` authors the scene three times.** `.scene-standard`, `.scene-wide` and
   `.scene-tall`; `index.astro:412-419` hides two of the three with
@@ -3437,27 +3603,30 @@ later:
 - So `/` currently ships **six character instances to render one**. This item
   takes it to three: `HoodedFigure.astro` (119 lines) leaves `/` three times
   over; `Badger.astro` (84 lines) is untouched and still renders three times.
-  `/404` gains one figure instance. Net across the site: **−2 instances**;
-  **−3 on the page that matters**.
+- **`/404` moves the other way** — see amendment consequence 4. It gains three
+  figure instances and two extra scene copies. **Net across the site is now an
+  increase, not a saving.** The saving on `/` is unaffected: **−3 character
+  instances on the page that matters.**
 - **Hidden SVG subtrees are still parsed and held in memory.** They are not
-  laid out and not painted. The saving is **parse time and bytes, not raster
-  work** — do not claim a rendering win from this.
-- **The large weight lever is the triple-authored scene, and it is not this
-  item.** Three whole skylines dwarf three figures. That is already logged as
-  **d11–d14** (d12: the scene markup is authored four times), and Caveshen
-  scoped it **out** of d17 explicitly. Do not fold it in.
+  laid out and not painted. The effect is **parse time and bytes, not raster
+  work** — do not claim a rendering win or loss from this in either direction.
 
-Record the measured `dist/index.html` byte delta when this lands, so the next
-weight argument starts from a number rather than an intuition.
+Record the measured `dist/index.html` **and `dist/404.html`** byte deltas when
+this lands, so the next weight argument starts from numbers rather than
+intuition.
 
 ### Scope
 
-**IN:** per-page character defaults; full removal of the `INTERIM-TOGGLE`
-block; test updates; these PRD updates.
+**IN:** per-page character defaults; `/404` adopting the three scene variants
+via d12's component; full removal of the `INTERIM-TOGGLE` block; the approach
+prompt's final copy (his, supplied 2026-08-01); test updates; these PRD updates.
 
-**OUT (his explicit boundaries):** the triple-scene dedup — stays **d11–d14**;
-dialogue content — stays **d21**, his alone. Any new or amended `aria-label`
-or button copy stays `PLACEHOLDER`-marked.
+**OUT (his explicit boundaries):** the extraction itself — that is **d12**, and
+it lands first as its own commit; dialogue content — stays **d21**, his alone.
+Every other `PLACEHOLDER` in the two pages stands.
+
+**Prerequisite: d12 is merged and green.** If d12 is not done, this item does
+not start.
 
 ### Affected files
 
@@ -3466,13 +3635,20 @@ or button copy stays `PLACEHOLDER`-marked.
   comment blocks and their contents at `:6-13`, `:120`, `:178`, `:232`,
   `:306-331` (button + script) and `:335-361` (CSS, including
   `.badger-figure { display: none; }` — the Badger must now render by
-  default). Keep the three `<Badger .../>` calls. The three scene
-  `aria-label`s (`:64`, `:127`, `:185`) say *"with a hooded figure on the
-  promenade"* and must name the Badger; the approach prompt (`:255`) reads
-  *"PLACEHOLDER: Approach the hooded figure"* — see the open questions.
-- `src/pages/404.astro` — import and render `HoodedFigure` inside `.fg-layer`;
-  correct the header comment (`:5-6`); the scene `aria-label` (`:50`) should
-  name the figure as `/`'s three do.
+  default). The three scene `aria-label`s (`:64`, `:127`, `:185`) say *"with a
+  hooded figure on the promenade"* and must name the Badger — after d12 that is
+  one `characterLabel` prop per `<Scene>`, not three hand-edited strings. The
+  approach prompt (`:255`) reads *"PLACEHOLDER: Approach the hooded figure"* and
+  becomes exactly **`Approach the badger`** — **his final copy, prefix dropped**
+  (see the answered questions).
+- `src/pages/404.astro` — replace the single 1900-wide `<svg class="scene">`
+  with three `<Scene>` renders carrying `character={HoodedFigure}`; delete the
+  local `CAMERA`/`CELESTIAL` constants and the `Moon`/`CityScape` imports the
+  component now owns; correct the header comment (`:5-6`), including the
+  `ponytail:` note at `:12-20` that says this page deliberately has one camera.
+- `src/components/Scene.astro` — **exists already, delivered by d12.** This item
+  passes it different props; it does not modify it. If d17 needs to change
+  `Scene.astro`, d12 was under-scoped — say so rather than patching quietly.
 - `src/components/HoodedFigure.astro`, `src/components/Badger.astro` —
   **unchanged.** Both keep `.js-character` and their own `.face-void`.
 - `e2e/badger.spec.js`, `e2e/approach.spec.js`, `e2e/interview.spec.js`,
@@ -3483,13 +3659,15 @@ or button copy stays `PLACEHOLDER`-marked.
   really rendered); `src/tests/hygiene.test.js:79-104` (asset existence +
   `Badger.astro` source strings); `docs/render-og.js:47` (hides
   `.js-character` when rendering, so the OG image is character-free either
-  way — no re-render needed).
+  way — no re-render needed). No test asserts the approach prompt's *text*, so
+  the copy change breaks nothing (verified across `e2e/` and `src/tests/`).
 
 ### What this does to the suite — investigated, not guessed
 
-**`e2e/badger.spec.js` (7 tests × 8 projects = 56 cases). All seven are
-invalidated in their current form**, because every one of them either asserts
-the hooded figure is the default on `/` or clicks `#character-toggle`:
+**`e2e/badger.spec.js` (7 test bodies × 8 projects = 56 cases; the 7 recounted
+2026-08-01 at `2157118`). All seven are invalidated in their current form**,
+because every one either asserts the hooded figure is the default on `/` or
+clicks `#character-toggle`:
 
 | Test | Fate |
 |---|---|
@@ -3501,8 +3679,8 @@ the hooded figure is the default on `/` or clicks `#character-toggle`:
 | `with Badger active, approach frames the Badger face-void` | **Kept**, drop the toggle click |
 | `no-JS: hooded figure visible, Badger absent` | **Inverts** — and gets stronger: the character is now structural, not a CSS default |
 
-Net roughly 7 → 5 test bodies, so the e2e count **moves**. §13's rule applies:
-**count it, do not carry 65/1369 forward.**
+7 → 5 test bodies, so the e2e count **moves**. §13's rule applies: **count it,
+do not carry 65/1369 forward.**
 
 **`e2e/approach.spec.js` — two edits, one of them load-bearing:**
 
@@ -3512,11 +3690,12 @@ Net roughly 7 → 5 test bodies, so the e2e count **moves**. §13's rule applies
   P4 success criterion 8's guard (the character survives the theme toggle
   unchanged) and P4 criterion 9 forbids weakening or deleting it. It cannot be
   re-pointed at the Badger: the Badger is a raster under a deliberately
-  theme-dependent CSS filter (§27 criterion 3, night additionally darkened),
-  so it would fail an assertion it was never meant to satisfy.
+  theme-*dependent* CSS filter (§27 criterion 3, night additionally darkened),
+  so it would fail an assertion it was never meant to satisfy. On `/404` the
+  selector still resolves — the 404 now has a `.scene-standard` too.
 - `:310` asserts `.${variant} .fg-layer .hooded-figure` count 1 per variant
   (the §19 bg/fg seam). Re-point at `.badger-figure`, and add the equivalent
-  single-copy assertion for `/404`'s `.fg-layer .hooded-figure`.
+  per-variant assertion for `/404`'s `.fg-layer .hooded-figure`.
 
 **`e2e/interview.spec.js` — three call sites, one recommended shape.**
 `:258`, `:402` and `:531` all call `visibleRect(page, '.hooded-figure')`.
@@ -3526,108 +3705,153 @@ helper's comment at `:237` describes, and it will not need touching again if
 the character on `/` ever changes. `:465`'s `.face-void` lookup needs **no
 change** — the Badger carries its own.
 
-**`e2e/not-found.spec.js` — nothing breaks; something is missing.** No
+**`e2e/not-found.spec.js` — nothing breaks; several things are missing.** No
 assertion in that file touches characters, and the three
 `expectCardCentredAndOnScreen` geometry tests are unaffected (the card is
-`position: fixed`; the figure is inside the SVG). It **gains** the per-route
-assertions: `.hooded-figure` present, `.badger-figure` absent, plus the
-migrated theme-independence test above.
-
-**One real design risk, flagged rather than assumed.** `/404`'s foreground was
-authored as scenery: `f-ground` sits at `y=725` in a `0 0 1900 750` viewBox, so
-only **25 units of ground are visible**, and there is no promenade or railing
-(unlike `/`, whose ground band is 150 units with a parapet). Drop the figure in
-at `/`'s coordinates and it stands on the sea — the exact *"postbox on stilts"*
-failure §14 records from the first P4 attempt. The card is also `position:
-fixed`, centred, `width: min(600px, 88%)`, so a centred figure sits behind it.
-Placement is a **look**, not a calculation. See the open questions.
+`position: fixed`; the figure is inside the SVG). It **gains**: `.hooded-figure`
+present ×3 and `.badger-figure` absent; the three variants present exactly once
+each; the migrated theme-independence assertion; the `/404` bg/fg seam
+assertion; and the card-occlusion test ruled in below.
 
 ### Steps → verify
 
+**Step 0 is d12, and it is a separate item, branch and commit.**
+
+0. **d12 lands first.** Extract `src/components/Scene.astro`; `/` renders three
+   `<Scene>`; `/404` untouched → **verify:** the full e2e suite passes with
+   **zero files under `e2e/` modified** (`git diff --name-only` proves it), and
+   the built `/` HTML is byte-identical to the pre-refactor build (§33a's
+   standard). **Do not start step 1 until this is green.**
 1. Delete the `INTERIM-TOGGLE` block from `index.astro` (button, script, CSS,
-   comments) → **verify:** `grep -rn "INTERIM-TOGGLE\|character-toggle\|data-character" src/`
-   returns nothing; `npm run build` green.
-2. Remove `HoodedFigure` from `/` (import + three calls) and delete
-   `.badger-figure { display: none; }` → **verify:** built `/` contains
-   `.badger-figure` ×3 and `.hooded-figure` ×0.
-3. Re-point the three scene `aria-label`s and the approach-prompt placeholder
-   off "hooded figure" → **verify:** no case-insensitive "hooded" remains in
-   `src/pages/index.astro`; the prompt string still carries `PLACEHOLDER`.
-4. Render `HoodedFigure` in `404.astro`'s `.fg-layer`, placement chosen for the
-   1900×750 slice viewBox → **verify:** screenshots at 360×360, 1920×1080 and
-   3440×1440 in **both themes** — feet on the ground band, not the sea, and the
-   figure clear of the centred card. Caveshen's eye, on local dev.
-5. Correct `404.astro:5-6`'s header comment → **verify:** it names d17 and no
-   longer claims scenery-only.
-6. Rewrite `e2e/badger.spec.js` per the table above → **verify:** the two
+   comments) → **verify:**
+   `grep -rn "INTERIM-TOGGLE\|character-toggle\|data-character" src/` returns
+   nothing; `npm run build` green.
+2. `/`'s three `<Scene>` renders take `character={Badger}`; the `HoodedFigure`
+   import and `.badger-figure { display: none; }` go → **verify:** built `/`
+   contains `.badger-figure` ×3 and `.hooded-figure` ×0.
+3. Re-point the scene `characterLabel`s off "hooded figure", and set the
+   approach prompt to exactly `Approach the badger` → **verify:** no
+   case-insensitive "hooded" remains in `src/pages/index.astro`; the prompt
+   string carries **no** `PLACEHOLDER` prefix; `node docs/placeholder-check.js`
+   reports one fewer hit and no new ones.
+4. `/404` replaces its single scene with three `<Scene>` renders carrying
+   `character={HoodedFigure}`; local `CAMERA`/`CELESTIAL` and the now-unused
+   imports delete → **verify:** built `/404` contains `.scene-standard`,
+   `.scene-wide` and `.scene-tall` ×1 each, `.hooded-figure` ×3,
+   `.badger-figure` ×0; `grep -n "viewBox" src/pages/404.astro` returns nothing.
+5. Correct `404.astro:5-6`'s header comment and the `ponytail:` one-camera note
+   at `:12-20` → **verify:** neither claims scenery-only nor one-camera; both
+   name d17 and d12.
+6. **Scene parity, by eye and by screenshot.** Capture `/` and `/404` at
+   360×800 (tall), 1366×768 (standard) and 3440×1440 (wide), **both themes** →
+   **verify:** the scenery is indistinguishable between the two pages at each
+   size — same skyline, same moon position, same waves, same railing. Only the
+   character and the card differ. Caveshen's eye, on local dev.
+7. Rewrite `e2e/badger.spec.js` per the table above → **verify:** the two
    inverted tests are proven **red on the pre-change build** and green after.
-7. Move `approach.spec.js:167-180` to `/404` verbatim; re-point `:310` to
+8. Move `approach.spec.js:167-180` to `/404` verbatim; re-point `:310` to
    `.badger-figure` and add the `/404` seam assertion; re-point
    `interview.spec.js:258/402/531` at `.js-character` → **verify:** the diff on
    those files shows selector/URL changes only — no expectation relaxed,
    nothing deleted (P4 criterion 9).
-8. Add the per-route character assertions to `not-found.spec.js` → **verify:**
-   red before step 4's change, green after.
-9. Full tri-engine suite + Lighthouse on `/` → **verify:** 0 failed, skips
-   unchanged at 7; Lighthouse ≥ 95 performance and accessibility; **recount**
-   unit/e2e totals and write them into §13 as a new dated line.
-10. Record the `dist/index.html` byte delta → **verify:** the number is in this
-    section, not in a commit message.
-11. PRD: move d17's board row to built → **verify:** board row and this section
-    agree, in the same commit (the board's own rule).
+9. Add to `not-found.spec.js`: per-route character presence, the three-variant
+   presence check, and **the card-occlusion test** (ruled in 2026-08-01) —
+   assert the figure's `.face-void` box does not intersect the dialogue card's
+   box on `/404` → **verify:** red before step 4, green after, **on all 8
+   projects**. If it cannot pass on the small-viewport projects — the card is
+   `width: min(600px, 88%)` and centred, so overlap there may be geometrically
+   unavoidable — **that is a design finding for Caveshen, not licence to weaken
+   or narrow the test.** Stop and report.
+10. Full tri-engine suite + Lighthouse on `/` → **verify:** 0 failed, skips
+    unchanged at 7; Lighthouse ≥ 95 performance and accessibility; **recount**
+    unit/e2e totals and write them into §13 as a new dated line.
+11. Record the `dist/index.html` **and `dist/404.html`** byte deltas →
+    **verify:** both numbers are in this section, not in a commit message.
+12. PRD: move d12's and d17's board rows to built → **verify:** board rows and
+    both sections agree, in the same commit (the board's own rule).
 
 ### Success criteria (verifiable) — "done" means all of these
 
-1. `grep -rn "INTERIM-TOGGLE" src/ e2e/` returns nothing. No
+1. **d12 is merged, and its diff touched no file under `e2e/`.** The shared
+   scene component exists and both pages render from it.
+2. `grep -rn "INTERIM-TOGGLE" src/ e2e/` returns nothing. No
    `#character-toggle`, no `[data-character]`, anywhere.
-2. `/` renders exactly one character: `.badger-figure` ×3 (one per variant),
+3. `/` renders exactly one character: `.badger-figure` ×3 (one per variant),
    `.hooded-figure` ×0. No `HoodedFigure` import in `index.astro`.
-3. `/404` renders exactly one character: `.hooded-figure` ×1,
-   `.badger-figure` ×0.
-4. Every assertion `badger.spec.js` makes today about the *Badger* still holds
+4. `/404` renders exactly one character: `.hooded-figure` ×3 (one per variant),
+   `.badger-figure` ×0. No `Badger` import in `404.astro`.
+5. **`/404` carries all three scene variants**, `.scene-standard` /
+   `.scene-wide` / `.scene-tall` ×1 each, switching on the same media queries as
+   `/`, and no `viewBox` literal remains in `404.astro`.
+6. **Scene parity holds:** at each of the three test viewports, in both themes,
+   the two pages' scenery is identical. Any difference is a bug in d12's
+   extraction, not a 404 decision.
+7. Every assertion `badger.spec.js` makes today about the *Badger* still holds
    without a toggle click: prompt clears the character, camera transform is
    non-identity, the framed `.face-void` has a non-zero box.
-5. Both pages behave correctly with **JavaScript disabled** — the right
+8. Both pages behave correctly with **JavaScript disabled** — the right
    character on each, chosen by markup rather than by a CSS default.
-6. The theme-independence assertion survives verbatim on `/404`: the hooded
+9. The theme-independence assertion survives verbatim on `/404`: the hooded
    figure's literal `fill` is identical night and day.
-7. The §19 bg/fg seam holds on both pages: each of `/`'s three variants carries
-   `.fg-layer .badger-figure` ×1; `/404` carries `.fg-layer .hooded-figure` ×1.
-8. `e2e/badger-idle.spec.js` and `src/tests/hygiene.test.js` pass **untouched**.
-9. Full suite green tri-engine, 0 failed, 7 skipped; **new counts recorded in
-   §13** — the 65/1369 figures are not carried forward.
-10. Lighthouse ≥ 95 performance and accessibility on `/` (success criterion 6),
-    and the measured `dist/index.html` byte delta is recorded above.
-11. All copy is still `PLACEHOLDER`; no dialogue node added, removed or edited.
-12. Caveshen has seen the 404 figure's placement on local dev, in both themes,
-    and approved it.
+10. The §19 bg/fg seam holds on both pages: each variant on each page carries
+    `.fg-layer` + exactly one character.
+11. The card-occlusion test passes on all 8 projects, or its failure is on
+    Caveshen's desk as a design question.
+12. `e2e/badger-idle.spec.js` and `src/tests/hygiene.test.js` pass **untouched**.
+13. Full suite green tri-engine, 0 failed, 7 skipped; **new counts recorded in
+    §13** — the 65/1369 figures are not carried forward.
+14. Lighthouse ≥ 95 performance and accessibility on `/` (success criterion 6),
+    and the measured `dist/index.html` and `dist/404.html` byte deltas are
+    recorded above.
+15. The approach prompt on `/` reads exactly **`Approach the badger`** with no
+    `PLACEHOLDER` prefix. Every other `PLACEHOLDER` in both pages stands; no
+    dialogue node added, removed or edited.
+16. Caveshen has seen both pages on local dev, in both themes, and approved.
 
-### Open questions for Caveshen
+### Questions closed 2026-08-01
 
-1. **The approach prompt on `/` names the wrong character** — `index.astro:255`
-   reads *"PLACEHOLDER: Approach the hooded figure"*, and the hooded figure is
-   about to be permanently absent from that page (§27 open point 3, now live).
-   **Recommendation:** reword the placeholder to name the Badger, prefix kept,
-   so the page is not self-contradicting while it waits on d21. The real line
-   is his.
-2. **Where does the figure stand on `/404`?** The page has 25 units of visible
-   ground and no promenade or railing. **Recommendation:** feet at the
-   ground/sea seam, off-centre so the fixed centred card does not sit on top of
-   it, scale picked by screenshot — **no scene art change.** The alternative,
-   porting `/`'s promenade band and parapet to the 404, is a scene-art change
-   and adds a fifth copy of foreground markup that d12 already complains about.
-3. **Keep the test file named `badger.spec.js`?** Its subject is now "the
-   character on `/`", which is still the Badger. **Recommendation: keep it** —
-   d22 says name a test after its subject, and a rename costs `git blame` for
-   nothing.
-4. **Pin the 404 figure against card occlusion with a test?** `/` has such a
-   test for the approach prompt. **Recommendation: no** — the 404 has no
-   approach step, so overlap there is aesthetic, not functional, and a geometry
-   test would freeze a look Caveshen may still want to move.
+1. ~~**The approach prompt on `/` names the wrong character.**~~ —
+   **ANSWERED: `Approach the badger`.** Caveshen supplied this as **final copy,
+   not a placeholder**, so the `PLACEHOLDER:` prefix **drops**. It is the one
+   line in the two pages that is no longer waiting on d21. §2's rule is
+   unchanged for everything else: the rest is his and stands.
+2. ~~**Where does the figure stand on `/404`?**~~ — **DISSOLVED by the 1:1
+   amendment.** There is no placement decision left to make: with the landing's
+   three variants shared, the figure inherits `FIG[variant]` exactly as `/`
+   does. The old worry — 25 units of visible ground, no promenade, the
+   *"postbox on stilts"* failure §14 records — goes away with the 1900-wide
+   scene that caused it. The 404 now has the promenade and the railing because
+   the landing does.
+3. ~~**Keep the test file named `badger.spec.js`?**~~ — **ANSWERED: keep.** Its
+   subject is the character on `/`, which is still the Badger. d22 says name a
+   test after its subject; a rename costs `git blame` for nothing.
+4. ~~**Pin the 404 figure against card occlusion with a test?**~~ —
+   **ANSWERED: yes, add it.** The draft recommended against it and **that
+   recommendation is reversed.** The reasoning changed with the scene: placement
+   is now *inherited from a shared component* rather than hand-tuned per page,
+   so a collision between the figure and the fixed centred card would arrive as
+   a silent side effect of someone editing `Scene.astro` for the landing's sake.
+   That is exactly what a test is for. It no longer freezes a hand-picked look,
+   because there is no longer a hand-picked look.
 
-**Status: ⏳ RULED 2026-08-01, not built.** The code lands on **its own branch**
-(§2's branch-per-item rule) **after PR #1 merges** — d9's cutover is ready and
-should not be held behind this.
+### Question raised by the amendment — closed 2026-08-01
+
+1. ~~**The 404 loses the moon on ultrawide, and it did not before.**~~ —
+   **ANSWERED: fix it in d12, inside the shared component, so both routes keep
+   their moon.** The arithmetic was independently confirmed to two decimals,
+   and the reviewer found the fact that reframes it: **the landing already
+   loses its moon entirely at 3840×1080 today.** 1:1 propagates an existing
+   defect rather than creating one, and the root cause is `scene-wide`'s
+   `cy=150`, not the 404's viewBox. Caveshen: *"I do want it to be 1:1 but I am
+   happy with us making creative choices that benefit both views, that still
+   keeps it 1:1 in terms of both views."* **Nothing about this lands in d17** —
+   the measurements, the criterion (moon fully visible at 3840×1080) and the
+   strict limits on the exception are all recorded in **d12**. My earlier
+   recommendation was to accept the regression; **overruled, and the reframing
+   is why** — accepting it would have left `/` broken too.
+
+**Status: ⏳ RULED 2026-08-01, amended the same day, not built. Gated on d12.**
+The code lands on **its own branch** (§2's branch-per-item rule) after d12's.
 
 ---
 
@@ -3639,3 +3863,54 @@ later session. Not designed yet — no architecture, DNS records, or plan here.
 
 **Status: ⏳ not started.**
 
+
+
+---
+
+## d24. The Badger on the character sheet — character-select framing
+
+### 🎨 DESIGN STAGE 2026-08-01 — needs a brief and Caveshen's explicit go
+
+Raised, not scoped. **No build starts on this section as written.**
+
+Caveshen's words:
+
+> Add the Badger to the left side of the character sheet, similarly animated
+> but completely out of the 'scene' we've built — more similar to character
+> pages/menus in videogames where the character is displayed alongside their
+> stats sheet. It sorts out our art considerations for that page nicely, so no
+> more avatar required there.
+
+**What is fixed by that instruction:**
+
+- **Left side of `/sheet`.** The page is `main.sheet-wrap` → `header.nameplate`
+  → `div.sheet-grid` (`src/pages/sheet.astro:11-54`); where in that structure
+  the Badger sits is a layout question, not a settled one.
+- **Animated "similarly"** — §29's two-frame idle, 800ms per frame, CSS only,
+  `prefers-reduced-motion` holds the up frame static. Reuse, do not re-invent.
+- **Out of the scene, deliberately.** No `viewBox`, no `CityScape`, no sky, no
+  promenade. `/sheet` has no scene and does not get one. This is a portrait in
+  a menu, not a third camera.
+- **No generated art.** Standing rule. The Badger raster already exists
+  (`public/badger-up.png` / `badger-down.png`, commissioned, full rights, §27);
+  anything beyond it is Caveshen's to supply.
+
+**d16 is NOT retired by this.** d16 (§33b, card-avatar art refinement) governs
+the **dialogue-card avatar on `/` and `/404`** and keeps that remit in full.
+*"No more avatar required there"* means **on `/sheet`**, and `/sheet` was never
+in d16's remit. Recorded because the two are easy to conflate.
+
+**Verified, so nobody goes looking for something to remove:** `Avatar.astro`
+renders in exactly two places — `src/pages/index.astro:263` and
+`src/components/NotFound.astro:17`. **It is not on `/sheet` today.** d24 is
+therefore **purely additive**; there is nothing to strip, and *"sorts out our
+art considerations for that page"* is about what the page will no longer need,
+not about what is there now.
+
+**Open before any brief:** where in the sheet's grid it sits and what it does
+at narrow widths (the sheet is read on phones); whether it is decorative
+(`aria-hidden`) or announced; and whether the idle animation is extracted from
+`Badger.astro` or the component is reused whole outside an SVG — it renders as
+a `<g>` fragment today, which `/sheet` has nothing to put it in.
+
+**Status: 🎨 DESIGN STAGE — no brief, no go, no build.**

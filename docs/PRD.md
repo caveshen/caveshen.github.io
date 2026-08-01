@@ -53,12 +53,12 @@ the document body under their original `§` headings as history.
 | d9 | The `main` cutover | §23 | ⏳ ready — no gates remain; completes on merge of PR #1 |
 | d10 | Fixed-sleep timing races | §30 D-8 | ✅ fixed 2026-07-29 — caught by CI, 3 of 4 sleeps removed |
 | d11 | Card CSS authored twice (~90 lines) | §30 D-9 | ⏳ |
-| d12 | Shared scene component — the scene is authored four times | §30 D-10 | ⏳ **blocks d17** — pure refactor + the one ruled moon fix |
+| d12 | Shared scene component (`Scene.astro`) | §30 D-10 | ✅ built 2026-08-01 `e96ecc8` on `item/scene-extraction` — d17 unblocked |
 | d13 | `Avatar.astro` uses `is:global` needlessly | §30 D-12 | ⏳ |
 | d14 | `not-found.spec.js` coupled to placeholder copy | §30 D-13 | ⏳ |
 | d15 | Admin page | §31 (remainder) | 🎨 IN DESIGN, no go-ahead |
 | d16 | Card avatar art refinement | §33b | 🎨 IN DESIGN, brief outstanding |
-| d17 | One character per route — Badger on `/`, hooded figure on `/404`; the 404 goes 1:1 with the landing; the toggle dies | §27 (remainder) | ⏳ RULED 2026-08-01 and **amended the same day**, not built — **gated on d12** |
+| d17 | One character per route — Badger on `/`, hooded figure on `/404`; the 404 goes 1:1 with the landing; the toggle dies | §27 (remainder) | ⏳ RULED + amended 2026-08-01, not built — **unblocked**; takes `item/character-per-route` |
 | d18 | Visual validation in e2e | §16 | 💭 intent only |
 | d19 | Dialogue rework | §22 | ⏸ parked |
 | d20 | Social preview imagery | §32 | ⏸ unscheduled |
@@ -584,6 +584,12 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
   **not predictable from this note — count it when d17 lands** and write the new
   totals here as a dated line. 65/1369 remains the last *measured* pair and stays
   the baseline until then.
+- **Suite size as of d12 (2026-08-01, `e96ecc8`): 65 unit, 1400 e2e** — 1393
+  passed, 7 skipped, 0 failed, tri-engine across 8 projects, **zero files under
+  `e2e/` modified** (that was d12's pure-refactor proof). Supersedes 65/1369.
+  The +31 over 1369 is **pre-existing suite growth unrelated to d12** — the
+  refactor added no tests and edited none. Fresh evidence for the rule above:
+  **do not treat any number in this document as current — count it.**
 - **No snapshot baselines exist in the repo** — verified 2026-07-25, no
   `*-snapshots/` directory anywhere. The throwaway baselines used to prove
   §19's refactor was pixel-identical were deleted after use, as intended.
@@ -638,8 +644,10 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
   - The city **breathes left**, five shorter/sparser buildings wrapping around
     Table Mountain's foot — reads as the bowl curving around the massif.
   - Sky elements (moon, sun, stars, clouds) stay **per-aspect** — locked to the
-    land they pan off-frame in portrait — but the **moon's radius is locked at
-    46** in every view (it was 54 in portrait, i.e. it was changing size).
+    land they pan off-frame in portrait — but the **moon's radius is locked** in
+    every view (it was 54 in portrait, i.e. it was changing size). **The lock
+    holds; the value moved 46 → 47.5 on 2026-08-01** — five percent under the
+    sun's 50, ruled in d12. Still one radius everywhere.
   - Moon is **pale and cratered** (`--moon:#e7e3cf`, `--crater:#cbc6ae`), and
     the sea glints pale with it. The **sun stays warm gold** — a pale sun is
     wrong and the day sky reads better against it.
@@ -3354,9 +3362,9 @@ from that build** to keep a review-ready diff surgical. None is a defect; all
 four are drift risks or coupling. (A fifth, D-11 — the day clouds — was ruled
 an active fix rather than debt; see **d4** above.)
 
-**Amended 2026-08-01: d12 is no longer optional.** It became d17's hard
-prerequisite when Caveshen ruled the 404 scene 1:1 with the landing. The other
-three keep their original standing.
+**Amended 2026-08-01: d12 was never optional in the end.** It became d17's hard
+prerequisite when Caveshen ruled the 404 scene 1:1 with the landing, and it is
+**built** (`e96ecc8`). The other three keep their original standing.
 
 ### d11 — the card vocabulary is authored twice (~90 lines) (was §30 D-9)
 
@@ -3376,119 +3384,88 @@ plus SVG fill utilities; a component's CSS is a different kind of thing.
 **Correct shape: a `DialogueCard` component or `src/styles/card.css` imported by
 both pages, with `.card` positioning left per-page.**
 
-### d12 — the shared scene component (the scene is authored four times) (was §30 D-10)
+### d12 — the shared scene component (was §30 D-10) — ✅ BUILT
 
-**RESCOPED 2026-08-01 — no longer a cleanup nicety; it is d17's prerequisite.**
-Caveshen ruled that `/404`'s scene becomes **1:1 with the landing across all
-three aspect-ratio variants**. Hand-authoring that would take the count of
-hand-authored scene copies from **four to six**. Extraction is the only answer
-that does not, so **d17 does not start until this lands.** Same item, wider
-mandate — not a new number.
+**✅ BUILT 2026-08-01, `e96ecc8` on branch `item/scene-extraction`.**
+`src/components/Scene.astro` holds the scene once; `index.astro` renders it
+three times, losing 223 lines and gaining 18. Numbers that only ever differed
+by variant are a data table, mapped the way `CityScape.astro` already maps its
+buildings. `/404` deliberately did **not** move — that is d17's job. Suite:
+vitest 65/65, Playwright **1393 passed / 7 skipped / 0 failed**, tri-engine,
+**zero files under `e2e/` modified** — the pure-refactor proof held. Built HTML
+diffed against `bab4639`: the only differences are the moon's radius and its
+craters.
 
-**The four copies today, verified at `2157118`:**
+**The API d17 inherits:**
 
-| Copy | Where | viewBox | Camera |
-|---|---|---|---|
-| standard | `src/pages/index.astro:63` | `0 0 1200 750` | `translate(0,128)` |
-| wide | `src/pages/index.astro:126` | `0 0 1750 750` | `translate(280,128)` |
-| tall | `src/pages/index.astro:184` | `0 0 600 1067` | `translate(-20,262) scale(0.62)` |
-| the 404 | `src/pages/404.astro:49` | `0 0 1900 750` | `translate(375,253)` |
+- `variant: 'standard' | 'wide' | 'tall'` indexes one table per variant —
+  viewBox **derived** from `width`/`height`, camera, celestial, stars, day
+  clouds, sea, moon reflection, waves, ground, rail, `fig`.
+- **`characters` — an array of components.** Not a slot (Astro slots take no
+  props) and not singular: the array exists only because the still-live
+  INTERIM-TOGGLE scaffold renders both. **d17 reduces it to one element per
+  route** — `index.astro:20`'s `CHARACTERS` — and does **not** need to make the
+  prop singular to do that.
+- `characterLabel` — the `aria-label` tail (`index.astro:21`), the one string
+  that legitimately differs per route.
+- Placement comes from the variant's `fig`, applied at `Scene.astro:143`, so
+  **nothing is hand-tuned at the call site.** That is what makes d17's
+  card-occlusion test worth having.
 
-Each repeats `f-sky`, the ten-circle star field, the `night-only` `Moon`, the
-`day-only` sun plus two cloud rects, `CityScape`, `f-sea`, the three-bar
-`f-moon` reflection, six `f-wave` marks and `f-ground`; `/`'s three add the
-`f-rail` promenade railing. Independently confirmed by the 2026-07-31 two-axis
-code review.
+### RULED 2026-08-01 — the moon matches the sun; the ultrawide fix is REVERSED
 
-**Shape — recommended, not ruled.** `src/components/Scene.astro`, one prop
-`variant: 'standard' | 'wide' | 'tall'` selecting viewBox / `CAMERA` /
-`CELESTIAL` / `FIG` from tables the component owns, plus:
+An earlier attempt moved the wide variant's moon to `cy 310` so it survived
+3840×1080. Caveshen viewed it on localhost and ruled the other way:
 
-- **The character arrives as a component *prop*, not a slot.** Astro slots
-  cannot receive props, and the character's placement (`FIG[variant]`) is
-  precisely what must stop being hand-tuned per page. `<Scene variant="wide"
-  character={Badger} />` lets the scene pass `x`/`y`/`scale` down itself.
-  `Badger.astro` and `HoodedFigure.astro` already share one prop contract —
-  *"local y=196 is the ground/shoe line"*, `Badger.astro:9-11` — so they are
-  interchangeable there with no placement maths at the call site.
-- **`characterLabel` for the `aria-label` tail.** The landing's three labels end
-  *"…with a hooded figure on the promenade"*; the 404's carries no character
-  clause. That string is the one thing that legitimately differs per route.
-- **The variant-switching media queries move into the component.** They sit at
-  `index.astro:412-419` today and target the component's own root element, so
-  Astro's scoped styles reach them and the rule bundles once however many
-  callers exist. `.scene` base sizing already lives in `tokens.css` (put there
-  by d1) and stays there.
+> "From the looks of things we just moved the moon downwards vertically. The
+> sun is in the better position, and should override here. The moon in dark
+> mode must try to match the sun's position in light mode. That is my ruling.
+> We should also try to make the moon slightly smaller than the sun, by a
+> factor of maybe 5%. … my resolution is 3440x1440 and the sun is just fine, so
+> I don't feel a need to cater for 3840x1080."
 
-**Pure refactor, and its proof is already written — with exactly one sanctioned
-exception, below.** No visual change, no behavioural change: **the existing e2e
-suite passes unchanged** — not one test edited, no baseline regenerated. If a
-test needs touching, the refactor is wrong. The same standard §19 and §33a were
-held to, and the same reason it is cheap: the proof already exists.
+Recorded clause by clause, so none of it is reopened:
 
-**RULED 2026-08-01 — the wide variant's moon is the one visual change in this
-item.** Caveshen, on the ultrawide moon question d17's amendment raised:
+- **The `cy 150 → 310` move is reverted.** The moon's `cx` and `cy` match
+  `bab4639` **exactly in all three variants** — verified by diffing built HTML,
+  not asserted.
+- **`moonCy` is deleted from all three variants.** Moon and sun read **one
+  `celestial` slot** again, so **§30 D-1's shared-slot rule is intact, not
+  broken.** An earlier draft of this section assumed the fix would fork that
+  slot; it does not, because the fix is gone.
+- **The "sanctioned y-coordinate exception" this section carried on 2026-08-01
+  is spent and reversed.** The moon's y is **not** in play. Nothing here is
+  licence to move it.
+- **What shipped instead: the moon's radius, 46 → 47.5** — five percent under
+  the sun's verified radius of 50 (`Scene.astro:120`'s `.f-cel` circle), with
+  the craters scaled by the same 47.5/46 ratio in `Moon.astro`. **Both `/` and
+  `/404` inherit it through the shared `Moon` component**, so **`/404`'s
+  rendered moon changed even though d12's `/404` boundary held and
+  `404.astro`'s only edit was a comment.** Expected, not a boundary breach.
+- **The ultrawide loss is ACCEPTED, not outstanding.** Above roughly **AR 3.16**
+  both bodies leave the visible band. Caveshen has seen it and declined to
+  cater for it: *"my resolution is 3440x1440 and the sun is just fine, so I
+  don't feel a need to cater for 3840x1080."* **3440×1440 renders correctly.
+  This is not a bug — do not reopen it as one.**
 
-> "I do want it to be 1:1 but I am happy with us making creative choices that
-> benefit both views, that still keeps it 1:1 in terms of both views."
+### Decisions taken during the build — decisions, not oversights
 
-**1:1 means the two routes agree — it does not mean freezing today's geometry.**
-A creative choice that improves both views is still 1:1. So the moon is fixed
-**inside the shared component**, once, and both routes inherit it.
+- `viewBox` is **derived** from the variant's `width`/`height` rather than
+  restated alongside them.
+- The `character` prop was renamed **`characters`**, since it holds an array.
+- A dead comment block was removed from `index.astro`.
+- **The duplicated `sea` / `ground` / `rail` values across the standard and wide
+  variants were kept as separate literals, deliberately.** They match because
+  the camera height matches (§14), and a comment in `Scene.astro` says exactly
+  that. Deduplicating three fields across two of three variants costs more
+  machinery than it saves. **Do not "fix" this.**
 
-**The measurements, verified against the files at `2157118` — do not re-derive
-these.** Both SVGs fill the viewport (`.scene { width:100%; height:100% }`,
-`tokens.css:122`), so `xMidYMax slice` exposes `width / AR` user units anchored
-to the bottom edge. The moon radius is hardcoded at 46 (`Moon.astro:17`).
-
-| Scene | viewBox | Moon `cy` | Fully visible while | Entirely gone above |
-|---|---|---|---|---|
-| `/404` today | `0 0 1900 750` (`404.astro:49`) | 275 | **AR < 3.647** | AR 4.43 |
-| `scene-wide` | `0 0 1750 750` (`index.astro:126`) | 150 (`index.astro:33`) | **AR < 2.709** | AR 3.159 |
-
-`index.astro:413` selects `scene-wide` at `@media (min-aspect-ratio: 15/8)`
-(1.875), so every ultrawide qualifies. **The reframing that decided this: the
-landing already loses its moon entirely at 3840×1080 today.** Going 1:1 does not
-introduce a defect — it *propagates an existing one*, currently masked by the two
-pages disagreeing. **The root cause is `scene-wide`'s `cy=150`, not the 404's
-viewBox**, which is why the fix belongs here and not in d17.
-
-**Criterion:** the moon is **fully visible at 3840×1080** — i.e. the wide
-variant's cutoff clears **AR 3.56**. **Constraint:** d3's accepted look at
-ordinary aspect ratios must not shift; check 1920×1080, 2560×1440 and 3440×1440
-in both themes before and after.
-
-**Scope of the exception, stated so it cannot be stretched.** The wide variant's
-moon **y-coordinate is the sole permitted pixel-level difference in this item.**
-It is not licence to re-tune the celestial x, the radius, the standard or tall
-variants, the camera, the skyline, or anything else that catches the eye during
-the extraction. Everything else in d12 stays byte-identical. Anything further
-goes back to Caveshen as a question.
-
-**The one expected exception to the "zero files under `e2e/` modified" proof —
-and it may not be needed. Checked: no assertion anywhere pins the moon's
-position.** The two near-misses, named so nobody hunts for a third:
-`e2e/interview.spec.js:206` asserts `.scene-standard .night-only` is *visible*
-at 1920×1080 — standard variant, visibility only, untouched by a wide-variant
-`cy`; and `src/tests/hygiene.test.js:46` checks the favicon file contains
-`#ffd75e`, which is a colour token, not geometry. **So the proof should hold
-intact.** If the moon fix does turn a test red, that single file is the
-sanctioned exception — name it in the commit message and say why.
-
-**Scope boundary — `/404` does not move in this item.** The page keeps its
-1900-wide single scene until **d17** swaps it for three `<Scene>` renders.
-Folding that in here would make this item visually non-neutral and cost it its
-only cheap proof. Rejected alternative: give `Scene.astro` a fourth `notfound`
-variant carrying the 1900 camera so the 404 can render from it with zero visual
-change — a variant built to die two commits later.
-
-**Found in passing; log, do not chase.** `404.astro`'s star field (`cx`
-95…1150) and its six `f-wave` marks (`x` 70…1080) are the landing's original
-**1200-space coordinates and never received the +375 horizontal offset** d3
-applied to the camera, celestial and moon reflection. Harmless — both read as
-scatter — but the stars sit left-of-world, and it will surface the moment
-anyone diffs the two files. **It resolves itself when `/404` adopts the shared
-component in d17.** No separate item.
+**Still open, still not to be chased separately:** `404.astro`'s star field
+(`cx` 95…1150) and its six `f-wave` marks (`x` 70…1080) are the landing's
+original **1200-space coordinates and never received the +375 horizontal
+offset** d3 applied to the camera, celestial and moon reflection. Harmless —
+both read as scatter — but the stars sit left-of-world. **It resolves itself
+when `/404` adopts the shared component in d17.** No separate item.
 
 ### d13 — `Avatar.astro` uses `is:global` where scoped would do (was §30 D-12)
 
@@ -3558,8 +3535,9 @@ Four consequences, all of them structural:
    (viewBox/camera per variant, character as a prop), so both routes render
    from one source. **d12 is therefore a hard prerequisite of this item, not an
    optional cleanup** — see d12, rescoped the same day. Sequencing Caveshen
-   approved: **d12 lands first as a pure refactor with no visual change, then
-   this item is a small diff on top.**
+   approved: **d12 first, then this item as a small diff on top.** ✅ d12 landed
+   2026-08-01 (`e96ecc8`) as a pure refactor **plus one ruled visual change he
+   asked for after seeing it — the moon's radius, 46 → 47.5.** Recorded in d12.
 3. **The figure's placement on `/404` stops being a design decision.** It is
    inherited from `FIG[variant]` in the shared component, exactly as `/`'s is.
    Nothing is hand-tuned for the 404.
@@ -3621,34 +3599,36 @@ intuition.
 via d12's component; full removal of the `INTERIM-TOGGLE` block; the approach
 prompt's final copy (his, supplied 2026-08-01); test updates; these PRD updates.
 
-**OUT (his explicit boundaries):** the extraction itself — that is **d12**, and
-it lands first as its own commit; dialogue content — stays **d21**, his alone.
-Every other `PLACEHOLDER` in the two pages stands.
+**OUT (his explicit boundaries):** the extraction itself — that was **d12**,
+already committed; dialogue content — stays **d21**, his alone. Every other
+`PLACEHOLDER` in the two pages stands. **`Scene.astro` itself is out of scope**
+— if this item needs to change it, d12 was under-scoped; say so rather than
+patching quietly.
 
-**Prerequisite: d12 is merged and green.** If d12 is not done, this item does
-not start.
+**Prerequisite: ✅ MET — d12 is built (`e96ecc8`, `item/scene-extraction`).**
 
 ### Affected files
 
-- `src/pages/index.astro` — delete the `HoodedFigure` import (`:4`) and its
-  three render calls (`:119`, `:177`, `:231`); delete the `INTERIM-TOGGLE`
-  comment blocks and their contents at `:6-13`, `:120`, `:178`, `:232`,
-  `:306-331` (button + script) and `:335-361` (CSS, including
-  `.badger-figure { display: none; }` — the Badger must now render by
-  default). The three scene `aria-label`s (`:64`, `:127`, `:185`) say *"with a
-  hooded figure on the promenade"* and must name the Badger — after d12 that is
-  one `characterLabel` prop per `<Scene>`, not three hand-edited strings. The
-  approach prompt (`:255`) reads *"PLACEHOLDER: Approach the hooded figure"* and
-  becomes exactly **`Approach the badger`** — **his final copy, prefix dropped**
-  (see the answered questions).
+- `src/pages/index.astro` — **line numbers below are post-d12 (`e96ecc8`); the
+  file lost 223 lines, so any older reference in this document is stale.** Drop
+  `HoodedFigure` from `CHARACTERS` (`:20`) and delete its import (`:5`), leaving
+  `[Badger]`; delete the `INTERIM-TOGGLE` blocks — the import comment `:7-13`,
+  the button + script `:113-138`, and the CSS `:142-168` (including
+  `.badger-figure { display: none; }` at `:150` and the
+  `:root[data-character="badger"]` rules at `:152` — the Badger must now render
+  by default). `CHARACTER_LABEL` (`:21`) reads *"a hooded figure on the
+  promenade"* and must name the Badger — **one string now, not three**, which is
+  d12's doing. The approach prompt (`:62`) reads *"PLACEHOLDER: Approach the
+  hooded figure"* and becomes exactly **`Approach the badger`** — **his final
+  copy, prefix dropped** (see the answered questions).
 - `src/pages/404.astro` — replace the single 1900-wide `<svg class="scene">`
-  with three `<Scene>` renders carrying `character={HoodedFigure}`; delete the
-  local `CAMERA`/`CELESTIAL` constants and the `Moon`/`CityScape` imports the
-  component now owns; correct the header comment (`:5-6`), including the
+  with three `<Scene>` renders carrying `characters={[HoodedFigure]}`; delete
+  the local `CAMERA`/`CELESTIAL` constants and the `Moon`/`CityScape` imports
+  the component now owns; correct the header comment (`:5-6`), including the
   `ponytail:` note at `:12-20` that says this page deliberately has one camera.
-- `src/components/Scene.astro` — **exists already, delivered by d12.** This item
-  passes it different props; it does not modify it. If d17 needs to change
-  `Scene.astro`, d12 was under-scoped — say so rather than patching quietly.
+- `src/components/Scene.astro` — **delivered by d12, and this item does not
+  touch it.** Note the prop is `characters` and takes an **array**: d17 shortens
+  each page's array to one element; it does not make the prop singular.
 - `src/components/HoodedFigure.astro`, `src/components/Badger.astro` —
   **unchanged.** Both keep `.js-character` and their own `.face-void`.
 - `e2e/badger.spec.js`, `e2e/approach.spec.js`, `e2e/interview.spec.js`,
@@ -3715,27 +3695,25 @@ assertion; and the card-occlusion test ruled in below.
 
 ### Steps → verify
 
-**Step 0 is d12, and it is a separate item, branch and commit.**
+**Step 0 was d12 — a separate item, branch and commit. ✅ done, `e96ecc8`.**
 
-0. **d12 lands first.** Extract `src/components/Scene.astro`; `/` renders three
-   `<Scene>`; `/404` untouched → **verify:** the full e2e suite passes with
-   **zero files under `e2e/` modified** (`git diff --name-only` proves it), and
-   the built `/` HTML is byte-identical to the pre-refactor build (§33a's
-   standard). **Do not start step 1 until this is green.**
-1. Delete the `INTERIM-TOGGLE` block from `index.astro` (button, script, CSS,
-   comments) → **verify:**
+0. ~~d12 lands first.~~ **DONE 2026-08-01, `e96ecc8`** — `Scene.astro` exists,
+   `/` renders three `<Scene>`, `/404` untouched, full suite green with **zero
+   files under `e2e/` modified**. Steps 1 onward are now unblocked.
+1. Delete the `INTERIM-TOGGLE` blocks from `index.astro` (import comment,
+   button, script, CSS) → **verify:**
    `grep -rn "INTERIM-TOGGLE\|character-toggle\|data-character" src/` returns
    nothing; `npm run build` green.
-2. `/`'s three `<Scene>` renders take `character={Badger}`; the `HoodedFigure`
-   import and `.badger-figure { display: none; }` go → **verify:** built `/`
-   contains `.badger-figure` ×3 and `.hooded-figure` ×0.
-3. Re-point the scene `characterLabel`s off "hooded figure", and set the
-   approach prompt to exactly `Approach the badger` → **verify:** no
-   case-insensitive "hooded" remains in `src/pages/index.astro`; the prompt
-   string carries **no** `PLACEHOLDER` prefix; `node docs/placeholder-check.js`
-   reports one fewer hit and no new ones.
+2. `CHARACTERS` becomes `[Badger]`; the `HoodedFigure` import and
+   `.badger-figure { display: none; }` go → **verify:** built `/` contains
+   `.badger-figure` ×3 and `.hooded-figure` ×0.
+3. Re-point `CHARACTER_LABEL` off "hooded figure", and set the approach prompt
+   to exactly `Approach the badger` → **verify:** no case-insensitive "hooded"
+   remains in `src/pages/index.astro`; the prompt string carries **no**
+   `PLACEHOLDER` prefix; `node docs/placeholder-check.js` reports one fewer hit
+   and no new ones.
 4. `/404` replaces its single scene with three `<Scene>` renders carrying
-   `character={HoodedFigure}`; local `CAMERA`/`CELESTIAL` and the now-unused
+   `characters={[HoodedFigure]}`; local `CAMERA`/`CELESTIAL` and the now-unused
    imports delete → **verify:** built `/404` contains `.scene-standard`,
    `.scene-wide` and `.scene-tall` ×1 each, `.hooded-figure` ×3,
    `.badger-figure` ×0; `grep -n "viewBox" src/pages/404.astro` returns nothing.
@@ -3772,8 +3750,8 @@ assertion; and the card-occlusion test ruled in below.
 
 ### Success criteria (verifiable) — "done" means all of these
 
-1. **d12 is merged, and its diff touched no file under `e2e/`.** The shared
-   scene component exists and both pages render from it.
+1. **`Scene.astro` is byte-unchanged by this item** (`git diff` on d12's commit
+   proves it) and **both pages render from it**.
 2. `grep -rn "INTERIM-TOGGLE" src/ e2e/` returns nothing. No
    `#character-toggle`, no `[data-character]`, anywhere.
 3. `/` renders exactly one character: `.badger-figure` ×3 (one per variant),
@@ -3837,21 +3815,25 @@ assertion; and the card-occlusion test ruled in below.
 ### Question raised by the amendment — closed 2026-08-01
 
 1. ~~**The 404 loses the moon on ultrawide, and it did not before.**~~ —
-   **ANSWERED: fix it in d12, inside the shared component, so both routes keep
-   their moon.** The arithmetic was independently confirmed to two decimals,
-   and the reviewer found the fact that reframes it: **the landing already
-   loses its moon entirely at 3840×1080 today.** 1:1 propagates an existing
-   defect rather than creating one, and the root cause is `scene-wide`'s
-   `cy=150`, not the 404's viewBox. Caveshen: *"I do want it to be 1:1 but I am
-   happy with us making creative choices that benefit both views, that still
-   keeps it 1:1 in terms of both views."* **Nothing about this lands in d17** —
-   the measurements, the criterion (moon fully visible at 3840×1080) and the
-   strict limits on the exception are all recorded in **d12**. My earlier
-   recommendation was to accept the regression; **overruled, and the reframing
-   is why** — accepting it would have left `/` broken too.
+   **CLOSED 2026-08-01: the loss is accepted; nothing is fixed.** The
+   arithmetic was independently confirmed, and the answer went through two
+   reversals before Caveshen saw it on screen. He ruled that **the sun's
+   position wins and the moon matches it**, so the corrective move was
+   reverted; *"my resolution is 3440x1440 and the sun is just fine, so I don't
+   feel a need to cater for 3840x1080."* **Both bodies leave the visible band
+   above roughly AR 3.16 on both routes, and that is accepted, not
+   outstanding.** The one change that did ship is the moon's radius, 46 → 47.5.
+   **All of it is recorded in d12; none of it lands in d17.** Two earlier
+   recommendations in this document — first "accept the regression", then "fix
+   it in the wide variant" — are **both superseded by his look at the actual
+   pixels.** Lesson worth keeping: geometry that reads fine as arithmetic is
+   still a look, and the look is his.
 
-**Status: ⏳ RULED 2026-08-01, amended the same day, not built. Gated on d12.**
-The code lands on **its own branch** (§2's branch-per-item rule) after d12's.
+**Status: ⏳ RULED 2026-08-01, amended the same day, not built — but no longer
+gated: d12 shipped as `e96ecc8`.** d12's code sits on **`item/scene-extraction`**
+(a review caught it on d17's slug and the branch was renamed), so
+**`item/character-per-route` is free and is where this item belongs** — §2's
+branch-per-item rule.
 
 ---
 

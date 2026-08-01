@@ -1,0 +1,162 @@
+---
+// Scene.astro — the scene backdrop, authored once, rendered per aspect variant
+// (PRD d12, was §30 D-10). Extracts what index.astro hand-authored three times
+// (standard/wide/tall); numbers that only ever differed by variant are data
+// tables here, not duplicated markup.
+//
+// The character(s) arrive as a prop, not a slot — Astro slots take no props,
+// and per-variant placement (FIG below) is exactly what must stop being
+// hand-tuned at the call site. Takes an array (required) so the still-live
+// INTERIM-TOGGLE scaffold (PRD d17, not yet built) can keep rendering both
+// the hooded figure and the Badger until d17 replaces it with a single
+// selection.
+import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
+import CityScape from './CityScape.astro';
+import Moon from './Moon.astro';
+
+interface Props {
+  variant: 'standard' | 'wide' | 'tall';
+  characters: AstroComponentFactory[];
+  characterLabel?: string;
+}
+const { variant, characters: Characters, characterLabel = '' } = Astro.props;
+
+// One world, three cameras (PRD §14) — pan + uniform scale only, never a stretch.
+// Foreground (stars/sun/sea/waves/rail/figure) is free to differ per view.
+const VARIANT = {
+  standard: {
+    width: 1200, height: 750,
+    ariaBase: "Cape Town's Table Mountain, Lion's Head and Signal Hill above the city bowl",
+    camera: 'translate(0,128)',
+    celestial: { cx: 930, cy: 150 },
+    stars: [
+      [95, 70, 1.6, .8], [240, 120, 1.2, .5], [410, 55, 1.4, .7], [560, 105, 1.1, .45], [700, 45, 1.5, .75],
+      [1050, 60, 1.3, .6], [1150, 140, 1.1, .4], [320, 160, 1.0, .35], [820, 190, 1.2, .5], [150, 230, 1.0, .35],
+    ],
+    dayClouds: [
+      [120, 140, 150, 22, 11, .85], [620, 105, 110, 20, 10, .7],
+    ],
+    sea: { y: 480, height: 120 },
+    moonReflection: [
+      [900, 502, 60, .35], [915, 530, 34, .2], [908, 556, 44, .14],
+    ],
+    waves: [
+      [70, 500, 38, .16], [260, 524, 30, .12], [430, 548, 44, .14], [610, 508, 32, .1], [760, 560, 36, .13], [1080, 534, 28, .11],
+    ],
+    ground: { y: 600, height: 150 },
+    rail: { y1: 590, y2: 654, topY: 592, botY: 624, posts: [40, 200, 360, 520, 680, 840, 1000, 1160] },
+    fig: { x: 700, y: 700 - 196 * 1.2, scale: 1.2 },
+  },
+  wide: {
+    width: 1750, height: 750,
+    ariaBase: 'Cape Town skyline panorama',
+    camera: 'translate(280,128)',
+    celestial: { cx: 1290, cy: 150 },
+    stars: [
+      [95, 70, 1.6, .8], [340, 120, 1.2, .5], [610, 55, 1.4, .7], [860, 105, 1.1, .45], [1100, 45, 1.5, .75], [1450, 90, 1.3, .6],
+      [1650, 140, 1.1, .4], [520, 160, 1.0, .35], [1180, 200, 1.4, .7], [240, 230, 1.1, .45], [1560, 55, 1.3, .6], [760, 190, 1.0, .35],
+    ],
+    dayClouds: [
+      [250, 140, 150, 22, 11, .85], [900, 105, 110, 20, 10, .7], [1480, 185, 130, 20, 10, .75],
+    ],
+    // Wide shares Standard's camera height, so its sea/promenade/rail y-values
+    // are identical to Standard's below (PRD §14) — kept as separate literals
+    // rather than a shared reference, since abstracting two variants out of a
+    // flat per-variant data table isn't worth it for three fields.
+    sea: { y: 480, height: 120 },
+    moonReflection: [
+      [1290, 502, 60, .35], [1305, 530, 34, .2], [1298, 556, 44, .14],
+    ],
+    waves: [
+      [90, 502, 42, .15], [340, 530, 30, .11], [610, 550, 46, .14], [830, 508, 34, .1], [1080, 560, 38, .13], [1480, 534, 30, .12],
+    ],
+    ground: { y: 600, height: 150 },
+    rail: { y1: 590, y2: 654, topY: 592, botY: 624, posts: [40, 200, 360, 520, 680, 840, 1000, 1160, 1320, 1480, 1640] },
+    fig: { x: 1290, y: 700 - 196 * 1.2, scale: 1.2 },
+  },
+  tall: {
+    width: 600, height: 1067,
+    ariaBase: 'Cape Town skyline in portrait',
+    camera: 'translate(-20,262) scale(0.62)',
+    celestial: { cx: 452, cy: 200 },
+    stars: [
+      [60, 80, 1.6, .8], [170, 150, 1.2, .5], [280, 60, 1.4, .7], [90, 260, 1.1, .45], [350, 200, 1.5, .75], [520, 270, 1.3, .6],
+      [240, 320, 1.1, .4], [460, 330, 1.0, .35], [140, 380, 1.2, .5], [560, 90, 1.4, .65],
+    ],
+    dayClouds: [
+      [60, 270, 130, 20, 10, .85], [300, 360, 100, 18, 9, .7],
+    ],
+    sea: { y: 480, height: 220 },
+    moonReflection: [
+      [420, 510, 56, .35], [434, 548, 32, .2], [426, 586, 44, .14],
+    ],
+    waves: [
+      [40, 500, 30, .15], [150, 560, 26, .11], [90, 620, 34, .13], [260, 500, 24, .1], [320, 650, 30, .14], [180, 680, 22, .09],
+    ],
+    ground: { y: 700, height: 367 },
+    rail: { y1: 690, y2: 756, topY: 692, botY: 726, posts: [30, 150, 270, 390, 510] },
+    fig: { x: 300, y: 940 - 196 * 1.3, scale: 1.3 },
+  },
+} as const;
+
+const v = VARIANT[variant];
+const ariaLabel = characterLabel
+  ? `${v.ariaBase}, by night or day, with ${characterLabel}`
+  : `${v.ariaBase}, by night or day`;
+---
+<svg class={`scene scene-${variant}`} viewBox={`0 0 ${v.width} ${v.height}`} preserveAspectRatio="xMidYMax slice" role="img"
+     aria-label={ariaLabel}>
+  <rect class="f-sky" width={v.width} height={v.height} />
+  <g class="bg-layer">
+  <g class="f-star night-only">
+    {v.stars.map(([cx, cy, r, o]) => <circle cx={cx} cy={cy} r={r} opacity={o} />)}
+  </g>
+  <!-- moon (night) — pale and cratered, radius 95% of the sun's (PRD d12 ruling) -->
+  <g class="night-only">
+    <Moon cx={v.celestial.cx} cy={v.celestial.cy} />
+  </g>
+  <!-- sun + clouds (day) -->
+  <g class="day-only">
+    <circle class="f-cel" cx={v.celestial.cx} cy={v.celestial.cy} r="50" />
+    {v.dayClouds.map(([x, y, w, h, rx, o]) => <rect x={x} y={y} width={w} height={h} rx={rx} fill="#fff" opacity={o} />)}
+  </g>
+  <CityScape camera={v.camera} />
+  </g>
+  <g class="fg-layer">
+  <!-- sea -->
+  <rect class="f-sea" y={v.sea.y} width={v.width} height={v.sea.height} />
+  <g class="f-moon night-only">
+    {v.moonReflection.map(([x, y, w, o]) => <rect x={x} y={y} width={w} height="3" rx="1.5" opacity={o} />)}
+  </g>
+  <!-- wave marks (PRD §20): sparse, static, sea-toned — visible day and night -->
+  {v.waves.map(([x, y, w, o]) => <rect class="f-wave" x={x} y={y} width={w} height="2" rx="1.5" opacity={o} />)}
+  <!-- the near shore — promenade the figure stands on -->
+  <rect class="f-ground" y={v.ground.y} width={v.width} height={v.ground.height} />
+  <!-- semi-foreground railing: in front of the water, behind the figure -->
+  <g class="f-rail" stroke-linecap="round" stroke-width="7">
+    <g stroke-width="5">
+      {v.rail.posts.map((x) => <line x1={x} y1={v.rail.y1} x2={x} y2={v.rail.y2} />)}
+    </g>
+    <line x1="0" y1={v.rail.topY} x2={v.width} y2={v.rail.topY} />
+    <line x1="0" y1={v.rail.botY} x2={v.width} y2={v.rail.botY} stroke-width="4" opacity="0.8" />
+  </g>
+  {Characters.map((Character) => <Character x={v.fig.x} y={v.fig.y} scale={v.fig.scale} />)}
+  </g>
+</svg>
+
+<style>
+  /* Variant-switching (PRD d12, moved from index.astro): only callers that
+     render more than one variant at once (today, only /) need this; it lives
+     with the component that owns the variants rather than with any one
+     caller. Astro's scoped-style hash is shared by every <Scene> instance,
+     so this reaches all three regardless of how many callers there are. */
+  .scene-wide, .scene-tall { display: none; }
+  @media (min-aspect-ratio: 15/8) {
+    .scene-standard { display: none; }
+    .scene-wide { display: block; }
+  }
+  @media (max-aspect-ratio: 4/5) {
+    .scene-standard { display: none; }
+    .scene-tall { display: block; }
+  }
+</style>

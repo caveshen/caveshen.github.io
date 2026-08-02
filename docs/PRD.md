@@ -71,7 +71,7 @@ the document body under their original `§` headings as history.
 | d25 | Shared stage component — extracting the approach interaction | *new* | ✅ built 2026-08-02 — `1254dad`, landed on the mainline as `732f5a6` (#3); pure refactor, byte-identical `dist/index.html`, zero `e2e/` files modified |
 | d26 | Cleanup sweep — four of five items built, one closed as not-debt | *new* | ✅ built 2026-08-02 — `daaafb9`; item 5 closed, replaced by lossless PNG recompression in `3f322ae` |
 | d27 | CI: tag pushes fire the deploy workflow | *new* | ✅ built 2026-08-02 — `daaafb9` |
-| d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | 🎨 proposed 2026-08-02 — staged/iterative, Stage 1 is a single day; no go |
+| d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | 🔨 in progress on `item/cityscape-depth` — Stage 1 built (`3527cca`), awaiting Caveshen's preview reaction; Stages 2–3 on his go |
 | d29 | Comment sweep — repo-wide | *new* | ✅ both passes done on `item/comment-sweep` (`02d16cd`, `03eba87`) — awaiting go to push + PR |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
@@ -3814,11 +3814,27 @@ untouched.
 ## d28. Cityscape depth — a staged pass against the "flat" read
 
 Raised 2026-08-02. Caveshen: *"the scene looks good but it's a bit flat, not
-as '3d'... more like a novice's attempt at a moving website."* **Design/
-experiment item — no go, no build.** Each stage below is proposed as its own
-small, reversible commit, reviewed on local dev before the next stage starts
-(§2's draft-before-deploy rule) — a sequence of reactions, not one reveal, per
-his own framing of this as a moving target.
+as '3d'... more like a novice's attempt at a moving website."* Each stage below
+is its own small, reversible commit, reviewed on local dev before the next
+stage starts (§2's draft-before-deploy rule) — a sequence of reactions, not
+one reveal, per his own framing of this as a moving target.
+
+**Guiding inspiration (Caveshen, 2026-08-02): the *Oblivion* post-tutorial
+dungeon exit** — grassy knoll overlooking Lake Rumare, bright sunny day, the
+Imperial City receding into hazy distance. This governs the *whole* pass, not
+just the later ground-plane idea: the target is bright, sunlit, atmospheric
+depth (far things paler, sunk toward the sky's tone), and it should steer the
+gradient and distance-tone choices in Stages 2–3 in particular. Reference
+only — never traced, shipped, or committed.
+
+**STATUS 2026-08-02: Stage 1 built** on `item/cityscape-depth` (`3527cca`) —
+`.bg-layer` counter-scales against the camera (`own = damped/cam`, damp 0.4,
+one `--parallax-damp` knob in `tokens.css`), anchored at the shared waterline
+(`y=480` in all three variants) so the coastline seam holds during the zoom.
+New screen-space e2e test proven red then green; suite 1529 passed / 7
+skipped / 0 failed. Awaiting Caveshen's preview reaction; Stages 2–3 on his
+go. Also rode along: gitignored `screenshots/` folder is now the standing home
+for all screenshots (recipe updated in `CLAUDE.md`).
 
 ### Diagnosis — grounded in the current code, four contributors
 

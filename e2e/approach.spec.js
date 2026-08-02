@@ -162,23 +162,6 @@ test('no-JS: card is fully opaque, not stuck at the fade\'s starting opacity', a
   await ctx.close();
 });
 
-// ── SC8: figure fills are theme-independent ───────────────────────────────────
-
-test('figure fill colours are unchanged by day/night toggle', async ({ page }) => {
-  await page.setViewportSize({ width: 1920, height: 1080 });
-  await page.goto('/');
-  // Night is default — get fill of the jeans path (literal #2b2f3f, never themed)
-  const getNightFill = () =>
-    page.locator('.scene-standard .hooded-figure path').first()
-      .getAttribute('fill');
-  const nightFill = await getNightFill();
-  await page.locator('#toggle').click(); // switch to day
-  const dayFill = await page.locator('.scene-standard .hooded-figure path').first()
-    .getAttribute('fill');
-  expect(nightFill).toBe(dayFill);
-  expect(nightFill).toBeTruthy(); // must have a literal colour, not null
-});
-
 // ── SC10: no-JS path — card visible, /sheet reachable ────────────────────────
 
 test('no-JS: card is visible on load', async ({ browser }) => {
@@ -307,7 +290,7 @@ test('each scene has a bg-layer (containing the mountain) and fg-layer (containi
   for (const variant of ['scene-standard', 'scene-wide', 'scene-tall']) {
     await expect(page.locator(`.${variant} .bg-layer .table-mountain`)).toHaveCount(1);
     await expect(page.locator(`.${variant} .fg-layer .f-sea`)).toHaveCount(1);
-    await expect(page.locator(`.${variant} .fg-layer .hooded-figure`)).toHaveCount(1);
+    await expect(page.locator(`.${variant} .fg-layer .badger-figure`)).toHaveCount(1);
   }
 });
 

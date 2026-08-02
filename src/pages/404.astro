@@ -2,41 +2,20 @@
 // 404.astro — the interactive 404 (PRD d1, was §30 D-4). Same interview, in-world:
 // the visitor opened a door that isn't in the script. NotFound.astro carries
 // the dialogue card (its own tree, dialogue-404.json); this page supplies
-// the backdrop — the v2 scene, reused, minus its characters (PRD d1, was §30 D-4
-// ANSWERED 2: "no characters ... scenery only").
+// the backdrop — 1:1 with the landing's scene, hooded figure instead of the
+// Badger (PRD d17, was §27 remainder — supersedes d1 ANSWERED 2's
+// "scenery only": see d17 for the ruling).
 import Base from '../layouts/Base.astro';
 import ThemeToggle from '../components/ThemeToggle.astro';
-import Moon from '../components/Moon.astro';
-import CityScape from '../components/CityScape.astro';
+import Scene from '../components/Scene.astro';
+import HoodedFigure from '../components/HoodedFigure.astro';
 import NotFound from '../components/NotFound.astro';
 
-// ponytail: one camera, not index.astro's three. PRD d1 (was §30 D-4) ruling #1 waives
-// the tri-variant rig here — the success criterion is behavioural (the card
-// stays centred and on-screen at every viewport, which NotFound.astro's
-// fixed+centred positioning already guarantees), not structural. A single
-// viewBox with preserveAspectRatio="xMidYMax slice" crops cleanly at any
-// aspect ratio, so no camera/variant switching is needed for the backdrop
-// either. If this page ever needs the tri-variant rig, take it from
-// index.astro rather than growing this one.
-//
-// PRD d3 (was §30 D-15): the moon-to-shoreline gap (the fixed vertical distance from
-// the moon's top edge down to where the mountains meet the sea) is ~376
-// units — wider than the ~337 units of vertical viewBox a 32:9 crop leaves
-// visible. No amount of panning the *same-width* viewBox up or down closes
-// that gap (xMidYMax's crop window is a fixed height; shifting content just
-// moves both ends of the gap together). The only way to give a 32:9 crop
-// enough headroom without either sacrificing the ground band or letting the
-// moon sink into the mountain silhouette is a wider world: viewBox width
-// 1200 → 1900 (camera/celestial re-centred +375 to match), so cx="viewBox
-// slices this vertically" the way it did at 1200 wide, but the vertical
-// slice needed to cover a 32:9 viewport is now well under the viewBox's
-// height. The 700 extra units are flat sky/sea/ground either side of the
-// existing world — no new art. The 125-unit downward shift (index.astro's
-// std translate(0,128)/cy 150, +125) still does the "move the scene down"
-// work ruling #1 asked for; it's what keeps the ground band mostly intact
-// instead of needing the full width increase alone (~2300) to do it.
-const CAMERA = 'translate(375,253)'; // index.astro's std (0,128) + (375,125)
-const CELESTIAL = { cx: 1305, cy: 275 }; // index.astro's std (930,150) + (375,125)
+// PRD d17: `/404` owns the hooded figure, and only the hooded figure — no
+// selection mechanism, the route is the selector. Same three scene variants
+// as `/`, rendered from the shared Scene.astro (PRD d12).
+const CHARACTERS = [HoodedFigure];
+const CHARACTER_LABEL = 'a hooded figure on the promenade';
 ---
 <Base
   title="404 — Caveshen Rajman"
@@ -46,53 +25,13 @@ const CELESTIAL = { cx: 1305, cy: 275 }; // index.astro's std (930,150) + (375,1
   <ThemeToggle />
 
   <div class="notfound-stage">
-    <svg class="scene" viewBox="0 0 1900 750" preserveAspectRatio="xMidYMax slice" role="img"
-         aria-label="Cape Town's Table Mountain, Lion's Head and Signal Hill above the city bowl and harbour, by night or day">
-      <rect class="f-sky" width="1900" height="750" />
-      <g class="bg-layer">
-        <g class="f-star night-only">
-          <circle cx="95"   cy="195" r="1.6" opacity="0.8" />
-          <circle cx="240"  cy="245" r="1.2" opacity="0.5" />
-          <circle cx="410"  cy="180" r="1.4" opacity="0.7" />
-          <circle cx="560"  cy="230" r="1.1" opacity="0.45" />
-          <circle cx="700"  cy="170" r="1.5" opacity="0.75" />
-          <circle cx="1050" cy="185" r="1.3" opacity="0.6" />
-          <circle cx="1150" cy="265" r="1.1" opacity="0.4" />
-          <circle cx="320"  cy="285" r="1.0" opacity="0.35" />
-          <circle cx="820"  cy="315" r="1.2" opacity="0.5" />
-          <circle cx="150"  cy="355" r="1.0" opacity="0.35" />
-        </g>
-        <!-- moon (night) — pale and cratered, radius 95% of the sun's (PRD d12 ruling) -->
-        <g class="night-only">
-          <Moon cx={CELESTIAL.cx} cy={CELESTIAL.cy} />
-        </g>
-        <!-- sun + clouds (day) — clouds ported from index.astro's scene-standard
-             .day-only (PRD d4, was §30 D-11), offset +375,+125 to match d3's (was §30 D-15) camera shift -->
-        <g class="day-only">
-          <circle class="f-cel" cx={CELESTIAL.cx} cy={CELESTIAL.cy} r="50" />
-          <rect x="495"  y="265" width="150" height="22" rx="11" fill="#fff" opacity="0.85" />
-          <rect x="995"  y="230" width="110" height="20" rx="10" fill="#fff" opacity="0.7" />
-        </g>
-        <CityScape camera={CAMERA} />
-      </g>
-      <g class="fg-layer">
-        <!-- sea, with its night-only moon reflection -->
-        <rect class="f-sea" y="605" width="1900" height="120" />
-        <g class="f-moon night-only">
-          <rect x="1275" y="627" width="60" height="3" rx="1.5" opacity="0.35" />
-          <rect x="1290" y="655" width="34" height="3" rx="1.5" opacity="0.2" />
-          <rect x="1283" y="681" width="44" height="3" rx="1.5" opacity="0.14" />
-        </g>
-        <!-- wave marks (PRD §20): sparse, static, sea-toned — visible day and night -->
-        <rect class="f-wave" x="70"   y="625" width="38" height="2" rx="1.5" opacity="0.16" />
-        <rect class="f-wave" x="260"  y="649" width="30" height="2" rx="1.5" opacity="0.12" />
-        <rect class="f-wave" x="430"  y="673" width="44" height="2" rx="1.5" opacity="0.14" />
-        <rect class="f-wave" x="610"  y="633" width="32" height="2" rx="1.5" opacity="0.1" />
-        <rect class="f-wave" x="760"  y="685" width="36" height="2" rx="1.5" opacity="0.13" />
-        <rect class="f-wave" x="1080" y="659" width="28" height="2" rx="1.5" opacity="0.11" />
-        <rect class="f-ground" y="725" width="1900" height="150" />
-      </g>
-    </svg>
+    <!-- PRD d17: scene markup lives once in Scene.astro (PRD d12); 1:1 with
+         the landing's three variants. No approach step, no camera zoom here
+         (d1 ANSWERED 3 stands) — the figure is scenery that happens to be a
+         person, not an interactive NPC. -->
+    <Scene variant="standard" characters={CHARACTERS} characterLabel={CHARACTER_LABEL} />
+    <Scene variant="wide" characters={CHARACTERS} characterLabel={CHARACTER_LABEL} />
+    <Scene variant="tall" characters={CHARACTERS} characterLabel={CHARACTER_LABEL} />
   </div>
 
   <NotFound />

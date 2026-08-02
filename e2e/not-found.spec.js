@@ -68,6 +68,69 @@ test('the 404 code is not rendered as a display number', async ({ page }) => {
   await expect(page.locator('.not-found-code')).toHaveCount(0);
 });
 
+// ── PRD d17: /404 is 1:1 with the landing — the hooded figure, all three
+//    variants, sharing Scene.astro's bg-layer/fg-layer seam ─────────────────
+
+test('the hooded figure is present, the Badger is not', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await expect(page.locator('.hooded-figure')).toHaveCount(3);
+  await expect(page.locator('.badger-figure')).toHaveCount(0);
+});
+
+test('all three scene variants are present, exactly once each', async ({ page }) => {
+  await expect(page.locator('.scene-standard')).toHaveCount(1);
+  await expect(page.locator('.scene-wide')).toHaveCount(1);
+  await expect(page.locator('.scene-tall')).toHaveCount(1);
+});
+
+test('each scene has a bg-layer (containing the mountain) and fg-layer (containing the sea and character)', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 }); // forces the standard variant on
+  for (const variant of ['scene-standard', 'scene-wide', 'scene-tall']) {
+    await expect(page.locator(`.${variant} .bg-layer .table-mountain`)).toHaveCount(1);
+    await expect(page.locator(`.${variant} .fg-layer .f-sea`)).toHaveCount(1);
+    await expect(page.locator(`.${variant} .fg-layer .hooded-figure`)).toHaveCount(1);
+  }
+});
+
+// Migrated verbatim from e2e/approach.spec.js:167-180 (PRD d17) — P4 success
+// criterion 8's guard (the character survives the theme toggle unchanged).
+// It cannot be re-pointed at the Badger on `/`: the Badger is deliberately
+// theme-dependent (PRD §27 criterion 3), so this stays with the figure.
+test('figure fill colours are unchanged by day/night toggle', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  // Night is default — get fill of the jeans path (literal #2b2f3f, never themed)
+  const getNightFill = () =>
+    page.locator('.scene-standard .hooded-figure path').first()
+      .getAttribute('fill');
+  const nightFill = await getNightFill();
+  await page.locator('#toggle').click(); // switch to day
+  const dayFill = await page.locator('.scene-standard .hooded-figure path').first()
+    .getAttribute('fill');
+  expect(nightFill).toBe(dayFill);
+  expect(nightFill).toBeTruthy(); // must have a literal colour, not null
+});
+
+// Card-occlusion (ruled in 2026-08-01): placement now comes from Scene.astro's
+// shared FIG table rather than a hand-tuned 404 layout, so a collision
+// between the figure and the fixed centred card would otherwise arrive as a
+// silent side effect of an unrelated edit to Scene.astro.
+test('the figure does not sit behind the dialogue card', async ({ page }) => {
+  await expect(async () => {
+    const faceBox = await page.evaluate(() => {
+      const el = [...document.querySelectorAll('.face-void')].find((e) => e.getBoundingClientRect().width > 0);
+      const r = el.getBoundingClientRect();
+      return { x: r.left, y: r.top, width: r.width, height: r.height };
+    });
+    const cardBox = await page.locator('.card').boundingBox();
+    const noOverlap =
+      faceBox.x + faceBox.width <= cardBox.x ||
+      cardBox.x + cardBox.width <= faceBox.x ||
+      faceBox.y + faceBox.height <= cardBox.y ||
+      cardBox.y + cardBox.height <= faceBox.y;
+    expect(noOverlap).toBe(true);
+  }).toPass();
+});
+
 // ── noindex ships (PRD d1 ANSWERED 6, was §30 D-4) ──────────────────────────
 
 test('the 404 page is noindex', async ({ page }) => {

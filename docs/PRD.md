@@ -52,13 +52,13 @@ the document body under their original `§` headings as history.
 | d8 | Dev-only gate | §31 (first slice) + §30 D-6 | ❌ DISCARDED 2026-07-31 — toggles stay visible in prod |
 | d9 | The `main` cutover | §23 | ⏳ ready — no gates remain; completes on merge of PR #1 |
 | d10 | Fixed-sleep timing races | §30 D-8 | ✅ fixed 2026-07-29 — caught by CI, 3 of 4 sleeps removed |
-| d11 | Card CSS authored twice (~90 lines) | §30 D-9 | ⏳ — **closes as a side effect of d17's rework**; the "legitimate" positioning difference stops existing |
+| d11 | Card CSS authored twice (~90 lines) | §30 D-9 | ⏳ — d25 moved `/`'s copy into `Stage.astro`; `NotFound.astro`'s copy **survives**, so d11 **closes inside d17**, when `/404` renders `<Stage>` |
 | d12 | Shared scene component (`Scene.astro`) | §30 D-10 | ✅ built 2026-08-01 `e96ecc8` on `item/scene-extraction` — d17 unblocked |
 | d13 | `Avatar.astro` uses `is:global` needlessly | §30 D-12 | ⏳ |
 | d14 | `not-found.spec.js` coupled to placeholder copy | §30 D-13 | ⏳ |
 | d15 | Admin page | §31 (remainder) | 🎨 IN DESIGN, no go-ahead |
 | d16 | Card avatar art refinement | §33b | 🎨 IN DESIGN, brief outstanding |
-| d17 | One character per route — Badger on `/`, hooded figure on `/404`; the 404 goes 1:1 with the landing **in interaction, not just scenery**; the toggle dies | §27 (remainder) | ⏳ **AMENDED AGAIN 2026-08-02** — first pass built and **ruled against** (`92546f8`, WIP on `item/character-per-route`); rework gated on **d25** |
+| d17 | One character per route — Badger on `/`, hooded figure on `/404`; the 404 goes 1:1 with the landing **in interaction, not just scenery**; the toggle dies | §27 (remainder) | ⏳ **UNGATED 2026-08-02** — d25 landed (`1254dad`), gate released; rework **not started**. The ruled-against first pass (`92546f8`) is on a **sibling** branch d25 does not contain — its work must be redone on top of d25 |
 | d18 | Visual validation in e2e | §16 | 💭 intent only |
 | d19 | Dialogue rework | §22 | ⏸ parked |
 | d20 | Social preview imagery | §32 | ⏸ unscheduled |
@@ -66,7 +66,8 @@ the document body under their original `§` headings as history.
 | d22 | Standardise test filenames — descriptive, not tracker IDs | *new* | ✅ built 2026-07-27 — 8 renames, counts unmoved |
 | d23 | Hosted site — domain + Cloudflare | *new* | ⏳ not started |
 | d24 | The Badger on `/sheet` — character-select framing, outside the scene | *new* | 🎨 DESIGN STAGE — brief and his go outstanding |
-| d25 | Shared stage component — extracting the approach interaction | *new* | 🎨 PROPOSED 2026-08-02 — needs his go **and his call on sequencing**; blocks d17's rework |
+| d25 | Shared stage component — extracting the approach interaction | *new* | ✅ built 2026-08-02 `1254dad` on `item/approach-extraction` — pure refactor, byte-identical `dist/index.html`, **zero files under `e2e/` modified**; d17 unblocked |
+| d26 | Performance & cleanup sweep — holding pen for deferred smells and byte numbers | *new* | 💭 intent only — no brief, no go; **do not fix its contents inside d17** |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -78,7 +79,7 @@ rather than left as done-and-dusted: **the tracker must never constrain the
 code** — the misnamed file had been left alone precisely *because* the PRD
 referenced it, which is backwards.
 
-d1, d3–d5, d6–d8, d10–d14, d17, d23, d24 are written up as their own `## dN`
+d1, d3–d5, d6–d8, d10–d14, d17, d23–d26 are written up as their own `## dN`
 sections (§30's old D-4/D-6/D-8/D-9…D-13 subsections moved there, not
 duplicated — see the note at each old location). d2, d9, d15, d16, d18–d21
 have no separate `d` section: their detail still lives at the `§` heading
@@ -597,6 +598,11 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
   The +31 over 1369 is **pre-existing suite growth unrelated to d12** — the
   refactor added no tests and edited none. Fresh evidence for the rule above:
   **do not treat any number in this document as current — count it.**
+- **Suite size as of d25 (2026-08-02, `1254dad`): 65 unit, 1400 e2e** — 1393
+  passed, 7 skipped, 0 failed, tri-engine across 8 projects, **zero files under
+  `e2e/` modified**. Identical to the d12 line by design: d25 was a pure
+  refactor, so an unmoved count *is* the proof. Supersedes nothing — it
+  re-confirms 65/1400. d17's rework still moves both numbers; **recount then.**
 - **No snapshot baselines exist in the repo** — verified 2026-07-25, no
   `*-snapshots/` directory anywhere. The throwaway baselines used to prove
   §19's refactor was pixel-identical were deleted after use, as intended.
@@ -3416,6 +3422,16 @@ block, positioning included, is authored once. **d11 therefore closes as a
 side effect of d17's rework** (via the extraction proposed as **d25**) rather
 than as its own build. Nobody should start d11 separately.
 
+**CHECKED 2026-08-02 against d25 as built (`1254dad`) — d25 did NOT close
+this.** It moved `/`'s copy of the card vocabulary out of `index.astro` and
+into `Stage.astro`; `NotFound.astro`'s ~90 lines (`:93-179`) are untouched,
+because `/404` was explicitly outside d25's scope. **The count of copies is
+still two.** What d25 changed is *where* the surviving pair lives, and that the
+second copy now has a component to be deleted in favour of. **d11 closes when
+`/404` renders `<Stage>` — inside d17, not before.** Verifiable in one line:
+`grep -c "\.choices button" src/components/Stage.astro src/components/NotFound.astro`
+must find it in exactly one file when d17 is done.
+
 ### d12 — the shared scene component (was §30 D-10) — ✅ BUILT
 
 **✅ BUILT 2026-08-01, `e96ecc8` on branch `item/scene-extraction`.**
@@ -3515,7 +3531,8 @@ non-vacuous. But when Caveshen's real copy lands, **the stage direction must
 keep the digits "404" or the test goes red for a purely editorial reason.** Not
 a defect — a note for whoever writes the script. See §2: all copy is his.
 
-**Status (d11–d14): ⏳ — d11 now closes inside d17/d25; d13 and d14 stand alone.**
+**Status (d11–d14): ⏳ — d11 closes inside d17 (d25 relocated one copy, it did not
+remove one); d13 and d14 stand alone.**
 
 ---
 
@@ -3701,13 +3718,14 @@ overstated later:
 **The `/404` growth is ACCEPTED and KNOWN** — it is the price of three scene
 variants where the page carried one, and Caveshen chose it when he ruled the
 scene 1:1. **Do not open it as a bug.** It is a natural target for the
-performance/cleanup sweep he wants later, and is recorded here so that sweep
-starts from numbers. **Re-measure after the rework** — the second amendment
+performance/cleanup sweep he wants later — **that sweep now has an address:
+`## d26`, which carries this table and the two smells d25 deferred.** Recorded
+so the sweep starts from numbers. **Re-measure after the rework** — the second amendment
 adds the stage chrome and the shared script to `/404`, so both figures move
 again.
 
-**Lighthouse was NOT run.** The repo contains no Lighthouse tooling (verified
-across `package.json`, `.github/workflows/`, and `docs/`). P3's ≥95 numbers
+**Lighthouse was NOT run** (see also `## d26`). The repo contains no Lighthouse
+tooling (verified across `package.json`, `.github/workflows/`, and `docs/`). P3's ≥95 numbers
 were taken by hand in a browser and are **unverified**, not assumed-still-true.
 Any success criterion in this document that says "Lighthouse ≥ 95" is
 therefore a **manual check by whoever runs it, recorded with the date and the
@@ -3723,7 +3741,10 @@ constants of its own — confirmed in the first pass. Nothing to chase.
 ### The scope question this amendment forces — ANSWERED, and it needs its own item
 
 **What actually drives the landing's approach interaction** (named exactly,
-because the answer depends on it):
+because the answer depends on it). **The table below is a snapshot of
+`672a988`, kept as the reasoning that justified d25. Every row moved when d25
+landed — the machinery now lives in `src/components/Stage.astro` and
+`src/scripts/stage.js`. Do not use these line numbers.**
 
 | Piece | Where it lives today |
 |---|---|
@@ -3749,6 +3770,12 @@ markup, on top of the ~90 lines of card CSS **already** duplicated between
 `index.astro` and `NotFound.astro` — which is **d11**, an open board item that
 exists precisely to name this hazard. Duplication is the expensive answer
 here, not the lazy one.
+
+**RULED 2026-08-02: Caveshen said go, on this recommendation. d25 is its own
+item and it has landed (`1254dad`, `item/approach-extraction`), with the
+pure-refactor proof intact.** The recommendation and its reasoning are kept
+below because the reasoning is what makes the next sequencing call, not because
+the question is still open.
 
 **Recommendation, and it is the one thing this amendment most needs decided:
 extract it as its own item — `d25` — landing FIRST, then d17's rework as a
@@ -3804,66 +3831,140 @@ stays **d21**, his alone. Every other `PLACEHOLDER` in the two pages stands.
 item needs to change anything else in it, d12 was under-scoped; say so rather
 than patching quietly.
 
-**Prerequisites: d12 ✅ MET (`e96ecc8`). d25 ⏳ — see `## d25`.**
+**Prerequisites: d12 ✅ MET (`e96ecc8`). d25 ✅ MET (`1254dad`) — see `## d25`.**
+
+### ⚠ BRANCH WARNING — read before writing a line of code (added 2026-08-02)
+
+**The first pass's work is not where this section used to assume it is.**
+`92546f8` sits on `item/character-per-route`, which branched from `672a988`.
+d25 sits on `item/approach-extraction`, which **also** branched from `672a988`.
+They are siblings; their merge base is `672a988`; **d25 contains none of the
+first pass.**
+
+Concretely, on the branch d17's rework starts from:
+
+- `index.astro` **still imports `HoodedFigure`, still ships
+  `CHARACTERS = [HoodedFigure, Badger]`, still carries the whole
+  `INTERIM-TOGGLE` scaffold, and its prompt still reads
+  `PLACEHOLDER: Approach the hooded figure`.** The sentence this section
+  carried — *"the first pass already did the character work here and it
+  stands"* — is **false**, and is corrected in "Affected files" below.
+- `404.astro` **has no `<Scene>` renders**; it is still the hand-authored
+  1900×750 single-camera page.
+- `e2e/approach.spec.js`, `e2e/badger.spec.js`, `e2e/interview.spec.js` and
+  `e2e/not-found.spec.js` are **all at `672a988`**. The suite section below
+  says three of them were *"already rewritten correctly by the first pass …
+  review them, do not redo them"* — **that instruction is now wrong as
+  written**: the rewrites exist only on the sibling branch.
+
+**Ruling this needs, and it is a mechanical one, not a design one:** the first
+pass's good work is recovered by `git cherry-pick`/`git checkout 92546f8 -- <path>`
+per file, **or** simply redone — whichever the worker finds cheaper, judged
+file by file. It is not recovered by merging the branches, and `92546f8`
+remains WIP that is never merged. **`git revert` is not used here, or
+anywhere.**
 
 ### Affected files
 
-Line numbers are **as of `92546f8`** (this branch's HEAD) unless stated.
+**Line numbers are as of `1254dad` (d25), re-derived from the working tree
+2026-08-02.** The `92546f8` numbers this section carried before are dead twice
+over: that commit is on a sibling branch (see the branch warning above), and
+d25 took `index.astro` from 895 lines to 106.
 
-- **`src/pages/index.astro`** — the first pass already did the character work
-  here and it **stands**: `CHARACTERS = [Badger]` (`:12`), no `HoodedFigure`
-  import, `INTERIM-TOGGLE` gone, `CHARACTER_LABEL = 'the Badger'` (`:13`),
-  prompt copy `Approach the badger` (`:54`). After d25 this file also **loses
-  its stage markup, CSS and script** to the shared pieces; d17 itself then
-  touches it only if the prompt copy or label changes.
-- **`src/pages/404.astro`** — the first pass's three `<Scene>` renders stand.
-  It now **also** gains the stage: `.stage-frame` > `.camera` wrapping the
-  three `<Scene>` calls, the approach prompt, the card, and the shared script
-  call. `.notfound-stage` (`:41-50`) **is deleted** — `.stage-frame` replaces
-  it. The d17 comment at `:28-31` claiming *"No approach step, no camera zoom
-  here (d1 ANSWERED 3 stands) — the figure is scenery that happens to be a
-  person"* is **false as of this amendment and must be rewritten**, along with
-  the header comment at `:2-7`.
-- **`src/components/NotFound.astro`** — the biggest single change.
-  - **The auto-spin-up script (`:51-60`) is deleted.** This is the "dialogue
-    must not automatically spin up" clause, in code.
-  - **The centred `.card` block (`:63-92`) is deleted**, not re-tuned. Its
+- **`src/pages/index.astro` (106 lines).** After d25 it is a `Base`, a
+  `ThemeToggle`, a `<Stage>` and the `INTERIM-TOGGLE` scaffold. **None of the
+  first pass's character work is here.** d17 must:
+  - Delete the scaffold: the `HoodedFigure` import **and its comment**
+    (`:5-13` — **`:14` is the `Badger` import and STAYS**), the toggle button
+    (`:54`), its inline script (`:55-67`) and its `<style is:global>` block
+    (`:71-96`, the button's own styling). The *visibility* rules the button
+    flips live in `Stage.astro` — see below.
+  - `CHARACTERS` (`:19`) → `[Badger]`; `CHARACTER_LABEL` (`:20`) → `'the Badger'`;
+    the d12 comment above them (`:17-18`, *"both characters render into every
+    variant"*) becomes false and is rewritten with them.
+  - `promptLabel` (`:34`) → `Approach the badger`, the `PLACEHOLDER:` prefix
+    dropped. Byte-exact — see "Copy" below.
+  - The `noscript` slot content (`:35-39`, linking `/sheet`) **stays as it is**.
+  - The `<Stage>` call and the `initStage(tree)` script (`:98-106`) stay;
+    d17 changes their values, not their shape.
+- **`src/pages/404.astro` (112 lines) — untouched by d25, so still at
+  `672a988`: a hand-authored single-camera page with no `<Scene>` renders.**
+  It ends this item as `/`'s twin: a `Base`, a `ThemeToggle`, a `<Stage>` and
+  an `initStage` call.
+  - Delete `CAMERA` / `CELESTIAL` (`:38-39`), the whole `.notfound-stage`
+    wrapper and its hand-authored `<svg class="scene">` (`:48-96`), and the
+    `<style is:global>` block (`:101-112`). `grep -n "notfound-stage" src/`
+    ends empty.
+  - Add `<Stage tree={tree404} characters={[HoodedFigure]} characterLabel={…}
+    promptLabel="Approach the hooded figure?">` with the 404's own `noscript`
+    home link (`href="/"`) **in the slot** — that slot is exactly why d25
+    made the noscript note a slot rather than a fifth prop.
+  - Add the `<script>` that imports `dialogue-404.json` and calls
+    `initStage(tree)`. Mirror `index.astro:98-106`.
+  - The header comment's *"minus its characters … scenery only"* (`:5-6`) is
+    false and must be rewritten. **The *"scenery that happens to be a person /
+    d1 ANSWERED 3 stands"* comment this section previously cited at `:28-31`
+    does not exist on this branch** — `92546f8` added it. Do not hunt for it;
+    do not reintroduce it.
+- **`src/components/NotFound.astro` (180 lines) — untouched by d25; the
+  biggest single change, and the file that closes d11.**
+  - **The auto-spin-up script (`:33-61`, the reveal at `:58`) is deleted.**
+    That is the "dialogue must not automatically spin up" clause, in code.
+  - **The centred `.card` block (`:69-92`) is deleted**, not re-tuned. Its
     `position: fixed` / `top:50% left:50%` / `translate(-50%,-50%)` /
     `max-height: calc(100svh - 2rem)` / `overflow-y: auto` were all
-    consequences of centring. The card becomes `/`'s bottom-anchored one,
-    **verbatim** — that is what 1:1 means, and it is what makes the parity
-    provable instead of eyeballed.
+    consequences of centring. `Stage.astro`'s bottom-anchored card replaces it
+    **verbatim** — that is what makes 1:1 provable instead of eyeballed.
   - **The ~90 lines of duplicated card vocabulary (`:93-179`) are deleted** —
-    d11, closed.
-  - It gains `#end-dialogue` for parity, and keeps its own `noscript` home
-    link (`:26-30`) — that is a genuine per-route difference (`/` links
-    `/sheet`, `/404` links `/`).
-  - **Open shape question for the worker, not a licence to choose freely:**
-    once the CSS and script are gone, `NotFound.astro` is ~20 lines of card
-    markup that differs from `index.astro`'s only in its tree and its noscript
-    link. Whether it survives as a thin per-route wrapper or retires into
-    d25's shared piece is **d25's call, made in d25** — see there.
-- **`src/components/Scene.astro`** — **one comment, and nothing else.** The
-  doc comment at `:8-12` says the `characters` prop *"takes an array
-  (required) so the still-live INTERIM-TOGGLE scaffold ... can keep rendering
-  both ... until d17 replaces it"*. The scaffold is **already deleted** at
-  `92546f8`, so that sentence is **now false and must be corrected** — the
-  array survives because it is the shape, not because a scaffold needs it.
-  While there, note that the `<style>` comment at `:148-153` (*"only callers
-  that render more than one variant at once (today, only `/`)"*) is stale too:
-  both routes now render all three. **This is the one sanctioned exception to
-  success criterion 1's "byte-unchanged" rule, and the criterion is reworded
-  below to say so.** Nothing else in the file moves.
+    **d11 closes here, not in d25.**
+  - `#end-dialogue` is **already** in `Stage.astro` (`:79`), so parity arrives
+    with adoption rather than needing to be added.
+  - **The shape decision d25 deferred is now due, and it is d17's.** d25
+    recommended deleting this file outright and letting `404.astro` render
+    `<Stage>` directly; it deliberately did not act, because `/404` was outside
+    its scope. **Recommended: delete the file.** Once its script and style are
+    gone it is card markup `Stage.astro` already renders, and a wrapper around
+    a wrapper is the one-implementation-interface smell.
+  - **If it is deleted, `src/tests/hygiene.test.js:66-69` must be re-pointed**
+    — it reads this file for the `href="/"` home link. **That moves
+    `hygiene.test.js` off the "unaffected" list below**; it was listed there on
+    the assumption the file survives.
+- **`src/components/Stage.astro` (540 lines) — d17 MODIFIES it. Expected, not
+  a boundary breach.** An earlier note implied the component was frozen once
+  d25 built it; it is not.
+  - The `INTERIM-TOGGLE` **visibility** rules moved into this file's global
+    block at d25 (`:108-123` — `.badger-figure` / `.hooded-figure` under
+    `:root[data-character=…]`). **d17 deletes them from here.** They are not
+    in `index.astro` any more; a worker who greps only the page will leave
+    them behind and ship dead CSS that also happens to hide a character.
+  - Anything else the 1:1 rework genuinely needs is a legitimate change to this
+    file — but a **fifth prop** should be justified in the commit message, not
+    added quietly. Today's four (`tree`, `characters`, `characterLabel`,
+    `promptLabel`) plus the slot were sized for exactly this item.
+- **`src/scripts/stage.js` (314 lines) — expected UNCHANGED.** Every lookup is
+  character-agnostic and the tree is already a parameter, so `/404` should need
+  nothing from it. **If d17 finds itself editing this file, stop and report** —
+  it means d25 drew the boundary in the wrong place, and that is worth knowing
+  rather than patching.
+- **`src/components/Scene.astro`** — **comments only.** Its doc comment
+  (`:9-11`) says the `characters` array exists *"so the still-live
+  INTERIM-TOGGLE scaffold … can keep rendering both"*. **That is still TRUE on
+  this branch** — the scaffold is live until d17 deletes it — and becomes
+  false the moment d17 lands, so **d17 corrects it**: the array survives
+  because it is the shape, not because a scaffold needs it. The `<style>`
+  comment (`:147-152`, *"only callers that render more than one variant at
+  once (today, only `/`)"*) goes stale the same way — both routes will render
+  all three. **These two comments are the one sanctioned exception to success
+  criterion 1's "byte-unchanged" rule.** Nothing else in the file moves.
 - **`src/components/HoodedFigure.astro`, `src/components/Badger.astro`** —
   **unchanged.** Both keep `.js-character` and their own `.face-void`.
 - **Tests** — `e2e/not-found.spec.js`, `e2e/hygiene.spec.js`,
-  `e2e/badger.spec.js`, `e2e/approach.spec.js`, `e2e/interview.spec.js`. See
-  the next section.
-- **Unaffected, verified:** `e2e/badger-idle.spec.js`; `src/tests/hygiene.test.js`
-  (source-level only — its 404 assertions read `NotFound.astro` for `href="/"`
-  and `dialogue-404.json`, both of which survive); `e2e/card-flash.spec.js`
-  (tests `/` only; `/404` now inherits the same D5 guarantee for free — adding
-  a `/404` case is **optional and not required**, the markup mechanism is
+  `e2e/badger.spec.js`, `e2e/approach.spec.js`, `e2e/interview.spec.js`, and
+  possibly `src/tests/hygiene.test.js` (see `NotFound.astro` above). See the
+  next section.
+- **Unaffected, verified:** `e2e/badger-idle.spec.js`; `e2e/card-flash.spec.js`
+  (tests `/` only; `/404` inherits the same D5 guarantee for free — adding a
+  `/404` case is **optional and not required**, the markup mechanism is
   identical); `docs/render-og.js:47` (hides `.js-character`).
 
 ### What this does to the suite — investigated, not guessed
@@ -3899,11 +4000,18 @@ asserts `.choices button.system` is **visible** on `/this-does-not-exist`.
 `textContent` (works on hidden elements) and `:21` is the no-JS path.
 
 **`e2e/badger.spec.js`, `e2e/approach.spec.js`, `e2e/interview.spec.js`** —
-**already rewritten correctly by the first pass** (`92546f8`) and **not
-re-opened by this amendment**. `badger.spec.js` went 7 → 5 bodies;
-`approach.spec.js` lost the theme-independence test to `/404` and re-pointed
-its seam assertion to `.badger-figure`; `interview.spec.js` re-pointed three
-`visibleRect` calls at `.js-character`. Review them, do not redo them.
+the first pass rewrote all three correctly and this amendment does **not**
+re-open the design. `badger.spec.js` went 7 → 5 bodies; `approach.spec.js`
+lost the theme-independence test to `/404` and re-pointed its seam assertion to
+`.badger-figure`; `interview.spec.js` re-pointed three `visibleRect` calls at
+`.js-character`.
+
+**CORRECTED 2026-08-02: those rewrites are NOT on this branch.** They live only
+on `92546f8` (`item/character-per-route`), which d25's branch does not contain
+— see the branch warning above. *"Review them, do not redo them"* now means
+**recover them** (`git checkout 92546f8 -- e2e/<file>`, or redo by hand if the
+d25 refactor moved anything underneath them) and then review. The design
+decisions in them stand; only their location changed.
 
 **The card-occlusion test — RECOMMENDED: keep it, re-aimed. It is not
 redundant.**
@@ -3936,37 +4044,55 @@ measured.
 
 ### Steps → verify
 
-**Step 0 is d25 — a separate item, branch and commit.** Do not start step 1
-until it is green. (If Caveshen rules d25 into d17 instead, steps 1–2 below
-become the first commits of this item and the "zero `e2e/` files modified"
-proof is forfeited — say so in the report.)
+**Step 0 — d25 — is DONE (`1254dad`, 2026-08-02): `/` renders from
+`Stage.astro` + `stage.js`, zero files under `e2e/` modified, full tri-engine
+suite green, built `dist/index.html` byte-identical.** Start at step 0a.
 
-0. **d25 lands** → **verify:** `/` renders from the shared stage; **zero files
-   under `e2e/` modified**; full tri-engine suite green.
-1. `/404` adopts the stage: `.stage-frame` > `.camera` wrapping the three
-   `<Scene>` renders, plus the approach prompt and the card; `.notfound-stage`
-   deleted → **verify:** `grep -n "notfound-stage" src/` returns nothing;
-   `npm run build` green; `/404` has exactly one `.stage-frame` and one
-   `.camera`.
+0. ~~**d25 lands**~~ → **VERIFIED 2026-08-02.** See `## d25`.
+0a. **Recover the first pass.** Bring `92546f8`'s character work and its four
+   spec rewrites onto this branch, per file, by cherry-pick or by hand — see
+   the branch warning above → **verify:** `git diff 92546f8 -- e2e/` shows only
+   differences you intended; nothing from `92546f8`'s `404.astro` scene markup
+   is carried, since step 1 replaces it with `<Stage>` outright.
+1. `/404` adopts `<Stage>`: one `<Stage tree={tree404} characters={[HoodedFigure]}
+   … promptLabel="Approach the hooded figure?">` with its `noscript` home link
+   in the slot; the hand-authored `<svg class="scene">`, `.notfound-stage` and
+   the `CAMERA`/`CELESTIAL` constants deleted → **verify:**
+   `grep -rn "notfound-stage\|viewBox" src/pages/404.astro` returns nothing;
+   `npm run build` green; `/404` has exactly one `.stage-frame`, one `.camera`
+   and three `<Scene>` variants.
 2. `NotFound.astro` loses its auto-spin-up script and its entire `<style
-   is:global>` block → **verify:** `grep -n "position: fixed" src/components/NotFound.astro`
-   returns nothing; the card on `/404` is **not** visible on load with JS
-   enabled, and **is** visible with JS disabled.
-3. Wire `/404` to the shared approach script with `dialogue-404.json` →
+   is:global>` block — or the file goes entirely (see "Affected files") →
+   **verify:** `grep -rn "position: fixed" src/components/` returns nothing for
+   `.card`; the card on `/404` is **not** visible on load with JS enabled, and
+   **is** visible with JS disabled; if the file is deleted,
+   `src/tests/hygiene.test.js` is re-pointed and green.
+3. Wire `/404` to `initStage` with `dialogue-404.json` →
    **verify:** clicking `#approach-prompt` on `/404` shows the card, hides the
    prompt, sets a non-identity `.camera` inline transform, and focuses the
    first choice; `#end-dialogue` and `Escape` both restore the prompt and set
    `camera.style.transform === 'none'`.
+3a. Delete the `INTERIM-TOGGLE` scaffold **in both places**: the button, its
+   script and its button-CSS in `index.astro` (`:5-13` — not `:14`, the
+   `Badger` import — plus `:54`, `:55-67`, `:71-96`) **and the visibility
+   rules in `Stage.astro` (`:108-123`)** →
+   **verify:** `grep -rn "INTERIM-TOGGLE\|data-character\|badger-figure\|hooded-figure" src/`
+   returns only the two figure components' own class names — no
+   `[data-character]` rule survives anywhere.
 4. **Parity, proven not eyeballed.** Diff the *behaviour*, not the source: run
    the `/`-side approach assertions from `e2e/approach.spec.js` against
    `/404` → **verify:** every one of SC2–SC7's behaviours holds identically on
    both routes. Anything that differs is either the character, the route, or
    the tree — or it is a bug.
-5. Correct the false comments: `404.astro`'s header (`:2-7`) and its
-   *"scenery that happens to be a person / d1 ANSWERED 3 stands"* block
-   (`:28-31`); `Scene.astro:8-12`'s INTERIM-TOGGLE claim and `:148-153`'s
-   *"today, only `/`"* claim → **verify:** `grep -rni "interim-toggle\|scenery only\|scenery that happens" src/`
+5. Correct the false comments: `404.astro`'s header (`:5-6`, *"minus its
+   characters … scenery only"*); `Scene.astro:9-11`'s INTERIM-TOGGLE claim and
+   `:147-152`'s *"today, only `/`"* claim; `Stage.astro`'s own d25 comments
+   wherever they still describe `/` as the only caller → **verify:**
+   `grep -rni "interim-toggle\|scenery only\|scenery that happens" src/`
    returns nothing; no comment in `src/` asserts the 404 has no approach step.
+   (The *"scenery that happens to be a person"* block at `404.astro:28-31` is
+   on the sibling branch only — nothing to correct here unless step 0a drags
+   it in.)
 6. Fix the eight invalidated assertions in `not-found.spec.js` and the one in
    `hygiene.spec.js`, per the table above → **verify:** the diff shows
    approach clicks added and **one** assertion removed (the vertical centre),
@@ -3991,8 +4117,12 @@ proof is forfeited — say so in the report.)
 ### Success criteria (verifiable) — "done" means all of these
 
 1. **`Scene.astro` is unchanged by this item except the two stale comments
-   named above** (`:8-12`, `:148-153`); `git diff` against `e96ecc8` shows
+   named above** (`:9-11`, `:147-152`); `git diff` against `1254dad` shows
    comment lines only. Both pages render from it.
+1a. **`src/scripts/stage.js` is unchanged**; `git diff 1254dad -- src/scripts/stage.js`
+   is empty. **`Stage.astro` MAY change** — it is not frozen — but every
+   change is named in the commit message, and a fifth prop is justified there
+   or not added.
 2. `grep -rn "INTERIM-TOGGLE" src/ e2e/` returns nothing. No
    `#character-toggle`, no `[data-character]`, anywhere.
 3. `/` renders exactly one character: `.badger-figure` ×3, `.hooded-figure` ×0.
@@ -4019,9 +4149,12 @@ proof is forfeited — say so in the report.)
     same shape as `interview.spec.js:453-468`, passing on all 8 projects —
     and the PRD records that the pre-approach test was **replaced by a
     stronger one**, not dropped.
-13. **d11 is closed:** the card vocabulary is authored **once**;
-    `grep -c "\.choices button" src/pages/index.astro src/components/NotFound.astro`
-    finds it in neither.
+13. **d11 is closed:** the card vocabulary is authored **once**, in
+    `Stage.astro`;
+    `grep -rc "\.choices button" src/pages/index.astro src/components/NotFound.astro`
+    finds it in neither (or `NotFound.astro` no longer exists). d25 relocated
+    one copy; **this item removes the second**, which is what closing d11
+    actually means.
 14. `e2e/badger-idle.spec.js` and `src/tests/hygiene.test.js` pass
     **untouched**.
 15. Full suite green tri-engine, 0 failed; **new counts recorded in §13**.
@@ -4096,8 +4229,14 @@ owns every remaining string, and it is Caveshen's alone.
 
 **Status: ⏳ RULED 2026-08-01, amended twice (2026-08-01 scenery, 2026-08-02
 interaction), first pass built and ruled against at `92546f8`, rework not
-started.** Gated on **d25**. Branch: **`item/character-per-route`** —
-`92546f8` is its HEAD and is WIP; the rework replaces it with new commits.
+started. UNGATED 2026-08-02 — d25 landed (`1254dad`).**
+
+**Branch, and this changed:** the rework starts from **d25's** branch state, not
+from `92546f8`. Whether it continues on `item/approach-extraction` (after d25
+merges) or on a fresh `item/character-per-route` cut from that merge is
+Caveshen's call — **but it cannot continue on the existing
+`item/character-per-route`, which does not contain d25.** `92546f8` stays WIP
+and is never merged; its useful content is cherry-picked or redone.
 **`git revert` is not used here, or anywhere in this repo.**
 
 ---
@@ -4164,16 +4303,19 @@ a `<g>` fragment today, which `/sheet` has nothing to put it in.
 
 ---
 
-## d25. The shared stage — extracting the approach interaction (prerequisite of d17)
+## d25. The shared stage — extracting the approach interaction — ✅ BUILT
 
-*Raised 2026-08-02 by d17's second amendment. **This is a proposal with a
-recommendation, not a ruling.** Caveshen decides whether it is its own item or
-folded into d17 — see "Sequencing" below.*
+**✅ BUILT 2026-08-02, `1254dad` on branch `item/approach-extraction`.**
+Caveshen ruled **go**, and ruled the sequencing the recommendation asked for:
+**its own item, its own branch, its own commit, landing before d17's rework.**
+The proposal that used to head this section is kept below as the reasoning,
+not as an open question. **`git show 1254dad` is the authority; this section is
+the index to it.**
 
 ### Why this exists
 
 d17's second amendment makes `/404` **functionally identical** to `/`. The
-machinery that makes `/` work is not a shared thing today — it is ~300 lines of
+machinery that makes `/` work was not a shared thing — it was ~300 lines of
 script, ~250 lines of CSS and ~40 lines of markup **parked inside
 `src/pages/index.astro`**. `/404` cannot be identical to it without either
 sharing it or copying it.
@@ -4185,13 +4327,67 @@ render the same interaction from one source. The argument d17 already accepted
 for the scene (*"hand-authoring that would take the scene from four copies to
 six is the wrong answer"*) applies verbatim here.
 
-**It also closes d11.** d11 records that the card vocabulary is authored twice
-(`index.astro` and `NotFound.astro`, ~90 byte-identical lines) and says *"only
-`.card` positioning legitimately differs — fixed+centred on `/404`,
-bottom-anchored on `/`."* **After d17's amendment that difference stops
-existing**, so the last reason to keep two copies is gone. d11's own
-recommended shape — *"a `DialogueCard` component or `src/styles/card.css`
-imported by both pages"* — is what this item builds.
+### What shipped
+
+Three files, no new pattern, no new abstraction with one caller.
+
+- **`src/components/Stage.astro` (new, 540 lines)** — the stage markup, its
+  `<style is:global>` block and the approach machinery: `.stage-frame` >
+  `.camera` > three `<Scene>` renders, `.wind`, the `.approach-prompt` button,
+  the bottom-anchored `.card` with `#end-dialogue` (`:79`), `.fullscreen-toggle`
+  (`:96`), `.banner-plane` and `.page-foot` (`:105`).
+  - **Props: `tree`, `characters`, `characterLabel?`, `promptLabel`** (`:16-22`)
+    — the four values that genuinely vary by route.
+  - **The per-route `noscript` note is a `<slot />` (`:83`), not a fifth prop**,
+    so each page supplies its own link (`/` → `/sheet`, `/404` → `/`). It is
+    markup, not a value.
+  - **This four-prop shape was the second attempt.** The first pass shipped
+    `tree` only and was corrected after review. Recorded because the PRD
+    specified the shape and the first pass narrowed it — the props are load
+    bearing for d17, which cannot pass a character or a prompt string without
+    them.
+- **`src/scripts/stage.js` (new, 314 lines)** — `initStage(tree)`, the script
+  moved **verbatim**: `initEngine` wiring, `positionPrompt()`, `approach()`,
+  `exit()`, the camera transform, the banner plane, the fullscreen toggle, the
+  `Escape` handler and the `approached` state.
+  - **TypeScript cast syntax was stripped**, because the sibling plain-`.js`
+    modules (`camera.js`, `dialogue.js`) carry none and casts erase at build
+    time. **Every removal was verified as pure erasure** — no non-null
+    assertion was doing real work. This is the one edit inside otherwise
+    verbatim code; it is a decision, not drift.
+- **`src/pages/index.astro`** — 895 lines → **106**: a `Base`, a `ThemeToggle`,
+  a `<Stage>` and the `INTERIM-TOGGLE` scaffold that d17 deletes.
+
+### The one non-obvious move — the INTERIM-TOGGLE CSS, and why it prevents a d17 bug
+
+**The toggle's *visibility* rules moved into `Stage.astro`'s global block
+(`:108-123`); the toggle *button's* own styling stayed in `index.astro`
+(`:71-96`), the only page that button exists on.** Record the reason, because
+it is not cosmetic:
+
+`Stage.astro` renders the elements those rules style (`.badger-figure` /
+`.hooded-figure` under `:root[data-character=…]`). Left in `index.astro`, they
+would have been **absent on `/404` the moment d17 rendered a `<Stage>` there**
+— and since the default state hides one character *via those very rules*,
+`/404` would have silently shown **both characters at once**. The rules travel
+with the markup they style. **d17 deletes them from `Stage.astro`**, not from
+the page — see d17's step 3a.
+
+### The proof — measured, not asserted
+
+- **Built `dist/index.html` byte-identical to the pre-refactor baseline**,
+  normalising only comments and scoped-id hashes — **verified twice: before
+  the props were added and again after.**
+- **vitest 65/65.**
+- **Playwright 1393 passed, 7 skipped, 0 failed**, tri-engine, 8 projects, and
+  **zero files under `e2e/` modified.** That unmoved count is the whole point:
+  a pure refactor that needed a test edited would not have been pure.
+- **An independent reviewer confirmed** the script, the markup and the CSS are
+  **line-for-line identical to their old positions inside `index.astro`**, and
+  that the hoisted module script runs at the **same lifecycle point** as the
+  inline script it replaced.
+- **`/404` and `NotFound.astro` are untouched**, per this item's own scope
+  boundary. **Consequence: d11 did not close here** — see below.
 
 ### What is already generic (verified, not assumed)
 
@@ -4199,118 +4395,148 @@ Nothing in `approach()`, `exit()` or `positionPrompt()` names the Badger or the
 route. Every DOM lookup is by a stable, character-agnostic selector:
 `.js-character`, `.face-void`, `.camera`, `.stage-frame`, `.card`,
 `#approach-prompt`, `#end-dialogue`. **The only landing-specific line in the
-entire script is `import tree from '../data/dialogue.json'`.** The machinery is
-already shared-shaped; it is just in the wrong file.
+entire script was `import tree from '../data/dialogue.json'`** — which is now
+the parameter. Precedent already in the repo: `src/scripts/camera.js` (pure
+maths, no DOM) and `src/scripts/dialogue.js` (`initEngine(tree, els, navigate)`).
+This item added a third module to that folder, not a new pattern.
 
-Precedent already in the repo: `src/scripts/camera.js` (pure maths, no DOM) and
-`src/scripts/dialogue.js` (`initEngine(tree, els, navigate)` — the tree is
-**already** a parameter). This item adds a third module to that folder, not a
-new pattern.
+**Why the *whole* script moved, not a hand-picked subset:** it makes
+"functionally identical" true **by construction** rather than by matching a
+checklist, and it dissolves the otherwise-open question *"how far does 1:1 go —
+does `/404` get the wind motes? the fullscreen button? the MAVERICKS plane?"*
+The answer is **yes to all of it**, because they arrive together — which is
+what Caveshen asked for. A subset was also not cheaper: the script dereferences
+`document.getElementById('fullscreen-toggle')` unguarded, so a page without
+that button throws, and splitting would have meant null guards existing only to
+support a partial adoption nobody asked for.
 
-### Recommended shape — two files, no new abstraction
-
-1. **`src/scripts/stage.js`** — one exported function, `initStage(tree)`,
-   containing **everything currently in `index.astro`'s `<script>` except the
-   tree import**: `initEngine` wiring, `positionPrompt()`, `approach()`,
-   `exit()`, the camera transform, the banner plane, the fullscreen toggle, the
-   `Escape` handler, and the `approached` state. Each page becomes three lines:
-   import the module, import its tree, call it.
-
-   **Why the *whole* script, not a hand-picked subset:** it is what makes
-   "functionally identical" true **by construction** rather than by matching a
-   checklist — the same reasoning that let d17 close the +375 star-offset note
-   without a fix. It also dissolves the otherwise-open question *"how far does
-   1:1 go — does `/404` get the wind motes? the fullscreen button? the
-   MAVERICKS plane?"* The answer becomes **yes to all of it**, because they
-   arrive together, which is what Caveshen asked for: *"functionality-wise it's
-   the same except for the hooded figure and the different dialogue tree."*
-
-   **A subset is not actually cheaper.** The script already hard-depends on the
-   markup: `document.getElementById('fullscreen-toggle')` is dereferenced
-   unguarded, so a page without that button throws. Splitting the script means
-   adding null guards that exist only to support a partial adoption nobody
-   asked for.
-
-2. **`src/components/Stage.astro`** — the markup and CSS the script requires:
-   `.stage-frame` > `.camera` > the three `<Scene>` renders, `.wind`, the
-   `.approach-prompt` button, the `.card` (bottom-anchored, with
-   `#end-dialogue`), `.fullscreen-toggle`, `.page-foot`, and the `<style
-   is:global>` block that styles all of it. Props: `characters`,
-   `characterLabel`, `tree`, `promptLabel`, plus a slot for the per-route
-   `noscript` note (`/` links `/sheet`, `/404` links `/` — the one genuine
-   markup difference).
-
-   Both pages then read as: a `<Base>`, a `<ThemeToggle />`, and a `<Stage …>`.
-
-**`src/components/NotFound.astro` retires into this** — after its script and
-its `<style is:global>` are deleted it is ~20 lines of card markup identical to
-`index.astro`'s. Keeping it as a wrapper around a wrapper is the
-one-implementation-interface smell. **Recommendation: delete it, and let
-`404.astro` render `<Stage>` directly.** `src/tests/hygiene.test.js:65-69`
-reads `NotFound.astro` for `href="/"` and **must be re-pointed** — flagged
-because that file is otherwise on d17's untouched list.
-
-### Non-negotiable trap — the card CSS must stay `is:global`
+### Non-negotiable trap — the card CSS must stay `is:global` (held)
 
 `src/scripts/dialogue.js:41-44` **creates the option buttons at runtime**.
 Astro's *scoped* styles work by attaching a build-time hash attribute to
 elements it renders; runtime-created elements never receive it. A scoped
 `<style>` in `Stage.astro` would compile, build green, pass every structural
-test — and **silently unstyle every dialogue option on both routes**. That is
-why both pages use `<style is:global>` today. **No test catches this.** Keep
-`is:global`, or verify by eye at the end of the build.
+test — and **silently unstyle every dialogue option on both routes**. **No test
+catches this.** `Stage.astro` ships `<style is:global>` and **must keep it**;
+d17 inherits the same constraint.
 
-### Sequencing — the recommendation, and the alternative
+### Deliberately NOT done — decisions, not oversights
 
-**Recommended: d25 is its own item, its own branch, its own commit, landing
-BEFORE d17's rework.**
+Two pre-existing smells were found during the extraction and **ruled out of
+d25 on purpose**. Both are pre-existing, neither is a defect, and both belong
+to the performance/cleanup sweep (**d26**), which now holds them so they are
+not lost. **Nobody — d17 included — should "helpfully" fix either one.**
 
-- **The pure-refactor proof.** d12 shipped with **zero files under `e2e/`
-  modified** and the full suite green — proof `/` was untouched. The identical
-  proof is available here and is **impossible if the extraction and the
-  behaviour change land together**, because the behaviour change necessarily
-  rewrites `/404`'s tests. **d17 has already died once**; localising the next
-  failure is cheap.
-- **d17's success criterion 1** is *"`Scene.astro` is byte-unchanged by this
-  item"* — the item is built around not doing extraction inside itself.
-- **§2's branch-per-item rule.**
+1. **The visible-character lookup is written three times in `stage.js`** —
+   `[...document.querySelectorAll(…)].find(el => el.getBoundingClientRect().width > 0)`
+   at `:56` and `:141` (`.js-character`) and `:153` (`.face-void`). Moved
+   verbatim because a verbatim move is what the byte-identical proof rests on.
+2. **The dialogue tree is imported twice in `index.astro`** — frontmatter
+   (`:15`, for the server-rendered card) and the client `<script>` (`:103`, for
+   `initStage`). **Astro's server/client split forces this**; the frontmatter
+   import does not exist at runtime. It is a real duplication with a real
+   reason, not an accident.
 
-**Alternative, stated fairly: fold it into d17 as its first two commits.** The
-extraction is mostly cut-and-paste and has **no visual consequence at all**, so
-one item would work. **The cost is losing the proof above** — if `/` regresses,
-there is no green refactor commit to bisect against. Caveshen decides.
+### What d25 did NOT close — read this before ticking d11
 
-### Steps → verify
+- **d11 is still open.** d25 moved `/`'s ~90 lines of card vocabulary from
+  `index.astro` into `Stage.astro`; `NotFound.astro`'s copy (`:93-179`) is
+  untouched, because `/404` was outside this item's scope. **The count of
+  copies is still two.** d11 closes when `/404` renders `<Stage>` and that
+  second copy is deleted — **inside d17.** The earlier claim that d25 closes
+  d11 was wrong about *which item* removes the duplicate; it was right that the
+  extraction is what makes the removal possible.
+- **`NotFound.astro`'s fate was deferred, deliberately.** d25 recommended
+  deleting it and letting `404.astro` render `<Stage>` directly, and did not
+  act, because acting would have breached the `/404`-untouched boundary that
+  the pure-refactor proof depends on. **The call is d17's** — recorded there,
+  along with the `src/tests/hygiene.test.js:66-69` re-point it forces.
+- **`Stage.astro` is not frozen.** d17 **modifies** it (at minimum, deleting
+  the INTERIM-TOGGLE visibility rules). Any earlier note implying otherwise is
+  superseded here.
 
-1. `src/scripts/stage.js` exports `initStage(tree)`; `index.astro`'s `<script>`
-   becomes three lines → **verify:** `npm run build` green; `/` behaves
-   identically by hand (approach, zoom, end-dialogue, `Escape`, fullscreen,
-   plane after 10s).
-2. `src/components/Stage.astro` takes the markup and the `<style is:global>`
-   block; `index.astro` renders it → **verify:** built `dist/index.html` diffed
-   against `92546f8`'s shows **no meaningful change** — same elements, same
-   classes, same order. Any real difference is a bug in the extraction.
-3. Full tri-engine suite → **verify: 0 failed, and ZERO files under `e2e/`
-   modified.** That is this item's whole success criterion. If a test needs
-   changing, the extraction was not pure — stop and report rather than editing
-   the test.
-4. Dialogue options are still styled (the `is:global` trap) → **verify:** by
-   eye on `/`, both themes, after approach — the option buttons keep their
-   pill border, mono font and hover state.
+### Success criteria — all met
 
-### Success criteria — "done" means all of these
-
-1. `/` renders from `Stage.astro` + `stage.js`; `index.astro` is ~20 lines
-   plus its frontmatter.
-2. **Zero files under `e2e/` modified**, full tri-engine suite green, counts
-   unmoved.
-3. Built `dist/index.html` is materially unchanged versus `92546f8`.
-4. Dialogue option buttons are visibly styled after approach — the `is:global`
+1. ✅ `/` renders from `Stage.astro` + `stage.js`; `index.astro` is 106 lines,
+   of which the `INTERIM-TOGGLE` scaffold is ~55 — **d17 takes it to ~50.**
+   (The proposal's *"~20 lines plus frontmatter"* assumed the scaffold was
+   already gone; it is not, and that is d17's job.)
+2. ✅ **Zero files under `e2e/` modified**, full tri-engine suite green, counts
+   unmoved at 65 / 1393-passed.
+3. ✅ Built `dist/index.html` **byte-identical** to the pre-refactor baseline
+   (`672a988`, this branch's merge base — **not** `92546f8`, which is on a
+   sibling branch), normalising comments and scoped-id hashes only.
+4. ✅ Dialogue option buttons visibly styled after approach — the `is:global`
    trap did not bite.
-5. `/404` is **untouched by this item** (it moves in d17).
-6. No new abstraction with one caller; two new files, no more.
+5. ✅ `/404` untouched by this item; it moves in d17.
+6. ✅ No new abstraction with one caller; two new files, no more.
 
-**Status: 🎨 PROPOSED 2026-08-02 — needs Caveshen's go, and his call on
-sequencing (own item vs folded into d17). Blocks d17's rework either way.**
+**Status: ✅ BUILT & PROVEN 2026-08-02 — `1254dad` on `item/approach-extraction`.
+Awaiting Caveshen's local-dev sign-off and the merge, per §2's draft-before-deploy
+and branch-per-item rules. d17 is unblocked.**
+
+---
+
+## d26. Performance & cleanup sweep — the holding pen
+
+*Opened 2026-08-02 as an **address, not a plan**. d17 and d25 both defer things
+to "the performance/cleanup sweep Caveshen wants later", and that sweep had
+nowhere to point. This section is that somewhere. **It is intent only — no
+brief, no go, no build**, and nothing in it may be fixed opportunistically
+inside another item: each entry was deferred on purpose, and fixing one inside
+d17 costs d17 its clean diff.*
+
+### Deferred from d25 (found during the extraction, ruled out of it)
+
+1. **The visible-character lookup is written three times in
+   `src/scripts/stage.js`** —
+   `[...document.querySelectorAll(…)].find(el => el.getBoundingClientRect().width > 0)`
+   at `:56` and `:141` (`.js-character`) and `:153` (`.face-void`).
+   Pre-existing; moved verbatim because the byte-identical proof depended on a
+   verbatim move. A `visibleOne(selector)` helper is three lines. **Note the
+   ceiling before anyone "fixes" it: the `width > 0` trick is what makes the
+   lookup character-agnostic, and it stops mattering entirely once d17 deletes
+   the second character — so this may well delete itself rather than need
+   extracting.** Re-read it after d17 lands.
+2. **`src/pages/index.astro` imports the dialogue tree twice** — frontmatter
+   (`:15`, for the server-rendered card) and the client `<script>` (`:103`, for
+   `initStage`). **Astro's server/client split forces this**; the frontmatter
+   import does not exist at runtime. Recorded so a reader does not file it as a
+   bug. If it is ever worth removing, the cost is server-rendering the card's
+   first node from somewhere else — which is a real change, not a tidy.
+
+### Byte numbers to sweep against (do not re-open these as bugs)
+
+| File | Measured | Value | Note |
+|---|---|---|---|
+| `dist/index.html` | `672a988` | 60,986 | pre-d17 baseline |
+| `dist/index.html` | `92546f8` (d17 first pass) | 45,202 | −15,784 — second character removed from `/` |
+| `dist/404.html` | `672a988` | 18,752 | one hand-authored scene |
+| `dist/404.html` | `92546f8` (d17 first pass) | 58,440 | +39,688 — three scene variants |
+
+**`dist/index.html` at d25 (`1254dad`) is byte-identical to `672a988`** — the
+extraction moved authored source, not shipped DOM.
+
+**Caveshen has seen the `/404` growth and accepted it.** It is the price of the
+1:1 scenery ruling, and he wants a **measured** sweep later rather than a
+reflex fix now. **Re-measure after d17's rework** — the second amendment adds
+the stage chrome and the shared script to `/404`, so both numbers move again,
+and this table gains a dated row.
+
+**Also true and easy to misread: hidden SVG subtrees are parsed and held in
+memory, but not laid out and not painted.** The effect is **parse time and
+bytes, not raster work.** Do not claim a rendering win or loss from any of
+this, in either direction.
+
+### Not in scope until there is a brief
+
+No Lighthouse tooling exists in this repo (verified across `package.json`,
+`.github/workflows/` and `docs/`). Any "Lighthouse ≥ 95" claim anywhere in this
+document is **a manual browser check with a recorded date and method, or it is
+not claimed.** It is not a suite gate, and adding tooling for it is its own
+decision, not part of a sweep.
+
+**Status: 💭 intent only — no brief, no go, no build. A holding pen, so
+deferred work has an address instead of a comment.**
 
 ---

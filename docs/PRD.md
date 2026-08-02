@@ -69,8 +69,8 @@ the document body under their original `§` headings as history.
 | d23 | Hosted site — `caveshen.com` + Cloudflare | *new* | ⏳ not started — **prerequisites met**: account created, API token held outside the repo, domain reserved |
 | d24 | The Badger on `/sheet` — character-select framing, outside the scene | *new* | 🎨 DESIGN STAGE — brief and his go outstanding; consider the `frontend-design` skill |
 | d25 | Shared stage component — extracting the approach interaction | *new* | ✅ built 2026-08-02 — `1254dad`, landed on the mainline as `732f5a6` (#3); pure refactor, byte-identical `dist/index.html`, zero `e2e/` files modified |
-| d26 | Cleanup sweep — triaged: dead prop, duplicated test geometry, Badger PNG resize | *new* | 💭 triaged — 5 items in scope, none built; no go |
-| d27 | CI: tag pushes fire the deploy workflow | *new* | 💭 proposed 2026-08-02 — one-line fix (`tags-ignore: ['**']`); no go |
+| d26 | Cleanup sweep — four of five items built, one closed as not-debt | *new* | ✅ built 2026-08-02 — `daaafb9`; item 5 closed, replaced by lossless PNG recompression in `3f322ae` |
+| d27 | CI: tag pushes fire the deploy workflow | *new* | ✅ built 2026-08-02 — `daaafb9` |
 | d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | 🎨 proposed 2026-08-02 — staged/iterative, Stage 1 is a single day; no go |
 | d29 | Comment-citation sweep — repo-wide PRD/§ reference cleanup | *new* | 💭 proposed 2026-08-02 — split from d26; no go |
 
@@ -3704,58 +3704,62 @@ regression on `/` can be localised to one commit instead of argued about.
 
 ---
 
-## d26. Cleanup sweep — triaged (was "the holding pen")
+## d26. Cleanup sweep — ✅ BUILT, four of five (was "the holding pen")
 
-*Triaged 2026-08-02, refined the same day: five of the original seven
-deferrals stay in this sweep as mechanical, bounded work; one closes here
-outright; the comment-citation sweep splits out to d29 — judgement-heavy work
-does not belong beside mechanical dedupe. No brief beyond this section, no
-go, no build.*
+**✅ BUILT 2026-08-02, `daaafb9` on `item/refactor-plan`. `git show daaafb9` is
+the authority; this section keeps only what future work must not re-litigate.**
 
-### In scope — five items, do them in order, item 4 last
+### Landed — four items, as scoped
 
-1. **`Scene.astro`'s `characters` prop is speculative generality.** Both
-   callers (`src/pages/index.astro:8`, `src/pages/404.astro:11`) pass a
-   one-element array; the `INTERIM-TOGGLE` scaffold that needed an array is
-   gone. Narrow `characters: AstroComponentFactory[]` to a single
-   `character: AstroComponentFactory` in `Scene.astro` and `Stage.astro`; the
-   `.map()` at `Scene.astro:139` becomes one render call.
-2. **A `visibleOne(selector)` helper for `src/scripts/stage.js`.** The
-   `[...document.querySelectorAll(sel)].find(el => el.getBoundingClientRect().width > 0)`
-   pattern is written three times (`:56`, `:141`, `:153`). Extract it.
-   **Correctness fix in the same commit, not cosmetic:** the comments at
-   `:54` and `:139` both say the filter picks "the visible one of the hooded
-   figure and the Badger." Since d17 (`26a6ddb`) there is one character per
-   route — the filter selects among the **three scene variants**, two of
-   which are `display:none`. Reword both comments; the lookup itself is still
-   needed (an earlier note here wrongly predicted it would delete itself —
-   it did not, for the same reason).
-3. **A shared `e2e/geom.js` for `rectsIntersect`/`visibleRect`.** Copy-pasted
-   between `e2e/interview.spec.js:226-256` and `e2e/not-found.spec.js:175-190`.
-   Extract, re-import both call sites. Zero behaviour change — the suite
-   count must not move.
-4. **Parameterise the character-swapped clone tests — largest item, do it last,
-   in its own commit.** The variant and bg/fg-seam tests in
-   `e2e/not-found.spec.js` and `e2e/approach.spec.js` duplicate assertions
-   across the two routes. `approach.spec.js`'s existing `ROUTES` loop is the
-   shape to extend to `{route, characterClass}`. Recount the suite before and
-   after against d17's baseline (65 unit / 1520 e2e) — a pure
-   parameterisation that moves the count is not pure.
-5. **The Badger PNGs are unoptimised.** `public/badger-up.png` (56,242 B) and
-   `public/badger-down.png` (55,455 B) are 500×500 sources shown at ~200px
-   (`Badger.astro:41-42`). Resize both to displayed size, together, in one
-   commit — resizing only one desynchronises the two idle frames'
-   registration (§29's animation needs both to stay aligned).
+1. `Scene.astro`'s `characters` prop narrowed to a single `character` prop.
+   Both callers (`index.astro`, `404.astro`) already passed exactly one — the
+   array existed only for the `INTERIM-TOGGLE` scaffold, which d17 deleted.
+2. `visibleOne(selector)` extracted in `src/scripts/stage.js` (`:7`),
+   replacing three inline copies of the same pattern. **The comment fix
+   landed with it:** the old comments at `:54`/`:139` claimed the filter
+   picks between the hooded figure and the Badger; since d17 there is one
+   character per route, so it selects among the **three scene variants**.
+   They were actively misleading, not merely stale.
+3. `rectsIntersect`/`visibleRect` moved to `e2e/geom.js`, imported by both
+   spec files that had copies. `rectContains` stays in
+   `e2e/interview.spec.js` — it only ever had one home.
+4. The character-swapped seam tests fold into a `ROUTE_CHARACTERS` loop
+   (`e2e/approach.spec.js:326`). **Decision recorded, so it isn't re-litigated
+   as an oversight:** the "all three scene variants present" test stays
+   **unlooped** — it doesn't depend on the character, so looping it would
+   raise the suite count without adding signal.
 
-### Closed here — was item 5 in the original seven, no action taken
+### Item 5 — CLOSED as not-debt (standing ruling — the trap is subtle, do not re-open it from the SVG markup alone)
 
-**`src/pages/index.astro` (and `404.astro`) import the dialogue tree twice —
-once in frontmatter, once in the client `<script>`.** Not debt: Astro's
-server/client split means the frontmatter import does not exist at runtime, so
-there is exactly one real import per environment. Removing it would mean
-server-rendering the card's first node from somewhere else — a real change,
-not a tidy. **Ruling: leave it. It drops off the holding pen; do not re-raise
-without a concrete alternative already in hand.**
+**Resizing the badger PNGs was wrong, and the error was in this sweep's own
+brief.** `Badger.astro`'s header comment (`:17-20`), dated 2026-07-26 — a week
+before this item existed — already computes the rendered footprint: ~320 CSS
+px at 1920×1080, and **up to ~852 device px at 2560 wide on a 2× display**.
+500×500 is roughly correct for that range, not oversized.
+
+**The trap, spelled out so nobody re-derives the wrong answer from the same
+file:** `Badger.astro` sets `<image width="200">` — an SVG-unit attribute
+inside a 1200-unit viewBox, not a CSS pixel size. Read on its own (as this
+sweep's brief did), `200` looks like "200px on screen"; it is not — it is 200
+of 1200 SVG units, scaled by the viewport's CSS-to-SVG ratio and then again
+by device pixel ratio. The real number is three lines above it, in the same
+file's own comment. **Resizing the source to 200×200 would have degraded
+exactly the displays that show the Badger best.**
+
+The worker refused this item and flagged the conflict rather than guessing —
+correctly.
+
+**What shipped instead** (`3f322ae`, same branch, next commit): lossless
+recompression. `badger-up.png` 56,242 → 42,900 B, `badger-down.png` 55,455 →
+41,268 B — about a quarter off each, **27.5 KB total**. Both stay 500×500 and
+are **pixel-identical** to what they replace, proved by decoding old and new
+to raw RGBA and diffing the buffers, not taken on the encoder's word. A
+palette encode was tried and discarded — it quantised, and the buffers didn't
+match.
+
+**Ruling: closed. Do not re-open a resize on the strength of the
+`width="200"` attribute alone — read the viewBox/DPI maths in `Badger.astro`'s
+own header first.**
 
 ### Byte numbers to sweep against — do not re-open these as bugs
 
@@ -3769,8 +3773,7 @@ without a concrete alternative already in hand.**
 `/` lost ~15KB when the second character left the page that matters. `/404`
 gained ~40KB: three scene variants plus the stage chrome, where it previously
 carried one hand-authored scene and no approach machinery. **Caveshen has seen
-the `/404` growth and accepted it** as the price of the 1:1 ruling; measure
-again after items 1 and 5 above land, rather than re-litigating it now.
+the `/404` growth and accepted it** as the price of the 1:1 ruling.
 
 **Easy to misread, so stated plainly:** hidden SVG subtrees are parsed and held
 in memory, but they are **not laid out and not painted**. The effect is **parse
@@ -3782,41 +3785,23 @@ of this, in either direction.
 document is **a manual browser check with a recorded date and method, or it is
 not claimed.** It is not a suite gate, and adding tooling is its own decision.
 
-**Status: 💭 triaged, no go, no build. Five items above are ready for a
-worker on Caveshen's go; item 4 last, so a suite-count regression is easy to
-bisect.**
+**Status: ✅ BUILT — four of five, `daaafb9` (+ `3f322ae` for the honest version
+of item 5). vitest 65/65; Playwright 1521 passed / 7 skipped / 0 failed — the
++8 over d17's 1513 baseline is one genuinely new test across eight projects.**
 
 ---
 
-## d27. CI: tag pushes fire the deploy workflow
+## d27. CI: tag pushes fire the deploy workflow — ✅ BUILT
 
-Found 2026-08-02 while auditing beyond d26. `.github/workflows/deploy.yml`'s
-trigger is a bare
+**✅ BUILT 2026-08-02, `daaafb9` on `item/refactor-plan`.**
+`.github/workflows/deploy.yml`'s bare `push:` trigger — which matched tag
+pushes, and fired a full deploy against known-red superseded code when the
+archive tag `archive/d17-first-pass` was pushed — gained
+`tags-ignore: ['**']`. Confirmed in the shipped file: branch pushes and pull
+requests are unaffected, and the `main` gate on the `build`/`deploy` jobs is
+untouched.
 
-```yaml
-on:
-  push:
-```
-
-which matches every ref, including tags. Pushing the archive tag
-`archive/d17-first-pass` today fired a full test → build → deploy run against
-known-red superseded code, and it failed — an observed break, not a
-hypothetical.
-
-**Fix — one line:**
-
-```yaml
-on:
-  push:
-    tags-ignore: ['**']
-```
-
-**Verify:** push a throwaway tag against any commit; confirm no workflow run
-fires for it, while an ordinary branch push still triggers the `test` job
-exactly as today.
-
-**Status: 💭 proposed 2026-08-02 — no go, no build. Sized honestly: minutes of
-work, not a day. Does not need to wait on d26 or anything else.**
+**Status: ✅ BUILT.**
 
 ---
 

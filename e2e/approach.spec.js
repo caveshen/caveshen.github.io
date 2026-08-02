@@ -318,10 +318,7 @@ test('each sea variant has at least 4 wave marks, visible in both day and night'
 // Mountain's summit, so neither can satisfy the check below.
 
 // ── Character-swapped structural parity, both routes ────────────────────────
-// Figure-presence and bg/fg-layer seam (PRD §19: mountains/city vs sea/ground/
-// character, split so the scene can be controlled independently) hold for
-// both routes, differing only by which character class is expected. Was two
-// pairs of near-identical tests split across this file and not-found.spec.js.
+// bg-layer holds mountains and city, fg-layer sea, ground and character.
 
 const ROUTE_CHARACTERS = [
   { route: '/', characterClass: 'badger-figure', otherClass: 'hooded-figure' },

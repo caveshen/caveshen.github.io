@@ -132,9 +132,6 @@ test('reduced motion: card and scene transitions are instant, no new animation a
 });
 
 // ── Structural parity: variants ──────────────────────────────────────────────
-// Figure-presence and bg/fg-seam are character-swapped clones of approach.spec.js's
-// checks for `/` — parameterised there over {route, characterClass}. Variant
-// count doesn't depend on the character, so it stays here, unduplicated.
 
 test('all three scene variants are present, exactly once each', async ({ page }) => {
   await expect(page.locator('.scene-standard')).toHaveCount(1);

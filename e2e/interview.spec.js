@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { rectsIntersect, visibleRect } from './geom.js';
 
 test.beforeEach(async ({ page }) => {
   // Each test gets a fresh browser context (Playwright default) so localStorage
@@ -221,28 +222,10 @@ test('no horizontal overflow at ultra-wide (2560×1080)', async ({ page }) => {
 
 // ── PRD §15 D1/D2 — known-defect regression tests ─────────────────────────────
 
-// Rect-intersection helper, local to this spec (ponytail: shared by both tests
-// below, not worth a module for two call sites).
-function rectsIntersect(a, b) {
-  return a.x < b.x + b.width && a.x + a.width > b.x &&
-         a.y < b.y + b.height && a.y + a.height > b.y;
-}
-
 function rectContains(outer, inner) {
   return inner.x >= outer.x && inner.y >= outer.y &&
          inner.x + inner.width  <= outer.x + outer.width &&
          inner.y + inner.height <= outer.y + outer.height;
-}
-
-// Several .js-character / .face-void copies exist (one per scene variant) —
-// only the one in the visible scene has a non-zero box. Mirrors the lookup
-// index.astro's own script already does.
-async function visibleRect(page, selector) {
-  return page.evaluate((sel) => {
-    const el = [...document.querySelectorAll(sel)].find((e) => e.getBoundingClientRect().width > 0);
-    const r  = el.getBoundingClientRect();
-    return { x: r.left, y: r.top, width: r.width, height: r.height };
-  }, selector);
 }
 
 // D1 — approach prompt must clear the figure's head, in all three aspect variants.

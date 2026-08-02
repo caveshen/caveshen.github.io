@@ -69,7 +69,10 @@ the document body under their original `§` headings as history.
 | d23 | Hosted site — `caveshen.com` + Cloudflare | *new* | ⏳ not started — **prerequisites met**: account created, API token held outside the repo, domain reserved |
 | d24 | The Badger on `/sheet` — character-select framing, outside the scene | *new* | 🎨 DESIGN STAGE — brief and his go outstanding; consider the `frontend-design` skill |
 | d25 | Shared stage component — extracting the approach interaction | *new* | ✅ built 2026-08-02 — `1254dad`, landed on the mainline as `732f5a6` (#3); pure refactor, byte-identical `dist/index.html`, zero `e2e/` files modified |
-| d26 | Performance & cleanup sweep — holding pen for deferred smells, byte numbers and the comment sweep | *new* | 💭 intent only — no brief, no go; **never fix its contents inside another item** |
+| d26 | Cleanup sweep — four of five items built, one closed as not-debt | *new* | ✅ built 2026-08-02 — `daaafb9`; item 5 closed, replaced by lossless PNG recompression in `3f322ae` |
+| d27 | CI: tag pushes fire the deploy workflow | *new* | ✅ built 2026-08-02 — `daaafb9` |
+| d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | 🎨 proposed 2026-08-02 — staged/iterative, Stage 1 is a single day; no go |
+| d29 | Comment-citation sweep — repo-wide PRD/§ reference cleanup | *new* | 💭 proposed 2026-08-02 — split from d26; no go |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -2222,9 +2225,10 @@ per frame (1.6s cycle) — the staged recommendation held on the look.
 - Shadow and filter are shared by both frames, so neither jumps.
 
 **Raster left alone, deliberately.** §27's open point assumed the 500x500 source
-was oversized for a ~200px display. Measured: 200 SVG units render at ~320 CSS px
-at 1920 wide, and ~852 device px at 2560 with HiDPI. The source is roughly
-correct and mildly *under*-sized on large high-DPI displays. **The right answer
+was oversized for a ~200px display. Measured: 200 SVG units × the figure's scale
+× the viewBox ratio is ≈384 CSS px at 1920 wide, and ≈1024 device px at 2560
+with HiDPI. The source is correct and mildly *under*-sized on large high-DPI
+displays. **The right answer
 to "optimise this" was "don't"** — §27 open point 2 is closed on that basis.
 
 Tests: 5 unit + 5 e2e (frames served, reduced-motion holds one frame, and the
@@ -3640,6 +3644,13 @@ a `<g>` fragment today, which `/sheet` has nothing to put it in.
 was for d1's design pass. §2 still binds it: the visual language is locked to
 Sample C and is not up for reinvention.
 
+**Cross-ref 2026-08-02 (d28 triage):** if d28's cityscape depth work proceeds,
+this item's brief should reuse its idle-animation idiom — CSS-only,
+`prefers-reduced-motion`-gated, `steps()` hard-cut swap, already proven by
+`Badger.astro`'s two-frame idle (`--badger-cadence`) — rather than invent a new
+one. No parallax or gradient technique is needed here: this page has no scene
+depth to fake. This note does not change this item's own status or scope.
+
 **Status: 🎨 DESIGN STAGE — no brief, no go, no build.**
 
 ---
@@ -3694,60 +3705,67 @@ regression on `/` can be localised to one commit instead of argued about.
 
 ---
 
-## d26. Performance & cleanup sweep — the holding pen
+## d26. Cleanup sweep — ✅ BUILT, four of five (was "the holding pen")
 
-*An **address, not a plan**. Everything here was deferred on purpose; fixing one
-inside an unrelated item costs that item its clean diff. **Intent only — no
-brief, no go, no build.***
+**✅ BUILT 2026-08-02, `daaafb9` on `item/refactor-plan`. `git show daaafb9` is
+the authority; this section keeps only what future work must not re-litigate.**
 
-### Deferred, with reasons — do not fix opportunistically
+### Landed — four items, as scoped
 
-1. **`Scene.astro`'s `characters` array is speculative generality.** It is an
-   array because the `INTERIM-TOGGLE` scaffold rendered two characters. The
-   scaffold is gone and **both callers now pass exactly one component**.
-   Narrowing it to a single `character` prop is a real simplification; note it
-   threads through two components, `Stage.astro` → `Scene.astro`.
-2. **The visible-element lookup is written three times in `src/scripts/stage.js`**
-   — `[...document.querySelectorAll(…)].find(el => el.getBoundingClientRect().width > 0)`
-   for `.js-character` (`:56`, `:141`) and `.face-void` (`:153`). A
-   `visibleOne(selector)` helper is three lines.
-   **First, a correctness fix to the comments, not a cosmetic one.**
-   `src/scripts/stage.js:54` and `:139` both say the `width > 0` filter picks
-   *"the visible one of the hooded figure and the Badger"*. **Since `26a6ddb`
-   there is one character per route, so it is selecting among the three SCENE
-   VARIANTS**, two of which are `display: none` at any aspect ratio. Anyone
-   reading those lines will misunderstand what the filter is for. **The lookup
-   is still needed** — an earlier note here claimed it would delete itself once
-   d17 removed the second character; that was wrong, for the same reason.
-3. **`rectsIntersect` and `visibleRect` are copy-pasted** between
-   `e2e/interview.spec.js` and `e2e/not-found.spec.js`. Wants one shared
-   `e2e/geom.js`. (The second copy arrived with d17; there is no third copy.)
-4. **The variant and bg/fg-seam tests in `e2e/not-found.spec.js` and
-   `e2e/approach.spec.js` are character-swapped clones.** They want
-   parameterising over `{route, characterClass}` — the shape
-   `approach.spec.js` already uses for its `ROUTES` loop.
-5. **`src/pages/index.astro` imports the dialogue tree twice** — frontmatter (for
-   the server-rendered card) and the client `<script>` (for `initStage`).
-   **Astro's server/client split forces this**; the frontmatter import does not
-   exist at runtime. **Not a bug.** Removing it means server-rendering the card's
-   first node from somewhere else, which is a real change, not a tidy.
-6. **The repo-wide comment sweep**, under CLAUDE.md's three-layer tracking rule:
-   commits record all changes, the PRD manages the work, comments explain code,
-   and nothing is tracked twice. Roughly **120 comment lines across 26 files
-   carry PRD item or `§` references** — `grep -rn "PRD \|§" src/ e2e/ docs/` —
-   heaviest in `e2e/interview.spec.js`, `src/components/Stage.astro` and
-   `src/scripts/stage.js`. At least one comment carries the history of a deleted
-   assertion (`e2e/not-found.spec.js`, the `toContainText('404')` note; it
-   predates the rule). **A sweep, not a purge:** a comment that explains *why*
-   non-obvious code is the way it is stays — the tracker citations and the
-   history go, and file headers state purpose in ≤100 characters.
-7. **The Badger rasters are unoptimised** — `public/badger-up.png` (56,242 B)
-   and `public/badger-down.png` (55,455 B) are 500×500 sources displayed at
-   ~200px. **Moved here from §27 open point 2 (2026-08-02), because it is
-   debt, not an open design question**: resizing both to displayed size is a
-   byte win with no functional change, and it is the largest single asset cost
-   on `/`. Resize the pair together, once — §29's idle animation needs both
-   frames to stay registered, so a lone resize desynchronises them.
+1. `Scene.astro`'s `characters` prop narrowed to a single `character` prop.
+   Both callers (`index.astro`, `404.astro`) already passed exactly one — the
+   array existed only for the `INTERIM-TOGGLE` scaffold, which d17 deleted.
+2. `visibleOne(selector)` extracted in `src/scripts/stage.js` (`:7`),
+   replacing three inline copies of the same pattern. **The comment fix
+   landed with it:** the old comments at `:54`/`:139` claimed the filter
+   picks between the hooded figure and the Badger; since d17 there is one
+   character per route, so it selects among the **three scene variants**.
+   They were actively misleading, not merely stale.
+3. `rectsIntersect`/`visibleRect` moved to `e2e/geom.js`, imported by both
+   spec files that had copies. `rectContains` stays in
+   `e2e/interview.spec.js` — it only ever had one home.
+4. The character-swapped seam tests fold into a `ROUTE_CHARACTERS` loop
+   (`e2e/approach.spec.js:334`). **Decision recorded, so it isn't re-litigated
+   as an oversight:** the "all three scene variants present" test stays
+   **unlooped** — it doesn't depend on the character, so looping it would
+   raise the suite count without adding signal.
+
+### Item 5 — CLOSED as not-debt (standing ruling — the trap is subtle, do not re-open it from the SVG markup alone)
+
+**Resizing the badger PNGs was wrong, and the error was in this sweep's own
+brief.** The rendered footprint is 200 SVG units × the figure's own scale (1.2
+standard, 1.3 tall) × the viewBox-to-viewport ratio: ≈**384 CSS px** at 1920,
+768 device px at 2×, and ≈**1024 device px** at 2560 wide on a 2× display.
+500×500 is correct for that range and, at the top of it, arguably a little
+under-provisioned.
+
+`Badger.astro`'s own header had this wrong too — it omitted `fig.scale`, giving
+320 and 852 — and the first version of this ruling repeated those figures. Both
+are corrected. The conclusion never changed; only the margin, which widened.
+
+**The trap, spelled out so nobody re-derives the wrong answer from the same
+file:** `Badger.astro` sets `<image width="200">` — an SVG-unit attribute
+inside a 1200-unit viewBox, not a CSS pixel size. Read on its own (as this
+sweep's brief did), `200` looks like "200px on screen"; it is not — it is 200
+of 1200 SVG units, scaled by the viewport's CSS-to-SVG ratio and then again
+by device pixel ratio. The real number is three lines above it, in the same
+file's own comment. **Resizing the source to 200×200 would have degraded
+exactly the displays that show the Badger best.**
+
+The worker refused this item and flagged the conflict rather than guessing —
+correctly.
+
+**What shipped instead** (`3f322ae`, same branch, next commit): lossless
+recompression. `badger-up.png` 56,242 → 42,900 B, `badger-down.png` 55,455 →
+41,268 B — about a quarter off each, **27.5 KB total**. Both stay 500×500 and
+are **pixel-identical** to what they replace, proved by decoding old and new
+to raw RGBA and diffing the buffers, not taken on the encoder's word. A
+palette encode was tried and discarded — it quantised, and the buffers didn't
+match.
+
+**Ruling: closed. Do not re-open a resize on the strength of the
+`width="200"` attribute alone — read the viewBox/DPI maths in `Badger.astro`'s
+own header first.**
 
 ### Byte numbers to sweep against — do not re-open these as bugs
 
@@ -3761,8 +3779,7 @@ brief, no go, no build.***
 `/` lost ~15KB when the second character left the page that matters. `/404`
 gained ~40KB: three scene variants plus the stage chrome, where it previously
 carried one hand-authored scene and no approach machinery. **Caveshen has seen
-the `/404` growth and accepted it** as the price of the 1:1 ruling; he wants a
-**measured** sweep later, not a reflex fix now.
+the `/404` growth and accepted it** as the price of the 1:1 ruling.
 
 **Easy to misread, so stated plainly:** hidden SVG subtrees are parsed and held
 in memory, but they are **not laid out and not painted**. The effect is **parse
@@ -3774,7 +3791,180 @@ of this, in either direction.
 document is **a manual browser check with a recorded date and method, or it is
 not claimed.** It is not a suite gate, and adding tooling is its own decision.
 
-**Status: 💭 intent only — no brief, no go, no build. A holding pen, so deferred
-work has an address instead of a comment.**
+**Status: ✅ BUILT — four of five, `daaafb9` (+ `3f322ae` for the honest version
+of item 5). vitest 65/65; Playwright 1521 passed / 7 skipped / 0 failed — the
++8 over d17's 1513 baseline is one genuinely new test across eight projects.**
+
+---
+
+## d27. CI: tag pushes fire the deploy workflow — ✅ BUILT
+
+**✅ BUILT 2026-08-02, `daaafb9` on `item/refactor-plan`.**
+`.github/workflows/deploy.yml`'s bare `push:` trigger — which matched tag
+pushes, and fired a full deploy against known-red superseded code when the
+archive tag `archive/d17-first-pass` was pushed — gained
+`tags-ignore: ['**']`. Confirmed in the shipped file: branch pushes and pull
+requests are unaffected, and the `main` gate on the `build`/`deploy` jobs is
+untouched.
+
+**Status: ✅ BUILT.**
+
+---
+
+## d28. Cityscape depth — a staged pass against the "flat" read
+
+Raised 2026-08-02. Caveshen: *"the scene looks good but it's a bit flat, not
+as '3d'... more like a novice's attempt at a moving website."* **Design/
+experiment item — no go, no build.** Each stage below is proposed as its own
+small, reversible commit, reviewed on local dev before the next stage starts
+(§2's draft-before-deploy rule) — a sequence of reactions, not one reveal, per
+his own framing of this as a moving target.
+
+### Diagnosis — grounded in the current code, four contributors
+
+1. **No parallax, anywhere.** `stage.js`'s `approach()` (`:161`) sets one
+   `transform: translate() scale()` on the single `.camera` div
+   (`Stage.astro:31`), which wraps all three `Scene` SVGs whole — background
+   and foreground zoom by the identical factor. `Scene.astro` already splits
+   `bg-layer` (`:106`) from `fg-layer` (`:121`), but **neither class has a
+   single CSS or JS rule attached anywhere in the repo** (`grep -rn
+   "bg-layer\|fg-layer" src/` returns only those two markup lines). It is an
+   unused seam, not a missing one — the split already exists; nothing reads
+   it yet.
+2. **Flat fills, no gradients, anywhere.** `grep -rn "linearGradient\|
+   radialGradient\|feGaussianBlur\|<defs" src/` returns nothing. Every
+   shape — sky, both mountain tones, sea, ground, buildings — is one solid
+   `fill`. Depth-via-value (real atmospheric perspective: shapes fade toward
+   the sky's own tone as they recede) is approximated by exactly **two**
+   hard-edged tones (`--mountain` / `--mountain-far`, `tokens.css:5-6`), not
+   a graduated falloff.
+3. **Occlusion is correct, and is not the problem — worth saying so it isn't
+   "fixed" by accident.** Paint order in `CityScape.astro` is already sky →
+   stars/moon → Devil's Peak → Table Mountain → Lion's Head → Signal Hill →
+   warehouse fringe → buildings → windows: the right depth order. The
+   flatness lives inside each layer (one flat colour), not in the layering.
+4. **No ground plane under the mountains or buildings — they meet the sea,
+   not land.** Checked directly: `CityScape.astro`'s landforms and building
+   `rect`s all share one baseline, local `y=352` (Table Mountain's polygon,
+   the `BUILDINGS` array). `Scene.astro` applies each variant's camera
+   translate/scale to that baseline, and in **all three variants** it lands
+   within a pixel of the sea rect's own top edge — standard/wide:
+   `translate(_,128)` puts `y=352` at screen `y=480`, exactly `sea.y`;
+   tall: `translate(-20,262) scale(0.62)` puts it at `y≈480.2` against
+   `sea.y=480`. That is not a coincidence of rounding, it is the authored
+   contract: **the city and the mountains are drawn to end exactly where
+   the water begins, with no beach, shelf or hillside between them.** The
+   one true ground plane in the scene — the `f-ground` rect, `Scene.astro`
+   `:130` — sits *in front of* the sea (e.g. standard `y=600`, below
+   `sea.y=480` + `height=120`), and is the foreground promenade the figure
+   stands on, not a base the city sits on. **Caveshen's read is correct,
+   and sharper than "no gradient": the mountains and buildings are not
+   resting on anything — they terminate directly into open water on a
+   hard line**, which is exactly why they read as stacked cutouts rather
+   than objects occupying a place.
+
+**Not a contributor, don't touch:** the "one world, three cameras" pan/scale-
+only rule (§14) is correct and load-bearing — it fixed a real shape-drift bug
+and stays exactly as is.
+
+### Noted for later — a ground plane under the city (not scheduled)
+
+Caveshen, on seeing the code confirm the above: a land/coastline plane the
+mountains and city could sit on is a real, larger step up in depth — he cited
+*Oblivion*'s sewer-exit vista (grassy knoll, water, the Imperial City receding
+into a bright hazy distance) for the **quality** he's after, not a literal
+scene to copy. **Cited for reference only — never traced, shipped, or
+committed; any media he supplies stays out of this repo.** Same standing
+constraint as everything else here: vectors and programmatic drawing only,
+no generated art.
+
+**Not scheduled — his words, "for now, note it, we'll revisit later."** The
+four stages above are unchanged and stand as approved; this is not a fifth
+stage and does not restage the path. If a ground/coastline plane is worked
+later it is a real design pass in its own right (new geometry, not a CSS
+tweak) and deserves its own `d` item when he's ready — left unopened here.
+
+### Staged path — cheapest and highest-value first, each independently reactable
+
+- **Stage 1 — parallax on the existing zoom (near-free).** `stage.js` already
+  computes `tx`/`ty`/`scale` for the approach zoom. Expose them as CSS custom
+  properties on `.camera` (e.g. `--cam-tx`/`--cam-ty`/`--cam-scale`) alongside
+  the inline `transform`, then give `.bg-layer` its own
+  `transform: scale(calc(1 + (var(--cam-scale) - 1) * 0.4))`-shaped rule — a
+  **dampened** version of the same zoom, so mountains and sky lag the
+  foreground on approach. No new assets, no new dependency, reuses numbers
+  already computed. **Estimate: well under a day.**
+- **Stage 2 — sky and mountain gradients (cheap, SVG-only).** A vertical
+  `linearGradient` on `.f-sky` and a horizon-fade on `.f-far` so the far
+  mountains sink toward the sky tone rather than hard-cutting to it. Zero new
+  assets — gradients are vector, defined once in `<defs>`, reused across all
+  three variants. **Estimate: under a day.**
+- **Stage 3 — a graduated distance tone.** Replace the binary
+  `--mountain`/`--mountain-far` swap with a third, paler step for the
+  warehouse-fringe cluster (already the furthest-west `f-far` group) so
+  silhouette weight visibly recedes instead of banding in two flat steps.
+  **Estimate: a few hours; rides with Stage 2.**
+- **Stage 4 — idle-state micro-parallax (moderate; wants its own go).**
+  Extends Stage 1's technique from "on approach" to "always on," desktop
+  only, `prefers-reduced-motion` respected — following the precedent already
+  set by the wind motes (`Stage.astro:41-49`, deliberately kept outside
+  `.camera` so they hold a constant speed under the zoom). The codebase
+  already treats "moves independently of the camera" as a known pattern.
+  **Gate this on his reaction to Stages 1-3; do not build ahead of sign-off.**
+
+**`three.js` stays explicitly out of scope for all of the above** (his
+ruling), noted only as where it would eventually replace this whole layer if
+the vector approach hits a ceiling — that is its own future item, with its
+own new-dependency conversation, not part of d28.
+
+**Tradeoff, stated plainly:** Stages 1-3 cost nothing measurable in bytes
+(CSS/gradients, no new requests, no new dependency) and nothing in redundancy
+(Stage 1 reuses numbers `stage.js` already computes) — a straight win on
+performance, no-bloat and fun-to-interact-with at once, no conflict to
+adjudicate. Stage 4 is the one worth a second look before building: it runs
+on every frame/scroll tick, so it is the one place performance and "fun"
+could pull apart if done carelessly — throttle it.
+
+### The Badger on `/sheet`, and whether it shares technique
+
+d24 (still DESIGN STAGE, no go) is **not** part of this depth work — it is
+explicitly "out of the scene... no viewBox, no CityScape" by its own text.
+The only thing worth carrying across is the **idiom**, not a technique: d24's
+eventual brief should reuse the CSS-only, `prefers-reduced-motion`-gated,
+hard-cut `steps()` pattern already proven by `Badger.astro`'s two-frame idle
+(`--badger-cadence`, `:63-77`) rather than invent a second animation
+contract. No parallax or gradient work belongs there — a menu portrait has no
+depth to fake. (Cross-referenced at d24 itself.)
+
+**Status: 🎨 proposed 2026-08-02 — no go, no build. Stage 1 is the recommended
+first move if he wants to see something soon; each later stage waits on his
+reaction to the one before it.**
+
+---
+
+## d29. Comment-citation sweep — repo-wide PRD/§ reference cleanup
+
+Split out of d26 2026-08-02 (second pass, Caveshen's ruling): judgement-heavy
+work does not belong beside d26's mechanical dedupe — mixing the two is how a
+clean sweep turns into an argument, and it would wreck d26's bisectability.
+
+Per CLAUDE.md's tracking rule (commits record changes, the PRD manages the
+work, comments explain code — nothing tracked twice). `grep -rn "PRD \|§"
+src/ e2e/ docs/` — measured 2026-08-02: **116 matches across 25 files**,
+heaviest in `e2e/interview.spec.js`, `src/components/Stage.astro`,
+`src/scripts/stage.js`.
+
+**Judgment per line, not a blind strip:** a comment explaining *why*
+non-obvious code is the way it is stays; the tracker citation and any
+history of deleted code goes. Flag anything ambiguous rather than guessing.
+
+**Rides along:** d13 (`Avatar.astro`'s needless `is:global`, still open —
+see the d11–d14 section) is the same kind of one-line tidy in a file this
+sweep already touches. Fold it in if convenient; it is not blocked on this
+and may also ship alone.
+
+**Status: 💭 proposed 2026-08-02 — no go, no build. Split from d26 on
+Caveshen's ruling; a worker taking this should not also be doing d26's
+mechanical items in the same commit.**
 
 ---

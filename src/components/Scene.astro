@@ -4,7 +4,7 @@
 // (standard/wide/tall); numbers that only ever differed by variant are data
 // tables here, not duplicated markup.
 //
-// Characters arrive as a prop, not a slot — Astro slots take no props, and
+// The character arrives as a prop, not a slot — Astro slots take no props, and
 // per-variant placement (FIG below) must not be hand-tuned at the call site.
 import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
 import CityScape from './CityScape.astro';
@@ -12,10 +12,10 @@ import Moon from './Moon.astro';
 
 interface Props {
   variant: 'standard' | 'wide' | 'tall';
-  characters: AstroComponentFactory[];
+  character: AstroComponentFactory;
   characterLabel?: string;
 }
-const { variant, characters: Characters, characterLabel = '' } = Astro.props;
+const { variant, character: Character, characterLabel = '' } = Astro.props;
 
 // One world, three cameras (PRD §14) — pan + uniform scale only, never a stretch.
 // Foreground (stars/sun/sea/waves/rail/figure) is free to differ per view.
@@ -136,7 +136,7 @@ const ariaLabel = characterLabel
     <line x1="0" y1={v.rail.topY} x2={v.width} y2={v.rail.topY} />
     <line x1="0" y1={v.rail.botY} x2={v.width} y2={v.rail.botY} stroke-width="4" opacity="0.8" />
   </g>
-  {Characters.map((Character) => <Character x={v.fig.x} y={v.fig.y} scale={v.fig.scale} />)}
+  <Character x={v.fig.x} y={v.fig.y} scale={v.fig.scale} />
   </g>
 </svg>
 

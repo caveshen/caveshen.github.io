@@ -1,13 +1,19 @@
 import { initEngine } from './dialogue.js';
 import { computeCameraTransform } from './camera.js';
 
+// Two of Scene.astro's three variants are display:none at any given
+// viewport (only one matches the aspect-ratio media query) — this picks
+// the one actually laid out.
+const visibleOne = (selector) =>
+  [...document.querySelectorAll(selector)].find((el) => el.getBoundingClientRect().width > 0);
+
 /**
  * Stage interaction — approach prompt, camera zoom, dialogue exit, ambient
  * banner plane, fullscreen toggle (PRD d25, was §30 D-10 one level up).
  * Extracted verbatim from index.astro's inline <script> — every DOM lookup
  * here is a generic selector (.js-character, .face-void, .camera,
  * .stage-frame, .card, #approach-prompt, #end-dialogue). Four values vary by
- * route overall — tree, characters, characterLabel, promptLabel — but the
+ * route overall — tree, character, characterLabel, promptLabel — but the
  * other three are markup concerns Stage.astro resolves before this ever
  * runs; this script only ever touches the tree, so it's initStage's one
  * parameter.
@@ -51,10 +57,7 @@ export function initStage(tree) {
   // PRD §15 D1: floats clear ABOVE the head with a gap (interaction-prompt
   // convention), centred on the figure, clamped inside the stage frame.
   function positionPrompt() {
-    // PRD §27: .js-character is shared by the hooded figure and the Badger —
-    // only the visible one has width>0, so this picks whichever is active.
-    const figEl = [...document.querySelectorAll('.js-character')]
-      .find((el) => el.getBoundingClientRect().width > 0);
+    const figEl = visibleOne('.js-character');
     if (!figEl) return;
     const sf  = stageFrame.getBoundingClientRect();
     const fig = figEl.getBoundingClientRect();
@@ -135,11 +138,8 @@ export function initStage(tree) {
     void card.offsetHeight; // force reflow
     card.classList.remove('card-entering');
 
-    // Measure the visible character (figure or Badger — PRD §27) and compute
-    // the camera transform. .js-character is shared by both; only the
-    // visible one has width>0.
-    const figEl = [...document.querySelectorAll('.js-character')]
-      .find((el) => el.getBoundingClientRect().width > 0);
+    // Measure the visible character and compute the camera transform.
+    const figEl = visibleOne('.js-character');
     if (figEl) {
       const sf  = stageFrame.getBoundingClientRect();
       const fig = figEl.getBoundingClientRect();
@@ -150,8 +150,7 @@ export function initStage(tree) {
       // Reviewer follow-up 1a: pass the measured .face-void centre directly
       // as faceY, rather than relying on computeCameraTransform's built-in
       // 18%-down-the-figure heuristic — no correction term needed.
-      const faceVoidEl = [...document.querySelectorAll('.face-void')]
-        .find((el) => el.getBoundingClientRect().width > 0);
+      const faceVoidEl = visibleOne('.face-void');
       const cardTop = card.getBoundingClientRect().top - sf.top;
       const faceTargetY = cardTop / 2;
       const faceY = faceVoidEl

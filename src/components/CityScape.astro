@@ -26,8 +26,8 @@ const BUILDINGS: Array<[number, number, number, number]> = [
   [-16, 330, 20, 22], [6, 330, 20, 22], [-7, 306, 20, 24], // containers, cluster 2 — taller stepped stack under crane A
 ];
 
-// Industrial district, warehouse-fringe half — further west, lower and lighter
-// (f-far, like the mountains) so the density visibly recedes toward the frame edge.
+// Industrial district, warehouse-fringe half — further west, lower, and its own
+// paler f-fringe tone (a third distance step past f-far) so density recedes toward the frame edge.
 const INDUSTRIAL_FAR: Array<[number, number, number, number]> = [
   [-293, 336, 24, 16], // shed A body
   [-273, 268, 9, 84],  // chimney stack
@@ -65,7 +65,7 @@ const windowStyle = (opacity: number, i: number) => {
   <!-- Signal Hill — keeps the mountain chain linked -->
   <polygon class="f-far" points="850,352 892,306 944,272 1000,260 1056,272 1108,306 1150,352" />
   <!-- warehouse fringe — low pitched-roof sheds, water tower, chimney; tapers off westward -->
-  <g class="f-far">
+  <g class="f-fringe">
     <polygon points="-295,336 -281,320 -267,336" />
     <polygon points="-216,318 -190,296 -164,318" />
     <polygon points="-178,326 -155,310 -132,326" />

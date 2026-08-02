@@ -197,6 +197,20 @@ test('sky fill is a gradient reference, not a flat colour, in both themes', asyn
   expect(await skyFill()).toMatch(/^url\(/);
 });
 
+// Cityscape depth, Stage 3: near buildings, far mountains, and the warehouse fringe are
+// three visibly distinct tones (not the old two-tone bands), in both themes.
+test('near, far, and fringe silhouettes are three pairwise-distinct tones, in both themes', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto('/');
+  const fills = () => page.evaluate(() => {
+    const sel = (cls) => getComputedStyle(document.querySelector(`.scene-standard ${cls}`)).fill;
+    return [sel('.f-near'), sel('.f-far'), sel('.f-fringe')];
+  });
+  expect(new Set(await fills()).size).toBe(3);
+  await page.locator('#toggle').click();
+  expect(new Set(await fills()).size).toBe(3);
+});
+
 test('no horizontal overflow at ultra-wide (2560×1080)', async ({ page }) => {
   await page.setViewportSize({ width: 2560, height: 1080 });
   await page.goto('/');

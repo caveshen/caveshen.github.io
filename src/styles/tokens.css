@@ -53,6 +53,9 @@
   /* Where the sky's own falloff and the far mountains' base converge, so they
      read as one continuous haze rather than two shapes gradiented independently. */
   --sky-horizon: #172236;
+  /* A third, paler distance step past --mountain-far, for the warehouse fringe —
+     the furthest-west cluster — so silhouette weight recedes in three steps. */
+  --mountain-fringe: #223050;
 }
 
 :root[data-time="day"] {
@@ -94,7 +97,8 @@
   --mote-op:   .28;
   --wave:      #a8d4cf;
 
-  --sky-horizon: #dde9f5;
+  --sky-horizon:     #dde9f5;
+  --mountain-fringe: #a6bbd1;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -111,6 +115,7 @@
 .f-star  { fill: var(--text); }
 .f-cel   { fill: var(--celestial); }
 .f-far   { fill: var(--mountain-far); }
+.f-fringe{ fill: var(--mountain-fringe); }
 .f-near  { fill: var(--mountain); }
 .f-sea   { fill: var(--sea); }
 .f-ground{ fill: var(--ground); }

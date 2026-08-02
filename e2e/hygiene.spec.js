@@ -1,14 +1,11 @@
-// P3 Polish — integration tests (TDD: written before implementation)
+// 404 page, hygiene files (robots/sitemap), and OG/meta tag checks.
 import { test, expect } from '@playwright/test';
-
-// ── 404 page ──────────────────────────────────────────────────────────────────
 
 test('404 page: navigating to unknown route returns a page with a way home', async ({ page }) => {
   await page.goto('/this-does-not-exist', { waitUntil: 'domcontentloaded' });
-  // The page should exist (GitHub Pages / Astro serves 404.html)
-  // PRD d1 (was §30 D-4): the way home is a dialogue system option (a button that
-  // navigates via isPath()), not a plain anchor — the anchor only exists in
-  // the no-JS noscript fallback (see the JS-disabled test below).
+  // GitHub Pages / Astro serves 404.html directly. The way home is a dialogue system
+  // option (via isPath()), not a plain anchor — the anchor only exists in the no-JS
+  // noscript fallback (see the JS-disabled test below).
   await page.locator('#approach-prompt').click();
   await expect(page.locator('.choices button.system')).toBeVisible();
 });
@@ -26,8 +23,6 @@ test('404 page: readable with JS disabled', async ({ browser }) => {
   await expect(page.locator('a[href="/"]')).toBeVisible();
   await ctx.close();
 });
-
-// ── Hygiene files accessible ──────────────────────────────────────────────────
 
 test('GET /robots.txt returns 200', async ({ request }) => {
   const res = await request.get('/robots.txt');
@@ -59,8 +54,6 @@ test('sitemap-index.xml is valid XML with <sitemapindex>', async ({ request }) =
   expect(text).toContain('<sitemapindex');
   expect(text).toContain('sitemap-0.xml');
 });
-
-// ── OG / meta tags on / ───────────────────────────────────────────────────────
 
 test('/ has <meta name="description">', async ({ page }) => {
   await page.goto('/');
@@ -99,8 +92,6 @@ test('/ has <link rel="apple-touch-icon">', async ({ page }) => {
   expect(link).toContain('apple-touch-icon');
 });
 
-// ── OG / meta tags on /sheet ──────────────────────────────────────────────────
-
 test('/sheet has <meta name="description">', async ({ page }) => {
   await page.goto('/sheet');
   const desc = await page.locator('meta[name="description"]').getAttribute('content');
@@ -125,8 +116,6 @@ test('/sheet has twitter:card meta', async ({ page }) => {
   const tw = await page.locator('meta[name="twitter:card"]').getAttribute('content');
   expect(tw).toBe('summary_large_image');
 });
-
-// ── OG image asset accessible ─────────────────────────────────────────────────
 
 test('GET /og-image.png returns 200 with image/png content-type', async ({ request }) => {
   const res = await request.get('/og-image.png');

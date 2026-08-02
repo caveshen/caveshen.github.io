@@ -1,10 +1,6 @@
-// PRD §29 — Badger two-frame idle animation.
-// Covers the two suite-checkable assertions from the method note:
-//   1. Both frame images are served (HTTP 200, non-zero content).
-//   2. Under prefers-reduced-motion: reduce, the down frame has no animation.
+// Badger two-frame idle animation.
 import { test, expect } from '@playwright/test';
 
-// Both frame assets are served correctly
 test('badger-up.png is served', async ({ request }) => {
   const res = await request.get('/badger-up.png');
   expect(res.status()).toBe(200);
@@ -19,7 +15,6 @@ test('badger-down.png is served', async ({ request }) => {
   expect(body.length).toBeGreaterThan(0);
 });
 
-// Under reduced motion, the down frame has animation: none (up frame is the static hold)
 test('reduced-motion: down frame has no animation', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
@@ -27,11 +22,9 @@ test('reduced-motion: down frame has no animation', async ({ page }) => {
     const el = document.querySelector('.badger-down');
     return el ? getComputedStyle(el).animationName : null;
   });
-  // 'none' is the computed value when animation: none is applied
   expect(animName).toBe('none');
 });
 
-// Under reduced motion, the up frame is statically visible (opacity 1, no animation)
 test('reduced-motion: up frame is static at opacity 1', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
@@ -44,8 +37,7 @@ test('reduced-motion: up frame is static at opacity 1', async ({ page }) => {
   expect(opacity).toBe('1');
 });
 
-// No-JS: CSS idle animation still runs — both frames present and animating.
-// Fails if someone later replaces the CSS approach with a JS timer.
+// Fails if someone later replaces the CSS animation with a JS timer.
 test('no-JS: both frames present and CSS animation is active', async ({ browser }) => {
   const ctx = await browser.newContext({ javaScriptEnabled: false });
   const page = await ctx.newPage();

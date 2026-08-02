@@ -1,15 +1,12 @@
-// P4 — Landing v2: the approach — e2e tests
-// Covers success criteria 2–8 and 10 (SC1 is unit-tested; SC9, SC11, SC12 are run-level checks).
+// The approach — e2e tests
 import { test, expect } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
 });
 
-// SC2-SC7 parity: same behaviour is shared code, run on both routes.
+// Same behaviour is shared code, so parity tests run on both routes.
 const ROUTES = ['/', '/404'];
-
-// ── SC2: card hidden on load, prompt visible and named ────────────────────────
 
 test('card not visible on load with JS', async ({ page }) => {
   await expect(page.locator('.card')).not.toBeVisible();
@@ -22,8 +19,6 @@ test('approach prompt visible on load and has a non-empty accessible name', asyn
   // aria-label="" regression is caught too, not just missing button text.
   await expect(prompt).toHaveAccessibleName(/\S/);
 });
-
-// ── SC3: approaching shows card, applies camera transform, hides prompt ────────
 
 test('approaching shows the card', async ({ page }) => {
   await page.locator('#approach-prompt').click();
@@ -40,15 +35,12 @@ for (const route of ROUTES) {
 
 test('approaching applies a non-identity camera transform', async ({ page }) => {
   await page.locator('#approach-prompt').click();
-  // Use el.style.transform (the JS-set target value, not the animated computed value).
-  // getComputedStyle during an active transition returns the interpolated value at t≈0,
-  // which is still identity — making the test flaky. The inline style is set synchronously.
+  // el.style.transform is the JS-set target value; getComputedStyle mid-transition
+  // returns the interpolated value at t≈0 (still identity), which would make this flaky.
   const transform = await page.locator('.camera').evaluate((el) => el.style.transform);
   expect(transform).not.toBe('');
   expect(transform).not.toBe('none');
 });
-
-// ── SC4: prompt reachable by Tab; activates with Enter and Space ──────────────
 
 for (const route of ROUTES) {
   test(`approach prompt is reachable by Tab from the toggle — ${route}`, async ({ page }) => {
@@ -75,8 +67,6 @@ for (const route of ROUTES) {
   });
 }
 
-// ── SC5: focus lands on first dialogue option after approach ──────────────────
-
 for (const route of ROUTES) {
   test(`focus lands on first dialogue option after approaching — ${route}`, async ({ page }) => {
     await page.goto(route);
@@ -84,8 +74,6 @@ for (const route of ROUTES) {
     await expect(page.locator('#choices button').first()).toBeFocused();
   });
 }
-
-// ── SC6: exits restore state, prompt re-focused ───────────────────────────────
 
 for (const route of ROUTES) {
   test(`end-dialogue button hides card and restores prompt — ${route}`, async ({ page }) => {
@@ -122,8 +110,6 @@ for (const route of ROUTES) {
   });
 }
 
-// ── SC7: prefers-reduced-motion — camera jump-cuts (transition-duration 0s) ───
-
 test('camera transition-duration is 0s under prefers-reduced-motion', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.reload();
@@ -132,8 +118,6 @@ test('camera transition-duration is 0s under prefers-reduced-motion', async ({ p
   );
   expect(duration).toBe('0s');
 });
-
-// ── PRD §28: dialogue card fades in on approach, synced to the §21 zoom ───────
 
 test('card has an opacity transition wired up (fades rather than pops)', async ({ page }) => {
   const { property, duration } = await page.locator('.card').evaluate((el) => {
@@ -168,9 +152,8 @@ for (const route of ROUTES) {
     await page.locator('#approach-prompt').click();
     await page.keyboard.press('Escape');
     await page.locator('#approach-prompt').click();
-    // Sampled immediately after the second click, before the fade's transition
-    // delay elapses — if exit() failed to reset the entering state, the card
-    // would already be sitting at full opacity here (no fade left to observe).
+    // Sampled right after the second click, before the fade delay elapses — if
+    // exit() failed to reset the entering state, opacity would already be at 1 here.
     const opacity = await page.locator('.card').evaluate((el) => window.getComputedStyle(el).opacity);
     expect(parseFloat(opacity)).toBeLessThan(1);
     await expect(page.locator('.card')).toHaveCSS('opacity', '1');
@@ -184,8 +167,6 @@ test('no-JS: card is fully opaque, not stuck at the fade\'s starting opacity', a
   await expect(page.locator('.card')).toHaveCSS('opacity', '1');
   await ctx.close();
 });
-
-// ── SC10: no-JS path — card visible, /sheet reachable ────────────────────────
 
 test('no-JS: card is visible on load', async ({ browser }) => {
   const ctx  = await browser.newContext({ javaScriptEnabled: false });
@@ -203,8 +184,6 @@ test('no-JS: /sheet link is reachable', async ({ browser }) => {
   await ctx.close();
 });
 
-// ── PRD §15 D4: [hidden] must actually hide #end-dialogue with no JS ──────────
-
 test('no-JS: end-dialogue button is not visible', async ({ browser }) => {
   const ctx  = await browser.newContext({ javaScriptEnabled: false });
   const page = await ctx.newPage();
@@ -212,8 +191,6 @@ test('no-JS: end-dialogue button is not visible', async ({ browser }) => {
   await expect(page.locator('#end-dialogue')).not.toBeVisible();
   await ctx.close();
 });
-
-// ── Card stays on-screen on a short viewport (mirrors not-found.spec.js) ────
 
 test('the card stays fully on-screen on a short viewport', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 360 });
@@ -229,16 +206,10 @@ test('the card stays fully on-screen on a short viewport', async ({ page }) => {
   }).toPass();
 });
 
-// ── Regression: one world, three cameras (PRD §14) ─────────────────────────
-// Table Mountain is authored once in CityScape.astro; each aspect variant only
-// pans/scales the camera around it, never stretches it. getBBox() reads the
-// polygon's own LOCAL geometry — it ignores the element's own transform and
-// every ancestor transform (including the .world camera pan/scale), so it
-// can't see a stretch applied there. We must measure in screen space, post-
-// transform: getBoundingClientRect() on the visible variant, at a viewport
-// sized to force that variant on (same pattern as the aspect-variant tests
-// in interview.spec.js). A zero-height rect (wrong/hidden variant selected)
-// fails loudly rather than skating through as a false pass.
+// Table Mountain is authored once; each aspect variant only pans/scales the camera
+// around it, never stretches it. getBBox() ignores ancestor transforms (including the
+// camera pan/scale), so we measure post-transform with getBoundingClientRect() instead,
+// at a viewport sized to force the target variant on.
 const MOUNTAIN_RATIO = 2.4194;
 
 async function mountainRatio(page, selector) {
@@ -271,11 +242,9 @@ test('Table Mountain aspect ratio is 2.4194 in the tall view', async ({ page }) 
   expect(ratio).toBeCloseTo(MOUNTAIN_RATIO, 3);
 });
 
-// ── PRD §20: industrial district west of the mountain foot ────────────────
-// The district is drawn at world x < 0 (harbour end); none of the original
-// geometry (mountains, city bowl) uses negative x. Presence of a negative-x
-// rect/polygon in the world group is a cheap, reliable proxy that bites if
-// the port is reverted, without depending on exact screen-space placement.
+// The district is drawn at world x < 0 (harbour end); none of the original geometry
+// (mountains, city bowl) uses negative x, so a negative-x rect/polygon is a cheap,
+// reliable proxy for its presence without depending on screen-space placement.
 
 test('industrial district: the world group contains geometry west of x=0', async ({ page }) => {
   await page.goto('/');
@@ -291,8 +260,6 @@ test('industrial district: the world group contains geometry west of x=0', async
   expect(hasNegativeX).toBe(true);
 });
 
-// ── PRD §20 added scope: sea wave marks ────────────────────────────────────
-
 test('each sea variant has at least 4 wave marks, visible in both day and night', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 }); // forces the standard variant on
   await page.goto('/');
@@ -300,24 +267,17 @@ test('each sea variant has at least 4 wave marks, visible in both day and night'
     const count = await page.locator(`.${variant} .f-wave`).count();
     expect(count, `${variant} wave count`).toBeGreaterThanOrEqual(4);
   }
-  // Night is default (PRD §3) — confirm waves are visible without toggling first,
-  // then toggle to day and confirm they stay visible (not gated behind night-only).
+  // Confirm waves aren't gated behind night-only: visible by default, and after toggling to day.
   await expect(page.locator('.scene-standard .f-wave').first()).toBeVisible();
   await page.locator('#toggle').click();
   await expect(page.locator('.scene-standard .f-wave').first()).toBeVisible();
 });
 
-// ── PRD §26: Devil's Peak + softened Lion's Head ───────────────────────────
-// World geometry is authored once (local SVG coordinate space); the "west of
-// x=0" test above proves the same point in the same way, so we mirror that
-// pattern rather than measuring screen-space post-camera-transform.
-// The §20 negative-x test already passes via the industrial district and
-// does NOT prove Devil's Peak exists — this test specifically bites if the
-// new polygon is removed: only Lion's Head/Signal Hill remain as other
-// standalone f-far polygons, and both sit to the right of and below Table
-// Mountain's summit, so neither can satisfy the check below.
+// Mirrors the negative-x test's world-space pattern rather than screen-space, but that
+// test doesn't prove Devil's Peak exists on its own — only Lion's Head/Signal Hill are
+// other standalone f-far polygons, and both sit right of and below Table Mountain's
+// summit, so only a genuine Devil's Peak polygon can satisfy the check below.
 
-// ── Character-swapped structural parity, both routes ────────────────────────
 // bg-layer holds mountains and city, fg-layer sea, ground and character.
 
 const ROUTE_CHARACTERS = [

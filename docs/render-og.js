@@ -4,7 +4,7 @@
 // same as e2e/playwright.config.js's webServer) so it can never drift from the
 // scene, unlike a hand-copied inline SVG. The two icon blocks below render from
 // small inline snippets — they draw the moon *mark*, a deliberately different
-// (warm) palette from the scene (PRD §30, RULED), so there's no "real source" to
+// (warm) palette from the scene, so there's no "real source" to
 // point at for them; pattern mirrors docs/render-cv.js, which also targets a
 // real source file.
 // Run from the repo root: node docs/render-og.js

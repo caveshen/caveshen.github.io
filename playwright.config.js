@@ -19,11 +19,10 @@ export default defineConfig({
     timeout: 120_000,
   },
   projects: [
-    // Apple devices: real WebKit — no channel spread (channel: 'msedge' is chromium-only).
     { name: 'iphone-se',    use: { ...devices['iPhone SE'],     browserName: 'webkit' } },
     { name: 'iphone-15pro', use: { ...devices['iPhone 15 Pro'], browserName: 'webkit' } },
     { name: 'ipad',         use: { ...devices['iPad (gen 7)'],  browserName: 'webkit' } },
-    // Pixel 8: Chromium emulation (faithful to Android). ch = msedge locally, bundled chromium in CI.
+    // Pixel 8: Chromium emulation is the faithful choice for Android (not WebKit).
     { name: 'pixel-8',      use: { ...devices['Pixel 8'],       ...ch } },
     { name: 'desktop-1366', use: { viewport: { width: 1366, height: 768  }, ...ch } },
     { name: 'desktop-1920', use: { viewport: { width: 1920, height: 1080 }, ...ch } },

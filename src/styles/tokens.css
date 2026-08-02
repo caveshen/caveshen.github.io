@@ -1,4 +1,4 @@
-/* Design tokens — PRD §3. Night is default; day overrides on data-time="day". */
+/* Design tokens. Night is default; day overrides on data-time="day". */
 :root {
   --bg:          #0f1826;
   --sky:         #0f1826;
@@ -36,7 +36,7 @@
                       radial-gradient(760px 480px at 6% 34%, rgba(36, 64, 128, 0.15), transparent 60%),
                       #07090f;
 
-  /* P4 restage: pale/cratered moon (locked, not the warm disc — a pale sun is
+  /* Pale/cratered moon (locked, not the warm disc — a pale sun is
      wrong so the sun stays --celestial), standing-parapet rail, near-shore ground,
      ambient wind motes. */
   --moon:   #e7e3cf;
@@ -46,7 +46,7 @@
   --mote:      #d8c9a0;
   --mote-op:   .30;
 
-  /* §20 added scope: sea foam — a lighter tint of --sea, kept distinct from
+  /* Sea foam — a lighter tint of --sea, kept distinct from
      the pale/cream --moon so wave marks read as sea, not moon reflection. */
   --wave: #3c5a6e;
 }
@@ -97,7 +97,7 @@
   }
 }
 
-/* ── Scene fill/stroke utility classes (P4) ────────────────────────────────
+/* ── Scene fill/stroke utility classes ─────────────────────────────────────
    var() does NOT resolve inside SVG presentation attributes (fill="var(--x)"
    silently fails on some engines) — themeable SVG fills are driven by these
    classes instead. Shared by index.astro's scene SVGs and CityScape.astro. */
@@ -113,7 +113,7 @@
 .f-crater{ fill: var(--crater); }
 .f-wave  { fill: var(--wave); }
 
-/* ── Scene layout + day/night visibility (PRD d1, was §30 D-4) ─────────────
+/* ── Scene layout + day/night visibility ────────────────────────────────
    Shared by every page that renders a `.scene` SVG (currently / and /404):
    base sizing, the fill/stroke theme crossfade, and the data-time switch for
    .night-only/.day-only groups. Per-variant sizing (.scene-standard/-wide/

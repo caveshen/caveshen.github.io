@@ -1,14 +1,10 @@
 ---
-// Stage.astro — the approach interaction: frame, camera, prompt and card
-// (PRD d25, was §30 D-10 one level up). Extracted from index.astro, which
-// authored this markup+CSS+script inline. Every DOM lookup the paired
-// src/scripts/stage.js makes is a generic selector, but the *markup* is not
-// entirely route-agnostic: four values vary by route — tree, character,
-// characterLabel and promptLabel, all props below — plus the noscript note
-// (`/` links `/sheet`, `/404` links `/`), which arrives as a slot since it's
-// markup, not a value.
-// index.astro still owns the <script> that calls initStage(tree) (Astro's
-// own <script> processing, not this component) — see index.astro.
+// Stage.astro — the approach interaction: frame, camera, prompt and card. The
+// paired src/scripts/stage.js does all DOM lookups via generic selectors, but
+// the markup itself isn't fully route-agnostic: tree, character,
+// characterLabel and promptLabel vary by route (props below); the noscript
+// note is a slot since it's markup, not a value. index.astro owns the
+// <script> that calls initStage(tree).
 import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
 import Scene from './Scene.astro';
 import Avatar from './Avatar.astro';
@@ -25,7 +21,7 @@ const root = tree.root;
 <!--
   stage-frame: a full-height stage — a place to stand in, not a letterbox strip.
   overflow:hidden clips the camera zoom; .camera carries the transform.
-  The dialogue card lives inside it as an in-scene overlay (PRD §14 restage).
+  The dialogue card lives inside it as an in-scene overlay.
 -->
 <div class="stage-frame">
 <div class="camera">
@@ -56,7 +52,7 @@ const root = tree.root;
   {promptLabel}
 </button>
 
-<!-- PRD §15 D5: card ships hidden so it is never painted before JS runs.
+<!-- Card ships hidden so it is never painted before JS runs.
      noscript overrides [hidden] with display:block for the no-JS path. -->
 <noscript><style>.card[hidden] { display: block; }</style></noscript>
 <main class="card" hidden>
@@ -76,21 +72,15 @@ const root = tree.root;
     to exit, so no exit control needed in the no-JS path.
   -->
   <button class="end-dialogue" id="end-dialogue" hidden>PLACEHOLDER: End dialogue ✕</button>
-  <!-- PRD d25: the noscript note is the one genuine per-route markup
-       difference (`/` links `/sheet`, `/404` links `/`) — a slot, not a
-       prop, since it's markup. -->
   <slot />
 </main>
 
 <!--
-  Fullscreen toggle (PRD §18 / §17.2 — one control, and it is fullscreen).
-  Lives INSIDE .stage-frame, not as a body-level sibling like ThemeToggle —
-  the Fullscreen API only keeps descendants of the fullscreened element
-  visible/interactive, so it has to be one to still be clickable (and to
-  exit via a second click) once fullscreen is active.
-  Hidden by default, same spirit as the approach prompt: JS unhides it only
-  if the Fullscreen API is actually usable (degrade honestly), so a no-JS
-  or unsupported-API visitor never sees a dead button.
+  Fullscreen toggle lives INSIDE .stage-frame, not as a body-level sibling like
+  ThemeToggle — the Fullscreen API only keeps descendants of the fullscreened
+  element visible/interactive, so it must be one to stay clickable.
+  Hidden by default; JS unhides it only if the Fullscreen API is usable, so a
+  no-JS or unsupported-API visitor never sees a dead button.
 -->
 <button class="fullscreen-toggle" id="fullscreen-toggle" hidden aria-label="Enter fullscreen">
   <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
@@ -104,7 +94,6 @@ const root = tree.root;
 <p class="page-foot">PLACEHOLDER — attribution line. All copy is placeholder; the real script is Caveshen's to write.</p>
 
 <style is:global>
-  /* ── P4: stage-frame — a full-height stage, not a letterbox strip ─────────── */
   /* ponytail: stage-frame is position:relative which makes it a positioned element
      that stacks AFTER the toggle (which comes earlier in DOM), so stage-frame's
      bounding box physically covers the toggle area and intercepts its clicks.
@@ -114,18 +103,11 @@ const root = tree.root;
     position: relative;
     overflow: hidden;
     pointer-events: none;
-    /* PRD §17.2 RULED 2026-07-23 — full-window is the DEFAULT, not a toggle:
-       the stage fills 100% of the viewport at any window size. This
-       supersedes §17.1a's height-limited max-width + vertical centring (the
-       body-flex block that used to sit here, and the per-breakpoint
-       aspect-ratio/max-width overrides below, are both gone — nothing left
-       to centre once the frame always fills the viewport). Each scene's own
-       preserveAspectRatio="xMidYMax slice" crops the overflow rather than
-       stretching it, so an arbitrary window shape still renders a correctly
-       proportioned crop of whichever variant §14's width cut-offs select —
-       proof is the Table Mountain 2.4194 screen-space invariant (§13),
-       unaffected by this change. 100svh (not 100vh) for the same
-       dynamic-toolbar-safety reason used elsewhere in this file. */
+    /* Full-window is the default, not a toggle — nothing to centre once the
+       frame always fills the viewport. Each scene's own
+       preserveAspectRatio="xMidYMax slice" crops rather than stretches, so any
+       window shape renders a correctly proportioned crop. 100svh (not 100vh)
+       for dynamic-toolbar safety. */
     width: 100%;
     height: 100svh;
     margin: 0;
@@ -144,7 +126,6 @@ const root = tree.root;
     .camera { transition: none; }
   }
 
-  /* ── P4: wind — ambient motes drifting on the breeze ───────────────────────── */
   .wind { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
   .mote {
     position: absolute;
@@ -166,7 +147,6 @@ const root = tree.root;
     .mote { animation: none; }
   }
 
-  /* ── P4: approach prompt button ──────────────────────────────────────────── */
   .approach-prompt {
     position: absolute;
     pointer-events: auto; /* re-enable: stage-frame has pointer-events:none */
@@ -195,7 +175,6 @@ const root = tree.root;
     outline: 2px solid var(--btn-hover-border);
     outline-offset: 2px;
   }
-  /* Day theme: lighter glass-morphism */
   :root[data-time="day"] .approach-prompt {
     background: rgba(253, 251, 245, 0.65);
     border-color: rgba(37, 48, 56, 0.22);
@@ -208,7 +187,6 @@ const root = tree.root;
     .approach-prompt { transition: none; }
   }
 
-  /* ── PRD §18: fullscreen toggle — floating, bottom-right of the stage ─────── */
   .fullscreen-toggle {
     position: absolute;
     right: 1rem;
@@ -227,11 +205,10 @@ const root = tree.root;
     backdrop-filter: blur(3px);
     transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
   }
-  /* display:flex above is author-origin CSS, which outranks the UA
-     stylesheet's [hidden]{display:none} regardless of selector specificity —
-     left alone it would render the button even while `hidden` is set.
-     Reassert it explicitly so JS (or its absence, on the no-JS path) stays
-     the only thing that can ever reveal this button. */
+  /* display:flex above is author-origin CSS, outranking the UA stylesheet's
+     [hidden]{display:none} regardless of selector specificity — left alone it
+     would render the button even while `hidden` is set. Reasserted explicitly
+     so JS (or its absence) stays the only thing that can reveal this button. */
   .fullscreen-toggle[hidden] { display: none; }
   .fullscreen-toggle:hover,
   .fullscreen-toggle:focus-visible {
@@ -243,7 +220,6 @@ const root = tree.root;
     outline: 2px solid var(--btn-hover-border);
     outline-offset: 2px;
   }
-  /* Day theme: lighter glass-morphism — same treatment as the approach prompt */
   :root[data-time="day"] .fullscreen-toggle {
     background: rgba(253, 251, 245, 0.65);
     border-color: rgba(37, 48, 56, 0.22);
@@ -255,24 +231,18 @@ const root = tree.root;
   @media (prefers-reduced-motion: reduce) {
     .fullscreen-toggle { transition: none; }
   }
-  /* Portrait: the dialogue card runs almost the full height of the frame
-     (min(600px,88%) wide, bottom-anchored, tall enough on a phone screen
-     that its own top edge sits well above the frame's bottom) — there is no
-     clear bottom-right corner left once the card is showing. The one band
-     that's reliably clear of the toggle above, the card below, and the
+  /* Portrait: the dialogue card runs almost the full frame height, leaving no
+     clear bottom-right corner. The one band clear of the toggle, card, and
      figure/approach-prompt in between is just under the toggle, so the
      button moves there for this aspect only; every other variant has room
      to spare at the literal bottom-right and is left alone. */
   @media (max-aspect-ratio: 4/5) {
     .fullscreen-toggle { top: 4rem; bottom: auto; }
   }
-  /* PRD §17.2: fullscreen IS the full-window mode — the stage fills the
-     screen instead of sitting inside its framed/capped box. The scenes
-     already carry preserveAspectRatio="xMidYMax slice", so an oversized
-     stage crops rather than stretches; no new scaling strategy needed here,
-     only the frame's own box gets to be arbitrary. Explicit width/height
-     override the aspect-ratio (it only fills in a missing dimension), so no
-     separate aspect-ratio:auto override is needed. */
+  /* Fullscreen is the full-window mode already used elsewhere — scenes crop
+     via preserveAspectRatio rather than stretch, so no new scaling strategy is
+     needed. Explicit width/height override aspect-ratio (it only fills a
+     missing dimension), so no separate aspect-ratio:auto override is needed. */
   .stage-frame:fullscreen {
     max-width: none;
     width: 100vw;
@@ -282,10 +252,9 @@ const root = tree.root;
     border: none;
   }
 
-  /* ── PRD §24: ambient banner plane — screen-space overlay, JS-created only ──
-     (no static markup, so the no-JS path never renders it — see JS below).
-     vw-based flight path rather than scene-relative: a screen-space overlay
-     like .fullscreen-toggle, it need not track the SVG's slice crop. */
+  /* .banner-plane has no static markup — JS-created only, so the no-JS path
+     never renders it. vw-based flight path, not scene-relative: a screen-space
+     overlay like .fullscreen-toggle, it need not track the SVG's slice crop. */
   .banner-plane {
     position: absolute;
     top: 14%;
@@ -297,7 +266,7 @@ const root = tree.root;
     animation-name: plane-fly;
     animation-timing-function: linear;
     opacity: 1;
-    transition: opacity 400ms ease; /* PRD §24 RULED: fade out, matching §21/§28 */
+    transition: opacity 400ms ease; /* fade out, not a hard cut */
   }
   .banner-plane.plane-fade-out { opacity: 0; }
   @keyframes plane-fly {
@@ -318,20 +287,19 @@ const root = tree.root;
     border-radius: 2px;
     white-space: nowrap;
   }
-  /* PRD §24 RULED: standard + wide only, not portrait — the horizontal
-     fly-through reads oddly on the narrow tall scene. */
+  /* Standard + wide only — the horizontal fly-through reads oddly on the
+     narrow tall scene. */
   @media (max-aspect-ratio: 4/5) {
     .banner-plane { display: none; }
   }
-  /* PRD §24 RULED: no plane at all under reduced motion. JS already never
-     schedules one (reducedMotion() gate in flyPlane()); this is belt-and-
-     braces for the same edge case the other ambient animations cover (see
-     .wind, .camera above) — the setting flips mid-session. */
+  /* Belt-and-braces: JS already gates plane scheduling via reducedMotion()
+     (flyPlane()), but the media query covers the setting flipping mid-session,
+     same as .wind and .camera above. */
   @media (prefers-reduced-motion: reduce) {
     .banner-plane { display: none; }
   }
 
-  /* ── P4: end-dialogue button (inside .card; styled like .system options) ── */
+  /* .end-dialogue lives inside .card, styled like .choices button.system */
   .end-dialogue {
     display: block;
     width: 100%;
@@ -347,11 +315,7 @@ const root = tree.root;
     margin-top: 0.75rem;
     transition: color 0.12s ease, border-color 0.12s ease;
   }
-  /* display:block above is author-origin CSS, which outranks the UA
-     stylesheet's [hidden]{display:none} regardless of selector specificity —
-     left alone it would render the button even while `hidden` is set.
-     Reassert it explicitly so JS (or its absence, on the no-JS path) stays
-     the only thing that can ever reveal this button. */
+  /* Same author-origin-vs-UA-stylesheet override as .fullscreen-toggle[hidden] above */
   .end-dialogue[hidden] { display: none; }
   .end-dialogue:hover,
   .end-dialogue:focus-visible {
@@ -367,7 +331,7 @@ const root = tree.root;
     .end-dialogue { transition: none; }
   }
 
-  /* ── Dialogue card: an IN-SCENE overlay, not a block below the scene ──────── */
+  /* Dialogue card: an in-scene overlay, not a block below the scene */
   .card {
     position: absolute;
     left: 50%;
@@ -382,16 +346,13 @@ const root = tree.root;
     border: 1px solid var(--card-edge);
     border-radius: 18px;
     box-shadow: var(--card-shadow);
-    /* PRD §28: opacity/transform tail on the existing transition list — the
-       fade. 170ms delay + 380ms duration lands at 550ms, so the card settles
-       exactly as the §21 zoom (550ms) does. */
+    /* Opacity/transform tail on the transition list — 170ms delay + 380ms
+       duration lands at 550ms, matching the camera zoom's own 550ms. */
     transition: background 0.4s ease, border-color 0.4s ease,
       opacity 380ms ease 170ms, transform 380ms ease 170ms;
   }
-  /* PRD §28: the fade's starting state. JS-only (added by `approach()`'s
-     init and re-armed by `exit()`) — never a static rule on .card itself,
-     or the no-JS path (which never adds this class) would render the card
-     invisible. */
+  /* JS-only starting state (added by approach()'s init, re-armed by exit()) —
+     never static on .card itself, or the no-JS path would render it invisible. */
   .card.card-entering {
     opacity: 0;
     transform: translateX(-50%) translateY(6px);
@@ -475,20 +436,13 @@ const root = tree.root;
     font-size: 0.85rem;
   }
   .noscript-note a { color: var(--option); }
-  /* PRD §17.2 RULED 2026-07-23: the stage is now full-bleed, so the footer
-     can no longer sit in normal flow below it (that would add page height
-     the full-height frame doesn't leave room for, forcing a scrollbar).
-     It becomes a floating overlay instead — top-left, mirroring the theme
-     toggle's top-right placement, so the two corners read as a pair and
-     neither competes with the bottom-centre card or the fullscreen button.
-     Chrome-layout call, flagged for Caveshen's look in the report.
-     Same glass-chip treatment as .approach-prompt/.fullscreen-toggle, for
-     legibility over the scene in both themes. Declared after .stage-frame in
-     the DOM, so as a fixed element it already paints above the full-bleed
-     frame by paint order; z-index:1 is kept only as belt-and-braces against a
-     future reorder (the theme toggle, which precedes the frame, genuinely
-     needs its own z-index). max-width caps well short of the toggle's corner
-     even at the narrowest tested viewport (390px). */
+  /* Full-bleed stage means the footer can't sit in normal flow below it
+     (would force a scrollbar), so it floats top-left, mirroring the theme
+     toggle's top-right corner. Same glass-chip treatment as
+     .approach-prompt/.fullscreen-toggle. Paints above the frame by paint
+     order already (declared after it in the DOM); z-index:1 is belt-and-
+     braces only. max-width keeps clear of the toggle's corner at the
+     narrowest tested viewport (390px). */
   .page-foot {
     position: fixed;
     left: 1rem;
@@ -516,9 +470,8 @@ const root = tree.root;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    /* .scene rect/polygon/circle/line/path reduced-motion now lives in
-       tokens.css alongside the base rule it's disabling (PRD d1, was §30
-       D-4). */
+    /* .scene rect/polygon/circle/line/path reduced-motion lives in tokens.css,
+       alongside the base rule it disables. */
     body, .card, .speech, .choices button { transition: none; }
   }
 </style>

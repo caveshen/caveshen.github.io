@@ -13,7 +13,6 @@ export function isPath(to) {
   return typeof to === 'string' && to.startsWith('/');
 }
 
-/** stored "day" → "day"; anything else (null, garbage, "night") → "night" */
 export function resolveTheme(stored) {
   return stored === 'day' ? 'day' : 'night';
 }
@@ -21,10 +20,6 @@ export function resolveTheme(stored) {
 /**
  * Wire up the dialogue engine to DOM elements.
  * Returns render(id, immediate?) — call with 'root' to start.
- * @param {object} tree - dialogue JSON
- * @param {{ speechEl: Element, stageEl: Element, choicesEl: Element }} els
- * @param {(path: string) => void} navigate - called for /path options
- * @param {{ reducedMotion?: boolean }} [opts]
  */
 export function initEngine(tree, { speechEl, stageEl, choicesEl }, navigate, { reducedMotion } = {}) {
   // ponytail: guard matchMedia for test environments (happy-dom / node)
@@ -50,8 +45,8 @@ export function initEngine(tree, { speechEl, stageEl, choicesEl }, navigate, { r
         return li;
       }));
       speechEl.style.opacity = '1';
-      // Restore keyboard focus to first new button so users don't lose their place.
-      // Skip on initial render (immediate) to avoid stealing focus on page load.
+      // Focus first new button so users don't lose their place — not on
+      // initial render, to avoid stealing focus on page load.
       if (!immediate) choicesEl.querySelector('button')?.focus();
     };
     if (reduced || immediate) { apply(); return; }

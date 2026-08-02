@@ -7,7 +7,12 @@ Note: Do not use it for tracking code changes, rather rely on the git history.
 ## Standing rules
 
 - **Branch per accepted PRD item** (`item/<slug>`): reviewer pass → commits on branch →
-  local preview → Caveshen's approval → regular merge to main = deploy. 
+  local preview → Caveshen's approval → **squash**-merge to main = deploy. Each squash
+  commit on main is a checkpoint in the project's progress, so PRs are chunky by
+  design — batch small fixes into the branch already in flight rather than giving a
+  one-line change its own PR.
+- **Offer the local preview.** It is his gate, not a step to skip because the change
+  looks visually inert. Say what there is to see; let him waive it.
 - **One item at a time.** Don't one-shot the backlog — queue items in the PRD and pick
   up a single one on his explicit go.
 - **Caveshen owns all prose.** Site copy, dialogue trees, and CV wording are his. Provide

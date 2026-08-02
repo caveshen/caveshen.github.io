@@ -15,10 +15,8 @@ const CHARACTER_LABEL = 'the Badger';
   <!-- Toggle: first in DOM so it's first in tab order -->
   <ThemeToggle />
 
-  <!-- PRD d25: frame, camera, approach prompt and dialogue card all live in
-       Stage.astro now; tree/character/characterLabel/promptLabel are the
-       four values that vary by route — the noscript note below is the one
-       genuine markup difference, so it's a slot rather than a fifth prop. -->
+  <!-- tree/character/characterLabel/promptLabel vary per route (see Stage.astro);
+       the noscript note is a slot since it's markup, not a value. -->
   <Stage tree={tree} character={CHARACTER} characterLabel={CHARACTER_LABEL}
     promptLabel="Approach the badger">
     <noscript>
@@ -30,9 +28,7 @@ const CHARACTER_LABEL = 'the Badger';
 </Base>
 
 <script>
-  // PRD d25: the whole approach-interaction script now lives in stage.js —
-  // everything here was DOM lookups and behaviour with no route-bound logic
-  // except this tree import (see PRD d25's "already generic" note).
+  // Only route-bound logic here is the tree import; the rest lives in stage.js.
   import { initStage } from '../scripts/stage.js';
   import tree from '../data/dialogue.json';
 

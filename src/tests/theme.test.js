@@ -14,7 +14,6 @@ function extractVars(block) {
   return [...block.matchAll(/--[\w-]+(?=\s*:)/g)].map(m => m[0]);
 }
 
-/** Returns { '--name': 'value', ... } for all custom properties in a CSS block */
 function parseTokens(block) {
   const map = {};
   for (const [, name, value] of block.matchAll(/--([\w-]+)\s*:\s*([^;]+);/g)) {
@@ -31,8 +30,8 @@ const nightTokens     = parseTokens(tokensRootBlock);
 const dayTokens       = parseTokens(tokensDayBlock);
 
 // ── index.astro page-level style block ───────────────────────────────────────
-// Extended tokens were moved to tokens.css (P2). This block guards against
-// new tokens being accidentally added back to index.astro without day overrides.
+// Tokens live in tokens.css now; this guards against new ones being added back
+// to index.astro without a day override.
 const pageStyle      = indexAstro.match(/<style[^>]*>([\s\S]*?)<\/style>/)?.[1] ?? '';
 const pageRootBlock  = pageStyle.match(/:root\s*\{([^}]+)\}/)?.[1] ?? '';
 const pageDayBlock   = pageStyle.match(/:root\[data-time="day"\]\s*\{([^}]+)\}/)?.[1] ?? '';

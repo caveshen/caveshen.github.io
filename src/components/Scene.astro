@@ -97,6 +97,21 @@ const ariaLabel = characterLabel
 ---
 <svg class={`scene scene-${variant}`} viewBox={`0 0 ${v.width} ${v.height}`} preserveAspectRatio="xMidYMax slice" role="img"
      aria-label={ariaLabel}>
+  <defs>
+    <!-- userSpaceOnUse so these read in the same coordinate space CityScape's polygons are
+         authored in, not each shape's own bbox — one set of numbers works for every variant.
+         Stop colour comes from the CSS classes in tokens.css, never a presentation attribute. -->
+    <linearGradient id={`sky-grad-${variant}`} gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2={v.sea.y}>
+      <stop class="stop-sky-top" offset="0" />
+      <stop class="stop-sky-bottom" offset="1" />
+    </linearGradient>
+    <!-- 220→352: the lower third of the mountains' authored height, 352 being the shared
+         baseline (CityScape.astro) where they meet the sea. -->
+    <linearGradient id={`far-grad-${variant}`} gradientUnits="userSpaceOnUse" x1="0" y1="220" x2="0" y2="352">
+      <stop class="stop-far-top" offset="0" />
+      <stop class="stop-far-bottom" offset="1" />
+    </linearGradient>
+  </defs>
   <rect class="f-sky" width={v.width} height={v.height} />
   <g class="bg-layer">
   <g class="f-star night-only">

@@ -186,6 +186,17 @@ test('night/day toggle swaps elements in the visible scene', async ({ page }) =>
   await expect(nightEl).not.toBeVisible();
 });
 
+// Cityscape depth, Stage 2: the sky is gradiented (a url() reference), not a flat fill,
+// and stays a gradient after the theme toggle re-themes its stops.
+test('sky fill is a gradient reference, not a flat colour, in both themes', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto('/');
+  const skyFill = () => page.locator('.scene-standard .f-sky').evaluate((el) => getComputedStyle(el).fill);
+  expect(await skyFill()).toMatch(/^url\(/);
+  await page.locator('#toggle').click();
+  expect(await skyFill()).toMatch(/^url\(/);
+});
+
 test('no horizontal overflow at ultra-wide (2560×1080)', async ({ page }) => {
   await page.setViewportSize({ width: 2560, height: 1080 });
   await page.goto('/');

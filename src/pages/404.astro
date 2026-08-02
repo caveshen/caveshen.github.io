@@ -8,7 +8,7 @@ import Stage from '../components/Stage.astro';
 import HoodedFigure from '../components/HoodedFigure.astro';
 import tree from '../data/dialogue-404.json';
 
-const CHARACTERS = [HoodedFigure];
+const CHARACTER = HoodedFigure;
 const CHARACTER_LABEL = 'a hooded figure on the promenade';
 ---
 <Base
@@ -18,7 +18,7 @@ const CHARACTER_LABEL = 'a hooded figure on the promenade';
 >
   <ThemeToggle />
 
-  <Stage tree={tree} characters={CHARACTERS} characterLabel={CHARACTER_LABEL}
+  <Stage tree={tree} character={CHARACTER} characterLabel={CHARACTER_LABEL}
     promptLabel="Approach the hooded figure?">
     <noscript>
       <p class="noscript-note">

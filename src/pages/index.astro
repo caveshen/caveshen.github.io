@@ -5,7 +5,7 @@ import Stage from '../components/Stage.astro';
 import Badger from '../components/Badger.astro';
 import tree from '../data/dialogue.json';
 
-const CHARACTERS = [Badger];
+const CHARACTER = Badger;
 const CHARACTER_LABEL = 'the Badger';
 ---
 <Base
@@ -16,10 +16,10 @@ const CHARACTER_LABEL = 'the Badger';
   <ThemeToggle />
 
   <!-- PRD d25: frame, camera, approach prompt and dialogue card all live in
-       Stage.astro now; tree/characters/characterLabel/promptLabel are the
+       Stage.astro now; tree/character/characterLabel/promptLabel are the
        four values that vary by route — the noscript note below is the one
        genuine markup difference, so it's a slot rather than a fifth prop. -->
-  <Stage tree={tree} characters={CHARACTERS} characterLabel={CHARACTER_LABEL}
+  <Stage tree={tree} character={CHARACTER} characterLabel={CHARACTER_LABEL}
     promptLabel="Approach the badger">
     <noscript>
       <p class="noscript-note">

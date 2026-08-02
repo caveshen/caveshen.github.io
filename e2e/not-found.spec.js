@@ -1,5 +1,6 @@
 // not-found.spec.js — the interactive 404: a door that isn't in the script.
 import { test, expect } from '@playwright/test';
+import { rectsIntersect, visibleRect } from './geom.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/404');
@@ -130,27 +131,15 @@ test('reduced motion: card and scene transitions are instant, no new animation a
   await expect(page.locator('.card')).toHaveCSS('opacity', '1');
 });
 
-// ── Structural parity: figure, variants, scene seam ─────────────────────────
-
-test('the hooded figure is present, the Badger is not', async ({ page }) => {
-  await page.setViewportSize({ width: 1920, height: 1080 });
-  await expect(page.locator('.hooded-figure')).toHaveCount(3);
-  await expect(page.locator('.badger-figure')).toHaveCount(0);
-});
+// ── Structural parity: variants ──────────────────────────────────────────────
+// Figure-presence and bg/fg-seam are character-swapped clones of approach.spec.js's
+// checks for `/` — parameterised there over {route, characterClass}. Variant
+// count doesn't depend on the character, so it stays here, unduplicated.
 
 test('all three scene variants are present, exactly once each', async ({ page }) => {
   await expect(page.locator('.scene-standard')).toHaveCount(1);
   await expect(page.locator('.scene-wide')).toHaveCount(1);
   await expect(page.locator('.scene-tall')).toHaveCount(1);
-});
-
-test('each scene has a bg-layer (containing the mountain) and fg-layer (containing the sea and character)', async ({ page }) => {
-  await page.setViewportSize({ width: 1920, height: 1080 }); // forces the standard variant on
-  for (const variant of ['scene-standard', 'scene-wide', 'scene-tall']) {
-    await expect(page.locator(`.${variant} .bg-layer .table-mountain`)).toHaveCount(1);
-    await expect(page.locator(`.${variant} .fg-layer .f-sea`)).toHaveCount(1);
-    await expect(page.locator(`.${variant} .fg-layer .hooded-figure`)).toHaveCount(1);
-  }
 });
 
 // Can't re-point at the Badger on `/` — it's deliberately theme-dependent,
@@ -172,19 +161,6 @@ test('figure fill colours are unchanged by day/night toggle', async ({ page }) =
 // The zoomed face must clear the dialogue card that overlays it. Placement
 // comes from Scene.astro's shared fig table, so a collision here would
 // otherwise arrive as a silent side effect of an unrelated edit.
-function rectsIntersect(a, b) {
-  return a.x < b.x + b.width && a.x + a.width > b.x &&
-         a.y < b.y + b.height && a.y + a.height > b.y;
-}
-
-async function visibleRect(page, selector) {
-  return page.evaluate((sel) => {
-    const el = [...document.querySelectorAll(sel)].find((e) => e.getBoundingClientRect().width > 0);
-    const r  = el.getBoundingClientRect();
-    return { x: r.left, y: r.top, width: r.width, height: r.height };
-  }, selector);
-}
-
 for (const vp of [
   { name: 'standard (1920×1080)', width: 1920, height: 1080 },
   { name: 'tall (390×844)',       width: 390,  height: 844  },

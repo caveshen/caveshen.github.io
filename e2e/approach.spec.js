@@ -317,21 +317,35 @@ test('each sea variant has at least 4 wave marks, visible in both day and night'
 // standalone f-far polygons, and both sit to the right of and below Table
 // Mountain's summit, so neither can satisfy the check below.
 
-// ── PRD §19 refactor: bg-layer/fg-layer seam ────────────────────────────────
-// Pure structural refactor (no visual change) — separates background
-// (mountains/city) from foreground (sea, ground, character) in the DOM so
-// the scene can be controlled independently later. Asserts the seam exists
-// and holds, so a future edit can't silently flatten it back together.
+// ── Character-swapped structural parity, both routes ────────────────────────
+// Figure-presence and bg/fg-layer seam (PRD §19: mountains/city vs sea/ground/
+// character, split so the scene can be controlled independently) hold for
+// both routes, differing only by which character class is expected. Was two
+// pairs of near-identical tests split across this file and not-found.spec.js.
 
-test('each scene has a bg-layer (containing the mountain) and fg-layer (containing the sea and character)', async ({ page }) => {
-  await page.setViewportSize({ width: 1920, height: 1080 }); // forces the standard variant on
-  await page.goto('/');
-  for (const variant of ['scene-standard', 'scene-wide', 'scene-tall']) {
-    await expect(page.locator(`.${variant} .bg-layer .table-mountain`)).toHaveCount(1);
-    await expect(page.locator(`.${variant} .fg-layer .f-sea`)).toHaveCount(1);
-    await expect(page.locator(`.${variant} .fg-layer .badger-figure`)).toHaveCount(1);
-  }
-});
+const ROUTE_CHARACTERS = [
+  { route: '/', characterClass: 'badger-figure', otherClass: 'hooded-figure' },
+  { route: '/404', characterClass: 'hooded-figure', otherClass: 'badger-figure' },
+];
+
+for (const { route, characterClass, otherClass } of ROUTE_CHARACTERS) {
+  test(`the ${characterClass} is present, the ${otherClass} is not — ${route}`, async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.goto(route);
+    await expect(page.locator(`.${characterClass}`)).toHaveCount(3);
+    await expect(page.locator(`.${otherClass}`)).toHaveCount(0);
+  });
+
+  test(`each scene has a bg-layer (containing the mountain) and fg-layer (containing the sea and character) — ${route}`, async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 }); // forces the standard variant on
+    await page.goto(route);
+    for (const variant of ['scene-standard', 'scene-wide', 'scene-tall']) {
+      await expect(page.locator(`.${variant} .bg-layer .table-mountain`)).toHaveCount(1);
+      await expect(page.locator(`.${variant} .fg-layer .f-sea`)).toHaveCount(1);
+      await expect(page.locator(`.${variant} .fg-layer .${characterClass}`)).toHaveCount(1);
+    }
+  });
+}
 
 test("Devil's Peak: an f-far polygon apex sits above and left of Table Mountain's summit", async ({ page }) => {
   const found = await page.locator('.scene-standard .world').evaluate((worldEl) => {

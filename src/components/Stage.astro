@@ -3,7 +3,7 @@
 // (PRD d25, was §30 D-10 one level up). Extracted from index.astro, which
 // authored this markup+CSS+script inline. Every DOM lookup the paired
 // src/scripts/stage.js makes is a generic selector, but the *markup* is not
-// entirely route-agnostic: four values vary by route — tree, characters,
+// entirely route-agnostic: four values vary by route — tree, character,
 // characterLabel and promptLabel, all props below — plus the noscript note
 // (`/` links `/sheet`, `/404` links `/`), which arrives as a slot since it's
 // markup, not a value.
@@ -15,11 +15,11 @@ import Avatar from './Avatar.astro';
 
 interface Props {
   tree: { root: { stage?: string; speech: string } };
-  characters: AstroComponentFactory[];
+  character: AstroComponentFactory;
   characterLabel?: string;
   promptLabel: string;
 }
-const { tree, characters: Characters, characterLabel = '', promptLabel } = Astro.props;
+const { tree, character: Character, characterLabel = '', promptLabel } = Astro.props;
 const root = tree.root;
 ---
 <!--
@@ -32,9 +32,9 @@ const root = tree.root;
 
 <!-- PRD d12: scene markup lives once in Scene.astro; only variant + the
      character(s) differ per call. -->
-<Scene variant="standard" characters={Characters} characterLabel={characterLabel} />
-<Scene variant="wide" characters={Characters} characterLabel={characterLabel} />
-<Scene variant="tall" characters={Characters} characterLabel={characterLabel} />
+<Scene variant="standard" character={Character} characterLabel={characterLabel} />
+<Scene variant="wide" character={Character} characterLabel={characterLabel} />
+<Scene variant="tall" character={Character} characterLabel={characterLabel} />
 
 </div><!-- /.camera -->
 

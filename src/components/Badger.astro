@@ -14,11 +14,11 @@
 // darkening, darker again at night, so the detailed raster doesn't out-detail
 // the flat-silhouette world (§20's guard) — never shipped full-colour.
 //
-// Raster size (§27 open point 2, measured 2026-07-26): at 1920×1080 against
-// a 1200-unit viewBox, the Badger renders at ~320 CSS px (200 SVG units × 1.6
-// scale). At 2× HiDPI that is 640 device px; at 2560px wide/2× it is ~852.
-// The 500×500 source is roughly correct for the primary viewport range — not
-// wasteful, not oversized. No downsampling applied; lossless as shipped.
+// Raster size: the 200-unit image sits inside the figure's own scale (1.2
+// standard, 1.3 tall), then the viewBox-to-viewport ratio. At 1920 that is
+// 200 × 1.2 × 1.6 ≈ 384 CSS px, so 768 device px at 2×, and ≈1024 at 2560/2×.
+// Do not resize the 500×500 source down: 200 is SVG units, not pixels, and the
+// source is if anything under-provisioned at the top of that range.
 //
 // §29 idle animation: two frames swap on --badger-cadence (800ms per frame,
 // 1.6s full cycle). CSS only — works with JS disabled. prefers-reduced-motion

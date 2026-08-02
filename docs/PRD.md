@@ -2225,9 +2225,10 @@ per frame (1.6s cycle) — the staged recommendation held on the look.
 - Shadow and filter are shared by both frames, so neither jumps.
 
 **Raster left alone, deliberately.** §27's open point assumed the 500x500 source
-was oversized for a ~200px display. Measured: 200 SVG units render at ~320 CSS px
-at 1920 wide, and ~852 device px at 2560 with HiDPI. The source is roughly
-correct and mildly *under*-sized on large high-DPI displays. **The right answer
+was oversized for a ~200px display. Measured: 200 SVG units × the figure's scale
+× the viewBox ratio is ≈384 CSS px at 1920 wide, and ≈1024 device px at 2560
+with HiDPI. The source is correct and mildly *under*-sized on large high-DPI
+displays. **The right answer
 to "optimise this" was "don't"** — §27 open point 2 is closed on that basis.
 
 Tests: 5 unit + 5 e2e (frames served, reduced-motion holds one frame, and the
@@ -3724,7 +3725,7 @@ the authority; this section keeps only what future work must not re-litigate.**
    spec files that had copies. `rectContains` stays in
    `e2e/interview.spec.js` — it only ever had one home.
 4. The character-swapped seam tests fold into a `ROUTE_CHARACTERS` loop
-   (`e2e/approach.spec.js:326`). **Decision recorded, so it isn't re-litigated
+   (`e2e/approach.spec.js:334`). **Decision recorded, so it isn't re-litigated
    as an oversight:** the "all three scene variants present" test stays
    **unlooped** — it doesn't depend on the character, so looping it would
    raise the suite count without adding signal.
@@ -3732,10 +3733,15 @@ the authority; this section keeps only what future work must not re-litigate.**
 ### Item 5 — CLOSED as not-debt (standing ruling — the trap is subtle, do not re-open it from the SVG markup alone)
 
 **Resizing the badger PNGs was wrong, and the error was in this sweep's own
-brief.** `Badger.astro`'s header comment (`:17-20`), dated 2026-07-26 — a week
-before this item existed — already computes the rendered footprint: ~320 CSS
-px at 1920×1080, and **up to ~852 device px at 2560 wide on a 2× display**.
-500×500 is roughly correct for that range, not oversized.
+brief.** The rendered footprint is 200 SVG units × the figure's own scale (1.2
+standard, 1.3 tall) × the viewBox-to-viewport ratio: ≈**384 CSS px** at 1920,
+768 device px at 2×, and ≈**1024 device px** at 2560 wide on a 2× display.
+500×500 is correct for that range and, at the top of it, arguably a little
+under-provisioned.
+
+`Badger.astro`'s own header had this wrong too — it omitted `fig.scale`, giving
+320 and 852 — and the first version of this ruling repeated those figures. Both
+are corrected. The conclusion never changed; only the margin, which widened.
 
 **The trap, spelled out so nobody re-derives the wrong answer from the same
 file:** `Badger.astro` sets `<image width="200">` — an SVG-unit attribute
@@ -3944,7 +3950,7 @@ clean sweep turns into an argument, and it would wreck d26's bisectability.
 
 Per CLAUDE.md's tracking rule (commits record changes, the PRD manages the
 work, comments explain code — nothing tracked twice). `grep -rn "PRD \|§"
-src/ e2e/ docs/` — measured 2026-08-02: **117 matches across 25 files**,
+src/ e2e/ docs/` — measured 2026-08-02: **116 matches across 25 files**,
 heaviest in `e2e/interview.spec.js`, `src/components/Stage.astro`,
 `src/scripts/stage.js`.
 

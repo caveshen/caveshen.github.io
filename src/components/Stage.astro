@@ -30,8 +30,7 @@ const root = tree.root;
 <div class="stage-frame">
 <div class="camera">
 
-<!-- PRD d12: scene markup lives once in Scene.astro; only variant + the
-     character(s) differ per call. -->
+<!-- Only the variant differs per call. -->
 <Scene variant="standard" character={Character} characterLabel={characterLabel} />
 <Scene variant="wide" character={Character} characterLabel={characterLabel} />
 <Scene variant="tall" character={Character} characterLabel={characterLabel} />

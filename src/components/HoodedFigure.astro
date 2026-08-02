@@ -60,7 +60,7 @@ const { x, y, scale = 1 } = Astro.props;
     <line x1="30"  y1="78" x2="24"  y2="82"/>
   </g>
 
-  <!-- ===== hood: a cowl with the head recessed inside ===== -->
+  <!-- hood: a cowl with the head recessed inside -->
   <!-- back drape (behind the head, gives the hood volume) -->
   <path d="M -45 48 Q -58 -10 -30 -26 Q 0 -38 30 -26 Q 58 -10 45 48 Q 38 42 30 42 L -30 42 Q -38 42 -45 48 Z"
         fill="#3f4560" stroke="#14151c" stroke-width="2.5" stroke-linejoin="round"/>
@@ -106,9 +106,8 @@ const { x, y, scale = 1 } = Astro.props;
     .sway { animation: none; }
   }
 
-  /* Night: plain brightness dim. Flat SVG fills need no grayscale/contrast
-     correction the way Badger's raster does (Badger.astro:40-47) — one
-     filter, one value (below) to retune. */
+  /* Night: brightness dim only — flat SVG fills need no grayscale/contrast
+     correction like Badger's raster; one filter, one value to retune. */
   :root:not([data-time="day"]) .hooded-figure {
     filter: brightness(0.8);
   }

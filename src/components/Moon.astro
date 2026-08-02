@@ -1,17 +1,10 @@
 ---
-// Moon.astro — the pale/cratered night moon, authored
-// ONCE and rendered into all three scene SVGs at variant-appropriate centres.
-// The 4 craters used to be hand-computed absolute coordinates redone by hand
-// per variant — they are now offsets from the moon's own centre, so nobody
-// ever redoes that arithmetic again.
-//
-// Radius is 95% of the sun's (Scene.astro's day-only `.f-cel`, r=50) — was
-// 46, now 47.5. Crater offsets and radii below are hand-placed art scaled by
-// the same 47.5/46 ratio so they stay proportionally where they were on the
-// smaller disc.
-//
-// Fills are CSS classes, not presentation attributes — var() does not resolve
-// inside SVG presentation attributes.
+// Moon.astro — the pale/cratered night moon, authored once, rendered into all
+// three scene SVGs at variant-appropriate centres. Crater offsets below are
+// relative to the moon's own centre, not absolute, so placement isn't redone
+// per variant. Radius is 95% of the sun's (Scene.astro's day-only `.f-cel`,
+// r=50); crater offsets/radii are scaled to match. Fills are CSS classes —
+// var() does not resolve inside SVG presentation attributes.
 
 interface Props {
   cx: number;

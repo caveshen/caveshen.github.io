@@ -23,7 +23,6 @@ const ogImageURL = new URL(ogImage, Astro.site).toString();
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <!-- Favicons -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -33,13 +32,11 @@ const ogImageURL = new URL(ogImage, Astro.site).toString();
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex" />}
     <link rel="canonical" href={canonicalURL} />
-    <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={ogImageURL} />
-    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
@@ -67,13 +64,10 @@ const ogImageURL = new URL(ogImage, Astro.site).toString();
     font-family: var(--serif);
     transition: var(--theme-transition);
     min-height: 100vh;
-    /* Without this, .stage-frame's own top margin collapses
-       through body (its first in-flow child, since the toggle button is
-       position:absolute), pushing body's whole box 1rem below the viewport
-       and, combined with min-height:100vh, causing a page-height overflow
-       that has nothing to do with actual content. flow-root establishes a
-       new block-formatting context so the margin stays inside body instead.
-       No visible effect at any breakpoint — verified by measurement. */
+    /* Without this, .stage-frame's margin collapses through body (its first
+       in-flow child — the toggle button is absolutely positioned), pushing
+       body 1rem below the viewport and causing overflow unrelated to content.
+       flow-root gives body its own block-formatting context to contain it. */
     display: flow-root;
   }
 </style>

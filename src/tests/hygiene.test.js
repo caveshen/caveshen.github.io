@@ -1,4 +1,4 @@
-// P3 Polish — unit tests (TDD: written before implementation)
+// Hygiene checks: static files, favicon, 404 page, badger assets, PLACEHOLDER scanner (TDD).
 import { describe, it, expect } from 'vitest';
 import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';

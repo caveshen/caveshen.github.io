@@ -1,11 +1,8 @@
 ---
-// Scene.astro — the scene backdrop, authored once, rendered per aspect
-// variant. Extracts what index.astro hand-authored three times
-// (standard/wide/tall); numbers that only ever differed by variant are
-// data tables here, not duplicated markup.
-//
-// The character arrives as a prop, not a slot — Astro slots take no props, and
-// per-variant placement (FIG below) must not be hand-tuned at the call site.
+// Scene.astro — the scene backdrop, rendered per aspect variant; numbers that
+// only differ by variant live in the VARIANT data table below, not duplicated
+// markup. Character arrives as a prop, not a slot — Astro slots take no props,
+// and per-variant placement (fig, below) can't be hand-tuned at the call site.
 import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
 import CityScape from './CityScape.astro';
 import Moon from './Moon.astro';
@@ -55,10 +52,8 @@ const VARIANT = {
     dayClouds: [
       [250, 140, 150, 22, 11, .85], [900, 105, 110, 20, 10, .7], [1480, 185, 130, 20, 10, .75],
     ],
-    // Wide shares Standard's camera height, so its sea/promenade/rail y-values
-    // are identical to Standard's below — kept as separate literals
-    // rather than a shared reference, since abstracting two variants out of a
-    // flat per-variant data table isn't worth it for three fields.
+    // Wide shares Standard's camera height, so sea/promenade/rail y-values match —
+    // kept as separate literals; not worth abstracting two variants for three fields.
     sea: { y: 480, height: 120 },
     moonReflection: [
       [1290, 502, 60, .35], [1305, 530, 34, .2], [1298, 556, 44, .14],
@@ -107,7 +102,7 @@ const ariaLabel = characterLabel
   <g class="f-star night-only">
     {v.stars.map(([cx, cy, r, o]) => <circle cx={cx} cy={cy} r={r} opacity={o} />)}
   </g>
-  <!-- moon (night) — pale and cratered, radius 95% of the sun's -->
+  <!-- moon (night) -->
   <g class="night-only">
     <Moon cx={v.celestial.cx} cy={v.celestial.cy} />
   </g>
@@ -119,7 +114,6 @@ const ariaLabel = characterLabel
   <CityScape camera={v.camera} />
   </g>
   <g class="fg-layer">
-  <!-- sea -->
   <rect class="f-sea" y={v.sea.y} width={v.width} height={v.sea.height} />
   <g class="f-moon night-only">
     {v.moonReflection.map(([x, y, w, o]) => <rect x={x} y={y} width={w} height="3" rx="1.5" opacity={o} />)}

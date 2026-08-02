@@ -1,5 +1,4 @@
-// Camera-maths unit tests — written BEFORE camera.js exists (TDD)
-// These test the pure computeCameraTransform function with no DOM.
+// Camera-maths unit tests (TDD, written before camera.js existed) — pure function, no DOM.
 import { describe, it, expect } from 'vitest';
 import { computeCameraTransform } from '../scripts/camera.js';
 
@@ -62,9 +61,8 @@ describe('computeCameraTransform', () => {
     expect(ty).toBeCloseTo(400 * 0.32 - 2.2 * 219.6, 1);
   });
 
-  // ── Optional faceTargetY ──────────────────────────────────────────────────
-  // Derives the framing target from the measured dialogue card instead of the
-  // hard-coded 0.32 constant, so the two can never drift apart again.
+  // faceTargetY: derives the framing target from the measured dialogue card
+  // instead of the hard-coded 0.32 constant, so the two can never drift apart.
 
   it('uses the explicit faceTargetY when provided, instead of stage.height * 0.32', () => {
     const stage  = { left: 0, top: 0, width: 1200, height: 400 };
@@ -86,10 +84,8 @@ describe('computeCameraTransform', () => {
     expect(withoutTarget.ty).toBeCloseTo(withTarget.ty, 5);
   });
 
-  // ── Follow-up: optional explicit faceY ────────────────────────────────────
-  // Lets the caller pass the measured .face-void centre directly instead of
-  // relying on the figure.height * 0.18 heuristic, so no correction term is
-  // needed to cancel the heuristic back out.
+  // faceY: lets the caller pass the measured .face-void centre directly instead
+  // of the figure.height * 0.18 heuristic, so no correction term is needed.
 
   it('uses the explicit faceY when provided, instead of the 0.18 heuristic', () => {
     const stage  = { left: 0, top: 0, width: 1200, height: 400 };

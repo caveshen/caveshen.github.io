@@ -10,7 +10,6 @@ import ThemeToggle from '../components/ThemeToggle.astro';
 
   <main class="sheet-wrap">
 
-    <!-- ── Nameplate banner ────────────────────────────────── -->
     <header class="nameplate">
       <nav class="sheet-nav">
         <a href="/" class="back-link">&#8592; Back to the interview</a>
@@ -38,7 +37,6 @@ import ThemeToggle from '../components/ThemeToggle.astro';
             <p class="label">Home Region</p>
           </div>
           <div class="id-field">
-            <!-- PLACEHOLDER: Caveshen's alignment flavour -->
             <p class="value">PLACEHOLDER</p>
             <p class="label">Alignment</p>
           </div>
@@ -50,10 +48,8 @@ import ThemeToggle from '../components/ThemeToggle.astro';
       </div>
     </header>
 
-    <!-- ── Main grid ───────────────────────────────────────── -->
     <div class="sheet-grid">
 
-      <!-- Left rail: ability scores -->
       <section class="abilities-col" aria-label="Ability scores">
         <!-- PLACEHOLDER: scores and wording; Caveshen to tune -->
         <div class="ability"><p class="ab-name">People</p><p class="ab-score">17</p><span class="ab-mod">+3</span></div>
@@ -64,10 +60,8 @@ import ThemeToggle from '../components/ThemeToggle.astro';
         <div class="ability"><p class="ab-name">Strategy</p><p class="ab-score">15</p><span class="ab-mod">+2</span></div>
       </section>
 
-      <!-- Middle column -->
       <div class="middle-col">
 
-        <!-- Skills panel -->
         <section class="panel" aria-labelledby="skills-caption">
           <ul class="skill-list">
             <!-- PLACEHOLDER: skills list; Caveshen to replace with real list -->
@@ -90,7 +84,6 @@ import ThemeToggle from '../components/ThemeToggle.astro';
           <p class="panel-caption" id="skills-caption">Skills</p>
         </section>
 
-        <!-- Spellbook panel -->
         <!-- spell tier assignments are Caveshen's to tune -->
         <section class="panel" aria-labelledby="spellbook-caption">
           <div class="spell-tier">
@@ -123,42 +116,35 @@ import ThemeToggle from '../components/ThemeToggle.astro';
 
       </div>
 
-      <!-- Right column -->
       <div class="right-col">
 
-        <!-- Quest Log panel -->
         <section class="panel" aria-labelledby="questlog-caption">
           <article class="quest">
             <h3>Engineering Manager &mdash; Derivco Cape Town</h3>
             <p class="q-meta">JUNE 2024 &mdash; PRESENT &middot; PLACEHOLDER</p>
-            <!-- PLACEHOLDER: flavour line in Caveshen's voice -->
             <p>PLACEHOLDER &mdash; <em>the current campaign.</em></p>
           </article>
           <article class="quest">
             <h3>Senior Software Engineer, Project Lead &mdash; Entelect</h3>
             <p class="q-meta">APRIL 2022 &mdash; MAY 2024 &middot; PLACEHOLDER</p>
-            <!-- PLACEHOLDER: flavour line -->
             <p>PLACEHOLDER &mdash; consulting arc; many parties, many dungeons.</p>
           </article>
           <article class="quest">
             <h3>Senior Software Developer (Technical Lead) &mdash; Derivco Durban</h3>
             <p class="q-meta">JANUARY 2015 &mdash; MARCH 2022 &middot; PLACEHOLDER</p>
-            <!-- PLACEHOLDER: flavour line; e.g. "Tester → Tech Lead — origin story" -->
+            <!-- e.g. "Tester → Tech Lead — origin story" -->
             <p>PLACEHOLDER &mdash; where the character was rolled.</p>
           </article>
           <article class="quest">
             <h3>Managing Editor &mdash; EGMR</h3>
             <p class="q-meta">FEBRUARY 2011 &mdash; DECEMBER 2015 &middot; PLACEHOLDER</p>
-            <!-- PLACEHOLDER: Caveshen writes the flavour line for the games-media arc -->
             <p>PLACEHOLDER &mdash; the games-media arc; column, podcasts, press badges.</p>
           </article>
           <p class="panel-caption" id="questlog-caption">Backstory &mdash; Quest Log</p>
         </section>
 
-        <!-- Features & Traits panel -->
         <section class="panel" aria-labelledby="feats-caption">
           <ul class="feat-list">
-            <!-- PLACEHOLDER: Education & Training; Caveshen to fill -->
             <li><span class="feat-mark">&#10022;</span><span class="feat-body"><strong>Bachelor of Commerce, Information Systems &amp; Technology</strong> &mdash; University of KwaZulu-Natal, Durban &middot; 2014.</span></li>
             <li><span class="feat-mark">&#10022;</span><span class="feat-body"><strong>Certified Tester, Foundation Level (ISTQB)</strong> &mdash; 2015.</span></li>
             <li><span class="feat-mark">&#10022;</span><span class="feat-body"><strong>PLACEHOLDER: Training</strong> &mdash; Crucial Conversations, Personal Mastery, Legitimate Leadership.</span></li>
@@ -169,7 +155,6 @@ import ThemeToggle from '../components/ThemeToggle.astro';
       </div>
     </div>
 
-    <!-- Contact footer -->
     <footer class="sheet-foot">
       <a href="https://www.linkedin.com/in/caveshen" class="contact-link">LinkedIn</a>
       <a href="https://github.com/caveshen" class="contact-link">GitHub</a>
@@ -200,7 +185,6 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     --option-border: rgba(46, 92, 150, 0.35);
   }
 
-  /* ── sheet wrapper ──────────────────────────────────────── */
   .sheet-wrap {
     max-width: 1080px;
     margin: 0 auto;
@@ -229,7 +213,6 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     padding-top: 1rem;
   }
 
-  /* ── nameplate banner ───────────────────────────────────── */
   .nameplate { margin-bottom: 1.25rem; }
 
   .sheet-nav {
@@ -318,7 +301,6 @@ import ThemeToggle from '../components/ThemeToggle.astro';
   }
   .xp-fill { width: 78%; height: 100%; background: var(--celestial); border-radius: 999px; }
 
-  /* ── main grid ──────────────────────────────────────────── */
   .sheet-grid {
     display: grid;
     grid-template-columns: 118px 1.2fr 1.4fr;
@@ -331,7 +313,6 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     gap: 1.4rem;
   }
 
-  /* ── ability scores rail ────────────────────────────────── */
   .abilities-col {
     display: flex;
     flex-direction: column;
@@ -379,7 +360,6 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     white-space: nowrap;
   }
 
-  /* ── skills ─────────────────────────────────────────────── */
   .skill-list {
     list-style: none;
     padding: 0;
@@ -418,7 +398,6 @@ import ThemeToggle from '../components/ThemeToggle.astro';
   }
   .key-dot { width: 7px; height: 7px; display: inline-block; vertical-align: middle; margin-right: 4px; }
 
-  /* ── spellbook ──────────────────────────────────────────── */
   .spell-tier { margin-bottom: 1.1rem; }
   .spell-tier.last-tier { margin-bottom: 0; }
   .tier-head {
@@ -450,7 +429,6 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     padding: 0.24rem 0.7rem;
     color: var(--text);
   }
-  /* ── quest log ──────────────────────────────────────────── */
   .quest {
     padding: 1rem 0;
     border-top: 1px solid var(--card-edge);
@@ -467,7 +445,6 @@ import ThemeToggle from '../components/ThemeToggle.astro';
   .quest p { font-size: 0.84rem; line-height: 1.6; color: var(--dim); }
   .quest p em { color: var(--text); font-style: italic; }
 
-  /* ── features & traits ──────────────────────────────────── */
   .feat-list {
     list-style: none;
     padding: 0;
@@ -542,7 +519,6 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     .middle-col .panel:last-child { flex: 1; }
   }
 
-  /* ── responsive ─────────────────────────────────────────── */
   @media (max-width: 900px) {
     .sheet-grid { grid-template-columns: 110px 1fr; }
     .right-col { grid-column: 1 / -1; }
@@ -556,7 +532,6 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     .ability { flex: 1 1 80px; }
   }
 
-  /* ── reduced motion ─────────────────────────────────────── */
   @media (prefers-reduced-motion: reduce) {
     .panel, .name-box, .id-grid, .ability,
     .back-link, .download-btn, .contact-link { transition: none; }

@@ -1,28 +1,13 @@
 ---
-// Badger.astro — commissioned Badger avatar. Real, ships.
-// Rights: commissioned, paid for, full rights (not the inspiration-only decal).
-// Source frames:
-//   up   — E:\Internet Downloads\Downloaded Pictures\BadgerUP.png → public/badger-up.png
-//   down — E:\Internet Downloads\Downloaded Pictures\BadgerDown.png → public/badger-down.png
-// XMP metadata checked on both frames: Adobe Photoshop tool/date/history, no PII.
-//
-// Same x/y/scale contract as HoodedFigure.astro: local y=196 is the ground/
-// shoe line, so callers pass the figure's own FIG anchors straight through —
-// same ground line, comparable height, no separate placement maths needed.
-//
-// Scene-matched treatment: grayscale + a touch of contrast/
-// darkening, darker again at night, so the detailed raster doesn't out-detail
-// the flat-silhouette world — never shipped full-colour.
-//
-// Raster size: the 200-unit image sits inside the figure's own scale (1.2
-// standard, 1.3 tall), then the viewBox-to-viewport ratio. At 1920 that is
-// 200 × 1.2 × 1.6 ≈ 384 CSS px, so 768 device px at 2×, and ≈1024 at 2560/2×.
-// Do not resize the 500×500 source down: 200 is SVG units, not pixels, and the
-// source is if anything under-provisioned at the top of that range.
-//
-// Two-frame idle animation: two frames swap on --badger-cadence (800ms per frame,
-// 1.6s full cycle). CSS only — works with JS disabled. prefers-reduced-motion
-// holds the up frame static.
+// Badger.astro — commissioned Badger avatar, full rights (not the inspiration-only decal).
+// Same x/y/scale contract as HoodedFigure.astro: local y=196 is the ground/shoe line, so
+// callers pass the figure's own FIG anchors straight through.
+// Treatment: grayscale + contrast, darker at night, so the raster doesn't out-detail the
+// flat-silhouette world.
+// Raster size: 200 is SVG units, not pixels — do not resize the 500×500 source down; it's
+// already tight at the top of the range (≈1024 device px at 2560/2×).
+// Two-frame idle: swaps on --badger-cadence (800ms/frame, 1.6s cycle), CSS-only;
+// prefers-reduced-motion holds the up frame.
 interface Props {
   x: number;
   y: number;
@@ -36,13 +21,11 @@ const { x, y, scale = 1 } = Astro.props;
   <!-- ground shadow — identical form to the hooded figure's own -->
   <ellipse cx="0" cy="196" rx="50" ry="11" fill="rgba(0,0,0,0.35)"/>
 
-  <!-- Two-frame idle: up frame on bottom, down frame on top.
-       CSS alternates which is visible; shadow and position are shared. -->
+  <!-- up painted first, down on top; CSS swaps opacity, shadow/position shared -->
   <image class="badger-image badger-up"   href="/badger-up.png"   x="-100" y="-4" width="200" height="200" />
   <image class="badger-image badger-down" href="/badger-down.png" x="-100" y="-4" width="200" height="200" />
 
-  <!-- invisible marker over the face, upper-centre — drives approach/zoom framing,
-       same mechanism as the hooded figure's .face-void -->
+  <!-- invisible marker over the face — drives approach/zoom framing, same as .face-void -->
   <rect class="face-void" x="-42" y="34" width="84" height="66" fill="transparent" />
 
 </g>
@@ -51,17 +34,14 @@ const { x, y, scale = 1 } = Astro.props;
   /* ponytail: --badger-cadence is the single timing constant; retunable here */
   :root { --badger-cadence: 800ms; }
 
-  /* Scene-matched filter shared by both frames */
   .badger-image {
     filter: grayscale(1) contrast(1.05) brightness(.95);
   }
-  /* Night: additionally darkened */
   :root:not([data-time="day"]) .badger-image {
     filter: grayscale(1) contrast(1.05) brightness(.95) brightness(.7);
   }
 
-  /* Two-frame swap: up shows first half of cycle, down shows second half.
-     steps(1, end) per interval = hard-cut, no cross-fade. */
+  /* up shows first half of cycle, down second half; steps(1, end) = hard-cut, no cross-fade */
   @keyframes badger-up {
     0%   { opacity: 1; animation-timing-function: steps(1, end); }
     50%  { opacity: 0; animation-timing-function: steps(1, end); }
@@ -76,7 +56,6 @@ const { x, y, scale = 1 } = Astro.props;
   .badger-up   { animation: badger-up   calc(var(--badger-cadence) * 2) linear infinite; }
   .badger-down { animation: badger-down calc(var(--badger-cadence) * 2) linear infinite; }
 
-  /* prefers-reduced-motion: hold the up frame only — no swap at all */
   @media (prefers-reduced-motion: reduce) {
     .badger-up   { animation: none; opacity: 1; }
     .badger-down { animation: none; opacity: 0; }

@@ -1,28 +1,12 @@
 import { initEngine } from './dialogue.js';
 import { computeCameraTransform } from './camera.js';
 
-// Two of Scene.astro's three variants are display:none at any given
-// viewport (only one matches the aspect-ratio media query) — this picks
-// the one actually laid out.
+// Two of Scene.astro's three variants are display:none at any given viewport
+// (only one matches the aspect-ratio media query) — this picks the laid-out one.
 const visibleOne = (selector) =>
   [...document.querySelectorAll(selector)].find((el) => el.getBoundingClientRect().width > 0);
 
-/**
- * Stage interaction — approach prompt, camera zoom, dialogue exit, ambient
- * banner plane, fullscreen toggle.
- * Extracted verbatim from index.astro's inline <script> — every DOM lookup
- * here is a generic selector (.js-character, .face-void, .camera,
- * .stage-frame, .card, #approach-prompt, #end-dialogue). Four values vary by
- * route overall — tree, character, characterLabel, promptLabel — but the
- * other three are markup concerns Stage.astro resolves before this ever
- * runs; this script only ever touches the tree, so it's initStage's one
- * parameter.
- * TS type-cast syntax (valid only in Astro's own <script> processing) is
- * stripped here to match this folder's plain-JS style (see camera.js,
- * dialogue.js) — erased at build time either way, so no behaviour change.
- *
- * @param {object} tree - dialogue JSON (see src/data/dialogue.json)
- */
+// Stage interaction — approach prompt, camera zoom, dialogue exit, banner plane, fullscreen toggle.
 export function initStage(tree) {
   const speechEl    = document.getElementById('speech');
   const directionEl = document.getElementById('stage'); // the italic stage-direction text, not the stage-frame
@@ -33,8 +17,6 @@ export function initStage(tree) {
   const approachBtn = document.getElementById('approach-prompt');
   const endDlgBtn   = document.getElementById('end-dialogue');
 
-  // ── Dialogue engine ───────────────────────────────────────────────────────
-
   const render = initEngine(
     tree,
     { speechEl, stageEl: directionEl, choicesEl },
@@ -44,18 +26,13 @@ export function initStage(tree) {
   // Initial render is immediate — static content is already in place from SSR.
   render('root', true);
 
-  // ── Progressive enhancement — reveal approach prompt ─────────────────────
-  // Card ships with [hidden] in the markup so it is never painted
-  // visible before this script runs. No assignment here; exit() re-arms it.
-  // Same reasoning — the fade's opacity:0 starting class is added
-  // here in JS only, never as a static .card rule, so the no-JS card (which
-  // never runs this script) stays fully visible.
+  // Card starts [hidden] in markup so no-JS visitors never see it; this script
+  // (progressive enhancement) unhides it and adds the entering-fade class here,
+  // never as a static .card rule, so a no-JS card stays fully visible.
   card.classList.add('card-entering');
   approachBtn.hidden = false;
 
-  // Position the prompt near the visible figure's measured location in screen space.
-  // Floats clear ABOVE the head with a gap (interaction-prompt
-  // convention), centred on the figure, clamped inside the stage frame.
+  // Clears above the head with a gap, centred on the figure, clamped inside the stage frame.
   function positionPrompt() {
     const figEl = visibleOne('.js-character');
     if (!figEl) return;
@@ -63,8 +40,8 @@ export function initStage(tree) {
     const fig = figEl.getBoundingClientRect();
     const GAP = 14; // clearance between the prompt and the head
 
-    // Centre horizontally on the figure first — the button's available width
-    // (and so its measured height, below) depends on this left offset.
+    // Centre horizontally first — the button's available width (and so its
+    // measured height, below) depends on this left offset.
     const left = (fig.left + fig.width / 2) - sf.left;
     approachBtn.style.left      = `${left}px`;
     approachBtn.style.right     = 'auto';
@@ -80,10 +57,9 @@ export function initStage(tree) {
       // sit beside the figure instead of pushing the prompt down onto it.
       top = Math.max(8, fig.top - sf.top);
       approachBtn.style.transform = 'none';
-      // This branch sets left/top directly (no
-      // translateX centring to absorb an edge overrun), so both must be
-      // clamped into the frame itself — a figure near the stage edge could
-      // otherwise push the prompt out of .stage-frame on any side.
+      // No translateX centring to absorb an edge overrun here, so left/top
+      // must be clamped into the frame — a figure near the edge could
+      // otherwise push the prompt out of .stage-frame.
       const btnWidth  = approachBtn.getBoundingClientRect().width;
       const wantsLeft = (fig.right - sf.left) + GAP;
       const left      = Math.min(Math.max(8, wantsLeft), Math.max(8, sf.width - btnWidth - 8));
@@ -95,17 +71,10 @@ export function initStage(tree) {
   positionPrompt();
   window.addEventListener('resize', positionPrompt, { passive: true });
 
-  // ── Camera zoom ───────────────────────────────────────────────────────────
-
-  // The shared 950ms/(0.16,1,.3,1) curve reads as a lurch-then-crawl
-  // on entry (it's ~97% done by half its duration) but reads correctly on
-  // exit (a fast departure that settles) — approved as-is, unchanged below.
-  // Entry gets its own curve, set inline only for the zoom-in transition, so
-  // it can differ from the exit without touching the shared CSS transition
-  // (the exit's authoritative source, so it can never drift from "unchanged").
-  // cubic-bezier(0.4, 0, 0.2, 1) is the Material "standard" ease-in-out — its
-  // first control point has y=0, so the curve starts from true rest (no
-  // first-frame jump) rather than the old curve's ~6x-speed launch.
+  // Entry uses its own inline curve rather than the shared CSS transition (the
+  // exit's authoritative, unchanged source) because the shared curve reads as a
+  // lurch-then-crawl on entry; cubic-bezier(0.4,0,0.2,1) starts from true rest,
+  // avoiding a first-frame jump.
   const ENTRY_TRANSITION = 'transform 550ms cubic-bezier(0.4, 0, 0.2, 1)';
   const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -115,41 +84,31 @@ export function initStage(tree) {
     if (approached) return;
     approached = true;
 
-    // Inline transition override for the entry only. Under
-    // reduced-motion we simply never set it, so the stylesheet's
-    // `transition: none` applies unopposed — there is no cascade contest.
-    // An inline style would outrank the media query and reinstate the zoom.
+    // Only set the inline override outside reduced-motion, so the stylesheet's
+    // `transition: none` applies unopposed there (an inline style would
+    // outrank the media query and reinstate the zoom).
     if (!reducedMotion()) camera.style.transition = ENTRY_TRANSITION;
 
-    // An in-flight banner plane bows out rather than freezing mid-sky.
     fadeOutPlane();
 
-    // Show card, hide prompt
     card.hidden    = false;
     endDlgBtn.hidden = false;
     approachBtn.hidden = true;
 
-    // Fade the card in, synced with the zoom above. Force a style
-    // flush before removing the entering class so the browser paints the
-    // opacity:0 starting frame — without it, both style changes could
-    // coalesce into one frame and the transition would never fire. Under
-    // reduced-motion the flush is a harmless no-op (the CSS `transition: none`
-    // catch-all makes the class removal instant), so no branch is needed.
+    // Force a style flush before removing the entering class so the browser
+    // paints the opacity:0 starting frame first — otherwise both style changes
+    // could coalesce into one frame and the transition would never fire.
     void card.offsetHeight; // force reflow
     card.classList.remove('card-entering');
 
-    // Measure the visible character and compute the camera transform.
     const figEl = visibleOne('.js-character');
     if (figEl) {
       const sf  = stageFrame.getBoundingClientRect();
       const fig = figEl.getBoundingClientRect();
       const scale = 2.2;
-      // Frame the face in the band between the top of the stage
-      // and the top of the (already-visible) card, derived from the measured
-      // card rather than a hard-coded constant, so the two cannot drift apart.
-      // Pass the measured .face-void centre directly as faceY, rather than
-      // relying on computeCameraTransform's built-in 18%-down-the-figure
-      // heuristic — no correction term needed.
+      // faceTargetY = mid-point between stage top and the measured card top
+      // (so the two can't drift apart); faceY = measured .face-void centre
+      // (no correction term needed against camera.js's default heuristic).
       const faceVoidEl = visibleOne('.face-void');
       const cardTop = card.getBoundingClientRect().top - sf.top;
       const faceTargetY = cardTop / 2;
@@ -160,7 +119,6 @@ export function initStage(tree) {
       camera.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
     }
 
-    // Focus the first dialogue option (SC5)
     const firstChoice = choicesEl.querySelector('button');
     firstChoice?.focus();
   }
@@ -169,36 +127,29 @@ export function initStage(tree) {
     if (!approached) return;
     approached = false;
 
-    // Clear the entry's inline transition override — this restores the
-    // stylesheet's own transition (unchanged, exit's authoritative source),
-    // whether or not reduced-motion is active.
+    // Clears the entry's inline override so the stylesheet's own transition
+    // (unchanged, exit's authoritative source) applies regardless of reduced-motion.
     camera.style.transition = '';
 
-    // Restore state
     card.hidden    = true;
-    // Re-arm the fade's entering state so a later re-approach
-    // fades in again instead of popping (a leftover opacity:1 from a prior
-    // fade would otherwise carry over, and mid-fade this also snaps the
-    // card's opacity/position cleanly back rather than leaving it stuck
-    // half-faded — hidden takes over the same tick so nothing is visible).
+    // Re-arm the entering class so a later re-approach fades in again instead
+    // of popping; also snaps a mid-fade card cleanly back rather than leaving
+    // it stuck half-faded, since hidden takes over the same tick.
     card.classList.add('card-entering');
     endDlgBtn.hidden = true;
     approachBtn.hidden = false;
     camera.style.transform = 'none';
 
-    // Return focus to the approach prompt (SC6)
     approachBtn.focus();
   }
 
-  // ── Ambient banner plane ──────────────────────────────────────────────────
-  // A rare flourish: a plane tows a "MAVERICKS" banner across the sky, only in
-  // the zoomed-out full scene. Gating is a live approached/reducedMotion() check
-  // at each scheduled tick (not a cancelled timer) — simplest way to guarantee
-  // only one timer chain ever runs, since schedulePlane() always clears the
-  // previous one before arming the next.
+  // A plane tows a "MAVERICKS" banner across the sky, zoomed-out scene only.
+  // Gating is a live approached/reducedMotion() check at each scheduled tick
+  // (not a cancelled timer) — schedulePlane() always clears the previous one
+  // before arming the next, so only one timer chain ever runs.
   const PLANE_FIRST_MS = 10_000;
   const PLANE_INTERVAL_MS = 120_000;
-  const PLANE_JITTER_MS = 30_000; // ± around the interval — "not a metronome"
+  const PLANE_JITTER_MS = 30_000; // ± around the interval — not a metronome
   const PLANE_FLIGHT_MS = 16_000; // knob: crossing speed
   let planeTimer;
   let planeEl = null;
@@ -210,8 +161,6 @@ export function initStage(tree) {
   }
 
   function flyPlane() {
-    // Re-checked live rather than at schedule time: approached()/reducedMotion()
-    // can change during the wait, and this is the only gate that matters.
     if (approached || reducedMotion()) {
       schedulePlane(nextPlaneDelay());
       return;
@@ -220,9 +169,7 @@ export function initStage(tree) {
     el.className = 'banner-plane';
     el.setAttribute('aria-hidden', 'true');
     el.style.animationDuration = `${PLANE_FLIGHT_MS}ms`;
-    // Banner trails behind (left, since flight is left-to-right) with the
-    // plane leading on the right. Copy is Caveshen's own ("MAVERICKS"), not
-    // placeholder.
+    // "MAVERICKS" is Caveshen's real copy, not a placeholder.
     el.innerHTML = `
       <span class="banner-rect">MAVERICKS</span>
       <span class="banner-tow"></span>
@@ -234,17 +181,15 @@ export function initStage(tree) {
     planeEl = el;
   }
 
-  // Natural end of a completed crossing: remove and reschedule.
   function endPlane() {
     planeEl?.remove();
     planeEl = null;
     schedulePlane(nextPlaneDelay());
   }
 
-  // Interrupted by approach: fade rather than freeze or hard-cut.
-  // Detaches the animationend listener first so the still-running
-  // flight animation can't also fire endPlane() once the fade has already
-  // rescheduled — that would double-run the timer chain.
+  // Interrupted by approach: fade rather than freeze or hard-cut. Detaches the
+  // animationend listener first so the still-running flight can't also fire
+  // endPlane() after the fade has already rescheduled (would double-run the timer).
   function fadeOutPlane() {
     if (!planeEl) return;
     const el = planeEl;
@@ -257,22 +202,18 @@ export function initStage(tree) {
 
   schedulePlane(PLANE_FIRST_MS);
 
-  // ── Fullscreen toggle ────────────────────────────────────────────────────
-  // Degrade honestly: only reveal the button if the API is actually usable —
-  // an unhidden-but-dead button is worse than no button. The stage itself
-  // (not <html>) is what goes fullscreen, so the approach prompt / card /
-  // this button — all descendants of .stage-frame — stay visible and
-  // operable while fullscreen (the Fullscreen API hides everything that
-  // isn't a descendant of the fullscreened element).
+  // Only reveal the button if the API is actually usable — an unhidden-but-dead
+  // button is worse than no button. The stage itself (not <html>) goes
+  // fullscreen, so the prompt/card/this button — all its descendants — stay
+  // visible and operable (the Fullscreen API hides non-descendants).
   const fsBtn = document.getElementById('fullscreen-toggle');
 
   if (document.fullscreenEnabled) {
     fsBtn.hidden = false;
 
-    // Four-corner brackets, hand-derived rather than swapping the whole SVG:
-    // ENTER has each bracket's vertex AT the box corner, arms reaching in;
-    // EXIT mirrors it — vertex pulled inward, arms reaching back out to the
-    // same points — the standard expand/compress pairing.
+    // Four-corner brackets, hand-derived: ENTER has each vertex at the box
+    // corner with arms reaching in; EXIT mirrors it (vertex pulled inward,
+    // arms reaching back out) — the standard expand/compress pairing.
     const ENTER_D = 'M4 9V4H9M15 4H20V9M20 15V20H15M9 20H4V15';
     const EXIT_D  = 'M4 9H9V4M20 9H15V4M20 15H15V20M4 15H9V20';
     const fsPath  = fsBtn.querySelector('path');
@@ -287,19 +228,15 @@ export function initStage(tree) {
       if (document.fullscreenElement === stageFrame) {
         document.exitFullscreen();
       } else {
-        // Refused/unavailable at click time (e.g. permission policy) — fail
-        // quietly rather than an unhandled rejection; the button simply
-        // stays in its current state, which fullscreenchange keeps honest.
+        // Fail quietly on refusal (e.g. permission policy) rather than an
+        // unhandled rejection; fullscreenchange keeps the button state honest.
         stageFrame.requestFullscreen().catch(() => {});
       }
     });
 
-    // Must stay correct when the user leaves fullscreen via Escape rather
-    // than the button — fullscreenchange covers both paths.
+    // Covers leaving fullscreen via Escape as well as the button.
     document.addEventListener('fullscreenchange', syncFullscreenButton);
   }
-
-  // ── Event wiring ─────────────────────────────────────────────────────────
 
   approachBtn.addEventListener('click', approach);
   endDlgBtn.addEventListener('click', exit);

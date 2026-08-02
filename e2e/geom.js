@@ -1,4 +1,4 @@
-// geom.js — rect-geometry helpers shared by interview.spec.js and not-found.spec.js.
+// geom.js — rect-geometry helpers shared across e2e specs.
 
 export function rectsIntersect(a, b) {
   return a.x < b.x + b.width && a.x + a.width > b.x &&

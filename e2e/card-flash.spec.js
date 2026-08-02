@@ -15,7 +15,6 @@ test('card never painted visible before JS hides it (cold-load flash)', async ({
   const ctx  = await browser.newContext();
   const page = await ctx.newPage();
 
-  // Poll every animation frame from document_start — before any page scripts.
   // Records true if .card is ever rendered with display != none, non-zero opacity,
   // and non-trivial height (the three conditions that constitute "on screen").
   await page.addInitScript(() => {
@@ -34,12 +33,10 @@ test('card never painted visible before JS hides it (cold-load flash)', async ({
     requestAnimationFrame(poll);
   });
 
-  // Throttle CPU 20× so module script execution lags well behind first paint.
   const cdp = await ctx.newCDPSession(page);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 20 });
 
-  // waitUntil:'load' ensures the init script has definitely run by the time we
-  // sample — so __cardFlashed captures the full pre-init window.
+  // waitUntil:'load' ensures __cardFlashed captures the full pre-init window.
   await page.goto('/', { waitUntil: 'load' });
 
   // Reset throttle before evaluate so the read is not itself throttled.

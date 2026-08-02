@@ -1,9 +1,7 @@
 ---
-// CityScape.astro — the world (landforms + city bowl + lit windows), authored ONCE
-// and rendered into all three scene SVGs (standard / wide / tall) at variant-appropriate
-// camera transforms (pan + uniform scale only — never a stretch).
-//
-// Fills are CSS classes, not presentation attributes — var() does not resolve inside SVG
+// CityScape.astro — the world (landforms + city bowl + lit windows), authored once,
+// rendered into all three scene SVGs at variant-appropriate camera transforms (pan +
+// scale only, never a stretch). Fills are CSS classes — var() doesn't resolve in SVG
 // presentation attributes.
 
 interface Props {
@@ -60,12 +58,11 @@ const windowStyle = (opacity: number, i: number) => {
   <!-- Devil's Peak — painted first so Table Mountain's own polygon
        overlaps and masks its right-flank descent into the saddle -->
   <polygon class="f-far" points="-80,352 70,93 200,124 240,352" />
-  <!-- Table Mountain -->
   <polygon class="f-far table-mountain"
            points="40,352 130,187 190,120 230,109 300,104 480,106 540,114 585,167 640,352" />
-  <!-- Lion's Head — moved 65 left, closing the gap to Table Mountain; apex softened -->
+  <!-- Lion's Head — closes the gap to Table Mountain, apex softened -->
   <polygon class="f-far" points="695,352 785,201 795,156 803,151 811,156 825,201 915,352" />
-  <!-- Signal Hill — moved 40 left so the chain stays linked -->
+  <!-- Signal Hill — keeps the mountain chain linked -->
   <polygon class="f-far" points="850,352 892,306 944,272 1000,260 1056,272 1108,306 1150,352" />
   <!-- warehouse fringe — low pitched-roof sheds, water tower, chimney; tapers off westward -->
   <g class="f-far">

@@ -72,7 +72,7 @@ the document body under their original `§` headings as history.
 | d26 | Cleanup sweep — four of five items built, one closed as not-debt | *new* | ✅ built 2026-08-02 — `daaafb9`; item 5 closed, replaced by lossless PNG recompression in `3f322ae` |
 | d27 | CI: tag pushes fire the deploy workflow | *new* | ✅ built 2026-08-02 — `daaafb9` |
 | d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | 🎨 proposed 2026-08-02 — staged/iterative, Stage 1 is a single day; no go |
-| d29 | Comment-citation sweep — repo-wide PRD/§ reference cleanup | *new* | 💭 proposed 2026-08-02 — split from d26; no go |
+| d29 | Comment sweep — repo-wide | *new* | ⏳ HALTED mid-item on `item/comment-sweep` — pass 1 done (`02d16cd`), pass 2 owed before PR |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -3942,7 +3942,41 @@ reaction to the one before it.**
 
 ---
 
-## d29. Comment-citation sweep — repo-wide PRD/§ reference cleanup
+## d29. Comment sweep — repo-wide
+
+**STATUS 2026-08-02, HALTED MID-ITEM. Pass 1 done (`02d16cd`), pass 2 owed
+before this branch opens a PR.** Branch `item/comment-sweep`, which also carries
+the fix for the deploy trigger d27 broke, and two standing rules now in
+`CLAUDE.md`. Build clean, vitest 65/65, Playwright 1521 passed / 7 skipped /
+0 failed.
+
+**Pass 1 removed the citations** — 116 across 27 files — plus `P4:` phase
+markers, `D`-numbered defect IDs and workshop-round history. d13 rode along:
+`Avatar.astro` is scoped, verified in the built CSS. Two reviews found no
+over-deletion; one lost guard was restored (`not-found.spec.js` — why no
+positive text assertion sits on the 404 stage), and two rewrites that had
+replaced a citation with an *invented fact* were corrected.
+
+**Pass 2 is owed, and it is the substantive one.** Pass 1 was driven by a grep
+for `PRD` and `§`, so it found citations and missed the actual bloat: verbose
+JSDoc restating signatures, prose describing fallbacks the next line already
+states, and review-round history (`"reviewer follow-up 1a"`). Measured
+comment-to-code ratios:
+
+| file | comment / total |
+|---|---|
+| `src/scripts/camera.js` | **24 / 35** |
+| `src/components/Badger.astro` | 32 / 84 |
+| `src/scripts/stage.js` | 113 / 313 |
+| `src/components/HoodedFigure.astro` | 24 / 115 |
+| `src/components/CityScape.astro` | 22 / 85 |
+
+Pass 2 reads **every comment in every file** — not a grep — and asks one
+question: does a competent reader learn something here the code does not tell
+them? Report ratios before and after. Same preservation rule as pass 1: the
+non-obvious *why* stays, in one clause rather than four.
+
+---
 
 Split out of d26 2026-08-02 (second pass, Caveshen's ruling): judgement-heavy
 work does not belong beside d26's mechanical dedupe — mixing the two is how a

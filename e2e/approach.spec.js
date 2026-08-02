@@ -6,6 +6,9 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/');
 });
 
+// SC2-SC7 parity: same behaviour is shared code, run on both routes.
+const ROUTES = ['/', '/404'];
+
 // ── SC2: card hidden on load, prompt visible and named ────────────────────────
 
 test('card not visible on load with JS', async ({ page }) => {
@@ -27,10 +30,13 @@ test('approaching shows the card', async ({ page }) => {
   await expect(page.locator('.card')).toBeVisible();
 });
 
-test('approaching hides the prompt', async ({ page }) => {
-  await page.locator('#approach-prompt').click();
-  await expect(page.locator('#approach-prompt')).not.toBeVisible();
-});
+for (const route of ROUTES) {
+  test(`approaching hides the prompt — ${route}`, async ({ page }) => {
+    await page.goto(route);
+    await page.locator('#approach-prompt').click();
+    await expect(page.locator('#approach-prompt')).not.toBeVisible();
+  });
+}
 
 test('approaching applies a non-identity camera transform', async ({ page }) => {
   await page.locator('#approach-prompt').click();
@@ -44,63 +50,77 @@ test('approaching applies a non-identity camera transform', async ({ page }) => 
 
 // ── SC4: prompt reachable by Tab; activates with Enter and Space ──────────────
 
-test('approach prompt is reachable by Tab from the toggle', async ({ page }) => {
-  await page.keyboard.press('Tab'); // theme toggle
-  await page.keyboard.press('Tab'); // approach prompt
-  await expect(page.locator('#approach-prompt')).toBeFocused();
-});
+for (const route of ROUTES) {
+  test(`approach prompt is reachable by Tab from the toggle — ${route}`, async ({ page }) => {
+    await page.goto(route);
+    await page.keyboard.press('Tab'); // theme toggle
+    await page.keyboard.press('Tab'); // approach prompt
+    await expect(page.locator('#approach-prompt')).toBeFocused();
+  });
 
-test('approach prompt activates with Enter', async ({ page }) => {
-  await page.keyboard.press('Tab');
-  await page.keyboard.press('Tab');
-  await page.keyboard.press('Enter');
-  await expect(page.locator('.card')).toBeVisible();
-});
+  test(`approach prompt activates with Enter — ${route}`, async ({ page }) => {
+    await page.goto(route);
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Enter');
+    await expect(page.locator('.card')).toBeVisible();
+  });
 
-test('approach prompt activates with Space', async ({ page }) => {
-  await page.keyboard.press('Tab');
-  await page.keyboard.press('Tab');
-  await page.keyboard.press('Space');
-  await expect(page.locator('.card')).toBeVisible();
-});
+  test(`approach prompt activates with Space — ${route}`, async ({ page }) => {
+    await page.goto(route);
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Space');
+    await expect(page.locator('.card')).toBeVisible();
+  });
+}
 
 // ── SC5: focus lands on first dialogue option after approach ──────────────────
 
-test('focus lands on first dialogue option after approaching', async ({ page }) => {
-  await page.locator('#approach-prompt').click();
-  await expect(page.locator('#choices button').first()).toBeFocused();
-});
+for (const route of ROUTES) {
+  test(`focus lands on first dialogue option after approaching — ${route}`, async ({ page }) => {
+    await page.goto(route);
+    await page.locator('#approach-prompt').click();
+    await expect(page.locator('#choices button').first()).toBeFocused();
+  });
+}
 
 // ── SC6: exits restore state, prompt re-focused ───────────────────────────────
 
-test('end-dialogue button hides card and restores prompt', async ({ page }) => {
-  await page.locator('#approach-prompt').click();
-  await page.locator('#end-dialogue').click();
-  await expect(page.locator('.card')).not.toBeVisible();
-  await expect(page.locator('#approach-prompt')).toBeVisible();
-  await expect(page.locator('#approach-prompt')).toBeFocused();
-});
+for (const route of ROUTES) {
+  test(`end-dialogue button hides card and restores prompt — ${route}`, async ({ page }) => {
+    await page.goto(route);
+    await page.locator('#approach-prompt').click();
+    await page.locator('#end-dialogue').click();
+    await expect(page.locator('.card')).not.toBeVisible();
+    await expect(page.locator('#approach-prompt')).toBeVisible();
+    await expect(page.locator('#approach-prompt')).toBeFocused();
+  });
 
-test('end-dialogue button resets camera to identity', async ({ page }) => {
-  await page.locator('#approach-prompt').click();
-  await page.locator('#end-dialogue').click();
-  // Check the inline style directly — exit() sets camera.style.transform = 'none'
-  const transform = await page.locator('.camera').evaluate((el) => el.style.transform);
-  expect(transform).toBe('none');
-});
+  test(`end-dialogue button resets camera to identity — ${route}`, async ({ page }) => {
+    await page.goto(route);
+    await page.locator('#approach-prompt').click();
+    await page.locator('#end-dialogue').click();
+    // Check the inline style directly — exit() sets camera.style.transform = 'none'
+    const transform = await page.locator('.camera').evaluate((el) => el.style.transform);
+    expect(transform).toBe('none');
+  });
 
-test('Escape exits dialogue and hides card', async ({ page }) => {
-  await page.locator('#approach-prompt').click();
-  await page.keyboard.press('Escape');
-  await expect(page.locator('.card')).not.toBeVisible();
-  await expect(page.locator('#approach-prompt')).toBeVisible();
-});
+  test(`Escape exits dialogue and hides card — ${route}`, async ({ page }) => {
+    await page.goto(route);
+    await page.locator('#approach-prompt').click();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.card')).not.toBeVisible();
+    await expect(page.locator('#approach-prompt')).toBeVisible();
+  });
 
-test('Escape returns focus to approach prompt', async ({ page }) => {
-  await page.locator('#approach-prompt').click();
-  await page.keyboard.press('Escape');
-  await expect(page.locator('#approach-prompt')).toBeFocused();
-});
+  test(`Escape returns focus to approach prompt — ${route}`, async ({ page }) => {
+    await page.goto(route);
+    await page.locator('#approach-prompt').click();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#approach-prompt')).toBeFocused();
+  });
+}
 
 // ── SC7: prefers-reduced-motion — camera jump-cuts (transition-duration 0s) ───
 
@@ -142,17 +162,20 @@ test('reduced motion: card fade is disabled, card is immediately full opacity', 
   await expect(page.locator('.card')).toHaveCSS('opacity', '1');
 });
 
-test('exiting mid-approach resets the fade so a re-approach fades in cleanly (PRD §28 AC4)', async ({ page }) => {
-  await page.locator('#approach-prompt').click();
-  await page.keyboard.press('Escape');
-  await page.locator('#approach-prompt').click();
-  // Sampled immediately after the second click, before the fade's transition
-  // delay elapses — if exit() failed to reset the entering state, the card
-  // would already be sitting at full opacity here (no fade left to observe).
-  const opacity = await page.locator('.card').evaluate((el) => window.getComputedStyle(el).opacity);
-  expect(parseFloat(opacity)).toBeLessThan(1);
-  await expect(page.locator('.card')).toHaveCSS('opacity', '1');
-});
+for (const route of ROUTES) {
+  test(`exiting mid-approach resets the fade so a re-approach fades in cleanly — ${route}`, async ({ page }) => {
+    await page.goto(route);
+    await page.locator('#approach-prompt').click();
+    await page.keyboard.press('Escape');
+    await page.locator('#approach-prompt').click();
+    // Sampled immediately after the second click, before the fade's transition
+    // delay elapses — if exit() failed to reset the entering state, the card
+    // would already be sitting at full opacity here (no fade left to observe).
+    const opacity = await page.locator('.card').evaluate((el) => window.getComputedStyle(el).opacity);
+    expect(parseFloat(opacity)).toBeLessThan(1);
+    await expect(page.locator('.card')).toHaveCSS('opacity', '1');
+  });
+}
 
 test('no-JS: card is fully opaque, not stuck at the fade\'s starting opacity', async ({ browser }) => {
   const ctx  = await browser.newContext({ javaScriptEnabled: false });
@@ -160,23 +183,6 @@ test('no-JS: card is fully opaque, not stuck at the fade\'s starting opacity', a
   await page.goto('/');
   await expect(page.locator('.card')).toHaveCSS('opacity', '1');
   await ctx.close();
-});
-
-// ── SC8: figure fills are theme-independent ───────────────────────────────────
-
-test('figure fill colours are unchanged by day/night toggle', async ({ page }) => {
-  await page.setViewportSize({ width: 1920, height: 1080 });
-  await page.goto('/');
-  // Night is default — get fill of the jeans path (literal #2b2f3f, never themed)
-  const getNightFill = () =>
-    page.locator('.scene-standard .hooded-figure path').first()
-      .getAttribute('fill');
-  const nightFill = await getNightFill();
-  await page.locator('#toggle').click(); // switch to day
-  const dayFill = await page.locator('.scene-standard .hooded-figure path').first()
-    .getAttribute('fill');
-  expect(nightFill).toBe(dayFill);
-  expect(nightFill).toBeTruthy(); // must have a literal colour, not null
 });
 
 // ── SC10: no-JS path — card visible, /sheet reachable ────────────────────────
@@ -205,6 +211,22 @@ test('no-JS: end-dialogue button is not visible', async ({ browser }) => {
   await page.goto('/');
   await expect(page.locator('#end-dialogue')).not.toBeVisible();
   await ctx.close();
+});
+
+// ── Card stays on-screen on a short viewport (mirrors not-found.spec.js) ────
+
+test('the card stays fully on-screen on a short viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 360 });
+  await page.goto('/');
+  await page.locator('#approach-prompt').click();
+  await expect(async () => {
+    const card = await page.locator('.card').boundingBox();
+    const viewport = page.viewportSize();
+    expect(card.x).toBeGreaterThanOrEqual(0);
+    expect(card.y).toBeGreaterThanOrEqual(0);
+    expect(card.x + card.width).toBeLessThanOrEqual(viewport.width);
+    expect(card.y + card.height).toBeLessThanOrEqual(viewport.height);
+  }).toPass();
 });
 
 // ── Regression: one world, three cameras (PRD §14) ─────────────────────────
@@ -307,7 +329,7 @@ test('each scene has a bg-layer (containing the mountain) and fg-layer (containi
   for (const variant of ['scene-standard', 'scene-wide', 'scene-tall']) {
     await expect(page.locator(`.${variant} .bg-layer .table-mountain`)).toHaveCount(1);
     await expect(page.locator(`.${variant} .fg-layer .f-sea`)).toHaveCount(1);
-    await expect(page.locator(`.${variant} .fg-layer .hooded-figure`)).toHaveCount(1);
+    await expect(page.locator(`.${variant} .fg-layer .badger-figure`)).toHaveCount(1);
   }
 });
 

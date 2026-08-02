@@ -234,7 +234,7 @@ function rectContains(outer, inner) {
          inner.y + inner.height <= outer.y + outer.height;
 }
 
-// Several .hooded-figure / .face-void copies exist (one per scene variant) —
+// Several .js-character / .face-void copies exist (one per scene variant) —
 // only the one in the visible scene has a non-zero box. Mirrors the lookup
 // index.astro's own script already does.
 async function visibleRect(page, selector) {
@@ -255,7 +255,7 @@ for (const vp of [
     await page.setViewportSize({ width: vp.width, height: vp.height });
     await page.goto('/');
     const promptBox = await page.locator('#approach-prompt').boundingBox();
-    const figureBox = await visibleRect(page, '.hooded-figure');
+    const figureBox = await visibleRect(page, '.js-character');
     const frameBox  = await page.locator('.stage-frame').boundingBox();
     expect(rectsIntersect(promptBox, figureBox)).toBe(false);
     // The clamp must not push the prompt out of the scene.
@@ -399,7 +399,7 @@ for (const vp of [
     await page.setViewportSize({ width: vp.width, height: vp.height });
     await page.goto('/');
     const viewport = { x: 0, y: 0, width: vp.width, height: vp.height };
-    const figureBox = await visibleRect(page, '.hooded-figure');
+    const figureBox = await visibleRect(page, '.js-character');
     expect(rectContains(viewport, figureBox)).toBe(true);
 
     await page.locator('#approach-prompt').click();
@@ -528,7 +528,7 @@ for (const vp of [
     await page.setViewportSize({ width: vp.width, height: vp.height });
     await page.goto('/');
     const btnBox = await page.locator('#fullscreen-toggle').boundingBox();
-    const figureBox = await visibleRect(page, '.hooded-figure');
+    const figureBox = await visibleRect(page, '.js-character');
     expect(rectsIntersect(btnBox, figureBox)).toBe(false);
     const promptBox = await page.locator('#approach-prompt').boundingBox();
     expect(rectsIntersect(btnBox, promptBox)).toBe(false);

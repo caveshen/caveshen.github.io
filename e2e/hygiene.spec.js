@@ -9,6 +9,7 @@ test('404 page: navigating to unknown route returns a page with a way home', asy
   // PRD d1 (was §30 D-4): the way home is a dialogue system option (a button that
   // navigates via isPath()), not a plain anchor — the anchor only exists in
   // the no-JS noscript fallback (see the JS-disabled test below).
+  await page.locator('#approach-prompt').click();
   await expect(page.locator('.choices button.system')).toBeVisible();
 });
 

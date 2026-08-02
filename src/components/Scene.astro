@@ -4,12 +4,8 @@
 // (standard/wide/tall); numbers that only ever differed by variant are data
 // tables here, not duplicated markup.
 //
-// The character(s) arrive as a prop, not a slot — Astro slots take no props,
-// and per-variant placement (FIG below) is exactly what must stop being
-// hand-tuned at the call site. Takes an array (required) so the still-live
-// INTERIM-TOGGLE scaffold (PRD d17, not yet built) can keep rendering both
-// the hooded figure and the Badger until d17 replaces it with a single
-// selection.
+// Characters arrive as a prop, not a slot — Astro slots take no props, and
+// per-variant placement (FIG below) must not be hand-tuned at the call site.
 import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
 import CityScape from './CityScape.astro';
 import Moon from './Moon.astro';
@@ -145,11 +141,7 @@ const ariaLabel = characterLabel
 </svg>
 
 <style>
-  /* Variant-switching (PRD d12, moved from index.astro): only callers that
-     render more than one variant at once (today, only /) need this; it lives
-     with the component that owns the variants rather than with any one
-     caller. Astro's scoped-style hash is shared by every <Scene> instance,
-     so this reaches all three regardless of how many callers there are. */
+  /* Shared once here, not duplicated per caller. */
   .scene-wide, .scene-tall { display: none; }
   @media (min-aspect-ratio: 15/8) {
     .scene-standard { display: none; }

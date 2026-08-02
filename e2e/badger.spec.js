@@ -1,10 +1,4 @@
-// PRD d17 (was §27) — Badger avatar + interim character toggle.
-// INTERIM-TOGGLE: this file tests the manual toggle scaffold, which ships
-// to the public (PRD d8, was §31 first slice + §30 D-6, discarded the
-// dev-only gate 2026-07-31) and stays until PRD d17's real figure-vs-Badger
-// selection mechanism lands. These are real, passing tests — not
-// scaffolding to delete — though some assertions may fold into a permanent
-// Badger-rendering test once d17 replaces the toggle.
+// The Badger owns `/` — no selection mechanism, the route is the selector.
 import { test, expect } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
@@ -12,50 +6,30 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/');
 });
 
-// ── Default: hooded figure only ────────────────────────────────────────────
+// ── Default: Badger only ────────────────────────────────────────────────────
 
-test('default: hooded figure visible, Badger absent', async ({ page }) => {
-  await expect(page.locator('.scene-standard .hooded-figure')).toBeVisible();
-  await expect(page.locator('.scene-standard .badger-figure')).not.toBeVisible();
-  await expect(page.locator('html')).not.toHaveAttribute('data-character', 'badger');
-});
-
-// ── Toggle flips the on-stage character, and back ──────────────────────────
-
-test('character toggle switches to Badger: figure hidden, Badger shown', async ({ page }) => {
-  await page.locator('#character-toggle').click();
-  await expect(page.locator('html')).toHaveAttribute('data-character', 'badger');
+test('default: Badger visible, hooded figure absent', async ({ page }) => {
   await expect(page.locator('.scene-standard .badger-figure')).toBeVisible();
   await expect(page.locator('.scene-standard .hooded-figure')).not.toBeVisible();
 });
 
-test('character toggle switches back to the hooded figure', async ({ page }) => {
-  await page.locator('#character-toggle').click();
-  await page.locator('#character-toggle').click();
-  await expect(page.locator('.scene-standard .hooded-figure')).toBeVisible();
-  await expect(page.locator('.scene-standard .badger-figure')).not.toBeVisible();
-});
+// ── Approach/zoom framing works for the Badger ──────────────────────────────
 
-// ── Approach/zoom framing works for the Badger, not just the figure ────────
-
-test('with Badger active, approach applies a non-identity camera transform (not a no-op zoom)', async ({ page }) => {
-  await page.locator('#character-toggle').click();
+test('approach applies a non-identity camera transform (not a no-op zoom)', async ({ page }) => {
   await page.locator('#approach-prompt').click();
   const transform = await page.locator('.camera').evaluate((el) => el.style.transform);
   expect(transform).not.toBe('');
   expect(transform).not.toBe('none');
 });
 
-test('with Badger active, the approach prompt sits above the Badger (its face-void), not the hidden figure', async ({ page }) => {
-  await page.locator('#character-toggle').click();
+test('the approach prompt sits above the Badger', async ({ page }) => {
   const promptBox = await page.locator('#approach-prompt').boundingBox();
   const badgerBox = await page.locator('.scene-standard .badger-figure').boundingBox();
   // "Above" per PRD §15 D1 convention: prompt's bottom edge clears the top of the character.
   expect(promptBox.y + promptBox.height).toBeLessThanOrEqual(badgerBox.y + 5);
 });
 
-test('with Badger active, approach frames the Badger face-void, not the figure face-void', async ({ page }) => {
-  await page.locator('#character-toggle').click();
+test('approach frames the Badger face-void', async ({ page }) => {
   await page.locator('#approach-prompt').click();
   // The visible face-void (badger's) must have a non-zero box — proves the
   // camera math had a real anchor to compute from, not a hidden/zero-size one.
@@ -68,14 +42,14 @@ test('with Badger active, approach frames the Badger face-void, not the figure f
   expect(faceBox.height).toBeGreaterThan(0);
 });
 
-// ── No-JS: figure only, no toggle, no Badger ────────────────────────────────
+// ── No-JS: Badger only, structural default ──────────────────────────────────
 
-test('no-JS: hooded figure visible, Badger absent, no character toggle rendered active', async ({ browser }) => {
+test('no-JS: Badger visible, hooded figure absent', async ({ browser }) => {
   const ctx = await browser.newContext({ javaScriptEnabled: false });
   const page = await ctx.newPage();
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto('/');
-  await expect(page.locator('.scene-standard .hooded-figure')).toBeVisible();
-  await expect(page.locator('.scene-standard .badger-figure')).not.toBeVisible();
+  await expect(page.locator('.scene-standard .badger-figure')).toBeVisible();
+  await expect(page.locator('.scene-standard .hooded-figure')).not.toBeVisible();
   await ctx.close();
 });

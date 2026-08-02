@@ -2,22 +2,11 @@
 import Base from '../layouts/Base.astro';
 import ThemeToggle from '../components/ThemeToggle.astro';
 import Stage from '../components/Stage.astro';
-import HoodedFigure from '../components/HoodedFigure.astro';
-// INTERIM-TOGGLE (PRD d17, was §27 remainder): this import and Badger's
-// presence in CHARACTERS below are part of the manual character-toggle
-// scaffold (button/script further down; the CSS that makes the toggle
-// visible now lives in Stage.astro — see its comment). PRD d8 (was §31
-// first slice + §30 D-6) discarded the dev-only gate on 2026-07-31, so this
-// ships to the public and stays until PRD d17's real figure-vs-Badger
-// selection mechanism replaces it. ponytail: shipping the manual toggle
-// rather than building that mechanism now — upgrade when d17 lands.
 import Badger from '../components/Badger.astro';
 import tree from '../data/dialogue.json';
 
-// PRD d12: both characters render into every variant (the CSS toggle
-// picks between them); Scene.astro places whichever is visible.
-const CHARACTERS = [HoodedFigure, Badger];
-const CHARACTER_LABEL = 'a hooded figure on the promenade';
+const CHARACTERS = [Badger];
+const CHARACTER_LABEL = 'the Badger';
 ---
 <Base
   title="The Interview — Caveshen Rajman"
@@ -31,69 +20,14 @@ const CHARACTER_LABEL = 'a hooded figure on the promenade';
        four values that vary by route — the noscript note below is the one
        genuine markup difference, so it's a slot rather than a fifth prop. -->
   <Stage tree={tree} characters={CHARACTERS} characterLabel={CHARACTER_LABEL}
-    promptLabel="PLACEHOLDER: Approach the hooded figure">
+    promptLabel="Approach the badger">
     <noscript>
       <p class="noscript-note">
         <a href="/sheet">Open the character sheet &rarr;</a>
       </p>
     </noscript>
   </Stage>
-
-  <!-- INTERIM-TOGGLE (PRD d17, was §27 remainder): this button, its script,
-       the Badger import/CHARACTERS above, the visibility CSS in Stage.astro,
-       and e2e/badger.spec.js are the character-selection scaffold. PRD d8 (was
-       §31 first slice + §30 D-6) discarded the dev-only gate 2026-07-31, so
-       this now ships to the public — it is interim, not TEST-ONLY, and
-       stays until PRD d17's real figure-vs-Badger selection mechanism
-       replaces it. Default = hooded figure; no localStorage persistence
-       (kept minimal, unlike the theme toggle). Placed last in DOM (CSS
-       positions it beside the theme toggle regardless) so it doesn't shift
-       the toggle→approach-prompt tab order the existing P4 tests rely on.
-       ponytail: manual toggle instead of a real selection mechanism —
-       upgrade when d17 lands. -->
-  <button class="character-toggle" id="character-toggle" aria-label="Switch to Badger">badger</button>
-  <script>
-    const charToggle = document.getElementById('character-toggle') as HTMLButtonElement;
-    charToggle.addEventListener('click', () => {
-      const isBadger = document.documentElement.dataset.character === 'badger';
-      document.documentElement.dataset.character = isBadger ? 'figure' : 'badger';
-      charToggle.textContent = isBadger ? 'badger' : 'figure';
-      charToggle.setAttribute('aria-label', isBadger ? 'Switch to Badger' : 'Switch to hooded figure');
-      // Reuse the existing resize-driven positionPrompt() in
-      // src/scripts/stage.js so the approach prompt re-measures whichever
-      // character is now shown.
-      window.dispatchEvent(new Event('resize'));
-    });
-  </script>
-  <!-- /INTERIM-TOGGLE -->
 </Base>
-
-<style is:global>
-  /* INTERIM-TOGGLE (PRD d17, was §27 remainder): the button's own styling.
-     The visibility rules it flips via [data-character] on <html>
-     (.badger-figure/.hooded-figure) now live in Stage.astro instead — that's
-     what actually renders the characters, so the rules travel with it
-     rather than staying orphaned here (see Stage.astro's comment). This
-     block ships to the public (PRD d8, was §31 first slice + §30 D-6,
-     discarded the dev-only gate 2026-07-31) and stays until PRD d17's real
-     selection mechanism replaces it. */
-  .character-toggle {
-    position: absolute;
-    top: 1rem;
-    right: 7rem;
-    z-index: 1;
-    font-family: var(--mono);
-    font-size: 0.78rem;
-    letter-spacing: 0.08em;
-    color: var(--option);
-    background: var(--card);
-    border: 1.5px solid var(--option-border);
-    border-radius: 999px;
-    padding: 0.45rem 0.95rem;
-    cursor: pointer;
-  }
-  /* /INTERIM-TOGGLE */
-</style>
 
 <script>
   // PRD d25: the whole approach-interaction script now lives in stage.js —

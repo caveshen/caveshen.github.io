@@ -69,9 +69,10 @@ the document body under their original `§` headings as history.
 | d23 | Hosted site — `caveshen.com` + Cloudflare | *new* | ⏳ not started — **prerequisites met**: account created, API token held outside the repo, domain reserved |
 | d24 | The Badger on `/sheet` — character-select framing, outside the scene | *new* | 🎨 DESIGN STAGE — brief and his go outstanding; consider the `frontend-design` skill |
 | d25 | Shared stage component — extracting the approach interaction | *new* | ✅ built 2026-08-02 — `1254dad`, landed on the mainline as `732f5a6` (#3); pure refactor, byte-identical `dist/index.html`, zero `e2e/` files modified |
-| d26 | Cleanup sweep — triaged 2026-08-02: dead prop, duplicated test geometry, comment-citation sweep, Badger PNG resize | *new* | 💭 triaged — 6 items in scope, none built; no go |
+| d26 | Cleanup sweep — triaged: dead prop, duplicated test geometry, Badger PNG resize | *new* | 💭 triaged — 5 items in scope, none built; no go |
 | d27 | CI: tag pushes fire the deploy workflow | *new* | 💭 proposed 2026-08-02 — one-line fix (`tags-ignore: ['**']`); no go |
 | d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | 🎨 proposed 2026-08-02 — staged/iterative, Stage 1 is a single day; no go |
+| d29 | Comment-citation sweep — repo-wide PRD/§ reference cleanup | *new* | 💭 proposed 2026-08-02 — split from d26; no go |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -3705,11 +3706,13 @@ regression on `/` can be localised to one commit instead of argued about.
 
 ## d26. Cleanup sweep — triaged (was "the holding pen")
 
-*Triaged 2026-08-02. Six of the original seven deferrals stay in the sweep as
-real, bounded work; one closes here outright. No brief beyond this section, no
+*Triaged 2026-08-02, refined the same day: five of the original seven
+deferrals stay in this sweep as mechanical, bounded work; one closes here
+outright; the comment-citation sweep splits out to d29 — judgement-heavy work
+does not belong beside mechanical dedupe. No brief beyond this section, no
 go, no build.*
 
-### In scope — six items, do them in order, item 4 last
+### In scope — five items, do them in order, item 4 last
 
 1. **`Scene.astro`'s `characters` prop is speculative generality.** Both
    callers (`src/pages/index.astro:8`, `src/pages/404.astro:11`) pass a
@@ -3743,19 +3746,6 @@ go, no build.*
    (`Badger.astro:41-42`). Resize both to displayed size, together, in one
    commit — resizing only one desynchronises the two idle frames'
    registration (§29's animation needs both to stay aligned).
-6. **The repo-wide comment sweep**, per CLAUDE.md's tracking rule (commits
-   record changes, the PRD manages work, comments explain code — nothing
-   tracked twice). `grep -rn "PRD \|§" src/ e2e/ docs/` — measured
-   2026-08-02: **117 matches across 25 files**, heaviest in
-   `e2e/interview.spec.js`, `src/components/Stage.astro`,
-   `src/scripts/stage.js`. **Judgment per line, not a blind strip:** a
-   comment explaining *why* non-obvious code is the way it is stays; the
-   tracker citation and any history of deleted code goes. Flag anything
-   ambiguous rather than guessing.
-   **Ride-along, not required:** d13 (`Avatar.astro`'s needless `is:global`,
-   still open — see the d11–d14 section above) is the same kind of one-line
-   tidy in a file this sweep already touches. Fold it in if convenient; it
-   is not blocked on this sweep and may also ship alone.
 
 ### Closed here — was item 5 in the original seven, no action taken
 
@@ -3792,8 +3782,9 @@ of this, in either direction.
 document is **a manual browser check with a recorded date and method, or it is
 not claimed.** It is not a suite gate, and adding tooling is its own decision.
 
-**Status: 💭 triaged, no go, no build. Six items above are ready for a worker
-on Caveshen's go; item 4 last, so a suite-count regression is easy to bisect.**
+**Status: 💭 triaged, no go, no build. Five items above are ready for a
+worker on Caveshen's go; item 4 last, so a suite-count regression is easy to
+bisect.**
 
 ---
 
@@ -3838,7 +3829,7 @@ small, reversible commit, reviewed on local dev before the next stage starts
 (§2's draft-before-deploy rule) — a sequence of reactions, not one reveal, per
 his own framing of this as a moving target.
 
-### Diagnosis — grounded in the current code, three contributors
+### Diagnosis — grounded in the current code, four contributors
 
 1. **No parallax, anywhere.** `stage.js`'s `approach()` (`:161`) sets one
    `transform: translate() scale()` on the single `.camera` div
@@ -3861,10 +3852,46 @@ his own framing of this as a moving target.
    stars/moon → Devil's Peak → Table Mountain → Lion's Head → Signal Hill →
    warehouse fringe → buildings → windows: the right depth order. The
    flatness lives inside each layer (one flat colour), not in the layering.
+4. **No ground plane under the mountains or buildings — they meet the sea,
+   not land.** Checked directly: `CityScape.astro`'s landforms and building
+   `rect`s all share one baseline, local `y=352` (Table Mountain's polygon,
+   the `BUILDINGS` array). `Scene.astro` applies each variant's camera
+   translate/scale to that baseline, and in **all three variants** it lands
+   within a pixel of the sea rect's own top edge — standard/wide:
+   `translate(_,128)` puts `y=352` at screen `y=480`, exactly `sea.y`;
+   tall: `translate(-20,262) scale(0.62)` puts it at `y≈480.2` against
+   `sea.y=480`. That is not a coincidence of rounding, it is the authored
+   contract: **the city and the mountains are drawn to end exactly where
+   the water begins, with no beach, shelf or hillside between them.** The
+   one true ground plane in the scene — the `f-ground` rect, `Scene.astro`
+   `:130` — sits *in front of* the sea (e.g. standard `y=600`, below
+   `sea.y=480` + `height=120`), and is the foreground promenade the figure
+   stands on, not a base the city sits on. **Caveshen's read is correct,
+   and sharper than "no gradient": the mountains and buildings are not
+   resting on anything — they terminate directly into open water on a
+   hard line**, which is exactly why they read as stacked cutouts rather
+   than objects occupying a place.
 
 **Not a contributor, don't touch:** the "one world, three cameras" pan/scale-
 only rule (§14) is correct and load-bearing — it fixed a real shape-drift bug
 and stays exactly as is.
+
+### Noted for later — a ground plane under the city (not scheduled)
+
+Caveshen, on seeing the code confirm the above: a land/coastline plane the
+mountains and city could sit on is a real, larger step up in depth — he cited
+*Oblivion*'s sewer-exit vista (grassy knoll, water, the Imperial City receding
+into a bright hazy distance) for the **quality** he's after, not a literal
+scene to copy. **Cited for reference only — never traced, shipped, or
+committed; any media he supplies stays out of this repo.** Same standing
+constraint as everything else here: vectors and programmatic drawing only,
+no generated art.
+
+**Not scheduled — his words, "for now, note it, we'll revisit later."** The
+four stages above are unchanged and stand as approved; this is not a fifth
+stage and does not restage the path. If a ground/coastline plane is worked
+later it is a real design pass in its own right (new geometry, not a CSS
+tweak) and deserves its own `d` item when he's ready — left unopened here.
 
 ### Staged path — cheapest and highest-value first, each independently reactable
 
@@ -3921,5 +3948,32 @@ depth to fake. (Cross-referenced at d24 itself.)
 **Status: 🎨 proposed 2026-08-02 — no go, no build. Stage 1 is the recommended
 first move if he wants to see something soon; each later stage waits on his
 reaction to the one before it.**
+
+---
+
+## d29. Comment-citation sweep — repo-wide PRD/§ reference cleanup
+
+Split out of d26 2026-08-02 (second pass, Caveshen's ruling): judgement-heavy
+work does not belong beside d26's mechanical dedupe — mixing the two is how a
+clean sweep turns into an argument, and it would wreck d26's bisectability.
+
+Per CLAUDE.md's tracking rule (commits record changes, the PRD manages the
+work, comments explain code — nothing tracked twice). `grep -rn "PRD \|§"
+src/ e2e/ docs/` — measured 2026-08-02: **117 matches across 25 files**,
+heaviest in `e2e/interview.spec.js`, `src/components/Stage.astro`,
+`src/scripts/stage.js`.
+
+**Judgment per line, not a blind strip:** a comment explaining *why*
+non-obvious code is the way it is stays; the tracker citation and any
+history of deleted code goes. Flag anything ambiguous rather than guessing.
+
+**Rides along:** d13 (`Avatar.astro`'s needless `is:global`, still open —
+see the d11–d14 section) is the same kind of one-line tidy in a file this
+sweep already touches. Fold it in if convenient; it is not blocked on this
+and may also ship alone.
+
+**Status: 💭 proposed 2026-08-02 — no go, no build. Split from d26 on
+Caveshen's ruling; a worker taking this should not also be doing d26's
+mechanical items in the same commit.**
 
 ---

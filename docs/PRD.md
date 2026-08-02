@@ -71,7 +71,7 @@ the document body under their original `§` headings as history.
 | d25 | Shared stage component — extracting the approach interaction | *new* | ✅ built 2026-08-02 — `1254dad`, landed on the mainline as `732f5a6` (#3); pure refactor, byte-identical `dist/index.html`, zero `e2e/` files modified |
 | d26 | Cleanup sweep — four of five items built, one closed as not-debt | *new* | ✅ built 2026-08-02 — `daaafb9`; item 5 closed, replaced by lossless PNG recompression in `3f322ae` |
 | d27 | CI: tag pushes fire the deploy workflow | *new* | ✅ built 2026-08-02 — `daaafb9` |
-| d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | 🔨 in progress on `item/cityscape-depth` — Stages 1–3 built, Stage 1 approved; Stages 2–3 awaiting preview reaction, Stage 4 gated on its own go |
+| d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | 🔨 in progress on `item/cityscape-depth` — Stages 1–3 approved; Stage 5 (texture & detail, 5a–5e) in flight; Stage 4 gated on its own go |
 | d29 | Comment sweep — repo-wide | *new* | ✅ both passes done on `item/comment-sweep` (`02d16cd`, `03eba87`) — awaiting go to push + PR |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
@@ -3827,8 +3827,9 @@ depth (far things paler, sunk toward the sky's tone), and it should steer the
 gradient and distance-tone choices in Stages 2–3 in particular. Reference
 only — never traced, shipped, or committed.
 
-**STATUS 2026-08-02: Stages 1–3 built** on `item/cityscape-depth`; Stage 1
-approved on preview, Stages 2–3 awaiting Caveshen's reaction.
+**STATUS 2026-08-03: Stages 1–3 built and approved** on `item/cityscape-depth`
+(Caveshen on preview: *"I do like this... a step in the right direction...
+keep all of this!"*). Stage 5 raised from that same review — see below.
 - Stage 1 (`3527cca`, approved): `.bg-layer` counter-scales against the camera
   (`own = damped/cam`, damp 0.4, one `--parallax-damp` knob in `tokens.css`),
   anchored at the shared waterline (`y=480` in all three variants) so the
@@ -3840,9 +3841,38 @@ approved on preview, Stages 2–3 awaiting Caveshen's reaction.
 - Stage 3 (`97207d2`): third distance tone `--mountain-fringe` on the
   warehouse fringe (`f-fringe`), a flat fill blended further toward the sky.
 All tests proven red then green; suite 1545 passed / 7 skipped / 0 failed.
-Stage 4 (idle parallax) still gated on its own go after reaction to 1–3.
+Stage 4 (idle parallax) still gated on its own go.
 Also rode along with Stage 1: gitignored `screenshots/` folder is now the
 standing home for all screenshots (recipe updated in `CLAUDE.md`).
+
+### Stage 5 — texture & detail pass (Caveshen's review of Stages 1–3, 2026-08-03)
+
+His notes, verbatim in spirit: more "texture" on the promenade/road surface;
+the sun could use glow/bloom, the moon the same but slightly less; the
+mountains still look VERY flat, the buildings as well; the strange sky gap
+between Table Mountain and Lion's Head; Devil's Peak's peak should come down
+~2px. Direction confirmed — build on Stages 1–3, don't rework them.
+
+Sub-items, each its own small commit, in this order (geometry first — it's
+the cheapest and the facets must be cut against final ridgelines):
+
+- **5a. Geometry corrections** — close (or at least soften) the sky gap
+  between Table Mountain's massif and Lion's Head by raising the saddle;
+  lower Devil's Peak's apex ~2 SVG units. Check the approach-spec's Devil's
+  Peak proxy test before and after.
+- **5b. Celestial glow** — radial-gradient halo behind the sun; the moon gets
+  the same at roughly half strength. `radialGradient`, not `feGaussianBlur`
+  (deterministic cross-engine, cheaper). Variant-suffixed ids, CSS-classed
+  stops — same discipline Stage 2 established.
+- **5c. Mountain form** — subtle lit/shade facets (vector polygons, ≤2 extra
+  tones per massif) with the light source matching the celestial disc's
+  screen position; the flat-silhouette aesthetic must survive, so facets are
+  form-hints, not rendering.
+- **5d. Building form** — a darker side-face per building with one consistent
+  light direction, so the blocks read as volumes instead of rectangles.
+- **5e. Promenade texture** — paving seams/expansion joints at low opacity
+  plus a subtle depth gradient on the ground plane; texture that reads at a
+  glance as surface, not pattern.
 
 ### Diagnosis — grounded in the current code, four contributors
 

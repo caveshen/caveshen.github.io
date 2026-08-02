@@ -17,6 +17,16 @@ Note: Do not use it for tracking code changes, rather rely on the git history.
 - **No PII.** `cv.pdf` strips phone and email; contact is LinkedIn + the site itself.
   Verify with `pdftotext` after any CV re-render.
 - **Always follow TDD principles**: Vitest units + Playwright e2e across the device matrix. The suite gates CI deploy.
+- **Three tracking layers, one job each. Never duplicate across them.**
+  - *Git commits* record all changes. They are the durable account — if the PRD were
+    deleted, the history survives and only the forward plan is lost.
+  - *`docs/PRD.md`* manages the work: what is done, what is left. Not a changelog.
+  - *Comments* explain code that isn't easy to understand, or illustrate a chosen
+    direction. File headers state purpose simply, ≤100 characters as a guideline.
+
+  Never put in a comment: PRD item numbers, rulings, rationale belonging in the PRD, or
+  the history of deleted code. Never restate what the line below already says. Where a
+  PRD step asks for a ruling to be cited in a comment, this rule wins — reword the step.
 - **Never name a test file after a tracker ID.** Name it for what it tests. IDs get
   renumbered — that happened on 2026-07-27, leaving a file named for one item while a
   different item had taken that number. Subjects do not move. Current test files follow this:

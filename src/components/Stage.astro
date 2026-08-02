@@ -105,23 +105,6 @@ const root = tree.root;
 <p class="page-foot">PLACEHOLDER — attribution line. All copy is placeholder; the real script is Caveshen's to write.</p>
 
 <style is:global>
-  /* INTERIM-TOGGLE (PRD d17, was §27 remainder): moved here from index.astro
-     during d25's extraction (was reviewer-flagged as a latent trap otherwise
-     — see PRD d25's report). .hooded-figure/.badger-figure are classes on
-     the <g> elements HoodedFigure.astro/Badger.astro render (via the
-     `characters` prop above, through Scene.astro); these rules are what hide
-     all but one of them. If they stayed in index.astro, a future page
-     rendering <Stage> (PRD d17, `/404`) would show BOTH characters at once,
-     since nothing on that page would ship this CSS. Living here instead
-     means they travel with whatever renders <Stage>, always. The toggle
-     BUTTON and its own styling stay in index.astro — the button markup
-     itself is only rendered there — this is only the visibility rule the
-     button's script flips via [data-character] on <html>. Not a real
-     selection mechanism; stays until PRD d17 replaces it. */
-  .badger-figure { display: none; }
-  :root[data-character="badger"] .hooded-figure { display: none; }
-  :root[data-character="badger"] .badger-figure { display: block; }
-
   /* ── P4: stage-frame — a full-height stage, not a letterbox strip ─────────── */
   /* ponytail: stage-frame is position:relative which makes it a positioned element
      that stacks AFTER the toggle (which comes earlier in DOM), so stage-frame's
@@ -392,6 +375,8 @@ const root = tree.root;
     bottom: 3.5%;
     transform: translateX(-50%);
     width: min(600px, 88%);
+    max-height: calc(96.5svh - 1rem); /* short viewports: scroll */
+    overflow-y: auto;
     pointer-events: auto; /* re-enable: stage-frame has pointer-events:none */
     padding: 1.75rem 2rem 2rem;
     background: var(--card);

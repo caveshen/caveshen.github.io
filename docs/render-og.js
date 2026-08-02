@@ -45,7 +45,7 @@ const browser = await chromium.launch({ channel: 'msedge' });
       .scene-wide, .scene-tall { display: none !important; }
       /* Scenery only (Caveshen's ruling): no characters, no UI chrome. */
       .js-character, .card, #approach-prompt, #toggle, #fullscreen-toggle,
-      .banner-plane, #character-toggle, .page-foot { display: none !important; }
+      .banner-plane, .page-foot { display: none !important; }
     `,
   });
   await page.evaluate(() => {

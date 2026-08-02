@@ -63,9 +63,8 @@ describe('404 page', () => {
   });
 
   it('404.astro links back to / (home)', () => {
-    // PRD d1 (was §30 D-4): the home link lives in NotFound.astro's noscript fallback.
-    const notFound = readFileSync(join(root, 'src/components/NotFound.astro'), 'utf8');
-    expect(notFound).toContain('href="/"');
+    const page = readFileSync(join(root, 'src/pages/404.astro'), 'utf8');
+    expect(page).toContain('href="/"');
   });
 
   it('dialogue-404.json root node has a non-empty speech line and at least one option', () => {

@@ -1,5 +1,5 @@
 ---
-// Avatar.astro — the dialogue card's blinking placeholder avatar (PRD d2, was §33a).
+// Avatar.astro — the dialogue card's blinking placeholder avatar.
 // Add props if a caller ever needs placement/sizing.
 ---
 
@@ -14,7 +14,7 @@
   <rect x="18" y="14" width="28" height="16" rx="8" fill="var(--hair)" />
 </svg>
 
-<style is:global>
+<style>
   .avatar { flex: none; }
   .avatar circle, .avatar rect { transition: fill 0.4s ease; }
   .avatar .eyes {

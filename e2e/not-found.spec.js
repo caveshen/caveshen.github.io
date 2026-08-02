@@ -30,7 +30,7 @@ test('approaching the hooded figure shows the dialogue card', async ({ page }) =
 async function expectCardCentredAndOnScreen(page) {
   await approach(page);
   // Retry instead of guessing when the entrance transition (550ms) has
-  // settled (PRD d10) — a fixed sleep here races the real transition.
+  // settled — a fixed sleep here races the real transition.
   await expect(async () => {
     const card = await page.locator('.card').boundingBox();
     const viewport = page.viewportSize();
@@ -65,15 +65,13 @@ test('the 404 code is not rendered as a display number', async ({ page }) => {
   const stage = page.locator('.stage');
   await expect(stage).toBeVisible();
   // The old placeholder page's display number is gone — no separate element
-  // for it. (A toContainText('404') check used to sit here too, but that
-  // couples the assertion to root.stage's prose — the same failure mode d7
-  // exists to eliminate, just via a substring rather than the PLACEHOLDER
-  // literal. "404 is narrated, not displayed" has no copy-stable positive
-  // check available; this negative check is the load-bearing half.)
+  // for it. "404 is narrated, not displayed" has no copy-stable positive
+  // check available; this negative check is the load-bearing half. No
+  // positive text assertion here — it would couple the test to copy that changes.
   await expect(page.locator('.not-found-code')).toHaveCount(0);
 });
 
-// ── noindex ships (PRD d1 ANSWERED 6, was §30 D-4) ──────────────────────────
+// ── noindex ships ────────────────────────────────────────────────────────
 
 test('the 404 page is noindex', async ({ page }) => {
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex');

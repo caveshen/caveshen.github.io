@@ -1,4 +1,4 @@
-// PRD §15 D5 — card flash on cold load
+// Card flash on cold load
 // .card ships without [hidden] so it is display:block at first paint; the init
 // script sets card.hidden = true only after JS runs (module scripts are deferred).
 // On a warm load the gap is invisible; on a cold load it is a visible flash.
@@ -9,7 +9,7 @@
 // the flash. CDP is Chromium-only; the test skips on WebKit and Firefox.
 import { test, expect } from '@playwright/test';
 
-test('D5: card never painted visible before JS hides it (cold-load flash)', async ({ browser, browserName }) => {
+test('card never painted visible before JS hides it (cold-load flash)', async ({ browser, browserName }) => {
   test.skip(browserName !== 'chromium', 'Emulation.setCPUThrottlingRate requires Chromium');
 
   const ctx  = await browser.newContext();

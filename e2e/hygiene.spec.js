@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test';
 test('404 page: navigating to unknown route returns a page with a way home', async ({ page }) => {
   await page.goto('/this-does-not-exist', { waitUntil: 'domcontentloaded' });
   // The page should exist (GitHub Pages / Astro serves 404.html)
-  // PRD d1 (was §30 D-4): the way home is a dialogue system option (a button that
+  // The way home is a dialogue system option (a button that
   // navigates via isPath()), not a plain anchor — the anchor only exists in
   // the no-JS noscript fallback (see the JS-disabled test below).
   await page.locator('#approach-prompt').click();

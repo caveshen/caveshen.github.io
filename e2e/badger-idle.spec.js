@@ -1,4 +1,4 @@
-// PRD §29 — Badger two-frame idle animation.
+// Badger two-frame idle animation.
 // Covers the two suite-checkable assertions from the method note:
 //   1. Both frame images are served (HTTP 200, non-zero content).
 //   2. Under prefers-reduced-motion: reduce, the down frame has no animation.

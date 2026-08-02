@@ -1,14 +1,10 @@
 ---
 // CityScape.astro — the world (landforms + city bowl + lit windows), authored ONCE
 // and rendered into all three scene SVGs (standard / wide / tall) at variant-appropriate
-// camera transforms (pan + uniform scale only — never a stretch; PRD §14 "one world,
-// three cameras" ruling, which fixed the three-different-mountains bug).
-//
-// Ported verbatim from the approved restage mock (docs/PRD §14, 2026-07-21): Lion's Head
-// moved 65 left, Signal Hill 40 left, five extra buildings wrapping Table Mountain's foot.
+// camera transforms (pan + uniform scale only — never a stretch).
 //
 // Fills are CSS classes, not presentation attributes — var() does not resolve inside SVG
-// presentation attributes (PRD constraint).
+// presentation attributes.
 
 interface Props {
   camera: string; // e.g. "translate(0,128)" or "translate(-20,262) scale(0.62)"
@@ -23,17 +19,16 @@ const BUILDINGS: Array<[number, number, number, number]> = [
   [350, 225, 36, 127], [394, 282, 24, 70], [426, 198, 44, 154], [478, 249, 30, 103],
   [516, 220, 38, 132], [562, 276, 26, 76], [596, 236, 42, 116], [646, 263, 30, 89],
   [684, 217, 36, 135], [728, 279, 26, 73], [766, 268, 32, 84], [806, 287, 24, 65],
-  // industrial district (PRD §20 prototype) — harbour end, west of the mountain foot (x<40).
+  // industrial district — harbour end, west of the mountain foot (x<40).
   // Plain rects, same f-near language as the buildings: two portal cranes (legs/boom/cable/
-  // hook), two stepped container clusters. (Moored ship dropped in review pass 2 — didn't
-  // read at either theme, lightest touch was to cut it rather than rework it.)
+  // hook), two stepped container clusters.
   [-58, 330, 20, 22], [-36, 330, 20, 22], [-14, 330, 20, 22], [-49, 306, 20, 24], [-27, 306, 20, 24], [-40, 282, 20, 24], // containers, cluster 1 — taller stepped stack beside crane B
   [-118, 178, 7, 174], [-78, 178, 7, 174], [-140, 172, 110, 8], [-38, 180, 3, 50], [-44, 230, 15, 9], // crane B: legs, boom, cable, hook
   [-18, 168, 7, 184], [22, 168, 7, 184], [-42, 162, 110, 8], [60, 170, 3, 55], [54, 225, 15, 9], // crane A: legs, boom, cable, hook
   [-16, 330, 20, 22], [6, 330, 20, 22], [-7, 306, 20, 24], // containers, cluster 2 — taller stepped stack under crane A
 ];
 
-// Industrial district, warehouse-fringe half (PRD §20) — further west, lower and lighter
+// Industrial district, warehouse-fringe half — further west, lower and lighter
 // (f-far, like the mountains) so the density visibly recedes toward the frame edge.
 const INDUSTRIAL_FAR: Array<[number, number, number, number]> = [
   [-293, 336, 24, 16], // shed A body
@@ -51,7 +46,7 @@ const WINDOWS: Array<[number, number, number]> = [
   [198, 247, 0.85], [212, 276, 0.55], [274, 225, 0.9], [290, 260, 0.6], [298, 295, 0.75], [358, 241, 0.8],
   [372, 282, 0.5], [436, 214, 0.9], [452, 249, 0.65], [444, 303, 0.75], [486, 268, 0.55], [524, 236, 0.85],
   [540, 279, 0.6], [606, 252, 0.8], [620, 293, 0.5], [692, 233, 0.85], [706, 276, 0.6], [774, 284, 0.7],
-  // industrial fringe — sparse, dim: industry is darker than the city bowl (PRD §20)
+  // industrial fringe — sparse, dim: industry is darker than the city bowl
   [-195, 330, 0.35], [-160, 336, 0.3],
 ];
 const windowStyle = (opacity: number, i: number) => {
@@ -62,17 +57,17 @@ const windowStyle = (opacity: number, i: number) => {
 ---
 
 <g class="world" transform={camera}>
-  <!-- Devil's Peak (PRD §26) — painted first so Table Mountain's own polygon
+  <!-- Devil's Peak — painted first so Table Mountain's own polygon
        overlaps and masks its right-flank descent into the saddle -->
   <polygon class="f-far" points="-80,352 70,93 200,124 240,352" />
   <!-- Table Mountain -->
   <polygon class="f-far table-mountain"
            points="40,352 130,187 190,120 230,109 300,104 480,106 540,114 585,167 640,352" />
-  <!-- Lion's Head — moved 65 left, closing the gap to Table Mountain; apex softened (PRD §26) -->
+  <!-- Lion's Head — moved 65 left, closing the gap to Table Mountain; apex softened -->
   <polygon class="f-far" points="695,352 785,201 795,156 803,151 811,156 825,201 915,352" />
   <!-- Signal Hill — moved 40 left so the chain stays linked -->
   <polygon class="f-far" points="850,352 892,306 944,272 1000,260 1056,272 1108,306 1150,352" />
-  <!-- warehouse fringe (PRD §20) — low pitched-roof sheds, water tower, chimney; tapers off westward -->
+  <!-- warehouse fringe — low pitched-roof sheds, water tower, chimney; tapers off westward -->
   <g class="f-far">
     <polygon points="-295,336 -281,320 -267,336" />
     <polygon points="-216,318 -190,296 -164,318" />

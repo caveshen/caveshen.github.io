@@ -48,7 +48,7 @@ test('no-JS: / noscript link navigates to /sheet with real content', async ({ br
 
 test('recruiter path: / → /sheet in 1 click via system option', async ({ page }) => {
   await page.goto('/');
-  // P4: card is hidden on load — approach the figure to reveal dialogue choices
+  // Card is hidden on load — approach the figure to reveal dialogue choices
   await page.locator('#approach-prompt').click();
   // Dialogue engine renders the system option (JS required; page uses JS by default)
   await expect(page.locator('#choices button.system')).toBeVisible();
@@ -224,13 +224,12 @@ test('spellbook section is visible', async ({ page }) => {
 
 test('Class & Level label is plain "Class & Level" and XP line carries years-in-tech', async ({ page }) => {
   await page.goto('/sheet');
-  // "1 level = 1 year in tech" was removed from the label as too on-the-nose (round 2);
-  // the XP bar line carries the years-in-tech meaning on its own.
+  // The XP bar line carries the years-in-tech meaning on its own.
   await expect(page.getByText('Class & Level', { exact: true })).toBeVisible();
   await expect(page.getByText(/11 years in tech/)).toBeVisible();
 });
 
-test('vitals row is absent from /sheet (explicitly cut per PRD §4)', async ({ page }) => {
+test('vitals row is absent from /sheet', async ({ page }) => {
   await page.goto('/sheet');
   const html = await page.content();
   expect(html).not.toContain('Armor Class');
@@ -251,7 +250,7 @@ test('spellbook: Power BI Level 2 chip is visible', async ({ page }) => {
   await expect(page.getByText('Power BI', { exact: true })).toBeVisible();
 });
 
-test('spellbook: casting-stat trio header is absent (round 2 cut)', async ({ page }) => {
+test('spellbook: casting-stat trio header is absent', async ({ page }) => {
   await page.goto('/sheet');
   const html = await page.content();
   expect(html).not.toContain('Save DC');

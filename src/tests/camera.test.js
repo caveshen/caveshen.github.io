@@ -1,4 +1,4 @@
-// P4 camera-maths unit tests — written BEFORE camera.js exists (TDD)
+// Camera-maths unit tests — written BEFORE camera.js exists (TDD)
 // These test the pure computeCameraTransform function with no DOM.
 import { describe, it, expect } from 'vitest';
 import { computeCameraTransform } from '../scripts/camera.js';
@@ -62,7 +62,7 @@ describe('computeCameraTransform', () => {
     expect(ty).toBeCloseTo(400 * 0.32 - 2.2 * 219.6, 1);
   });
 
-  // ── D2: optional faceTargetY (PRD §15 D2) ─────────────────────────────────
+  // ── Optional faceTargetY ──────────────────────────────────────────────────
   // Derives the framing target from the measured dialogue card instead of the
   // hard-coded 0.32 constant, so the two can never drift apart again.
 
@@ -86,7 +86,7 @@ describe('computeCameraTransform', () => {
     expect(withoutTarget.ty).toBeCloseTo(withTarget.ty, 5);
   });
 
-  // ── D1/D2 follow-up: optional explicit faceY (PRD reviewer follow-up 1a) ──
+  // ── Follow-up: optional explicit faceY ────────────────────────────────────
   // Lets the caller pass the measured .face-void centre directly instead of
   // relying on the figure.height * 0.18 heuristic, so no correction term is
   // needed to cancel the heuristic back out.

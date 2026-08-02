@@ -12,7 +12,7 @@
  * @param {{ left:number, top:number, width:number, height:number }} figure – visible figure bounding rect
  * @param {number} scale
  * @param {number} [faceTargetY] – absolute px, stage-relative, to frame the face at.
- *   Optional (PRD §15 D2): callers measure the dialogue card and pass the mid-point
+ *   Optional: callers measure the dialogue card and pass the mid-point
  *   of the band above it, so the zoom can never drift behind the card again. Falls
  *   back to the original stage.height * 0.32 constant when omitted.
  * @param {number} [faceY] – stage-relative Y of the point to frame (pre-scale).

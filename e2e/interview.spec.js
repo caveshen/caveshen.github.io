@@ -54,18 +54,18 @@ test('toggle is first in tab order and keyboard-operable', async ({ page }) => {
 });
 
 test('choice buttons are next in tab order after toggle', async ({ page }) => {
-  // P4: toggle → approach prompt → approach → first choice (card hidden on load)
+  // Toggle → approach prompt → approach → first choice (card hidden on load)
   await page.keyboard.press('Tab'); // toggle
   await page.keyboard.press('Tab'); // approach prompt
-  await page.keyboard.press('Enter'); // approach — engine focuses first choice (SC5)
+  await page.keyboard.press('Enter'); // approach — engine focuses first choice
   await expect(page.locator('#choices button').first()).toBeFocused();
 });
 
 test('full keyboard dialogue playthrough', async ({ page }) => {
-  // P4: approach first, then play through the dialogue by keyboard
+  // Approach first, then play through the dialogue by keyboard
   await page.keyboard.press('Tab'); // toggle
   await page.keyboard.press('Tab'); // approach prompt
-  await page.keyboard.press('Enter'); // approach — engine focuses first choice (SC5)
+  await page.keyboard.press('Enter'); // approach — engine focuses first choice
   await expect(page.locator('#choices button').first()).toBeFocused();
 
   const rootSpeech = await page.locator('#speech').textContent();
@@ -106,7 +106,7 @@ test('blink animation absent under prefers-reduced-motion', async ({ page }) => 
 test('dialogue content updates immediately under reduced-motion (no fade delay)', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.reload();
-  // P4: approach first (card is hidden on load), then interact with choices
+  // Approach first (card is hidden on load), then interact with choices
   await page.locator('#approach-prompt').click();
   await page.locator('#choices button').first().click();
   // Opacity should be 1 immediately — no fade delay
@@ -146,7 +146,7 @@ test('/sheet link present without JavaScript (noscript fallback)', async ({ brow
   await ctx.close();
 });
 
-// ── Aspect-ratio scene variants (PRD §3) ─────────────────────────────────────
+// ── Aspect-ratio scene variants ──────────────────────────────────────────────
 
 test('ultra-wide (2560×1080) shows scene-wide only', async ({ page }) => {
   await page.setViewportSize({ width: 2560, height: 1080 });
@@ -163,7 +163,7 @@ test('portrait phone (390×844) shows scene-tall, card overlays the scene', asyn
   await expect(page.locator('.scene-standard')).not.toBeVisible();
   await expect(page.locator('.scene-wide')).not.toBeVisible();
   const sceneBound = await page.locator('.scene-tall').boundingBox();
-  // P4 restage: card is an in-scene overlay (RPG dialogue box), not a block
+  // Card is an in-scene overlay (RPG dialogue box), not a block
   // below the scene — approach to reveal it, then assert it overlaps the
   // scene's bounds and is readable (visible, non-zero size).
   await page.locator('#approach-prompt').click();
@@ -182,7 +182,7 @@ test('portrait tablet (768×1024) shows scene-tall, card overlays the scene', as
   await expect(page.locator('.scene-tall')).toBeVisible();
   await expect(page.locator('.scene-standard')).not.toBeVisible();
   const sceneBound = await page.locator('.scene-tall').boundingBox();
-  // P4 restage: card is an in-scene overlay — approach, then assert overlap.
+  // Card is an in-scene overlay — approach, then assert overlap.
   await page.locator('#approach-prompt').click();
   const card = page.locator('.card');
   await expect(card).toBeVisible();
@@ -220,7 +220,7 @@ test('no horizontal overflow at ultra-wide (2560×1080)', async ({ page }) => {
   expect(overflow).toBe(false);
 });
 
-// ── PRD §15 D1/D2 — known-defect regression tests ─────────────────────────────
+// ── Known-defect regression tests ─────────────────────────────────────────────
 
 function rectContains(outer, inner) {
   return inner.x >= outer.x && inner.y >= outer.y &&
@@ -228,7 +228,7 @@ function rectContains(outer, inner) {
          inner.y + inner.height <= outer.y + outer.height;
 }
 
-// D1 — approach prompt must clear the figure's head, in all three aspect variants.
+// Approach prompt must clear the figure's head, in all three aspect variants.
 for (const vp of [
   { name: 'wide (2560×1080)',     width: 2560, height: 1080 },
   { name: 'standard (1920×1080)', width: 1920, height: 1080 },
@@ -246,13 +246,13 @@ for (const vp of [
   });
 }
 
-// Reviewer follow-up 1b — positionPrompt()'s beside-the-figure fallback (the
+// positionPrompt()'s beside-the-figure fallback (the
 // "not enough headroom above the head" branch) sets top but never clamped
 // left/right, so it could leave .stage-frame. At 240×280 the standard-variant
 // stage-frame is small enough that the headroom above the head is less than
 // the gap + button height, forcing the fallback branch — proven by the same
 // overlap check above still holding at this size.
-// PRD §17.2 RULED 2026-07-23: since the stage is now full-bleed, the frame at
+// Since the stage is full-bleed, the frame at
 // this viewport is simply 240×280 (no formula to derive — it's always
 // exactly the viewport). Still verified to force the fallback branch (the
 // scaled-down figure at this size still leaves less headroom than the gap +
@@ -265,40 +265,12 @@ test('beside-the-figure fallback keeps the prompt inside the stage frame — for
   expect(rectContains(frameBox, promptBox)).toBe(true);
 });
 
-// ── PRD §17.1 — wide variant goes full-bleed ─────────────────────────────────
-// PRD §17.2 RULED 2026-07-23 — full-window is the DEFAULT, not a toggle. It
-// supersedes both §17.1 (wide variant grows beyond 1200px, height-bound) and
-// §17.1a (standard variant gets the same height-limited fit + vertical
-// centring): the stage-frame is now always exactly the viewport's width AND
-// height, at every aspect. Each scene's own preserveAspectRatio="xMidYMax
-// slice" crops rather than stretches to fit whatever box that is — proved
-// below, and separately by the Table Mountain 2.4194 invariant (§13/§14) in
-// approach.spec.js, which is untouched by this change and still passes.
-//
-// Corrections below (behaviour overturned by the ruling, not weakened tests
-// — same pattern as the §17.1a corrections that preceded these; the old
-// tests are described, not silently deleted):
-// - "ultra-wide (2560×1080) stage-frame grows beyond 1200px, bounded by
-//   viewport height" (asserted §17.1's own height-limited-fit target) —
-//   removed; replaced by the fill assertion below, strictly stronger (100%
-//   of both dimensions, not just "beyond 1200px, at most the viewport").
-// - "portrait phone (390×844) stage-frame geometry is unchanged" (390×693.5,
-//   §17.1's height-limited portrait cap) — removed; portrait now also fills
-//   100% of the viewport (390×844), asserted below.
-// - "wide (2560×1080) stage-frame geometry is unchanged by §17.1a" (2240×960,
-//   §17.1's height-limited wide cap) — removed; wide now fills 100% too
-//   (2560×1080), asserted below.
-// - "standard desktop (1920×1080) stage-frame is ≥80% of viewport width" —
-//   removed; superseded by the strictly stronger 100%-fill assertion below.
-// - "standard desktop (1920×1080) has no dead space pooled below the footer"
-//   — removed outright, not replaced: the footer no longer lays out below
-//   the stage-frame at all. §17.2's chrome-overlay change (index.astro) made
-//   it a fixed top-left overlay, so "dead space pooled below the footer" is
-//   not a concept that exists any more.
-// - "standard-aspect frame is vertically centred when the window leaves
-//   slack" (1200×1400) — removed; there is no more slack to centre, the
-//   frame fills the full 1200×1400 box. The same viewport is reused below to
-//   assert the new fill behaviour and the Table Mountain invariant instead.
+// ── Full-window sizing — stage-frame fills the viewport ──────────────────────
+// Full-window is the DEFAULT, not a toggle: the stage-frame is always exactly
+// the viewport's width AND height, at every aspect. Each scene's own
+// preserveAspectRatio="xMidYMax slice" crops rather than stretches to fit
+// whatever box that is — proved below, and separately by the Table Mountain
+// 2.4194 invariant in approach.spec.js.
 
 const FULL_WINDOW_VIEWPORTS = [
   { name: 'ultra-wide (2560×1080)',    width: 2560, height: 1080 },
@@ -341,7 +313,7 @@ test('ultra-wide (2560×1080) has no page scroll, vertical or horizontal', async
 // it must still select the standard variant, not tall — full-bleed sizing
 // makes this viewport's crop look nothing like the scene's own 1200×750
 // aspect, which is exactly why it's worth confirming the *variant* selection
-// (§14's width cut-offs, independent of §17.2's sizing) hasn't drifted.
+// (independent of the frame's sizing) hasn't drifted.
 test('tall window (1200×1400) still selects scene-standard, not scene-tall', async ({ page }) => {
   await page.setViewportSize({ width: 1200, height: 1400 });
   await page.goto('/');
@@ -367,7 +339,7 @@ test('Table Mountain aspect ratio (2.4194) still holds at 1200×1400', async ({ 
   expect(box.width / box.height).toBeCloseTo(2.4194, 3);
 });
 
-// Guard the crop (PRD §17.2 implementation note): full-bleed sizing crops
+// Guard the crop: full-bleed sizing crops
 // far more aggressively than the old height-limited/near-scene-aspect box
 // ever did, so re-prove the figure and dialogue card survive it at the two
 // most extreme tested aspects. xMidYMax anchoring crops sky/sea off the top
@@ -391,10 +363,9 @@ for (const vp of [
   });
 }
 
-// Chrome-overlay layout (PRD §17.2 implementation note: footer/toggle/
-// fullscreen button now overlay the full-bleed stage — placement was
-// implementer's discretion, flagged in the report). Assert the three floating
-// controls occupy distinct corners and never overlap each other.
+// Chrome-overlay layout: footer/toggle/fullscreen button now overlay the
+// full-bleed stage. Assert the three floating controls occupy distinct
+// corners and never overlap each other.
 // Run at all four tested aspects, not just 1920×1080: the fullscreen button
 // relocates to top:4rem under the portrait (max-aspect-ratio:4/5) override, so
 // the corners it can collide with genuinely differ by aspect.
@@ -432,7 +403,7 @@ test.describe('no page scroll at 1920×1080 and 2560×1440', () => {
   }
 });
 
-// D2 — the zoomed face must clear the dialogue card that overlays it.
+// The zoomed face must clear the dialogue card that overlays it.
 for (const vp of [
   { name: 'standard (1920×1080)', width: 1920, height: 1080 },
   { name: 'tall (390×844)',       width: 390,  height: 844  },
@@ -450,9 +421,9 @@ for (const vp of [
   });
 }
 
-// ── PRD §18 — fullscreen toggle button ───────────────────────────────────────
-// Real OS fullscreen is unreliable/vacuous in a headless matrix (PRD's own
-// testing note), so these assert what's deterministic: presence/position/
+// ── Fullscreen toggle button ─────────────────────────────────────────────────
+// Real OS fullscreen is unreliable/vacuous in a headless matrix, so these
+// assert what's deterministic: presence/position/
 // labelling, geometric non-occlusion, the click→requestFullscreen wiring
 // (stubbed), the fullscreenchange→label/glyph sync (simulated, not real
 // fullscreen), honest degradation, and the no-JS path.
@@ -480,7 +451,7 @@ test('fullscreen button is present, near the bottom-right corner, with an access
   // "Bottom-right of the screen" — measured against .stage-frame, not the
   // raw viewport: the button lives inside .stage-frame (it must, to stay
   // visible/operable once real fullscreen is entered — see the markup
-  // comment). PRD §17.2 RULED 2026-07-23: the frame is now full-bleed by
+  // comment). The frame is full-bleed by
   // default (not just in real Fullscreen API mode), so .stage-frame's corner
   // already IS the viewport's corner outside fullscreen too.
   const frame = await page.locator('.stage-frame').boundingBox();
@@ -499,7 +470,7 @@ test('fullscreen button is keyboard-focusable with a visible outline', async ({ 
   expect(outlineStyle).not.toBe('none');
 });
 
-// Non-occlusion (d18 hypothesis, was §16, geometrically assertable) across all three
+// Non-occlusion across all three
 // aspect variants, against whichever of {approach prompt, card} is on screen.
 for (const vp of [
   { name: 'wide (2560×1080)',     width: 2560, height: 1080 },
@@ -586,7 +557,7 @@ test('no-JS: fullscreen button is absent', async ({ browser }) => {
   await ctx.close();
 });
 
-// ── PRD §21 — camera zoom easing, split by direction ──────────────────────────
+// ── Camera zoom easing, split by direction ───────────────────────────────────
 
 // Cubic-bezier evaluator, local to this spec (test-only — the shipped code
 // never needs to evaluate its own curve, only apply it via CSS). X(t) is the
@@ -669,10 +640,10 @@ test('Escape mid-zoom leaves the camera coherent — no stuck or doubled transfo
   await page.locator('#approach-prompt').click();
   // Interrupt before the (550ms) entry transition settles. 100ms leaves
   // 450ms of slack before the transition would complete on its own, unlike
-  // the sleeps below — this is comfortably not the same race (PRD d10).
+  // the sleeps below — this is comfortably not the same race.
   await page.waitForTimeout(100);
   await page.keyboard.press('Escape');
-  // Retry instead of guessing a settle duration (PRD d10) — 'none' is the
+  // Retry instead of guessing a settle duration — 'none' is the
   // exited state's target — a single coherent value, not stuck mid-transition
   // and not some doubled/compounded matrix.
   await expect(async () => {

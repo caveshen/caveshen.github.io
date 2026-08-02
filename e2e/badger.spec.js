@@ -25,7 +25,7 @@ test('approach applies a non-identity camera transform (not a no-op zoom)', asyn
 test('the approach prompt sits above the Badger', async ({ page }) => {
   const promptBox = await page.locator('#approach-prompt').boundingBox();
   const badgerBox = await page.locator('.scene-standard .badger-figure').boundingBox();
-  // "Above" per PRD §15 D1 convention: prompt's bottom edge clears the top of the character.
+  // "Above": prompt's bottom edge clears the top of the character.
   expect(promptBox.y + promptBox.height).toBeLessThanOrEqual(badgerBox.y + 5);
 });
 

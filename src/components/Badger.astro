@@ -1,5 +1,5 @@
 ---
-// Badger.astro — commissioned Badger avatar (PRD §27). Real, ships.
+// Badger.astro — commissioned Badger avatar. Real, ships.
 // Rights: commissioned, paid for, full rights (not the inspiration-only decal).
 // Source frames:
 //   up   — E:\Internet Downloads\Downloaded Pictures\BadgerUP.png → public/badger-up.png
@@ -10,9 +10,9 @@
 // shoe line, so callers pass the figure's own FIG anchors straight through —
 // same ground line, comparable height, no separate placement maths needed.
 //
-// Scene-matched treatment (RULED 2026-07-23): grayscale + a touch of contrast/
+// Scene-matched treatment: grayscale + a touch of contrast/
 // darkening, darker again at night, so the detailed raster doesn't out-detail
-// the flat-silhouette world (§20's guard) — never shipped full-colour.
+// the flat-silhouette world — never shipped full-colour.
 //
 // Raster size: the 200-unit image sits inside the figure's own scale (1.2
 // standard, 1.3 tall), then the viewBox-to-viewport ratio. At 1920 that is
@@ -20,7 +20,7 @@
 // Do not resize the 500×500 source down: 200 is SVG units, not pixels, and the
 // source is if anything under-provisioned at the top of that range.
 //
-// §29 idle animation: two frames swap on --badger-cadence (800ms per frame,
+// Two-frame idle animation: two frames swap on --badger-cadence (800ms per frame,
 // 1.6s full cycle). CSS only — works with JS disabled. prefers-reduced-motion
 // holds the up frame static.
 interface Props {
@@ -36,7 +36,7 @@ const { x, y, scale = 1 } = Astro.props;
   <!-- ground shadow — identical form to the hooded figure's own -->
   <ellipse cx="0" cy="196" rx="50" ry="11" fill="rgba(0,0,0,0.35)"/>
 
-  <!-- Two-frame idle (§29): up frame on bottom, down frame on top.
+  <!-- Two-frame idle: up frame on bottom, down frame on top.
        CSS alternates which is visible; shadow and position are shared. -->
   <image class="badger-image badger-up"   href="/badger-up.png"   x="-100" y="-4" width="200" height="200" />
   <image class="badger-image badger-down" href="/badger-down.png" x="-100" y="-4" width="200" height="200" />
@@ -55,7 +55,7 @@ const { x, y, scale = 1 } = Astro.props;
   .badger-image {
     filter: grayscale(1) contrast(1.05) brightness(.95);
   }
-  /* Night: additionally darkened (same stacking as §27) */
+  /* Night: additionally darkened */
   :root:not([data-time="day"]) .badger-image {
     filter: grayscale(1) contrast(1.05) brightness(.95) brightness(.7);
   }

@@ -9,7 +9,7 @@ const visibleOne = (selector) =>
 
 /**
  * Stage interaction — approach prompt, camera zoom, dialogue exit, ambient
- * banner plane, fullscreen toggle (PRD d25, was §30 D-10 one level up).
+ * banner plane, fullscreen toggle.
  * Extracted verbatim from index.astro's inline <script> — every DOM lookup
  * here is a generic selector (.js-character, .face-void, .camera,
  * .stage-frame, .card, #approach-prompt, #end-dialogue). Four values vary by
@@ -44,17 +44,17 @@ export function initStage(tree) {
   // Initial render is immediate — static content is already in place from SSR.
   render('root', true);
 
-  // ── P4: progressive enhancement — reveal approach prompt ────────────────
-  // PRD §15 D5: card ships with [hidden] in the markup so it is never painted
+  // ── Progressive enhancement — reveal approach prompt ─────────────────────
+  // Card ships with [hidden] in the markup so it is never painted
   // visible before this script runs. No assignment here; exit() re-arms it.
-  // PRD §28: same reasoning — the fade's opacity:0 starting class is added
+  // Same reasoning — the fade's opacity:0 starting class is added
   // here in JS only, never as a static .card rule, so the no-JS card (which
   // never runs this script) stays fully visible.
   card.classList.add('card-entering');
   approachBtn.hidden = false;
 
   // Position the prompt near the visible figure's measured location in screen space.
-  // PRD §15 D1: floats clear ABOVE the head with a gap (interaction-prompt
+  // Floats clear ABOVE the head with a gap (interaction-prompt
   // convention), centred on the figure, clamped inside the stage frame.
   function positionPrompt() {
     const figEl = visibleOne('.js-character');
@@ -80,7 +80,7 @@ export function initStage(tree) {
       // sit beside the figure instead of pushing the prompt down onto it.
       top = Math.max(8, fig.top - sf.top);
       approachBtn.style.transform = 'none';
-      // Reviewer follow-up 1b: this branch sets left/top directly (no
+      // This branch sets left/top directly (no
       // translateX centring to absorb an edge overrun), so both must be
       // clamped into the frame itself — a figure near the stage edge could
       // otherwise push the prompt out of .stage-frame on any side.
@@ -97,7 +97,7 @@ export function initStage(tree) {
 
   // ── Camera zoom ───────────────────────────────────────────────────────────
 
-  // PRD §21: the shared 950ms/(0.16,1,.3,1) curve reads as a lurch-then-crawl
+  // The shared 950ms/(0.16,1,.3,1) curve reads as a lurch-then-crawl
   // on entry (it's ~97% done by half its duration) but reads correctly on
   // exit (a fast departure that settles) — approved as-is, unchanged below.
   // Entry gets its own curve, set inline only for the zoom-in transition, so
@@ -115,13 +115,13 @@ export function initStage(tree) {
     if (approached) return;
     approached = true;
 
-    // Inline transition override for the entry only (PRD §21). Under
+    // Inline transition override for the entry only. Under
     // reduced-motion we simply never set it, so the stylesheet's
     // `transition: none` applies unopposed — there is no cascade contest.
     // An inline style would outrank the media query and reinstate the zoom.
     if (!reducedMotion()) camera.style.transition = ENTRY_TRANSITION;
 
-    // PRD §24: an in-flight banner plane bows out rather than freezing mid-sky.
+    // An in-flight banner plane bows out rather than freezing mid-sky.
     fadeOutPlane();
 
     // Show card, hide prompt
@@ -129,7 +129,7 @@ export function initStage(tree) {
     endDlgBtn.hidden = false;
     approachBtn.hidden = true;
 
-    // PRD §28: fade the card in, synced with the zoom above. Force a style
+    // Fade the card in, synced with the zoom above. Force a style
     // flush before removing the entering class so the browser paints the
     // opacity:0 starting frame — without it, both style changes could
     // coalesce into one frame and the transition would never fire. Under
@@ -144,12 +144,12 @@ export function initStage(tree) {
       const sf  = stageFrame.getBoundingClientRect();
       const fig = figEl.getBoundingClientRect();
       const scale = 2.2;
-      // PRD §15 D2: frame the face in the band between the top of the stage
+      // Frame the face in the band between the top of the stage
       // and the top of the (already-visible) card, derived from the measured
       // card rather than a hard-coded constant, so the two cannot drift apart.
-      // Reviewer follow-up 1a: pass the measured .face-void centre directly
-      // as faceY, rather than relying on computeCameraTransform's built-in
-      // 18%-down-the-figure heuristic — no correction term needed.
+      // Pass the measured .face-void centre directly as faceY, rather than
+      // relying on computeCameraTransform's built-in 18%-down-the-figure
+      // heuristic — no correction term needed.
       const faceVoidEl = visibleOne('.face-void');
       const cardTop = card.getBoundingClientRect().top - sf.top;
       const faceTargetY = cardTop / 2;
@@ -176,7 +176,7 @@ export function initStage(tree) {
 
     // Restore state
     card.hidden    = true;
-    // PRD §28 AC4: re-arm the fade's entering state so a later re-approach
+    // Re-arm the fade's entering state so a later re-approach
     // fades in again instead of popping (a leftover opacity:1 from a prior
     // fade would otherwise carry over, and mid-fade this also snaps the
     // card's opacity/position cleanly back rather than leaving it stuck
@@ -190,7 +190,7 @@ export function initStage(tree) {
     approachBtn.focus();
   }
 
-  // ── PRD §24: ambient banner plane ───────────────────────────────────────────
+  // ── Ambient banner plane ──────────────────────────────────────────────────
   // A rare flourish: a plane tows a "MAVERICKS" banner across the sky, only in
   // the zoomed-out full scene. Gating is a live approached/reducedMotion() check
   // at each scheduled tick (not a cancelled timer) — simplest way to guarantee
@@ -220,9 +220,9 @@ export function initStage(tree) {
     el.className = 'banner-plane';
     el.setAttribute('aria-hidden', 'true');
     el.style.animationDuration = `${PLANE_FLIGHT_MS}ms`;
-    // Banner trails behind (left, since flight is left-to-right — PRD §24
-    // RULED direction) with the plane leading on the right. Copy is
-    // Caveshen's own ("MAVERICKS"), not placeholder — see PRD §24.
+    // Banner trails behind (left, since flight is left-to-right) with the
+    // plane leading on the right. Copy is Caveshen's own ("MAVERICKS"), not
+    // placeholder.
     el.innerHTML = `
       <span class="banner-rect">MAVERICKS</span>
       <span class="banner-tow"></span>
@@ -241,8 +241,8 @@ export function initStage(tree) {
     schedulePlane(nextPlaneDelay());
   }
 
-  // Interrupted by approach: fade rather than freeze or hard-cut (PRD §24
-  // RULED). Detaches the animationend listener first so the still-running
+  // Interrupted by approach: fade rather than freeze or hard-cut.
+  // Detaches the animationend listener first so the still-running
   // flight animation can't also fire endPlane() once the fade has already
   // rescheduled — that would double-run the timer chain.
   function fadeOutPlane() {
@@ -257,7 +257,7 @@ export function initStage(tree) {
 
   schedulePlane(PLANE_FIRST_MS);
 
-  // ── Fullscreen toggle (PRD §18 / §17.2) ─────────────────────────────────────
+  // ── Fullscreen toggle ────────────────────────────────────────────────────
   // Degrade honestly: only reveal the button if the API is actually usable —
   // an unhidden-but-dead button is worse than no button. The stage itself
   // (not <html>) is what goes fullscreen, so the approach prompt / card /
@@ -295,7 +295,7 @@ export function initStage(tree) {
     });
 
     // Must stay correct when the user leaves fullscreen via Escape rather
-    // than the button — fullscreenchange covers both paths (PRD §18 AC2).
+    // than the button — fullscreenchange covers both paths.
     document.addEventListener('fullscreenchange', syncFullscreenButton);
   }
 

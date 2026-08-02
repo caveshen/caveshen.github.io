@@ -179,12 +179,11 @@ import ThemeToggle from '../components/ThemeToggle.astro';
 </Base>
 
 <style is:global>
-  /* Sheet-scoped nebular background (PRD §4 round 6); / keeps plain --bg */
+  /* Sheet-scoped nebular background; / keeps plain --bg */
   body { background: var(--sheet-bg); }
 
-  /* AMOLED night tone-shift (PRD §4 round 7): retire the purple on this
-     page only — bluer edges, blue-grey dim, black-blue grounds. Day resets
-     below keep the approved round-6 day values byte-identical. */
+  /* AMOLED night tone-shift: retire the purple on this page only — bluer
+     edges, blue-grey dim, black-blue grounds. Day values are unaffected. */
   body {
     --card-edge: #1f2942;
     --dim: #94a2c6;

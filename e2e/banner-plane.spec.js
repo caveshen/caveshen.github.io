@@ -1,4 +1,4 @@
-// PRD §24 — ambient banner plane — e2e tests
+// Ambient banner plane — e2e tests
 // Uses Playwright's clock API to fast-forward the JS setTimeout chain
 // deterministically rather than waiting real wall-clock minutes.
 import { test, expect } from '@playwright/test';
@@ -43,7 +43,7 @@ test('an in-flight pass fades out on approach rather than freezing or vanishing'
   // Proves gradual (not a hard cut to invisible/removed) via the declared
   // transition rather than sampling a magic instant mid-flight — CSS
   // transitions run on the compositor and aren't faked by page.clock, so
-  // a wall-clock sleep here races the real 400ms window (see PRD d10).
+  // a wall-clock sleep here races the real 400ms window.
   await expect(plane).toHaveCSS('transition-duration', '0.4s');
   await expect(plane).toHaveCSS('transition-property', 'opacity');
   // Fade completes and the element is cleaned up — proves it doesn't freeze

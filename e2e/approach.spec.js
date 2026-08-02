@@ -1,4 +1,4 @@
-// P4 — Landing v2: the approach — e2e tests
+// The approach — e2e tests
 // Covers success criteria 2–8 and 10 (SC1 is unit-tested; SC9, SC11, SC12 are run-level checks).
 import { test, expect } from '@playwright/test';
 
@@ -133,7 +133,7 @@ test('camera transition-duration is 0s under prefers-reduced-motion', async ({ p
   expect(duration).toBe('0s');
 });
 
-// ── PRD §28: dialogue card fades in on approach, synced to the §21 zoom ───────
+// ── Dialogue card fades in on approach, synced to the camera zoom ────────────
 
 test('card has an opacity transition wired up (fades rather than pops)', async ({ page }) => {
   const { property, duration } = await page.locator('.card').evaluate((el) => {
@@ -203,7 +203,7 @@ test('no-JS: /sheet link is reachable', async ({ browser }) => {
   await ctx.close();
 });
 
-// ── PRD §15 D4: [hidden] must actually hide #end-dialogue with no JS ──────────
+// ── [hidden] must actually hide #end-dialogue with no JS ─────────────────────
 
 test('no-JS: end-dialogue button is not visible', async ({ browser }) => {
   const ctx  = await browser.newContext({ javaScriptEnabled: false });
@@ -229,7 +229,7 @@ test('the card stays fully on-screen on a short viewport', async ({ page }) => {
   }).toPass();
 });
 
-// ── Regression: one world, three cameras (PRD §14) ─────────────────────────
+// ── Regression: one world, three cameras ────────────────────────────────────
 // Table Mountain is authored once in CityScape.astro; each aspect variant only
 // pans/scales the camera around it, never stretches it. getBBox() reads the
 // polygon's own LOCAL geometry — it ignores the element's own transform and
@@ -271,7 +271,7 @@ test('Table Mountain aspect ratio is 2.4194 in the tall view', async ({ page }) 
   expect(ratio).toBeCloseTo(MOUNTAIN_RATIO, 3);
 });
 
-// ── PRD §20: industrial district west of the mountain foot ────────────────
+// ── Industrial district west of the mountain foot ──────────────────────────
 // The district is drawn at world x < 0 (harbour end); none of the original
 // geometry (mountains, city bowl) uses negative x. Presence of a negative-x
 // rect/polygon in the world group is a cheap, reliable proxy that bites if
@@ -291,7 +291,7 @@ test('industrial district: the world group contains geometry west of x=0', async
   expect(hasNegativeX).toBe(true);
 });
 
-// ── PRD §20 added scope: sea wave marks ────────────────────────────────────
+// ── Sea wave marks ──────────────────────────────────────────────────────────
 
 test('each sea variant has at least 4 wave marks, visible in both day and night', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 }); // forces the standard variant on
@@ -300,18 +300,18 @@ test('each sea variant has at least 4 wave marks, visible in both day and night'
     const count = await page.locator(`.${variant} .f-wave`).count();
     expect(count, `${variant} wave count`).toBeGreaterThanOrEqual(4);
   }
-  // Night is default (PRD §3) — confirm waves are visible without toggling first,
+  // Night is default — confirm waves are visible without toggling first,
   // then toggle to day and confirm they stay visible (not gated behind night-only).
   await expect(page.locator('.scene-standard .f-wave').first()).toBeVisible();
   await page.locator('#toggle').click();
   await expect(page.locator('.scene-standard .f-wave').first()).toBeVisible();
 });
 
-// ── PRD §26: Devil's Peak + softened Lion's Head ───────────────────────────
+// ── Devil's Peak + softened Lion's Head ─────────────────────────────────────
 // World geometry is authored once (local SVG coordinate space); the "west of
 // x=0" test above proves the same point in the same way, so we mirror that
 // pattern rather than measuring screen-space post-camera-transform.
-// The §20 negative-x test already passes via the industrial district and
+// The negative-x test above already passes via the industrial district and
 // does NOT prove Devil's Peak exists — this test specifically bites if the
 // new polygon is removed: only Lion's Head/Signal Hill remain as other
 // standalone f-far polygons, and both sit to the right of and below Table

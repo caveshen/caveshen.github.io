@@ -2,10 +2,6 @@
 // HoodedFigure.astro — hooded placeholder figure, authored once, rendered into all three scenes.
 // Props place it in each SVG's coordinate space; overflow/cropping is handled by the scene's viewBox.
 // Fills are literal hex — theme-independent by design. Classes, not IDs (three copies coexist).
-// Ported verbatim from the converged mock (docs/PRD §14, 2026-07-21):
-//   - #face-shadow group DELETED (Rembrandt face explicitly rejected)
-//   - mote particles NOT ported (belong to mock's stand-in backdrop, not the figure)
-//   - hotspot rect NOT ported (replaced by the real <button> approach prompt)
 
 interface Props {
   x: number;

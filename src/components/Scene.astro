@@ -1,8 +1,8 @@
 ---
-// Scene.astro — the scene backdrop, authored once, rendered per aspect variant
-// (PRD d12, was §30 D-10). Extracts what index.astro hand-authored three times
-// (standard/wide/tall); numbers that only ever differed by variant are data
-// tables here, not duplicated markup.
+// Scene.astro — the scene backdrop, authored once, rendered per aspect
+// variant. Extracts what index.astro hand-authored three times
+// (standard/wide/tall); numbers that only ever differed by variant are
+// data tables here, not duplicated markup.
 //
 // The character arrives as a prop, not a slot — Astro slots take no props, and
 // per-variant placement (FIG below) must not be hand-tuned at the call site.
@@ -17,7 +17,7 @@ interface Props {
 }
 const { variant, character: Character, characterLabel = '' } = Astro.props;
 
-// One world, three cameras (PRD §14) — pan + uniform scale only, never a stretch.
+// One world, three cameras — pan + uniform scale only, never a stretch.
 // Foreground (stars/sun/sea/waves/rail/figure) is free to differ per view.
 const VARIANT = {
   standard: {
@@ -56,7 +56,7 @@ const VARIANT = {
       [250, 140, 150, 22, 11, .85], [900, 105, 110, 20, 10, .7], [1480, 185, 130, 20, 10, .75],
     ],
     // Wide shares Standard's camera height, so its sea/promenade/rail y-values
-    // are identical to Standard's below (PRD §14) — kept as separate literals
+    // are identical to Standard's below — kept as separate literals
     // rather than a shared reference, since abstracting two variants out of a
     // flat per-variant data table isn't worth it for three fields.
     sea: { y: 480, height: 120 },
@@ -107,7 +107,7 @@ const ariaLabel = characterLabel
   <g class="f-star night-only">
     {v.stars.map(([cx, cy, r, o]) => <circle cx={cx} cy={cy} r={r} opacity={o} />)}
   </g>
-  <!-- moon (night) — pale and cratered, radius 95% of the sun's (PRD d12 ruling) -->
+  <!-- moon (night) — pale and cratered, radius 95% of the sun's -->
   <g class="night-only">
     <Moon cx={v.celestial.cx} cy={v.celestial.cy} />
   </g>
@@ -124,7 +124,7 @@ const ariaLabel = characterLabel
   <g class="f-moon night-only">
     {v.moonReflection.map(([x, y, w, o]) => <rect x={x} y={y} width={w} height="3" rx="1.5" opacity={o} />)}
   </g>
-  <!-- wave marks (PRD §20): sparse, static, sea-toned — visible day and night -->
+  <!-- wave marks: sparse, static, sea-toned — visible day and night -->
   {v.waves.map(([x, y, w, o]) => <rect class="f-wave" x={x} y={y} width={w} height="2" rx="1.5" opacity={o} />)}
   <!-- the near shore — promenade the figure stands on -->
   <rect class="f-ground" y={v.ground.y} width={v.width} height={v.ground.height} />

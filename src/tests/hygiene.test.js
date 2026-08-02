@@ -75,7 +75,7 @@ describe('404 page', () => {
   });
 });
 
-// ── §29 Badger two-frame idle ─────────────────────────────────────────────────
+// ── Badger two-frame idle ─────────────────────────────────────────────────
 
 describe('badger idle frames', () => {
   it('badger-up.png exists', () => {

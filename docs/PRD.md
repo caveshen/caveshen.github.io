@@ -71,7 +71,7 @@ the document body under their original `§` headings as history.
 | d25 | Shared stage component — extracting the approach interaction | *new* | ✅ built 2026-08-02 — `1254dad`, landed on the mainline as `732f5a6` (#3); pure refactor, byte-identical `dist/index.html`, zero `e2e/` files modified |
 | d26 | Cleanup sweep — four of five items built, one closed as not-debt | *new* | ✅ built 2026-08-02 — `daaafb9`; item 5 closed, replaced by lossless PNG recompression in `3f322ae` |
 | d27 | CI: tag pushes fire the deploy workflow | *new* | ✅ built 2026-08-02 — `daaafb9` |
-| d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | 🔨 in progress on `item/cityscape-depth` — Stage 1 built (`3527cca`), awaiting Caveshen's preview reaction; Stages 2–3 on his go |
+| d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | 🔨 in progress on `item/cityscape-depth` — Stages 1–3 built, Stage 1 approved; Stages 2–3 awaiting preview reaction, Stage 4 gated on its own go |
 | d29 | Comment sweep — repo-wide | *new* | ✅ both passes done on `item/comment-sweep` (`02d16cd`, `03eba87`) — awaiting go to push + PR |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
@@ -3827,14 +3827,22 @@ depth (far things paler, sunk toward the sky's tone), and it should steer the
 gradient and distance-tone choices in Stages 2–3 in particular. Reference
 only — never traced, shipped, or committed.
 
-**STATUS 2026-08-02: Stage 1 built** on `item/cityscape-depth` (`3527cca`) —
-`.bg-layer` counter-scales against the camera (`own = damped/cam`, damp 0.4,
-one `--parallax-damp` knob in `tokens.css`), anchored at the shared waterline
-(`y=480` in all three variants) so the coastline seam holds during the zoom.
-New screen-space e2e test proven red then green; suite 1529 passed / 7
-skipped / 0 failed. Awaiting Caveshen's preview reaction; Stages 2–3 on his
-go. Also rode along: gitignored `screenshots/` folder is now the standing home
-for all screenshots (recipe updated in `CLAUDE.md`).
+**STATUS 2026-08-02: Stages 1–3 built** on `item/cityscape-depth`; Stage 1
+approved on preview, Stages 2–3 awaiting Caveshen's reaction.
+- Stage 1 (`3527cca`, approved): `.bg-layer` counter-scales against the camera
+  (`own = damped/cam`, damp 0.4, one `--parallax-damp` knob in `tokens.css`),
+  anchored at the shared waterline (`y=480` in all three variants) so the
+  coastline seam holds during the zoom.
+- Stage 2 (`fc987b3`): sky + far-mountain gradients, `<defs>` per Scene with
+  variant-suffixed ids (duplicate-id/WebKit safety); both gradients bottom out
+  on one shared `--sky-horizon` token so they read as a single haze. Stops are
+  CSS-classed per the `var()` gotcha, and crossfade on theme toggle.
+- Stage 3 (`97207d2`): third distance tone `--mountain-fringe` on the
+  warehouse fringe (`f-fringe`), a flat fill blended further toward the sky.
+All tests proven red then green; suite 1545 passed / 7 skipped / 0 failed.
+Stage 4 (idle parallax) still gated on its own go after reaction to 1–3.
+Also rode along with Stage 1: gitignored `screenshots/` folder is now the
+standing home for all screenshots (recipe updated in `CLAUDE.md`).
 
 ### Diagnosis — grounded in the current code, four contributors
 

@@ -1,5 +1,6 @@
 // The approach — e2e tests
 import { test, expect } from '@playwright/test';
+import { visibleRect } from './geom.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -303,6 +304,24 @@ for (const { route, characterClass, otherClass } of ROUTE_CHARACTERS) {
     }
   });
 }
+
+// Reduced motion turns off the .camera (and .bg-layer) transition, so the
+// dampened zoom applies instantly — a settled state with no timing wait needed.
+test('approach dampens background growth relative to the foreground (parallax)', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 }); // forces the standard variant on
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  const bgBefore = await visibleRect(page, '.table-mountain');
+  const fgBefore = await visibleRect(page, '.js-character');
+  await page.locator('#approach-prompt').click();
+  const bgAfter = await visibleRect(page, '.table-mountain');
+  const fgAfter = await visibleRect(page, '.js-character');
+  const bgGrowth = bgAfter.height / bgBefore.height;
+  const fgGrowth = fgAfter.height / fgBefore.height;
+  expect(bgGrowth, `bg grew ${bgGrowth}x, fg grew ${fgGrowth}x`).toBeLessThan(fgGrowth);
+  // Damping factor 0.4: bg's net scale should track 1 + (fg's scale - 1) * 0.4.
+  expect(bgGrowth).toBeCloseTo(1 + (fgGrowth - 1) * 0.4, 1);
+});
 
 test("Devil's Peak: an f-far polygon apex sits above and left of Table Mountain's summit", async ({ page }) => {
   const found = await page.locator('.scene-standard .world').evaluate((worldEl) => {

@@ -16,6 +16,7 @@ export function initStage(tree) {
   const stageFrame  = document.querySelector('.stage-frame');
   const approachBtn = document.getElementById('approach-prompt');
   const endDlgBtn   = document.getElementById('end-dialogue');
+  const bgLayers    = document.querySelectorAll('.bg-layer'); // parallax counter-transform target, one per scene variant
 
   const render = initEngine(
     tree,
@@ -86,8 +87,12 @@ export function initStage(tree) {
 
     // Only set the inline override outside reduced-motion, so the stylesheet's
     // `transition: none` applies unopposed there (an inline style would
-    // outrank the media query and reinstate the zoom).
-    if (!reducedMotion()) camera.style.transition = ENTRY_TRANSITION;
+    // outrank the media query and reinstate the zoom). bg-layer mirrors it so
+    // the parallax counter-scale doesn't shear against the camera mid-zoom.
+    if (!reducedMotion()) {
+      camera.style.transition = ENTRY_TRANSITION;
+      bgLayers.forEach((el) => { el.style.transition = ENTRY_TRANSITION; });
+    }
 
     fadeOutPlane();
 
@@ -117,6 +122,11 @@ export function initStage(tree) {
         : undefined;
       const { tx, ty } = computeCameraTransform({ stage: sf, figure: fig, scale, faceTargetY, faceY });
       camera.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+      // Exposed for .bg-layer's counter-scale (tokens.css); tx/ty are exposed
+      // alongside scale for parity even though only scale feeds that rule today.
+      camera.style.setProperty('--cam-tx', tx);
+      camera.style.setProperty('--cam-ty', ty);
+      camera.style.setProperty('--cam-scale', scale);
     }
 
     const firstChoice = choicesEl.querySelector('button');
@@ -130,6 +140,7 @@ export function initStage(tree) {
     // Clears the entry's inline override so the stylesheet's own transition
     // (unchanged, exit's authoritative source) applies regardless of reduced-motion.
     camera.style.transition = '';
+    bgLayers.forEach((el) => { el.style.transition = ''; });
 
     card.hidden    = true;
     // Re-arm the entering class so a later re-approach fades in again instead
@@ -139,6 +150,9 @@ export function initStage(tree) {
     endDlgBtn.hidden = true;
     approachBtn.hidden = false;
     camera.style.transform = 'none';
+    camera.style.removeProperty('--cam-tx');
+    camera.style.removeProperty('--cam-ty');
+    camera.style.removeProperty('--cam-scale');
 
     approachBtn.focus();
   }

@@ -64,7 +64,8 @@ npm run build       # astro build
   by looking at a screenshot. Geometry and overlap assertions are the intended fix; 
   golden-image baselines are ruled out.
 - Screenshot recipe: write a `.mjs` into the repo root (so `node_modules` resolves),
-  `playwright-core` with `channel: 'msedge'`, delete it afterwards.
+  `playwright-core` with `channel: 'msedge'`, delete it afterwards; save output into the
+  gitignored `screenshots/` folder.
 - **e2e port conflict.** `playwright.config.js` sets `reuseExistingServer: false` and its
   `webServer` wants port 4321 — if an `astro dev` server is already squatting there, the
   whole matrix fails to start. Three separate agents rediscovered this the same day.

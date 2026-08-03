@@ -211,6 +211,23 @@ test('near, far, and fringe silhouettes are three pairwise-distinct tones, in bo
   expect(new Set(await fills()).size).toBe(3);
 });
 
+// Cityscape depth, Stage 5d: each building has a darker side-face strip, distinct from
+// its own front-face fill, in both themes — regression-prone since both are generated
+// from the same BUILDINGS entry rather than authored separately.
+test('building side-face fill is distinct from the front-face fill, in both themes', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto('/');
+  const fills = () => page.evaluate(() => {
+    const sel = (cls) => getComputedStyle(document.querySelector(`.scene-standard ${cls}`)).fill;
+    return [sel('.f-near'), sel('.f-bld-shade')];
+  });
+  const [front, shade] = await fills();
+  expect(shade).not.toBe(front);
+  await page.locator('#toggle').click();
+  const [frontDay, shadeDay] = await fills();
+  expect(shadeDay).not.toBe(frontDay);
+});
+
 test('no horizontal overflow at ultra-wide (2560×1080)', async ({ page }) => {
   await page.setViewportSize({ width: 2560, height: 1080 });
   await page.goto('/');

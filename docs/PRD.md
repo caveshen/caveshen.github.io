@@ -71,8 +71,9 @@ the document body under their original `§` headings as history.
 | d25 | Shared stage component — extracting the approach interaction | *new* | ✅ built 2026-08-02 — `1254dad`, landed on the mainline as `732f5a6` (#3); pure refactor, byte-identical `dist/index.html`, zero `e2e/` files modified |
 | d26 | Cleanup sweep — four of five items built, one closed as not-debt | *new* | ✅ built 2026-08-02 — `daaafb9`; item 5 closed, replaced by lossless PNG recompression in `3f322ae` |
 | d27 | CI: tag pushes fire the deploy workflow | *new* | ✅ built 2026-08-02 — `daaafb9` |
-| d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | 🔨 on `item/cityscape-depth` — Stages 1–3 + 5 approved; Stages 4 + 6 built, awaiting preview reaction |
-| d29 | Comment sweep — repo-wide | *new* | ✅ both passes done on `item/comment-sweep` (`02d16cd`, `03eba87`) — awaiting go to push + PR |
+| d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | ✅ all stages (1–6) approved on preview; pre-PR /code-review in flight, then PR |
+| d29 | Comment sweep — repo-wide | *new* | ✅ merged to main (PR #7) |
+| d30 | Easter egg — the banner plane crashes when clicked | *new* | 💭 proposed 2026-08-03, no go — design sketch in its section |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -4229,8 +4230,10 @@ shadows, which would fight the flat-vector world.
   half strength). Same `radialGradient`/variant-id/CSS-stop discipline as
   Stages 2 and 5b.
 
-**STATUS 2026-08-03: Stages 4 and 6 built, awaiting Caveshen's preview
-reaction.** Commits: `e84d0f3` (Stage 4: pointer-driven drift, 6 SVG units,
+**STATUS 2026-08-03: Stages 4 and 6 APPROVED — d28 complete, pre-PR review
+in flight.** 6a/6b were "overwhelmingly a yes" as built; Stage 4's drift was
+too strong at 6 units and was softened to 2.5 (`2898c5b`), then accepted.
+Commits: `e84d0f3` (Stage 4: pointer-driven drift, originally 6 SVG units,
 window-listener since the frame is pointer-events:none, rAF-coalesced,
 reduced-motion re-checked live, drift zeroed in the same frame as approach so
 it rides the mirrored 550ms transition), `dc7cf24` (6a: shadows generated
@@ -4313,5 +4316,37 @@ and may also ship alone.
 **Status: 💭 proposed 2026-08-02 — no go, no build. Split from d26 on
 Caveshen's ruling; a worker taking this should not also be doing d26's
 mechanical items in the same commit.**
+
+---
+
+## d30. Easter egg — the banner plane crashes when clicked
+
+Proposed by Caveshen 2026-08-03, his own words: *"What if we click on the
+plane as it flies past, and the plane crashes???"* Deliberate scope-creep,
+owned as such. **💭 proposed — no go, no build; design sketch below is a
+starting point for his reaction, not a spec.**
+
+Sketch (cartoon physics, never grim — the register is slapstick):
+
+1. **Hit target**: the plane is small and moving; wrap it in an invisible
+   padded hitbox (≥44px effective) so clicking it is a game, not a test of
+   aim. Pointer and touch both.
+2. **The crash**: on click — a sputter (two or three tilt oscillations), then
+   a spiral dive toward the sea, the banner detaching to flutter down
+   separately; a small splash at entry reusing the existing wave idiom, brief
+   ripple, gone. Total under ~2s so it never upstages the interview.
+3. **Respawn**: the scheduler already flies the plane on a jittered interval
+   (`PLANE_JITTER_MS`) — the next scheduled flight simply happens, unbothered.
+   Optionally the banner text changes for the flight after a crash (one cheeky
+   PLACEHOLDER line, Caveshen's to write, per the copy rule).
+4. **Discipline**: CSS/vanilla JS only, no new deps, no sound (the site has
+   none). `prefers-reduced-motion`: no crash animation — the existing rule
+   already suppresses the flight itself, so the hitbox never exists there.
+   No-JS: the plane is JS-flown already; nothing to do.
+5. **Tests**: click mid-flight → crash class appears and the plane leaves the
+   viewport below the waterline; reduced-motion → no listener. Screen-space,
+   proven red first, per d18's discipline.
+
+Estimate: under a day. Natural branch `item/plane-crash` after d28 merges.
 
 ---

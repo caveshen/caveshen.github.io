@@ -20,7 +20,7 @@ export function initStage(tree) {
 
   const render = initEngine(
     tree,
-    { speechEl, stageEl: directionEl, choicesEl },
+    { speechEl, stageEl: directionEl, choicesEl, cardEl: card },
     (path) => { window.location.href = path; }
   );
 

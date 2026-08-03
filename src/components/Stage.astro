@@ -382,11 +382,30 @@ const root = tree.root;
     color: var(--stage);
     margin: 0 0 0.75rem;
   }
-  .speech {
+  .speech, .speech-stream {
     font-size: 1.1rem;
     margin: 0 0 1.5rem;
-    transition: opacity 0.25s ease;
     min-height: 3.2em;
+  }
+  .speech {
+    transition: opacity 0.25s ease;
+  }
+  /* Visually-hidden while streaming, never display:none — clip-path keeps
+     #speech (the live region) in the a11y tree so its already-complete text
+     stays announced, while the sibling .speech-stream carries the visible
+     typewriter reveal. */
+  .speech.speech-clip {
+    position: absolute;
+    clip-path: inset(50%);
+  }
+  .speech-stream .pending {
+    visibility: hidden;
+  }
+  /* Dimmed, not disabled — every activation is swallowed by the card's own
+     skip listener while streaming, so this is the disabled-control carve-out,
+     not a contrast regression. */
+  .card.is-streaming .choices {
+    opacity: 0.55;
   }
   .choices {
     list-style: none;

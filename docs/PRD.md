@@ -4181,13 +4181,15 @@ tweak) and deserves its own `d` item when he's ready — left unopened here.
 ### Staged path — cheapest and highest-value first, each independently reactable
 
 - **Stage 1 — parallax on the existing zoom (near-free).** `stage.js` already
-  computes `tx`/`ty`/`scale` for the approach zoom. Expose them as CSS custom
-  properties on `.camera` (e.g. `--cam-tx`/`--cam-ty`/`--cam-scale`) alongside
-  the inline `transform`, then give `.bg-layer` its own
-  `transform: scale(calc(1 + (var(--cam-scale) - 1) * 0.4))`-shaped rule — a
-  **dampened** version of the same zoom, so mountains and sky lag the
-  foreground on approach. No new assets, no new dependency, reuses numbers
-  already computed. **Estimate: well under a day.**
+  computes `tx`/`ty`/`scale` for the approach zoom. Expose the scale as a CSS
+  custom property on `.camera` (`--cam-scale`; tx/ty were exposed too at
+  first, then dropped as unused on review 2026-08-03) alongside the inline
+  `transform`, then give `.bg-layer` its own counter-scale rule — a
+  **dampened** version of the same zoom, so the mountains lag the foreground
+  on approach. As built, the sky rect sits deliberately OUTSIDE `.bg-layer`
+  and zooms at full camera rate: a full-bleed gradient lagging the crop
+  would expose its own edges. No new assets, no new dependency, reuses
+  numbers already computed.
 - **Stage 2 — sky and mountain gradients (cheap, SVG-only).** A vertical
   `linearGradient` on `.f-sky` and a horizon-fade on `.f-far` so the far
   mountains sink toward the sky tone rather than hard-cutting to it. Zero new
@@ -4237,13 +4239,25 @@ Commits: `e84d0f3` (Stage 4: pointer-driven drift, originally 6 SVG units,
 window-listener since the frame is pointer-events:none, rAF-coalesced,
 reduced-motion re-checked live, drift zeroed in the same frame as approach so
 it rides the mirrored 550ms transition), `dc7cf24` (6a: shadows generated
-from the same rail-post array — night rx16/op0.22, day rx10/op0.45; Badger's
+from the same rail-post array — night rx16 wide/faint, day rx10 tight/dense
+(effective opacities 0.088/0.18: the stated 0.22/0.45 × a folded 0.4 alpha),
+differentiated by CSS rule + the `data-time` switch rather than tokens; Badger's
 own shadow untouched), `14d52c1` (6b: sun core solid to 0.81 fading to edge,
 radius 50→62 compensated so the perceived disc size holds; moon untouched,
 selector scoped to `circle.f-cel`), `681b2e0` (reviewer nit fixes — the
 worker ran its own reviewer pass mid-flight). New idle-parallax e2e test
 proven red then green. Suite: build clean, vitest 65/65, Playwright
 **1569 passed / 7 skipped / 0 failed**.
+
+**6a follow-up (Caveshen, 2026-08-03, from a preview crop): the railing still
+reads shadowless.** Two causes: the night post-shadow's effective opacity
+(0.088) is invisible on the dark ground, and the horizontal rail run casts
+nothing at all. Fix: raise the shadow opacities until they read at a glance
+in both themes (day stays denser than night, per the original ruling), and
+give the rail run itself a grounded presence — likely a faint continuous
+shadow band under the bottom rail, same contact-shadow idiom, subtle enough
+to stay surface rather than effect. Screenshot-verified in both themes, with
+a crop matching his.
 
 **`three.js` stays explicitly out of scope for all of the above** (his
 ruling), noted only as where it would eventually replace this whole layer if

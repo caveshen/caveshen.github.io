@@ -319,7 +319,7 @@ test('approach dampens background growth relative to the foreground (parallax)',
   const bgGrowth = bgAfter.height / bgBefore.height;
   const fgGrowth = fgAfter.height / fgBefore.height;
   expect(bgGrowth, `bg grew ${bgGrowth}x, fg grew ${fgGrowth}x`).toBeLessThan(fgGrowth);
-  // Damping factor 0.4: bg's net scale should track 1 + (fg's scale - 1) * 0.4.
+  // The bg must track the damped curve, not merely grow "less" than the fg.
   expect(bgGrowth).toBeCloseTo(1 + (fgGrowth - 1) * 0.4, 1);
 });
 

@@ -122,10 +122,7 @@ export function initStage(tree) {
         : undefined;
       const { tx, ty } = computeCameraTransform({ stage: sf, figure: fig, scale, faceTargetY, faceY });
       camera.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
-      // Exposed for .bg-layer's counter-scale (tokens.css); tx/ty are exposed
-      // alongside scale for parity even though only scale feeds that rule today.
-      camera.style.setProperty('--cam-tx', tx);
-      camera.style.setProperty('--cam-ty', ty);
+      // Feeds .bg-layer's counter-scale (tokens.css).
       camera.style.setProperty('--cam-scale', scale);
       // Zero the idle drift here too, not just on the next pointermove — otherwise
       // a stale drift offset would ride the whole zoom untouched if the user never
@@ -156,8 +153,6 @@ export function initStage(tree) {
     endDlgBtn.hidden = true;
     approachBtn.hidden = false;
     camera.style.transform = 'none';
-    camera.style.removeProperty('--cam-tx');
-    camera.style.removeProperty('--cam-ty');
     camera.style.removeProperty('--cam-scale');
 
     approachBtn.focus();

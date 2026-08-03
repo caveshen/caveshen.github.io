@@ -186,8 +186,8 @@ test('night/day toggle swaps elements in the visible scene', async ({ page }) =>
   await expect(nightEl).not.toBeVisible();
 });
 
-// Cityscape depth, Stage 2: the sky is gradiented (a url() reference), not a flat fill,
-// and stays a gradient after the theme toggle re-themes its stops.
+// The sky is gradiented (a url() reference), not a flat fill, and stays a
+// gradient after the theme toggle re-themes its stops.
 test('sky fill is a gradient reference, not a flat colour, in both themes', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto('/');
@@ -197,8 +197,8 @@ test('sky fill is a gradient reference, not a flat colour, in both themes', asyn
   expect(await skyFill()).toMatch(/^url\(/);
 });
 
-// Cityscape depth, Stage 3: near buildings, far mountains, and the warehouse fringe are
-// three visibly distinct tones (not the old two-tone bands), in both themes.
+// Near buildings, far mountains, and the warehouse fringe are three visibly
+// distinct tones (not two-tone bands), in both themes.
 test('near, far, and fringe silhouettes are three pairwise-distinct tones, in both themes', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto('/');
@@ -211,9 +211,9 @@ test('near, far, and fringe silhouettes are three pairwise-distinct tones, in bo
   expect(new Set(await fills()).size).toBe(3);
 });
 
-// Cityscape depth, Stage 5d: each building has a darker side-face strip, distinct from
-// its own front-face fill, in both themes — regression-prone since both are generated
-// from the same BUILDINGS entry rather than authored separately.
+// Each building has a darker side-face strip, distinct from its own front-face
+// fill, in both themes — regression-prone since both are generated from the
+// same BUILDINGS entry rather than authored separately.
 test('building side-face fill is distinct from the front-face fill, in both themes', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto('/');

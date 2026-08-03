@@ -129,6 +129,14 @@ const seamXs = Array.from(
       <stop class="stop-moon-glow" offset="0" stop-opacity="0.18" />
       <stop class="stop-moon-glow" offset="1" stop-opacity="0" />
     </radialGradient>
+    <!-- sun disc: solid out to offset 0.81 (≈ the old r=50 edge, on the enlarged r=62
+         circle below) so the softened rim adds bloom rather than shrinking the disc,
+         then fades to blend into f-sun-glow (already painted behind, r=135). -->
+    <radialGradient id={`sun-core-${variant}`}>
+      <stop class="stop-sun-glow" offset="0" stop-opacity="1" />
+      <stop class="stop-sun-glow" offset="0.81" stop-opacity="1" />
+      <stop class="stop-sun-glow" offset="1" stop-opacity="0" />
+    </radialGradient>
     <!-- promenade depth falloff: darker toward the viewer (the rail end reads as
          further away, same recession logic as the sky/far-mountain haze above) -->
     <linearGradient id={`ground-grad-${variant}`} gradientUnits="userSpaceOnUse"
@@ -150,7 +158,7 @@ const seamXs = Array.from(
   <!-- sun + clouds (day) -->
   <g class="day-only">
     <circle class="f-sun-glow" cx={v.celestial.cx} cy={v.celestial.cy} r="135" />
-    <circle class="f-cel" cx={v.celestial.cx} cy={v.celestial.cy} r="50" />
+    <circle class="f-cel" cx={v.celestial.cx} cy={v.celestial.cy} r="62" />
     {v.dayClouds.map(([x, y, w, h, rx, o]) => <rect x={x} y={y} width={w} height={h} rx={rx} fill="#fff" opacity={o} />)}
   </g>
   <CityScape camera={v.camera} />

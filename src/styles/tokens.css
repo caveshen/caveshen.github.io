@@ -179,6 +179,11 @@
 .scene-standard .f-ground { fill: url(#ground-grad-standard); }
 .scene-wide     .f-ground { fill: url(#ground-grad-wide); }
 .scene-tall     .f-ground { fill: url(#ground-grad-tall); }
+/* element-scoped (circle, not .f-cel generally) so the night-only building-window
+   group, which shares the .f-cel class, is left untouched */
+.scene-standard circle.f-cel { fill: url(#sun-core-standard); }
+.scene-wide     circle.f-cel { fill: url(#sun-core-wide); }
+.scene-tall     circle.f-cel { fill: url(#sun-core-tall); }
 
 .stop-sky-top    { stop-color: var(--sky); }
 .stop-sky-bottom { stop-color: var(--sky-horizon); }

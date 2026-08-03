@@ -1,6 +1,6 @@
 // not-found.spec.js — the interactive 404: a door that isn't in the script.
 import { test, expect } from '@playwright/test';
-import { rectsIntersect, visibleRect } from './geom.js';
+import { rectsIntersect, visibleRect, sceneRects } from './geom.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/404');
@@ -150,3 +150,30 @@ for (const vp of [
     expect(rectsIntersect(faceBox, cardBox)).toBe(false);
   });
 }
+
+// A missing sleeve/leg leaves the torso's own bbox unchanged, so a silhouette-width
+// check would never go red — parts must be checked individually.
+test('arms and legs are present, attached to the torso, and not both on one side', async ({ page }) => {
+  const arms = await sceneRects(page, '.fig-arm');
+  const legs = await sceneRects(page, '.fig-leg');
+  const [torso] = await sceneRects(page, '.fig-torso');
+  const faceVoid = await visibleRect(page, '.face-void');
+
+  expect(arms.length).toBe(2);
+  expect(legs.length).toBe(2);
+  for (const part of [...arms, ...legs]) {
+    expect(part.width).toBeGreaterThan(0);
+    expect(part.height).toBeGreaterThan(0);
+    expect(rectsIntersect(part, torso)).toBe(true);
+  }
+
+  const torsoCentreX = torso.x + torso.width / 2;
+  const armCentres = arms.map((a) => a.x + a.width / 2).sort((a, b) => a - b);
+  expect(armCentres[0]).toBeLessThan(torsoCentreX);
+  expect(armCentres[1]).toBeGreaterThan(torsoCentreX);
+
+  expect(faceVoid.width).toBeGreaterThan(0);
+  expect(faceVoid.height).toBeGreaterThan(0);
+  expect(faceVoid.x).toBeGreaterThanOrEqual(torso.x);
+  expect(faceVoid.x + faceVoid.width).toBeLessThanOrEqual(torso.x + torso.width);
+});

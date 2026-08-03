@@ -211,7 +211,9 @@ test('the card stays fully on-screen on a short viewport', async ({ page }) => {
 // around it, never stretches it. getBBox() ignores ancestor transforms (including the
 // camera pan/scale), so we measure post-transform with getBoundingClientRect() instead,
 // at a viewport sized to force the target variant on.
-const MOUNTAIN_RATIO = 2.4194;
+// 600/254: baseline (y=352) overscans 6 units to y=358 for the d28 waterline-seam fix,
+// so the polygon's own bbox height grew from 248 to 254 — see CityScape.astro.
+const MOUNTAIN_RATIO = 2.3622;
 
 async function mountainRatio(page, selector) {
   const box = await page.locator(selector).evaluate((el) => {

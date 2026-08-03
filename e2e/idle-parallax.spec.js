@@ -33,6 +33,26 @@ test('resting pointer position drifts the background, never the foreground', asy
   }
 });
 
+// d28 waterline-seam fix: landforms/buildings are authored to end exactly at the
+// shared baseline, and the sea (fg-layer) paints over that line at rest. Drifting
+// .bg-layer to its full upward excursion must not out-run the overscan margin and
+// open a sky-coloured gap between the land and the sea.
+test('idle drift at max upward excursion never opens a sky gap at the waterline', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 }); // forces the standard variant on
+  await page.goto('/');
+  const frame = await page.locator('.stage-frame').boundingBox();
+
+  // Bottom stage edge drives drift-y to its full upward excursion (stage.js: ny=+1 ->
+  // drift-y = -DRIFT_MAX), the direction that pulls land up and away from the sea.
+  await page.mouse.move(frame.x + frame.width / 2, frame.y + frame.height - 1);
+  await page.waitForTimeout(1100); // .bg-layer's 950ms transition settling
+
+  const land = await page.locator('.scene-standard .world').boundingBox();
+  const sea  = await page.locator('.scene-standard .f-sea').boundingBox();
+  expect(land.y + land.height, 'land bottom vs sea top at max upward drift')
+    .toBeGreaterThanOrEqual(sea.y - 0.5); // sub-px rounding tolerance
+});
+
 test('reduced motion disables the pointer drift entirely', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.emulateMedia({ reducedMotion: 'reduce' });

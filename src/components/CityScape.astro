@@ -52,42 +52,51 @@ const windowStyle = (opacity: number, i: number) => {
   const d = -((i * 2.3) % 9);
   return `--o:${opacity};--t:${t}s;--d:${d.toFixed(2)}s;`;
 };
+
+// Idle drift (stage.js) shifts .bg-layer up to DRIFT_MAX=2.5 units; extending
+// baseline-touching shapes this far below y=352 keeps the sea (fg-layer, painted
+// over) covering the seam across the full excursion. See docs/PRD.md d28.
+const BASELINE_Y = 352;
+const SEAM_MARGIN = 6;
+const withSeamMargin = (y: number, h: number) => (y + h === BASELINE_Y ? h + SEAM_MARGIN : h);
 ---
 
 <g class="world" transform={camera}>
   <!-- Devil's Peak — painted first so Table Mountain's own polygon
        overlaps and masks its right-flank descent into the saddle -->
-  <polygon class="f-far" points="-80,352 70,95 200,124 240,352" />
+  <!-- Baseline vertices (y=352) are overscanned to y=358 (SEAM_MARGIN) so idle
+       drift never opens a sky gap at the waterline — see withSeamMargin above. -->
+  <polygon class="f-far" points="-80,358 70,95 200,124 240,358" />
   <!-- lit/shade facets, cut against the light source (upper-right, matching the
        celestial disc): a vertical split through the apex, not a full reshape -->
-  <polygon class="f-mtn-shade" points="-80,352 70,95 70,352" />
-  <polygon class="f-mtn-lit" points="70,95 200,124 240,352 70,352" />
+  <polygon class="f-mtn-shade" points="-80,358 70,95 70,358" />
+  <polygon class="f-mtn-lit" points="70,95 200,124 240,358 70,358" />
   <polygon class="f-far table-mountain"
-           points="40,352 130,187 190,120 230,109 300,104 480,106 540,114 585,167 640,352" />
-  <polygon class="f-mtn-shade" points="40,352 130,187 190,120 190,352" />
-  <polygon class="f-mtn-lit" points="480,106 540,114 585,167 640,352 480,352" />
+           points="40,358 130,187 190,120 230,109 300,104 480,106 540,114 585,167 640,358" />
+  <polygon class="f-mtn-shade" points="40,358 130,187 190,120 190,358" />
+  <polygon class="f-mtn-lit" points="480,106 540,114 585,167 640,358 480,358" />
   <!-- Kloof Nek — a raised col bridging Table Mountain's foot to Lion's Head's,
        so the join reads as a mountain pass rather than an open drop to the city -->
-  <polygon class="f-far" points="615,352 648,272 675,272 705,352" />
+  <polygon class="f-far" points="615,358 648,272 675,272 705,358" />
   <!-- Lion's Head — closes the gap to Table Mountain, apex softened -->
-  <polygon class="f-far" points="695,352 785,201 795,156 803,151 811,156 825,201 915,352" />
+  <polygon class="f-far" points="695,358 785,201 795,156 803,151 811,156 825,201 915,358" />
   <!-- Signal Hill — keeps the mountain chain linked -->
-  <polygon class="f-far" points="850,352 892,306 944,272 1000,260 1056,272 1108,306 1150,352" />
+  <polygon class="f-far" points="850,358 892,306 944,272 1000,260 1056,272 1108,306 1150,358" />
   <!-- warehouse fringe — low pitched-roof sheds, water tower, chimney; tapers off westward -->
   <g class="f-fringe">
     <polygon points="-295,336 -281,320 -267,336" />
     <polygon points="-216,318 -190,296 -164,318" />
     <polygon points="-178,326 -155,310 -132,326" />
-    {INDUSTRIAL_FAR.map(([x, y, w, h]) => <rect x={x} y={y} width={w} height={h} />)}
+    {INDUSTRIAL_FAR.map(([x, y, w, h]) => <rect x={x} y={y} width={w} height={withSeamMargin(y, h)} />)}
   </g>
   <g class="f-near">
     {BUILDINGS.map(([x, y, w, h]) => (
       <>
-        <rect x={x} y={y} width={w} height={h} />
+        <rect x={x} y={y} width={w} height={withSeamMargin(y, h)} />
         <!-- side-face strip, left edge (light from upper-right): capped well under
              the 6-unit minimum window inset (see WINDOWS below) so glow never floats
              over it -->
-        <rect x={x} y={y} width={Math.min(4, w * 0.3)} height={h} class="f-bld-shade" />
+        <rect x={x} y={y} width={Math.min(4, w * 0.3)} height={withSeamMargin(y, h)} class="f-bld-shade" />
       </>
     ))}
   </g>

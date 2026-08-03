@@ -342,8 +342,8 @@ test('tall window (1200×1400) still selects scene-standard, not scene-tall', as
 // The one representative viewport not already covered by approach.spec.js's checks:
 // 1200×1400 puts the standard scene (1200×750, aspect 1.6) inside a box of aspect 0.857,
 // about as far from its own aspect as this task's viewports get — a ratio that still
-// comes out at 2.4194 here is good proof the fill crops rather than stretches.
-test('Table Mountain aspect ratio (2.4194) still holds at 1200×1400', async ({ page }) => {
+// comes out at 2.3622 here is good proof the fill crops rather than stretches.
+test('Table Mountain aspect ratio (2.3622) still holds at 1200×1400', async ({ page }) => {
   await page.setViewportSize({ width: 1200, height: 1400 });
   await page.goto('/');
   const box = await page.locator('.scene-standard .table-mountain').evaluate((el) => {
@@ -351,7 +351,7 @@ test('Table Mountain aspect ratio (2.4194) still holds at 1200×1400', async ({ 
     return { width: r.width, height: r.height };
   });
   expect(box.height).toBeGreaterThan(0);
-  expect(box.width / box.height).toBeCloseTo(2.4194, 3);
+  expect(box.width / box.height).toBeCloseTo(2.3622, 3);
 });
 
 // Re-prove the figure and dialogue card survive full-bleed cropping at the two most

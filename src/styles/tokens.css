@@ -221,13 +221,18 @@
   .bg-layer { transition: none; }
 }
 
-/* ── Rail post contact shadows ──────────────────────────────────────────────
-   Badger.astro's ellipse-at-the-base idiom. Night default: wide/faint (diffuse
+/* ── Rail post + rail-run contact shadows ────────────────────────────────────
+   Badger.astro's ellipse-at-the-base idiom. Night default: wide (diffuse
    moonlight); day override: smaller/denser (a sharp sun). Fill is a class, not
-   an inline rgba() presentation attribute — var() doesn't resolve there, and the
-   0.4 alpha the shadow used to carry inline is folded into these opacity values. */
-.f-rail-shadow ellipse { fill: #000; rx: 16; ry: 4; opacity: 0.088; }
-:root[data-time="day"] .f-rail-shadow ellipse { rx: 10; ry: 3; opacity: 0.18; }
+   an inline rgba() presentation attribute — var() doesn't resolve there. Night
+   stays below day's opacity (the standing ruling) but had to be raised well
+   past what that ratio alone implies: a flat #000 fill barely lifts off a
+   ground that's already near-black, so night needs real alpha just to clear
+   a visibility floor there, not only relative to day. */
+.f-rail-shadow ellipse { fill: #000; rx: 16; ry: 4; opacity: 0.55; }
+:root[data-time="day"] .f-rail-shadow ellipse { rx: 10; ry: 3; opacity: 0.75; }
+.f-rail-shadow rect { fill: #000; opacity: 0.5; }
+:root[data-time="day"] .f-rail-shadow rect { opacity: 0.62; }
 
 /* ── City lights: a low glimmer, night only ────────────────────────────────
    --o holds each window's own base opacity (emitted inline by CityScape.astro

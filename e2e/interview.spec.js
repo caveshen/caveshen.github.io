@@ -228,6 +228,18 @@ test('building side-face fill is distinct from the front-face fill, in both them
   expect(shadeDay).not.toBe(frontDay);
 });
 
+// Regression guard: the post shadow's night opacity was once folded down to an
+// imperceptible 0.088 — invisible against the near-black night ground.
+test('rail post shadow opacity clears a visibility floor, in both themes', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto('/');
+  const opacity = () => page.locator('.scene-standard .f-rail-shadow ellipse').first()
+    .evaluate((el) => parseFloat(getComputedStyle(el).opacity));
+  expect(await opacity()).toBeGreaterThanOrEqual(0.25);
+  await page.locator('#toggle').click();
+  expect(await opacity()).toBeGreaterThanOrEqual(0.25);
+});
+
 test('no horizontal overflow at ultra-wide (2560×1080)', async ({ page }) => {
   await page.setViewportSize({ width: 2560, height: 1080 });
   await page.goto('/');

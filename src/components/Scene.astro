@@ -178,10 +178,13 @@ const seamXs = Array.from(
     {seamXs.map((x) => <line x1={x} y1={v.ground.y} x2={x} y2={v.ground.y + v.ground.height} />)}
     <line x1="0" y1={v.ground.y + v.ground.height * 0.4} x2={v.width} y2={v.ground.y + v.ground.height * 0.4} />
   </g>
-  <!-- rail post contact shadows: painted under the rail so the posts sit on top of
-       their own shadow. -->
+  <!-- rail contact shadows: post ellipses plus a thin band under the rail run itself,
+       painted under the rail so it sits on top of its own shadow. The band sits a couple
+       units below the posts' foot line — close enough to read as one surface, clear of
+       the paving-seam crease a few units further down. -->
   <g class="f-rail-shadow">
     {v.rail.posts.map((x) => <ellipse cx={x} cy={v.rail.y2} />)}
+    <rect x="0" y={v.rail.y2 + 2} width={v.width} height="3" />
   </g>
   <!-- semi-foreground railing: in front of the water, behind the figure -->
   <g class="f-rail" stroke-linecap="round" stroke-width="7">

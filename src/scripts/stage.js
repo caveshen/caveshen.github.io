@@ -252,6 +252,44 @@ export function initStage(tree) {
     document.addEventListener('fullscreenchange', syncFullscreenButton);
   }
 
+  // Idle micro-parallax: bg-layer drifts a few px opposite the pointer, as if it
+  // were a distant layer lagging behind the viewer's own head movement. Fine-pointer
+  // only, checked once here — touch devices never attach the listener at all.
+  if (window.matchMedia('(pointer: fine)').matches) {
+    const DRIFT_MAX = 6; // px (SVG user units) at the stage's edge — a faint cue, not a distraction
+    let lastX = 0, lastY = 0, driftScheduled = false;
+
+    function updateDrift() {
+      driftScheduled = false;
+      if (reducedMotion()) {
+        camera.style.removeProperty('--drift-x');
+        camera.style.removeProperty('--drift-y');
+        return;
+      }
+      if (approached) {
+        camera.style.setProperty('--drift-x', '0px');
+        camera.style.setProperty('--drift-y', '0px');
+        return;
+      }
+      const sf = stageFrame.getBoundingClientRect();
+      const nx = Math.max(-1, Math.min(1, ((lastX - sf.left) - sf.width / 2) / (sf.width / 2)));
+      const ny = Math.max(-1, Math.min(1, ((lastY - sf.top) - sf.height / 2) / (sf.height / 2)));
+      camera.style.setProperty('--drift-x', `${(-nx * DRIFT_MAX).toFixed(2)}px`);
+      camera.style.setProperty('--drift-y', `${(-ny * DRIFT_MAX).toFixed(2)}px`);
+    }
+
+    // stageFrame itself is pointer-events:none (Stage.astro) so it never receives
+    // hover events over the empty scene — window does, and clientX/Y stay valid
+    // since the frame always fills the viewport.
+    window.addEventListener('pointermove', (e) => {
+      lastX = e.clientX;
+      lastY = e.clientY;
+      if (driftScheduled) return;
+      driftScheduled = true;
+      requestAnimationFrame(updateDrift);
+    }, { passive: true });
+  }
+
   approachBtn.addEventListener('click', approach);
   endDlgBtn.addEventListener('click', exit);
 

@@ -56,6 +56,10 @@
   /* A third, paler distance step past --mountain-far, for the warehouse fringe —
      the furthest-west cluster — so silhouette weight recedes in three steps. */
   --mountain-fringe: #223050;
+  /* Lit/shade facets, blended ±7% luminance from --mountain-far — the massif's own
+     base tone, not a new colour. */
+  --mountain-lit:   #405278;
+  --mountain-shade: #1c2e54;
 }
 
 :root[data-time="day"] {
@@ -99,6 +103,8 @@
 
   --sky-horizon:     #dde9f5;
   --mountain-fringe: #a6bbd1;
+  --mountain-lit:    #9db5cf;
+  --mountain-shade:  #7991ab;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -116,6 +122,8 @@
 .f-cel   { fill: var(--celestial); }
 .f-far   { fill: var(--mountain-far); }
 .f-fringe{ fill: var(--mountain-fringe); }
+.f-mtn-lit  { fill: var(--mountain-lit); }
+.f-mtn-shade{ fill: var(--mountain-shade); }
 .f-near  { fill: var(--mountain); }
 .f-sea   { fill: var(--sea); }
 .f-ground{ fill: var(--ground); }

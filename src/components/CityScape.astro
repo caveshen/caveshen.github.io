@@ -58,8 +58,14 @@ const windowStyle = (opacity: number, i: number) => {
   <!-- Devil's Peak — painted first so Table Mountain's own polygon
        overlaps and masks its right-flank descent into the saddle -->
   <polygon class="f-far" points="-80,352 70,95 200,124 240,352" />
+  <!-- lit/shade facets, cut against the light source (upper-right, matching the
+       celestial disc): a vertical split through the apex, not a full reshape -->
+  <polygon class="f-mtn-shade" points="-80,352 70,95 70,352" />
+  <polygon class="f-mtn-lit" points="70,95 200,124 240,352 70,352" />
   <polygon class="f-far table-mountain"
            points="40,352 130,187 190,120 230,109 300,104 480,106 540,114 585,167 640,352" />
+  <polygon class="f-mtn-shade" points="40,352 130,187 190,120 190,352" />
+  <polygon class="f-mtn-lit" points="480,106 540,114 585,167 640,352 480,352" />
   <!-- Kloof Nek — a raised col bridging Table Mountain's foot to Lion's Head's,
        so the join reads as a mountain pass rather than an open drop to the city -->
   <polygon class="f-far" points="615,352 648,272 675,272 705,352" />

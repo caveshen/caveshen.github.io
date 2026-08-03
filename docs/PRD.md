@@ -71,7 +71,7 @@ the document body under their original `§` headings as history.
 | d25 | Shared stage component — extracting the approach interaction | *new* | ✅ built 2026-08-02 — `1254dad`, landed on the mainline as `732f5a6` (#3); pure refactor, byte-identical `dist/index.html`, zero `e2e/` files modified |
 | d26 | Cleanup sweep — four of five items built, one closed as not-debt | *new* | ✅ built 2026-08-02 — `daaafb9`; item 5 closed, replaced by lossless PNG recompression in `3f322ae` |
 | d27 | CI: tag pushes fire the deploy workflow | *new* | ✅ built 2026-08-02 — `daaafb9` |
-| d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | 🔨 in progress on `item/cityscape-depth` — Stages 1–3 approved; Stage 5 (texture & detail, 5a–5e) in flight; Stage 4 gated on its own go |
+| d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | 🔨 in progress on `item/cityscape-depth` — Stages 1–3 approved; Stage 5 built, awaiting preview reaction; Stage 4 gated on its own go |
 | d29 | Comment sweep — repo-wide | *new* | ✅ both passes done on `item/comment-sweep` (`02d16cd`, `03eba87`) — awaiting go to push + PR |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
@@ -3852,6 +3852,20 @@ the sun could use glow/bloom, the moon the same but slightly less; the
 mountains still look VERY flat, the buildings as well; the strange sky gap
 between Table Mountain and Lion's Head; Devil's Peak's peak should come down
 ~2px. Direction confirmed — build on Stages 1–3, don't rework them.
+
+**STATUS 2026-08-03: 5a–5e built, awaiting Caveshen's preview reaction.**
+Commits in order: `d7ae68b` (5a: Kloof Nek saddle polygon closes the gap,
+Devil's Peak apex −2 units; approach-spec proxy test verified still sound),
+`5e08020` (5b: radial halos, sun 0.35 opacity / moon 0.18 ≈ half), `93e19ae`
+(5c: lit/shade facets on Table Mountain + Devil's Peak only — the other
+massifs stay flat so they don't fight the haze), `a0fda99` (5d: generated
+left-edge side-face strip per building, min(4, w×0.3), verified clear of all
+windows), `8e6f353` (5e: paving seams every 70 units + ground depth gradient,
+darker toward the viewer), `989443c` (regression test: side-face ≠ front-face
+fill, both themes, proven red first). Suite: build clean, vitest 65/65,
+Playwright **1553 passed / 7 skipped / 0 failed**. Verification note: the
+worker's night screenshot had silently captured a 404 page — night was
+re-captured and verified by the orchestrator before this status was written.
 
 Sub-items, each its own small commit, in this order (geometry first — it's
 the cheapest and the facets must be cut against final ridgelines):

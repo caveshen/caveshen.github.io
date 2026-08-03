@@ -216,6 +216,12 @@
   .bg-layer { transition: none; }
 }
 
+/* ── Rail post contact shadows ──────────────────────────────────────────────
+   Badger.astro's ellipse-at-the-base idiom, generated per post. Night default:
+   wide/faint (diffuse moonlight); day override: smaller/denser (a sharp sun). */
+.f-rail-shadow ellipse { rx: 16; ry: 4; opacity: 0.22; }
+:root[data-time="day"] .f-rail-shadow ellipse { rx: 10; ry: 3; opacity: 0.45; }
+
 /* ── City lights: a low glimmer, night only ────────────────────────────────
    --o holds each window's own base opacity (emitted inline by CityScape.astro
    at build time so this stays CSS-only and works with JS disabled); the

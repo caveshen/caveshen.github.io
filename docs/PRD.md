@@ -61,7 +61,7 @@ the document body under their original `§` headings as history.
 | d15 | Admin page | §31 (remainder) | 🎨 IN DESIGN, no go-ahead |
 | d16 | Card avatar art refinement | §33b | 🎨 IN DESIGN, brief outstanding |
 | d17 | One character per route — Badger on `/`, hooded figure on `/404`; 1:1 **in interaction, not just scenery**; the toggle dies | §27 (remainder) | ✅ built 2026-08-02 `26a6ddb` — awaiting Caveshen's local-dev sign-off |
-| d18 | Visual validation in e2e | §16 | 💭 intent only |
+| d18 | Visual validation in e2e | §16 | 📋 specced, awaiting go |
 | d19 | Dialogue rework | §22 | ⏸ parked |
 | d20 | Social preview imagery | §32 | ⏸ unscheduled |
 | d21 | All copy | §23 checklist item 1 | Caveshen's alone; every `PLACEHOLDER` stands |
@@ -84,9 +84,9 @@ rather than left as done-and-dusted: **the tracker must never constrain the
 code** — the misnamed file had been left alone precisely *because* the PRD
 referenced it, which is backwards.
 
-d1, d3–d5, d6–d8, d10–d14, d17, d23–d26 are written up as their own `## dN`
-sections (§30's old D-4/D-6/D-8/D-9…D-13 subsections moved there, not
-duplicated — see the note at each old location). d2, d9, d15, d16, d18–d21
+d1, d3–d5, d6–d8, d10–d14, d17, d18, d23–d26 are written up as their own
+`## dN` sections (§30's old D-4/D-6/D-8/D-9…D-13 subsections moved there, not
+duplicated — see the note at each old location). d2, d9, d15, d16, d19–d21
 have no separate `d` section: their detail still lives at the `§` heading
 named in "Was", which is unchanged. **§7's OG/touch-icon debt is closed** —
 see §30 D-2 (built 2026-07-26).
@@ -1067,6 +1067,9 @@ than the rest of the suite.
 ---
 
 ## 16. Proposed item — visual validation in e2e (NOT ACCEPTED, intent only)
+
+**Superseded 2026-08-03 by `## d18`**, which turns the intent below into a
+buildable spec. This section is kept as the reasoning that produced it.
 
 Raised by Caveshen 2026-07-22. **Recorded as intent only — no design, no
 research, no build.** Work starts fresh in a later session, on his go.
@@ -3564,6 +3567,227 @@ asymmetry is deliberate: neither line is a placeholder, neither carries a
 
 **Status: ✅ BUILT — awaiting Caveshen's look on local dev: both routes, both
 themes, before and after approach, per §2's draft-before-deploy rule.**
+
+---
+
+## d18. Visual validation in e2e (was §16)
+
+Specced 2026-08-03 against the scene as it stands on `item/cityscape-depth`
+(d28 Stages 1–3 and 5a–5e: parallax layers, sky/far/ground gradients, mountain
+facets, building side-faces, celestial halos, paving seams). §16 recorded the
+intent and left the approach open; **this section closes it**: assert
+screen-space geometry and relationships, keep golden images ruled out, and
+build nothing perceptual (no hash, no checksum — the hypothesis §16 left open
+is declined; it buys a second failure mode for defects the boxes already
+catch).
+
+### Decisions taken, so the build does not re-litigate them
+
+- **Screen space only.** `getBoundingClientRect()`, never `getBBox()` — the
+  CLAUDE.md gotcha, and the reason the Table Mountain invariant works.
+- **No hit-testing.** `document.elementFromPoint`/`elementsFromPoint` is the
+  obvious "what is painted here" probe and **cannot be used here**:
+  `Stage.astro:105` sets `pointer-events: none` on `.stage-frame`, so every
+  scene shape is invisible to a hit test. Layer order is asserted from **DOM
+  order** instead (SVG paint order *is* document order) paired with a rect
+  overlap, so the assertion still means something visually.
+- **Boxes, chosen where a box is exact.** A polygon's bbox over-reports its
+  painted area at the corners. Every invariant below keys off an edge, a
+  baseline or an x-projection — quantities a bbox reports exactly — not off
+  area or containment of arbitrary points.
+- **One new spec file.** New `e2e/scene.spec.js` (subject: the scene's
+  composition). Extended: `e2e/geom.js`, `e2e/not-found.spec.js` (the hooded
+  figure's own tests already live there), `e2e/badger.spec.js`. No framework,
+  no new dependency, no visual-diff service, no file named after this item.
+- **Matrix breadth comes from the projects, not from `setViewportSize`.** The
+  invariants that must hold *everywhere* are written with no viewport call, so
+  they run at all eight projects' native viewports. Only tests that must force
+  a particular scene variant set a viewport, per the existing idiom.
+- **Scene geometry is asserted on `/` only.** Both routes render the same
+  `Scene.astro`; only the character differs, and `approach.spec.js` already
+  proves the per-route layer structure. Running the scene probes twice doubles
+  the cost for nothing. Figure invariants are per character, so they follow
+  their character's route.
+
+### What the suite already covers — do not rebuild it
+
+| Already guarded | Where |
+|---|---|
+| Table Mountain aspect 2.4194 (no stretch) in all three variants + 1200×1400 | `approach.spec.js:225-244`, `interview.spec.js:334` |
+| Card fully on-screen and centred, 3 viewports | `not-found.spec.js:27-56`, `approach.spec.js:196` |
+| Face clears the card after approach, both routes | `not-found.spec.js:141`, `interview.spec.js:409-417` |
+| Prompt does not overlap the figure; prompt stays inside the frame | `interview.spec.js:251-274`, `badger.spec.js:21` |
+| Figure and card not clipped by the crop, 2 extreme aspects | `interview.spec.js:353` |
+| Fullscreen button clears figure/prompt/card/toggle/foot | `interview.spec.js:377-479` |
+| Stage-frame fills 100% of the viewport, no overflow, 4 aspects | `interview.spec.js:289-317` |
+| Correct variant selected per aspect | `interview.spec.js:129-177`, `not-found.spec.js:114` |
+| Parallax damping (bg grows 0.4× the fg's growth) | `approach.spec.js:310` |
+| bg-layer holds the mountain, fg-layer holds sea + character | `approach.spec.js:297` |
+| Sky is a gradient; near/far/fringe are three distinct tones; side-face ≠ front-face — both themes | `interview.spec.js:191-229` |
+| Devil's Peak exists above-left of the summit; district exists west of x=0; ≥4 waves per variant | `approach.spec.js:250-342` |
+
+The gap is **inside** the figure, and **between** the scene's own parts. Those
+are the only two places the invariants below go.
+
+### The markup debt this item must pay (the one source edit)
+
+The "figure with no arms" class is **unassertable today**: the hooded figure's
+sleeve, leg and torso paths carry no class, so no selector can name them
+(`HoodedFigure.astro:20-36`). Five `class=` attributes are added — `fig-torso`
+(hoodie body), `fig-arm` ×2 (sleeve panels), `fig-leg` ×2 (jeans) — and nothing
+else changes: no fills, no geometry, no CSS rules. `.face-void` is already
+classed. **Alternatives considered and rejected:** silhouette-width probing
+(the arms sit inside the torso's own x-span, so a missing arm does not move the
+figure's bbox — it would never go red), and child-count assertions (goes red
+for any art edit, green for the wrong deletion).
+
+The Badger has no equivalent: it is two rasters (`Badger.astro:25-26`), so part
+integrity is not available. Its analogue is M2.
+
+### Must-have invariants (ranked — build in this order)
+
+Each names its assertion, its viewport/theme scope, and the injection that must
+be watched fail first. Injections are **temporary local source edits, reverted
+before commit** — never left in the test.
+
+**M1 — Figure part integrity (the "no arms" class).** `.fig-arm` and `.fig-leg`
+each have count 2 and a non-zero screen rect; every part intersects
+`.fig-torso`'s rect (attached, not floating); one arm's centre-x is left of the
+torso centre and the other right (catches both arms collapsing to one side);
+`.face-void` is non-zero and lies inside the torso's x-span. Route `/404`
+(the hooded figure), all project viewports, default theme.
+*Red by:* deleting one sleeve path from `HoodedFigure.astro`.
+
+**M2 — Character raster integrity (the silently-blank-character class).** Every
+`<image>` in the built page resolves — collect `href` values from the DOM and
+`request.get()` each, expect 200 (idiom already used in `hygiene.spec.js:27`) —
+and both `.badger-image` frames have equal, non-zero screen rects whose w/h
+matches the authored 1:1 within 1%. Route `/`, all project viewports.
+*Why it earns must-have:* a broken `href` still renders a box, so `.badger-figure`
+keeps a non-zero rect and today's whole suite stays green over an empty stage.
+*Red by:* renaming the `badger-up.png` href to a missing file.
+
+**M3 — Ground reaches the frame's bottom edge, full width.** `.f-ground`'s
+screen rect satisfies `left ≤ 0`, `right ≥ viewport.width`, and
+`bottom ≥ viewport.height - 1`. All project viewports, no `setViewportSize`,
+default theme. This pins d3's accepted contract — *"ground reaches the bottom
+edge at every viewport — sky is never exposed beneath the sea"* — which is
+currently recorded and untested.
+*Red by:* halving `ground.height` in `Scene.astro`'s standard variant.
+
+**M4 — Skyline integrity.** Three assertions over the screen rects of the
+visible scene's landform/city shapes (`.f-far`, `.f-fringe`, `.f-near`,
+`.f-mtn-lit`, `.f-mtn-shade`):
+1. *No gap in the chain.* Sorted by `left`, each next rect starts at or before
+   the running maximum `right` — no full-height sky column between adjacent
+   silhouettes. This is exactly the defect d28 Stage 5a closed by hand (Table
+   Mountain ended at world x=640, Lion's Head began at 695), so it is a live
+   regression guard, not a hypothetical.
+2. *Everything meets the water.* The maximum `bottom` across those shapes
+   equals `.f-sea`'s `top` within 1px, and no shape's `bottom` exceeds it by
+   more than 1px — the authored "the city and the mountains end exactly where
+   the water begins" contract from d28's diagnosis. Catches both a floating
+   skyline and a drowned one.
+3. *Summit in frame.* The minimum `top` across those shapes is `≥ 0` — the
+   skyline is not cropped off the top of the frame (d3's "summit cut 45px").
+All project viewports, default theme.
+*Red by:* (1) deleting the Kloof Nek polygon; (2) shifting `sea.y` down 20
+units; (3) raising Table Mountain's apex 200 units.
+**Build note:** measure assertion 3 across all eight projects *before* pinning
+it. If a project crops the summit today, that is a finding for Caveshen — raise
+it, do not weaken the invariant to fit. See open questions.
+
+**M5 — Layer sanity at the seams (guards d28's depth work).** For each pair, the
+rects overlap **and** the painter is later in document order: sea over the
+landform bases at the waterline; promenade (`.f-ground`) over the sea; the
+character over the railing (`.f-rail`). Route `/`, all project viewports.
+*Red by:* moving `<rect class="f-sea">` above `<g class="bg-layer">` in
+`Scene.astro`.
+
+### Nice-to-have — explicitly deferrable, do not build without a separate go
+
+- **N1 — Halo centring.** Each `.f-sun-glow`/`.f-moon-glow` rect contains its
+  disc's rect and shares its centre within 1px, in its own theme (day/night).
+  Guards 5b against a halo drifting off its disc.
+- **N2 — Facets stay inside their massif.** `.f-mtn-lit`/`.f-mtn-shade` rects sit
+  inside `.table-mountain`'s x-span and share its baseline.
+- **N3 — Seams stay on the promenade.** Every `.f-seam` line's rect is contained
+  in `.f-ground`'s rect (no seams painted over the water).
+- **N4 — Matrix breadth for the existing occlusion tests.** One unparameterised
+  copy of "prompt clears the figure" and "face clears the card", run at the
+  projects' native viewports rather than three hand-picked sizes.
+
+N1–N4 are cheap but guard art that is one review away from changing again.
+They wait until d28 is signed off.
+
+### Shared helpers — extend `e2e/geom.js`, do not fork it
+
+- `sceneRects(page, selector)` — screen rects of every match **inside the
+  visible scene variant** (find the `.scene` with a non-zero rect, query within
+  it). Generalises the existing `visibleRect`'s one-element lookup; `visibleRect`
+  stays as is, its callers untouched.
+- `paintsOver(page, aSel, bSel)` — `compareDocumentPosition` inside the visible
+  scene: does A paint after B.
+- `rectContains(outer, inner)` — already written twice
+  (`interview.spec.js:240`); move it here and import it there rather than
+  landing a third copy.
+
+### Steps
+
+1. Extend `e2e/geom.js` with `sceneRects`, `paintsOver`, `rectContains`; import
+   `rectContains` in `interview.spec.js` and delete its local copy. →
+   *verify:* `npm run test:e2e -- interview.spec.js` green, count unchanged.
+2. Add the five `class=` attributes to `HoodedFigure.astro`. →
+   *verify:* `npm run build` clean; `git diff --stat` shows one file, five lines.
+3. M1 in `not-found.spec.js`. → *verify:* injection (delete a sleeve path) red,
+   revert, green — on at least two projects.
+4. M2 in `badger.spec.js`. → *verify:* injection (bad href) red, revert, green.
+5. M3 + M4 in a new `e2e/scene.spec.js`. → *verify:* each of the four
+   injections red one at a time, revert, green; record the measured summit
+   margin per project before pinning M4.3.
+6. M5 in `e2e/scene.spec.js`. → *verify:* injection (sea moved above `bg-layer`)
+   red, revert, green.
+7. Full matrix. → *verify:* `npm run test:e2e` — 0 failed, skips still 7,
+   passed count up by the new tests × 8 projects.
+8. Flake gate. → *verify:* `npm run test:e2e -- --repeat-each=2` — 0 failed, 0
+   flaky. (If runtime makes that impractical, a second plain full run is the
+   floor; say which was run.) Both use the temp-config port workaround in
+   CLAUDE.md when a dev server is squatting on 4321.
+9. Update this section's status line and the board row.
+
+### Success criteria — "done" means all of these
+
+1. M1–M5 implemented; no golden image, no new dependency, no new npm script, no
+   file named after a tracker ID.
+2. Every must-have invariant **watched fail** against its named injection and
+   pass after the revert — recorded per invariant in the commit message or this
+   section, one line each.
+3. `git status` clean of injections: `grep -rn "fig-arm" src/` finds exactly the
+   two sleeve paths; the scene renders identically to before (the only source
+   diff is five `class=` attributes).
+4. Full matrix green: `npm run test:e2e` → 0 failed, 7 skipped.
+5. Zero flake: the repeat run above reports 0 flaky.
+6. Vitest untouched and green (`npm test`, 65/65).
+7. Suite runtime has not grown by more than ~10% — these are rect reads on an
+   already-loaded page; anything larger means a test is waiting on something it
+   should not.
+
+### Open questions for Caveshen
+
+1. **M4.3 (summit in frame) may already be false somewhere on the matrix** —
+   d3 recorded that portrait crops the moon by design. If the measurement finds
+   a project that crops the *summit*, is that a defect to fix or an accepted
+   limitation to record as an exception?
+2. **The five `class=` attributes on `HoodedFigure.astro`** are a test-driven
+   edit to locked art markup. Confirmed acceptable? Without them the "no arms"
+   class stays untestable and M1 is dropped.
+3. **Sequencing against d28.** M4 and M5 pin geometry that d28 Stage 4 (idle
+   parallax) and any later ground-plane pass would move. Build d18 now and
+   accept that Stage 4 updates two invariants, or hold d18 until d28 closes?
+   Recommendation: build now — the invariants are the point of d28's review
+   loop, and a test that needs updating is telling you the composition moved.
+
+**Status: 📋 specced 2026-08-03, awaiting go. No build.**
 
 ---
 

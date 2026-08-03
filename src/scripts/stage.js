@@ -258,7 +258,7 @@ export function initStage(tree) {
   // px opposite the pointer as if lagging behind the viewer's own head movement.
   // Fine-pointer only, checked once here — touch devices never attach the listener at all.
   if (window.matchMedia('(pointer: fine)').matches) {
-    const DRIFT_MAX = 2.5; // px (SVG user units) at the stage's edge — a faint cue, not a distraction
+    const DRIFT_MAX = 1; // px (SVG user units) at the stage's edge — a faint cue, not a distraction
     let lastX = 0, lastY = 0, driftScheduled = false;
 
     function updateDrift() {

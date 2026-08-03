@@ -4249,8 +4249,28 @@ worker ran its own reviewer pass mid-flight). New idle-parallax e2e test
 proven red then green. Suite: build clean, vitest 65/65, Playwright
 **1569 passed / 7 skipped / 0 failed**.
 
+Two further preview notes from Caveshen, 2026-08-03, both accepted:
+
+- **Waterline seam vs idle drift.** The Stage-4 drift translates `.bg-layer`
+  bodily; the landforms are authored to end exactly at the waterline, so
+  upward drift opens a sky-coloured seam between mountain bases and sea
+  ("it should not rip the buildings and ocean from the sea"). Downward is
+  already safe — the sea (fg) paints over land. Fix: overscan the seam —
+  extend bg landforms/buildings a few units below the waterline (generator
+  tweak + baseline vertices) so the sea always has cover across the drift
+  excursion; audit the left/right edges for the same margin. NOTE for the
+  d18 merge: `item/visual-validation`'s M4 "land bottom == sea top ±1px"
+  tolerance must widen by the same overscan or it goes red.
+- **The banner plane must be always-white.** It currently inherits
+  `color: var(--text)` (Stage.astro) so it flips cream/dark with the theme —
+  a contrast side effect, not a choice. Ruling: `#fff` always, plus a faint
+  drop-shadow for day-sky legibility (vetoable).
+
 **6a follow-up (Caveshen, 2026-08-03, from a preview crop): the railing still
-reads shadowless.** Two causes: the night post-shadow's effective opacity
+reads shadowless.** DONE — `a25cc30`: ellipse opacity 0.088→0.55 night /
+0.18→0.75 day, plus a full-width shadow band 2 units below the posts' foot
+line; visibility-floor test proven red against the old faint values. Suite
+1577 passed / 7 skipped / 0 failed. Two causes: the night post-shadow's effective opacity
 (0.088) is invisible on the dark ground, and the horizontal rail run casts
 nothing at all. Fix: raise the shadow opacities until they read at a glance
 in both themes (day stays denser than night, per the original ruling), and

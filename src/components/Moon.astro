@@ -2,8 +2,9 @@
 // Moon.astro — the pale/cratered night moon, authored once, rendered into all
 // three scene SVGs at variant-appropriate centres. Crater offsets below are
 // relative to the moon's own centre, not absolute, so placement isn't redone
-// per variant. Radius is 95% of the sun's (Scene.astro's day-only `.f-cel`,
-// r=50); crater offsets/radii are scaled to match. Fills are CSS classes —
+// per variant. Radius is 95% of the sun's solid-core radius (Scene.astro's
+// `.f-cel` glow gradient holds full opacity out to offset 0.81 of its r=62
+// circle — ≈50 units); crater offsets/radii are scaled to match. Fills are CSS classes —
 // var() does not resolve inside SVG presentation attributes.
 
 interface Props {

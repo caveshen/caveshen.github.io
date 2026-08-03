@@ -222,10 +222,12 @@
 }
 
 /* ── Rail post contact shadows ──────────────────────────────────────────────
-   Badger.astro's ellipse-at-the-base idiom, generated per post. Night default:
-   wide/faint (diffuse moonlight); day override: smaller/denser (a sharp sun). */
-.f-rail-shadow ellipse { rx: 16; ry: 4; opacity: 0.22; }
-:root[data-time="day"] .f-rail-shadow ellipse { rx: 10; ry: 3; opacity: 0.45; }
+   Badger.astro's ellipse-at-the-base idiom. Night default: wide/faint (diffuse
+   moonlight); day override: smaller/denser (a sharp sun). Fill is a class, not
+   an inline rgba() presentation attribute — var() doesn't resolve there, and the
+   0.4 alpha the shadow used to carry inline is folded into these opacity values. */
+.f-rail-shadow ellipse { fill: #000; rx: 16; ry: 4; opacity: 0.088; }
+:root[data-time="day"] .f-rail-shadow ellipse { rx: 10; ry: 3; opacity: 0.18; }
 
 /* ── City lights: a low glimmer, night only ────────────────────────────────
    --o holds each window's own base opacity (emitted inline by CityScape.astro

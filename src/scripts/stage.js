@@ -127,6 +127,12 @@ export function initStage(tree) {
       camera.style.setProperty('--cam-tx', tx);
       camera.style.setProperty('--cam-ty', ty);
       camera.style.setProperty('--cam-scale', scale);
+      // Zero the idle drift here too, not just on the next pointermove — otherwise
+      // a stale drift offset would ride the whole zoom untouched if the user never
+      // moves the mouse again after clicking approach. Set on .camera alongside
+      // --cam-scale so it rides the same inline transition just applied above.
+      camera.style.setProperty('--drift-x', '0px');
+      camera.style.setProperty('--drift-y', '0px');
     }
 
     const firstChoice = choicesEl.querySelector('button');
@@ -252,9 +258,10 @@ export function initStage(tree) {
     document.addEventListener('fullscreenchange', syncFullscreenButton);
   }
 
-  // Idle micro-parallax: bg-layer drifts a few px opposite the pointer, as if it
-  // were a distant layer lagging behind the viewer's own head movement. Fine-pointer
-  // only, checked once here — touch devices never attach the listener at all.
+  // Idle micro-parallax: --drift-x/-y are set on .camera and inherit down to every
+  // .bg-layer child (one write covers all three Scene variants), nudging them a few
+  // px opposite the pointer as if lagging behind the viewer's own head movement.
+  // Fine-pointer only, checked once here — touch devices never attach the listener at all.
   if (window.matchMedia('(pointer: fine)').matches) {
     const DRIFT_MAX = 6; // px (SVG user units) at the stage's edge — a faint cue, not a distraction
     let lastX = 0, lastY = 0, driftScheduled = false;

@@ -39,8 +39,8 @@ test('approach frames the Badger face-void', async ({ page }) => {
 });
 
 // A broken href still paints a box (the <image> element itself has a size), so
-// .badger-figure's own rect stays non-zero and the rest of the suite over an empty
-// stage — the request check is the only thing that catches it.
+// .badger-figure's own rect stays non-zero and the rest of the suite stays green
+// over an empty stage — the request check is the only thing that catches it.
 test('badger raster images resolve, and both idle frames are equal, non-zero, and 1:1', async ({ page, request }) => {
   const hrefs = await page.evaluate(() => [...document.querySelectorAll('image')].map((img) => img.getAttribute('href')));
   expect(hrefs.length).toBeGreaterThan(0);

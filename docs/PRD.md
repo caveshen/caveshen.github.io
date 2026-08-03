@@ -61,7 +61,7 @@ the document body under their original `§` headings as history.
 | d15 | Admin page | §31 (remainder) | 🎨 IN DESIGN, no go-ahead |
 | d16 | Card avatar art refinement | §33b | 🎨 IN DESIGN, brief outstanding |
 | d17 | One character per route — Badger on `/`, hooded figure on `/404`; 1:1 **in interaction, not just scenery**; the toggle dies | §27 (remainder) | ✅ built 2026-08-02 `26a6ddb` — awaiting Caveshen's local-dev sign-off |
-| d18 | Visual validation in e2e | §16 | 📋 specced, awaiting go |
+| d18 | Visual validation in e2e | §16 | ✅ must-haves built on `item/visual-validation`, reviewer-approved; awaiting Caveshen's go to PR (nice-to-haves deferred until d28 signs off) |
 | d19 | Dialogue rework | §22 | ⏸ parked |
 | d20 | Social preview imagery | §32 | ⏸ unscheduled |
 | d21 | All copy | §23 checklist item 1 | Caveshen's alone; every `PLACEHOLDER` stands |
@@ -3573,6 +3573,18 @@ themes, before and after approach, per §2's draft-before-deploy rule.**
 ---
 
 ## d18. Visual validation in e2e (was §16)
+
+**STATUS 2026-08-03: must-haves M1–M5 built and reviewer-approved** on
+`item/visual-validation` (branched from `item/cityscape-depth`; `e9ba66f`,
+`9c2a8d5`). All five proven red via the named injections, then green; the
+open summit question resolved itself — no crop exists on any of the 8
+projects, so no scoping was needed. One judgment call, reviewer-verified
+against the actual geometry: M4's no-gap chain is scoped to the mountain
+massif classes only (wider selectors are vacuous — aggregate group bboxes
+span the gap). The figure classes edit is render-identical (built output
+gains only the 15 inert class strings). Suite 1609 passed / 7 skipped / 0
+failed; flake gate `--repeat-each=2` exactly double, 0 flaky. Awaiting
+Caveshen's go to PR; nice-to-haves N1–N4 stay deferred until d28 signs off.
 
 Specced 2026-08-03 against the scene as it stands on `item/cityscape-depth`
 (d28 Stages 1–3 and 5a–5e: parallax layers, sky/far/ground gradients, mountain

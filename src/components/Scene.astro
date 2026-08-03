@@ -94,6 +94,14 @@ const v = VARIANT[variant];
 const ariaLabel = characterLabel
   ? `${v.ariaBase}, by night or day, with ${characterLabel}`
   : `${v.ariaBase}, by night or day`;
+
+// Paving seams: evenly spaced, not hand-placed per variant like the rail posts —
+// there's nothing variant-specific about a seam interval, so one formula covers all three.
+const SEAM_SPACING = 70;
+const seamXs = Array.from(
+  { length: Math.floor(v.width / SEAM_SPACING) },
+  (_, i) => SEAM_SPACING / 2 + i * SEAM_SPACING
+);
 ---
 <svg class={`scene scene-${variant}`} viewBox={`0 0 ${v.width} ${v.height}`} preserveAspectRatio="xMidYMax slice" role="img"
      aria-label={ariaLabel}>
@@ -121,6 +129,13 @@ const ariaLabel = characterLabel
       <stop class="stop-moon-glow" offset="0" stop-opacity="0.18" />
       <stop class="stop-moon-glow" offset="1" stop-opacity="0" />
     </radialGradient>
+    <!-- promenade depth falloff: darker toward the viewer (the rail end reads as
+         further away, same recession logic as the sky/far-mountain haze above) -->
+    <linearGradient id={`ground-grad-${variant}`} gradientUnits="userSpaceOnUse"
+                     x1="0" y1={v.ground.y} x2="0" y2={v.ground.y + v.ground.height}>
+      <stop class="stop-ground-top" offset="0" />
+      <stop class="stop-ground-bottom" offset="1" />
+    </linearGradient>
   </defs>
   <rect class="f-sky" width={v.width} height={v.height} />
   <g class="bg-layer">
@@ -149,6 +164,12 @@ const ariaLabel = characterLabel
   {v.waves.map(([x, y, w, o]) => <rect class="f-wave" x={x} y={y} width={w} height="2" rx="1.5" opacity={o} />)}
   <!-- the near shore — promenade the figure stands on -->
   <rect class="f-ground" y={v.ground.y} width={v.width} height={v.ground.height} />
+  <!-- paving seams: sparse, low-opacity, stay clear of the wind motes (DOM overlay,
+       not SVG) and the figure's own ground shadow (HoodedFigure/Badger, painted later) -->
+  <g class="f-seam" opacity="0.14">
+    {seamXs.map((x) => <line x1={x} y1={v.ground.y} x2={x} y2={v.ground.y + v.ground.height} />)}
+    <line x1="0" y1={v.ground.y + v.ground.height * 0.4} x2={v.width} y2={v.ground.y + v.ground.height * 0.4} />
+  </g>
   <!-- semi-foreground railing: in front of the water, behind the figure -->
   <g class="f-rail" stroke-linecap="round" stroke-width="7">
     <g stroke-width="5">

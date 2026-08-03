@@ -57,9 +57,12 @@ const windowStyle = (opacity: number, i: number) => {
 <g class="world" transform={camera}>
   <!-- Devil's Peak — painted first so Table Mountain's own polygon
        overlaps and masks its right-flank descent into the saddle -->
-  <polygon class="f-far" points="-80,352 70,93 200,124 240,352" />
+  <polygon class="f-far" points="-80,352 70,95 200,124 240,352" />
   <polygon class="f-far table-mountain"
            points="40,352 130,187 190,120 230,109 300,104 480,106 540,114 585,167 640,352" />
+  <!-- Kloof Nek — a raised col bridging Table Mountain's foot to Lion's Head's,
+       so the join reads as a mountain pass rather than an open drop to the city -->
+  <polygon class="f-far" points="615,352 648,272 675,272 705,352" />
   <!-- Lion's Head — closes the gap to Table Mountain, apex softened -->
   <polygon class="f-far" points="695,352 785,201 795,156 803,151 811,156 825,201 915,352" />
   <!-- Signal Hill — keeps the mountain chain linked -->

@@ -71,7 +71,7 @@ the document body under their original `§` headings as history.
 | d25 | Shared stage component — extracting the approach interaction | *new* | ✅ built 2026-08-02 — `1254dad`, landed on the mainline as `732f5a6` (#3); pure refactor, byte-identical `dist/index.html`, zero `e2e/` files modified |
 | d26 | Cleanup sweep — four of five items built, one closed as not-debt | *new* | ✅ built 2026-08-02 — `daaafb9`; item 5 closed, replaced by lossless PNG recompression in `3f322ae` |
 | d27 | CI: tag pushes fire the deploy workflow | *new* | ✅ built 2026-08-02 — `daaafb9` |
-| d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | 🔨 in progress on `item/cityscape-depth` — Stages 1–3 approved; Stage 5 built, awaiting preview reaction; Stage 4 gated on its own go |
+| d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | 🔨 in progress on `item/cityscape-depth` — Stages 1–3 + 5 approved; Stage 4 (go given) and Stage 6 (ray-tracing pass) in flight |
 | d29 | Comment sweep — repo-wide | *new* | ✅ both passes done on `item/comment-sweep` (`02d16cd`, `03eba87`) — awaiting go to push + PR |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
@@ -4077,7 +4077,8 @@ mountains still look VERY flat, the buildings as well; the strange sky gap
 between Table Mountain and Lion's Head; Devil's Peak's peak should come down
 ~2px. Direction confirmed — build on Stages 1–3, don't rework them.
 
-**STATUS 2026-08-03: 5a–5e built, awaiting Caveshen's preview reaction.**
+**STATUS 2026-08-03: 5a–5e built and APPROVED on preview** (*"You smashed
+it!"*). His same review raised Stage 6 below and gave Stage 4 its go.
 Commits in order: `d7ae68b` (5a: Kloof Nek saddle polygon closes the gap,
 Devil's Peak apex −2 units; approach-spec proxy test verified still sound),
 `5e08020` (5b: radial halos, sun 0.35 opacity / moon 0.18 ≈ half), `93e19ae`
@@ -4196,13 +4197,37 @@ tweak) and deserves its own `d` item when he's ready — left unopened here.
   warehouse-fringe cluster (already the furthest-west `f-far` group) so
   silhouette weight visibly recedes instead of banding in two flat steps.
   **Estimate: a few hours; rides with Stage 2.**
-- **Stage 4 — idle-state micro-parallax (moderate; wants its own go).**
+- **Stage 4 — idle-state micro-parallax. GO given 2026-08-03.**
   Extends Stage 1's technique from "on approach" to "always on," desktop
   only, `prefers-reduced-motion` respected — following the precedent already
   set by the wind motes (`Stage.astro:41-49`, deliberately kept outside
   `.camera` so they hold a constant speed under the zoom). The codebase
   already treats "moves independently of the camera" as a known pattern.
-  **Gate this on his reaction to Stages 1-3; do not build ahead of sign-off.**
+  Pointer-driven, rAF-throttled, and it must yield to the approach zoom
+  (suspend or damp while the card is open) rather than fight the camera.
+
+### Stage 6 — the "ray-tracing pass" (Caveshen's Stage-5 review, 2026-08-03)
+
+His notes: the promenade fixtures could use shadowing to match the Badger's —
+sharper in day, softer/less pronounced at night; and the day sun's edges
+should be less sharp, more blurred, to convey the strength of its shine.
+Physically these are one observation: a strong point light means bloom at the
+source and crisp contact shadows beneath objects; dim diffuse light means
+neither. Ruling (orchestrator, design): fixtures get **contact shadows in the
+Badger's own idiom** — the ellipse at the base — not directional cast
+shadows, which would fight the flat-vector world.
+
+- **6a. Fixture contact shadows** — base ellipses under the promenade
+  fixtures (the rail posts; anything else standing on the ground plane),
+  matching `Badger.astro`'s existing shadow form. Theme-differentiated via
+  tokens: day = smaller/denser (sharp light), night = wider/fainter (diffuse
+  light). Generated alongside the posts, not hand-placed.
+- **6b. Sun edge softening** — the sun disc's own fill becomes a radial
+  gradient: solid core holding `--celestial`, softening over the outer edge
+  band into the existing halo, so disc and bloom read as one source. The moon
+  keeps her crisp edge (his ask was the sun; the moon's halo already sits at
+  half strength). Same `radialGradient`/variant-id/CSS-stop discipline as
+  Stages 2 and 5b.
 
 **`three.js` stays explicitly out of scope for all of the above** (his
 ruling), noted only as where it would eventually replace this whole layer if

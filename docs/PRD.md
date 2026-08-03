@@ -74,6 +74,7 @@ the document body under their original `§` headings as history.
 | d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | ✅ all stages (1–6) approved on preview; pre-PR /code-review in flight, then PR |
 | d29 | Comment sweep — repo-wide | *new* | ✅ merged to main (PR #7) |
 | d30 | Easter egg — the banner plane crashes when clicked | *new* | 💭 proposed 2026-08-03, no go — design sketch in its section |
+| d31 | Game-feel UI pass — streaming dialogue text + one selection idiom for every button | *new* | 🎨 design brief, awaiting Caveshen's reaction |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -4383,5 +4384,374 @@ Sketch (cartoon physics, never grim — the register is slapstick):
    proven red first, per d18's discipline.
 
 Estimate: under a day. Natural branch `item/plane-crash` after d28 merges.
+
+---
+## d31. Game-feel UI pass — streaming dialogue text and a selection idiom
+
+**🎨 DESIGN BRIEF 2026-08-03 — awaiting Caveshen's reaction. No go, no build.**
+Every number below is a proposal with a veto-point attached; nothing here is
+settled. Natural branch `item/game-feel`, after d28's PR lands (it is the
+branch in flight and it touches `Stage.astro` styling too).
+
+Caveshen, raising it:
+
+> the buttons are quite static and feel more like a website button than a
+> "game"-y button … why doesn't the text stream, why does it immediately load,
+> it's so static and boring … perhaps a streaming character-set like an in-game
+> dialogue, where you can skip the streaming with a mouse tap to instantly
+> complete the stream. Hopefully not too much to hand-craft here.
+
+Two parts, independently shippable and independently vetoable. **A** is the
+typewriter; **B** is the button language. Neither depends on the other.
+
+---
+
+### Part A — streaming dialogue text
+
+#### A1. Cadence — **28 ms/char, with a punctuation beat.** *Propose.*
+
+**Because** 28 ms is ≈36 chars/s, mid-band for the genre (RPGs sit at 20–40 ms)
+and slow enough that the eye reads *with* the stream rather than chasing it.
+Today's placeholder lines run 70–190 chars, so a line takes 2.0–5.3 s — the
+skip is what makes that acceptable, not the cadence.
+
+The beat is the classic trick and it is three lines: **+180 ms after `.`
+`!` `?`, +90 ms after `,` `;` `:` `—`.** It is most of what separates "typing"
+from "speaking", and it costs nothing to remove.
+
+**Veto-points:** the 28; the two beat values; the beat at all. One constant
+`STREAM_MS` and one small `PAUSE` map in `dialogue.js`, no CSS, no data.
+
+**Deliberately skipped:** adaptive speed by line length, a settings toggle, a
+"hold to fast-forward". The skip already covers a reader in a hurry, and
+Caveshen owns the copy, so he owns line length. Add if his real copy runs long.
+
+#### A2. Skip — **any click, tap or keypress on the card completes the current line. It never advances past it.** *Propose.*
+
+| State | Input | Result |
+|---|---|---|
+| streaming | click/tap anywhere on the card (including on a choice) | line completes instantly; **the click is swallowed** — no choice is taken |
+| streaming | Enter / Space / any character key | line completes instantly; **no activation** |
+| streaming | Tab / Shift+Tab | normal focus movement, stream keeps running |
+| streaming | Escape | exits the dialogue (existing behaviour, always) |
+| complete | click on a choice | takes the choice — normal |
+| complete | Enter / Space on the focused choice | takes the choice — normal |
+| complete | Escape | exits — normal |
+
+Mechanically: one **capture-phase** `pointerdown` + `keydown` listener on
+`.card` that, while streaming, calls `complete()` then
+`stopPropagation()`/`preventDefault()`. Escape and Tab are exempted by key
+check — **the Escape exemption is load-bearing**: `stage.js` listens for
+Escape on `document` in the bubble phase, so swallowing keydown at the card
+would silently kill the exit contract that `approach.spec.js` pins on both
+routes.
+
+**The one real cost, stated plainly:** a keyboard or screen-reader user who
+already has the full line (A4) must press Enter twice — once to complete,
+once to choose. **The alternative** is exempting Enter/Space from the swallow
+so keyboard activation always activates (the next line's render supersedes the
+stream anyway, so nothing breaks). That is arguably kinder and is *less* code.
+**Recommended anyway: keys complete**, because he asked for "keypress" and
+because mouse and keyboard sharing one rule is the whole point of Part B.
+**Veto-point:** flip this and Enter/Space activate straight through.
+
+#### A3. Choices during the stream — **rendered immediately, dimmed, inert.** *Propose.*
+
+**Because** the focus contract demands it: `approach.spec.js` asserts the first
+choice is focused the moment the card opens, on both routes. "Appear on
+complete" means either that test breaks or focus has to be stolen mid-line —
+and it makes the card grow under the reader's eyes. Dimmed costs nothing and
+the buttons stay where they will be.
+
+Dim by `opacity: .55` on the `<ul>` while `.card.is-streaming`. **WCAG note:**
+this is a transient, non-interactive state (every activation is swallowed by
+A2), which is the disabled-control carve-out, not a contrast regression — and
+the settled state, which is what AA is measured on, is untouched.
+
+**Veto-point:** he may want them to fade *in* on completion for drama. That is
+buildable, but it costs a focus re-target and a card that changes height
+mid-line; say so and it gets specced properly rather than bolted on.
+
+#### A4. Hard constraints — not negotiable, encode them
+
+1. **`prefers-reduced-motion: reduce` → no stream at all.** Full text, instantly.
+   Reuses the `reduced` flag `initEngine` already computes for the 200 ms fade —
+   **no new mechanism**, one more `if` on the existing branch.
+2. **Screen readers get the whole line immediately. The stream is visual-only.**
+   `#speech` stays the live-region node and keeps receiving the complete line in
+   **one** mutation, exactly as today; the stream runs in a *separate*,
+   `aria-hidden="true"` node **outside** `[aria-live]`. Per-character mutation
+   inside a live region is the failure mode this avoids — most screen readers
+   re-announce on every subtree mutation, which would turn one line into sixty
+   interruptions.
+3. **`#speech` is visually swapped out, never `display:none`d.** Use the
+   clip-rect visually-hidden idiom while streaming (`position:absolute;
+   clip-path: inset(50%)`) — `display:none` and `visibility:hidden` both remove
+   the node from the a11y tree and kill the announcement outright.
+4. **At completion the DOM returns to exactly today's shape** — stream node
+   removed, `#speech` unhidden with the full text. The steady state, which is
+   what every existing test and screenshot samples, is unchanged by
+   construction.
+5. **Layout must not reflow per character.** The stream node holds the *whole*
+   line at all times, split into `<span>` shown + `<span class="pending">`
+   with `visibility: hidden` on the tail. The glyphs keep their boxes, so the
+   line wraps once and never re-wraps. This is the reason not to append text
+   node by node.
+6. **No-JS path is untouched.** `#speech` is server-rendered with the full line
+   and no stream node is ever created. `interview.spec.js`'s two no-JS
+   assertions must stay green without edit.
+7. **The 200 ms fade composes, it does not fight.** The stream starts *inside*
+   `apply()`, after the fade lands — old line fades out, new line types in.
+   The stream node is created fresh per line, so it needs no fade of its own.
+8. **The focus contract is unchanged.** Focus still lands on the first choice
+   the instant the card opens and after each choice, streaming or not.
+
+##### The trap that will bite: `.speech` must stay a single element
+
+`e2e/hygiene.spec.js:15` and `e2e/not-found.spec.js:80,83` locate **`.speech`
+by class**, not `#speech`. Playwright's strict mode throws the moment a second
+`.speech` exists in the DOM — even transiently, even on a page the test was not
+looking at. **The stream node must carry its own class** (`.speech-stream`),
+with the shared typography expressed as `.speech, .speech-stream { … }`. Also
+match `min-height: 3.2em` and the `.speech` font-size on it, or the card will
+jump by a line at the swap.
+
+##### The other trap: card CSS stays `is:global`
+
+d25's standing ruling. `dialogue.js` creates the choice buttons at runtime, so
+Astro's scoped-style hash never reaches them. Anything new here — the stream
+node's CSS, the dim state, every one of Part B's selectors — goes in
+`Stage.astro`'s `is:global` block. It compiles, builds green and passes every
+test while silently unstyling the whole card if it does not.
+
+#### A5. Implementation sketch — one reveal function, one skip handler
+
+All of it in `src/scripts/dialogue.js`, ~30 lines, **no library, no
+per-line hand-crafting** (his last sentence; nothing about this touches the
+dialogue JSON):
+
+- `initEngine`'s `els` argument gains **`cardEl`** (optional) and its options
+  gain **`streamMs`** (default 28, so tests do not sleep for seconds).
+  The return stays the bare `render` function — `stage.js` changes by one added
+  key, the vitest `mkEngine` helper by none.
+- `stream(text)` — sets `#speech`, hides it, builds the two spans, starts one
+  timer, returns nothing. Module-level `complete` holds the current line's
+  finisher (`null` when idle) — that *is* the "am I streaming?" state.
+- `complete()` — fill the shown span, clear the pending span, clear the timer,
+  swap `#speech` back, drop `.is-streaming`, `complete = null`.
+- The capture listener is attached once, at init, and no-ops when
+  `complete === null`.
+- `reduced || immediate` skips the whole path, as it already does for the fade.
+
+**Veto-point:** giving the engine a `cardEl` widens its DOM remit. It already
+creates buttons and manages focus, so this is a difference of degree; the
+alternative is exporting `skip()` and wiring the listener in `stage.js`, which
+splits one behaviour across two files.
+
+#### A6. Tests — red first, every one
+
+New (unit, happy-dom, `src/tests/dialogue.test.js`): mid-stream the visible
+text is a **strict prefix** and shorter than the line, while `#speech` already
+holds the line in full; `complete()` fills the line and clears the streaming
+state; `reducedMotion: true` never creates a stream node.
+
+New (e2e): click on the card mid-stream completes the line and **does not
+advance the node** (speech and choices unchanged after the click); click on a
+*choice* mid-stream needs a second click to navigate; Escape mid-stream still
+exits and returns focus to the prompt; reduced-motion shows the full line
+immediately after approach; exactly **one** `.speech` element exists at every
+point of a stream.
+
+Unchanged and must stay green **without edits**: `approach.spec.js`'s
+focus-after-approach and Escape contracts on both routes, `interview.spec.js`'s
+full keyboard playthrough and both no-JS assertions, `not-found.spec.js`'s
+speech-changes assertion, `hygiene.spec.js`'s `.speech` read.
+
+**Estimate: under a day.**
+
+---
+
+### Part B — game-feel buttons
+
+Today every control is the same pill: `border-radius: 999px`, mono, 1.5 px
+border, hover/focus swaps colour and border to `--btn-hover-*`. Choices add a
+`translateY(-1px)` lift. It is tidy, coherent, and it is a website. The pass
+below adds a **selection idiom** — the thing an RPG menu has and a web page
+does not — across the approach prompt, the dialogue choices, the system
+options, End dialogue and the theme toggle.
+
+#### B1. A selection caret — **`▸` (U+25B8), on `:hover` AND `:focus-visible`.** *Propose. Highest payoff for the least code.*
+
+**Because** one glyph does the whole job: it makes mouse hover and keyboard
+focus speak the same language (a cursor pointing at the selected row), it is
+unmistakably a menu, and it is native to the mono face already in use.
+
+- `::before` on every selectable control, in a **permanently reserved gutter**
+  (`1.25ch`), `opacity: 0 → 1`. Reserved, so nothing shifts when it appears —
+  a caret that reflows the row is worse than no caret.
+- **No motion on it.** No bounce, no slide-in, per the reduced-motion floor;
+  the existing `transition: none` blocks already cover the fade.
+- Colour follows the hover state's `--btn-hover-text` (choices) /
+  `--stage` (system), so it inherits both themes for free.
+
+**Veto-points:** the glyph (`▸` vs `»` vs `❯` vs `>`); whether it also shows
+on `:active`; the gutter width.
+
+#### B2. A press state — **`:active { translate: 0 1px; }`, everywhere.** *Propose.*
+
+**Because** nothing on this site currently responds to being pressed, and a
+1 px push is the cheapest possible "it is a physical thing". Choices already
+lift 1 px on hover, so hover → press is a 2 px travel: a real click.
+
+**Translate, not transform** — `.approach-prompt` carries a JS-set
+`transform: translateX(-50%)` from `positionPrompt()`, and a `transform` in CSS
+would blow it away and fling the prompt sideways. The independent `translate`
+property composes with it. (Same trap as B6.)
+
+**No scale.** On a full-width pill a scale reads as a wobble, not a press.
+**Veto-point:** whether the hover lift survives at all — press-only is also
+coherent.
+
+#### B3. The box — **pills become 4 px-radius rectangles with a 2 px border.** *Propose, and this is the one to argue about.*
+
+**Because** the pill is the single most "web form" thing on the page.
+A near-square, thicker-bordered row is the JRPG menu box, and it costs two
+property changes.
+
+**This is a deliberate deviation from Sample C's pill language (§2), which is
+why it is a proposal and not a plan.** Cheap fallback if he says no: keep the
+pills and take the game-feel from B1 + B2 + B4 alone — those three carry most
+of it.
+
+**Rejected alternative, recorded so nobody re-proposes it:** notched corners
+via `clip-path`. `clip-path` clips the `outline` too, so every
+`:focus-visible` ring on the site would vanish — a straight breach of §2's
+accessibility floor. Workarounds exist (wrapper elements, box-shadow rings);
+none is worth it for a corner cut.
+
+#### B4. Hover fill — **give night a real one.** *Propose.*
+
+`--btn-hover-bg` is `transparent` at night and a solid amber by day, so the two
+themes do not behave alike: day fills the row, night only recolours the text.
+Propose `--btn-hover-bg: rgba(255, 215, 94, .10)` at night — a wash that reads
+as "this row is selected" without touching the AA-checked foreground colours.
+**Veto-point:** he may prefer night's restraint, in which case day should
+arguably lose its fill instead, for parity.
+
+#### B5. System options stay distinct — **one language, two weights.** *Propose.*
+
+End dialogue and the `/sheet` link are chrome, not conversation, and they half
+say so already (dashed border, `--dim`, 0.82 rem). Make it deliberate: they
+**take the same caret** (one selection language, so a keyboard user is never
+confused about what is selected) but get **neither the hover fill nor the press
+lift** — border and text highlight only, as today. Conversation reacts; chrome
+acknowledges.
+
+**Rides along, cheap:** `.end-dialogue` duplicates `.choices button.system`'s
+rule block in the same file (`Stage.astro`) — this pass should merge them into
+one selector rather than author the new properties a third time. It is the
+same class of debt d11 closed.
+
+**Veto-point:** give system options no caret at all and let the caret mean
+"this is dialogue".
+
+#### B6. The approach prompt — **a slow idle bob.** *Propose.*
+
+**Because** this is the one control that is asking to be interacted with, and a
+prompt that never moves is exactly the "static" complaint. 2 px, 2.4 s
+ease-in-out, infinite. Off under `prefers-reduced-motion` (which the file
+already does for its transition).
+
+**Same trap as B2:** animate the independent `translate` property, never
+`transform` — `positionPrompt()` owns this element's `transform` at runtime and
+sets it twice, differently, depending on whether the figure has headroom.
+
+**Also in scope, and grounded:** the prompt is ~26 px tall
+(0.35 rem padding, 0.75 rem font). **That is well under the 44 px touch
+target** on the one control a phone visitor must hit first. Bump the padding.
+The fullscreen toggle is 40 px — near enough to mention, optional to fix.
+
+**Veto-point:** the bob at all; he may want the prompt dead still and the
+game-feel purely from the caret.
+
+#### B7. The theme toggle — **join the HUD, then flip.** *Propose.*
+
+It is the odd one out: `.page-foot` and `.fullscreen-toggle` are translucent
+glass chips with `backdrop-filter`, and the theme toggle sits in the opposite
+corner in solid `--card`. **Unify it onto the glass treatment** — four lines,
+and the three corner elements finally read as one HUD instead of two chrome
+styles.
+
+The diegetic touch: on click, the ☀/☾ glyph does **one 180° `rotateY` flip**
+(220 ms) as the theme crossfades — turning the sky over. `syncLabel()` already
+rewrites the glyph, so the flip just needs a class toggled around it. Off under
+reduced-motion.
+
+**Veto-point:** the flip; or the glass unification on its own if he likes the
+toggle's current weight.
+
+#### B8. Constraints on all of Part B
+
+Pure CSS wherever it can be (only B7's flip needs a JS class toggle);
+`:hover` and `:focus-visible` **always** styled together, no exceptions;
+`prefers-reduced-motion` kills every new transition and animation; touch
+targets only grow; both themes checked against the `--dim` AA bar noted in
+`tokens.css`; **zero new dependencies**; and every new selector lives in
+`Stage.astro`'s `is:global` block (see A4's second trap).
+
+**Estimate: under a day.**
+
+---
+
+### What does NOT change
+
+- **The dialogue engine's flow.** Node graph, `render(id, immediate)`,
+  `resolveNode`/`isPath`/`resolveTheme`, the JSON schema. Part A adds a
+  reveal function; it does not restructure the engine, and it touches no data.
+- **The focus contract.** First choice focused on approach and after every
+  choice; Escape returns focus to the prompt. Pinned on both routes.
+- **The no-JS path.** Full speech server-rendered, card visible, `/sheet`
+  reachable, End dialogue hidden. Not one byte.
+- **The reduced-motion patterns.** The existing `reduced` flag and the existing
+  `@media (prefers-reduced-motion: reduce)` blocks are the mechanism; this pass
+  adds entries to them and invents nothing.
+- **The 200 ms fade and the card's entry transition.** Untouched; the stream
+  starts after the fade lands.
+- **The camera, the scene, the parallax, the plane.** Out of scope entirely.
+- **All copy stays `PLACEHOLDER`** (§2). Nothing in this item writes, edits or
+  reflows a single visible word — including the banner, the prompt label and
+  every choice label. The typewriter renders whatever string it is handed.
+
+### Success criteria — what "done" means
+
+1. Every new behaviour has a test **proven red before it is made green**: the
+   stream reveals progressively, the skip completes without advancing, a
+   choice needs a second click, reduced-motion is instant, the live region
+   holds the full line from the first frame, exactly one `.speech` exists
+   throughout.
+2. **The full matrix is green** — vitest and tri-engine Playwright — with
+   **only additive** counts against the baseline recorded in d26
+   (vitest 65/65; Playwright 1521 passed / 7 skipped / 0 failed). Any test
+   *modified* rather than added must be justified in the PR; the existing
+   focus, Escape and no-JS specs should need no edit at all.
+3. **Both themes screenshot-verified** at 1920×1080 and 390×844: idle, hover,
+   `:focus-visible`, `:active`, mid-stream and settled.
+4. Keyboard parity proven by hand as well as by test — every state a mouse can
+   reach, a keyboard reaches, with a visible ring.
+5. Caveshen has seen it on local dev and said yes (§2, draft-before-deploy).
+
+### Open questions for Caveshen
+
+1. **Part A and Part B together, or A first?** They are independent. A is the
+   one he asked about twice, and it is the one that changes how the site feels
+   to read; B is the one he named first. Recommendation: **A, then B**, two
+   commits, reacted to separately — the d28 pattern that worked.
+2. **A2's keyboard rule** — keys complete the stream (recommended), or
+   Enter/Space activate straight through?
+3. **B3** — do the pills go square? This is the only proposal here that
+   departs from Sample C.
+4. **B6's bob** — motion on the approach prompt, or dead still?
+
+**Status: 🎨 DESIGN BRIEF — awaiting his reaction. No go, no build.**
 
 ---

@@ -4251,20 +4251,21 @@ proven red then green. Suite: build clean, vitest 65/65, Playwright
 
 Two further preview notes from Caveshen, 2026-08-03, both accepted:
 
-- **Waterline seam vs idle drift.** The Stage-4 drift translates `.bg-layer`
-  bodily; the landforms are authored to end exactly at the waterline, so
-  upward drift opens a sky-coloured seam between mountain bases and sea
-  ("it should not rip the buildings and ocean from the sea"). Downward is
-  already safe — the sea (fg) paints over land. Fix: overscan the seam —
-  extend bg landforms/buildings a few units below the waterline (generator
-  tweak + baseline vertices) so the sea always has cover across the drift
-  excursion; audit the left/right edges for the same margin. NOTE for the
-  d18 merge: `item/visual-validation`'s M4 "land bottom == sea top ±1px"
-  tolerance must widen by the same overscan or it goes red.
-- **The banner plane must be always-white.** It currently inherits
-  `color: var(--text)` (Stage.astro) so it flips cream/dark with the theme —
-  a contrast side effect, not a choice. Ruling: `#fff` always, plus a faint
-  drop-shadow for day-sky legibility (vetoable).
+- **Waterline seam vs idle drift.** DONE — `0a19db4`: every baseline vertex
+  and generated rect extended 6 units below the waterline (`SEAM_MARGIN`,
+  applied only where a shape's bottom sat exactly on the baseline); facets
+  moved with their parents; edge audit found 15–150+ units of side overscan
+  already present. Gap proven red first (a real 3.5px rip at max drift), then
+  green. Table Mountain's bbox ratio legitimately changed 2.4194 → 2.3622;
+  both spec literals retargeted (not weakened). **NOTES for the d18 merge:**
+  `item/visual-validation`'s M4 "land bottom == sea top ±1px" tolerance must
+  widen to cover the 6-unit overscan, and any `2.4194` ratio literal on that
+  branch must become `2.3622`.
+- **The banner plane is always white.** DONE — `424d9b3`: `color: #fff` +
+  faint drop-shadow (day-sky legibility; naturally inert at night).
+  **Standing ruling (2026-08-03): the towed banner itself is black with
+  white text, ALWAYS — never themed.** It already sets its own colours
+  locally; keep it that way.
 
 **6a follow-up (Caveshen, 2026-08-03, from a preview crop): the railing still
 reads shadowless.** DONE — `a25cc30`: ellipse opacity 0.088→0.55 night /

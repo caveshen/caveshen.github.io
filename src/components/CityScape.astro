@@ -81,7 +81,15 @@ const windowStyle = (opacity: number, i: number) => {
     {INDUSTRIAL_FAR.map(([x, y, w, h]) => <rect x={x} y={y} width={w} height={h} />)}
   </g>
   <g class="f-near">
-    {BUILDINGS.map(([x, y, w, h]) => <rect x={x} y={y} width={w} height={h} />)}
+    {BUILDINGS.map(([x, y, w, h]) => (
+      <>
+        <rect x={x} y={y} width={w} height={h} />
+        <!-- side-face strip, left edge (light from upper-right): capped well under
+             the 6-unit minimum window inset (see WINDOWS below) so glow never floats
+             over it -->
+        <rect x={x} y={y} width={Math.min(4, w * 0.3)} height={h} class="f-bld-shade" />
+      </>
+    ))}
   </g>
   <g class="f-cel night-only">
     {WINDOWS.map(([x, y, o], i) => (

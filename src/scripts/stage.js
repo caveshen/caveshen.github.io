@@ -16,6 +16,7 @@ export function initStage(tree) {
   const stageFrame  = document.querySelector('.stage-frame');
   const approachBtn = document.getElementById('approach-prompt');
   const endDlgBtn   = document.getElementById('end-dialogue');
+  const bgLayers    = document.querySelectorAll('.bg-layer'); // parallax counter-transform target, one per scene variant
 
   const render = initEngine(
     tree,
@@ -86,8 +87,12 @@ export function initStage(tree) {
 
     // Only set the inline override outside reduced-motion, so the stylesheet's
     // `transition: none` applies unopposed there (an inline style would
-    // outrank the media query and reinstate the zoom).
-    if (!reducedMotion()) camera.style.transition = ENTRY_TRANSITION;
+    // outrank the media query and reinstate the zoom). bg-layer mirrors it so
+    // the parallax counter-scale doesn't shear against the camera mid-zoom.
+    if (!reducedMotion()) {
+      camera.style.transition = ENTRY_TRANSITION;
+      bgLayers.forEach((el) => { el.style.transition = ENTRY_TRANSITION; });
+    }
 
     fadeOutPlane();
 
@@ -117,6 +122,14 @@ export function initStage(tree) {
         : undefined;
       const { tx, ty } = computeCameraTransform({ stage: sf, figure: fig, scale, faceTargetY, faceY });
       camera.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+      // Feeds .bg-layer's counter-scale (tokens.css).
+      camera.style.setProperty('--cam-scale', scale);
+      // Zero the idle drift here too, not just on the next pointermove — otherwise
+      // a stale drift offset would ride the whole zoom untouched if the user never
+      // moves the mouse again after clicking approach. Set on .camera alongside
+      // --cam-scale so it rides the same inline transition just applied above.
+      camera.style.setProperty('--drift-x', '0px');
+      camera.style.setProperty('--drift-y', '0px');
     }
 
     const firstChoice = choicesEl.querySelector('button');
@@ -130,6 +143,7 @@ export function initStage(tree) {
     // Clears the entry's inline override so the stylesheet's own transition
     // (unchanged, exit's authoritative source) applies regardless of reduced-motion.
     camera.style.transition = '';
+    bgLayers.forEach((el) => { el.style.transition = ''; });
 
     card.hidden    = true;
     // Re-arm the entering class so a later re-approach fades in again instead
@@ -139,6 +153,7 @@ export function initStage(tree) {
     endDlgBtn.hidden = true;
     approachBtn.hidden = false;
     camera.style.transform = 'none';
+    camera.style.removeProperty('--cam-scale');
 
     approachBtn.focus();
   }
@@ -236,6 +251,45 @@ export function initStage(tree) {
 
     // Covers leaving fullscreen via Escape as well as the button.
     document.addEventListener('fullscreenchange', syncFullscreenButton);
+  }
+
+  // Idle micro-parallax: --drift-x/-y are set on .camera and inherit down to every
+  // .bg-layer child (one write covers all three Scene variants), nudging them a few
+  // px opposite the pointer as if lagging behind the viewer's own head movement.
+  // Fine-pointer only, checked once here — touch devices never attach the listener at all.
+  if (window.matchMedia('(pointer: fine)').matches) {
+    const DRIFT_MAX = 1; // px (SVG user units) at the stage's edge — a faint cue, not a distraction
+    let lastX = 0, lastY = 0, driftScheduled = false;
+
+    function updateDrift() {
+      driftScheduled = false;
+      if (reducedMotion()) {
+        camera.style.removeProperty('--drift-x');
+        camera.style.removeProperty('--drift-y');
+        return;
+      }
+      if (approached) {
+        camera.style.setProperty('--drift-x', '0px');
+        camera.style.setProperty('--drift-y', '0px');
+        return;
+      }
+      const sf = stageFrame.getBoundingClientRect();
+      const nx = Math.max(-1, Math.min(1, ((lastX - sf.left) - sf.width / 2) / (sf.width / 2)));
+      const ny = Math.max(-1, Math.min(1, ((lastY - sf.top) - sf.height / 2) / (sf.height / 2)));
+      camera.style.setProperty('--drift-x', `${(-nx * DRIFT_MAX).toFixed(2)}px`);
+      camera.style.setProperty('--drift-y', `${(-ny * DRIFT_MAX).toFixed(2)}px`);
+    }
+
+    // stageFrame itself is pointer-events:none (Stage.astro) so it never receives
+    // hover events over the empty scene — window does, and clientX/Y stay valid
+    // since the frame always fills the viewport.
+    window.addEventListener('pointermove', (e) => {
+      lastX = e.clientX;
+      lastY = e.clientY;
+      if (driftScheduled) return;
+      driftScheduled = true;
+      requestAnimationFrame(updateDrift);
+    }, { passive: true });
   }
 
   approachBtn.addEventListener('click', approach);

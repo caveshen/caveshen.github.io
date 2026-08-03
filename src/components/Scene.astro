@@ -94,9 +94,57 @@ const v = VARIANT[variant];
 const ariaLabel = characterLabel
   ? `${v.ariaBase}, by night or day, with ${characterLabel}`
   : `${v.ariaBase}, by night or day`;
+
+// Paving seams: evenly spaced, not hand-placed per variant like the rail posts —
+// there's nothing variant-specific about a seam interval, so one formula covers all three.
+const SEAM_SPACING = 70;
+const seamXs = Array.from(
+  { length: Math.floor(v.width / SEAM_SPACING) },
+  (_, i) => SEAM_SPACING / 2 + i * SEAM_SPACING
+);
 ---
 <svg class={`scene scene-${variant}`} viewBox={`0 0 ${v.width} ${v.height}`} preserveAspectRatio="xMidYMax slice" role="img"
      aria-label={ariaLabel}>
+  <defs>
+    <!-- userSpaceOnUse so these read in the same coordinate space CityScape's polygons are
+         authored in, not each shape's own bbox — one set of numbers works for every variant.
+         Stop colour comes from the CSS classes in tokens.css, never a presentation attribute. -->
+    <linearGradient id={`sky-grad-${variant}`} gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2={v.sea.y}>
+      <stop class="stop-sky-top" offset="0" />
+      <stop class="stop-sky-bottom" offset="1" />
+    </linearGradient>
+    <!-- 220→352: the lower third of the mountains' authored height, 352 being the shared
+         baseline (CityScape.astro) where they meet the sea. -->
+    <linearGradient id={`far-grad-${variant}`} gradientUnits="userSpaceOnUse" x1="0" y1="220" x2="0" y2="352">
+      <stop class="stop-far-top" offset="0" />
+      <stop class="stop-far-bottom" offset="1" />
+    </linearGradient>
+    <!-- objectBoundingBox (the default) so the halo just sizes to whatever circle it's
+         painted on — same disc geometry in every variant, only the id needs suffixing. -->
+    <radialGradient id={`sun-glow-${variant}`}>
+      <stop class="stop-sun-glow" offset="0" stop-opacity="0.35" />
+      <stop class="stop-sun-glow" offset="1" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id={`moon-glow-${variant}`}>
+      <stop class="stop-moon-glow" offset="0" stop-opacity="0.18" />
+      <stop class="stop-moon-glow" offset="1" stop-opacity="0" />
+    </radialGradient>
+    <!-- sun disc: solid out to offset 0.81 (≈ the old r=50 edge, on the enlarged r=62
+         circle below) so the softened rim adds bloom rather than shrinking the disc,
+         then fades to blend into f-sun-glow (already painted behind, r=135). -->
+    <radialGradient id={`sun-core-${variant}`}>
+      <stop class="stop-sun-glow" offset="0" stop-opacity="1" />
+      <stop class="stop-sun-glow" offset="0.81" stop-opacity="1" />
+      <stop class="stop-sun-glow" offset="1" stop-opacity="0" />
+    </radialGradient>
+    <!-- promenade depth falloff: darker toward the viewer (the rail end reads as
+         further away, same recession logic as the sky/far-mountain haze above) -->
+    <linearGradient id={`ground-grad-${variant}`} gradientUnits="userSpaceOnUse"
+                     x1="0" y1={v.ground.y} x2="0" y2={v.ground.y + v.ground.height}>
+      <stop class="stop-ground-top" offset="0" />
+      <stop class="stop-ground-bottom" offset="1" />
+    </linearGradient>
+  </defs>
   <rect class="f-sky" width={v.width} height={v.height} />
   <g class="bg-layer">
   <g class="f-star night-only">
@@ -104,11 +152,13 @@ const ariaLabel = characterLabel
   </g>
   <!-- moon (night) -->
   <g class="night-only">
+    <circle class="f-moon-glow" cx={v.celestial.cx} cy={v.celestial.cy} r="128" />
     <Moon cx={v.celestial.cx} cy={v.celestial.cy} />
   </g>
   <!-- sun + clouds (day) -->
   <g class="day-only">
-    <circle class="f-cel" cx={v.celestial.cx} cy={v.celestial.cy} r="50" />
+    <circle class="f-sun-glow" cx={v.celestial.cx} cy={v.celestial.cy} r="135" />
+    <circle class="f-cel" cx={v.celestial.cx} cy={v.celestial.cy} r="62" />
     {v.dayClouds.map(([x, y, w, h, rx, o]) => <rect x={x} y={y} width={w} height={h} rx={rx} fill="#fff" opacity={o} />)}
   </g>
   <CityScape camera={v.camera} />
@@ -122,6 +172,20 @@ const ariaLabel = characterLabel
   {v.waves.map(([x, y, w, o]) => <rect class="f-wave" x={x} y={y} width={w} height="2" rx="1.5" opacity={o} />)}
   <!-- the near shore — promenade the figure stands on -->
   <rect class="f-ground" y={v.ground.y} width={v.width} height={v.ground.height} />
+  <!-- paving seams: sparse, low-opacity, stay clear of the wind motes (DOM overlay,
+       not SVG) and the figure's own ground shadow (HoodedFigure/Badger, painted later) -->
+  <g class="f-seam" opacity="0.14">
+    {seamXs.map((x) => <line x1={x} y1={v.ground.y} x2={x} y2={v.ground.y + v.ground.height} />)}
+    <line x1="0" y1={v.ground.y + v.ground.height * 0.4} x2={v.width} y2={v.ground.y + v.ground.height * 0.4} />
+  </g>
+  <!-- rail contact shadows: post ellipses plus a thin band under the rail run itself,
+       painted under the rail so it sits on top of its own shadow. The band sits a couple
+       units below the posts' foot line — close enough to read as one surface, clear of
+       the paving-seam crease a few units further down. -->
+  <g class="f-rail-shadow">
+    {v.rail.posts.map((x) => <ellipse cx={x} cy={v.rail.y2} />)}
+    <rect x="0" y={v.rail.y2 + 2} width={v.width} height="3" />
+  </g>
   <!-- semi-foreground railing: in front of the water, behind the figure -->
   <g class="f-rail" stroke-linecap="round" stroke-width="7">
     <g stroke-width="5">

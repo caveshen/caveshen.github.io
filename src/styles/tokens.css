@@ -49,6 +49,21 @@
   /* Sea foam — a lighter tint of --sea, kept distinct from
      the pale/cream --moon so wave marks read as sea, not moon reflection. */
   --wave: #3c5a6e;
+
+  /* Where the sky's own falloff and the far mountains' base converge, so they
+     read as one continuous haze rather than two shapes gradiented independently. */
+  --sky-horizon: #172236;
+  /* A third, paler distance step past --mountain-far, for the warehouse fringe —
+     the furthest-west cluster — so silhouette weight recedes in three steps. */
+  --mountain-fringe: #223050;
+  /* Lit/shade facets, blended ±7% luminance from --mountain-far — the massif's own
+     base tone, not a new colour. */
+  --mountain-lit:   #405278;
+  --mountain-shade: #1c2e54;
+  /* Building side-face, darkened from --mountain (the f-near/city fill). */
+  --building-shade: #081630;
+  /* Ground-plane depth falloff, darker toward the viewer than --ground. */
+  --ground-near: #06050e;
 }
 
 :root[data-time="day"] {
@@ -89,6 +104,13 @@
   --mote:      #5f7068;
   --mote-op:   .28;
   --wave:      #a8d4cf;
+
+  --sky-horizon:     #dde9f5;
+  --mountain-fringe: #a6bbd1;
+  --mountain-lit:    #9db5cf;
+  --mountain-shade:  #7991ab;
+  --building-shade:  #465b74;
+  --ground-near:     #1f2c28;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -105,7 +127,11 @@
 .f-star  { fill: var(--text); }
 .f-cel   { fill: var(--celestial); }
 .f-far   { fill: var(--mountain-far); }
+.f-fringe{ fill: var(--mountain-fringe); }
+.f-mtn-lit  { fill: var(--mountain-lit); }
+.f-mtn-shade{ fill: var(--mountain-shade); }
 .f-near  { fill: var(--mountain); }
+.f-bld-shade{ fill: var(--building-shade); }
 .f-sea   { fill: var(--sea); }
 .f-ground{ fill: var(--ground); }
 .f-rail  { stroke: var(--rail); }
@@ -123,11 +149,90 @@
 .scene rect, .scene polygon, .scene circle, .scene line, .scene path {
   transition: fill 0.4s ease, stroke 0.4s ease;
 }
+.scene stop { transition: stop-color 0.4s ease; }
 :root[data-time="day"] .night-only     { display: none; }
 :root:not([data-time="day"]) .day-only { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .scene rect, .scene polygon, .scene circle, .scene line, .scene path { transition: none; }
+  .scene stop { transition: none; }
 }
+
+/* ── Sky + far-mountain atmospheric gradients ───────────────────────────────
+   Gradient <defs> live once per Scene SVG (Scene.astro), ids suffixed by
+   variant — three Scene instances render per page (standard/wide/tall, two
+   always display:none), and duplicate ids across them break url(#...) lookups
+   in some engines, WebKit especially. Fill still comes from a CSS class, same
+   discipline as every other fill here — the class is just scoped per variant
+   since the id it points at differs per variant. */
+.scene-standard .f-sky { fill: url(#sky-grad-standard); }
+.scene-wide     .f-sky { fill: url(#sky-grad-wide); }
+.scene-tall     .f-sky { fill: url(#sky-grad-tall); }
+.scene-standard .f-far { fill: url(#far-grad-standard); }
+.scene-wide     .f-far { fill: url(#far-grad-wide); }
+.scene-tall     .f-far { fill: url(#far-grad-tall); }
+.scene-standard .f-sun-glow { fill: url(#sun-glow-standard); }
+.scene-wide     .f-sun-glow { fill: url(#sun-glow-wide); }
+.scene-tall     .f-sun-glow { fill: url(#sun-glow-tall); }
+.scene-standard .f-moon-glow { fill: url(#moon-glow-standard); }
+.scene-wide     .f-moon-glow { fill: url(#moon-glow-wide); }
+.scene-tall     .f-moon-glow { fill: url(#moon-glow-tall); }
+.scene-standard .f-ground { fill: url(#ground-grad-standard); }
+.scene-wide     .f-ground { fill: url(#ground-grad-wide); }
+.scene-tall     .f-ground { fill: url(#ground-grad-tall); }
+/* element-scoped (circle, not .f-cel generally) so the night-only building-window
+   group, which shares the .f-cel class, is left untouched */
+.scene-standard circle.f-cel { fill: url(#sun-core-standard); }
+.scene-wide     circle.f-cel { fill: url(#sun-core-wide); }
+.scene-tall     circle.f-cel { fill: url(#sun-core-tall); }
+
+.stop-sky-top    { stop-color: var(--sky); }
+.stop-sky-bottom { stop-color: var(--sky-horizon); }
+.stop-far-top    { stop-color: var(--mountain-far); }
+.stop-far-bottom { stop-color: var(--sky-horizon); }
+.stop-sun-glow   { stop-color: var(--celestial); }
+.stop-moon-glow  { stop-color: var(--moon); }
+.stop-ground-top    { stop-color: var(--ground); }
+.stop-ground-bottom { stop-color: var(--ground-near); }
+
+.f-seam { stroke: var(--ground-near); stroke-width: 1; }
+
+/* ── Cityscape parallax ──────────────────────────────────────────────────
+   .camera (Stage.astro) sets --cam-scale on approach; .bg-layer counters it
+   with a damped scale of its own so mountains/sky lag the foreground zoom
+   instead of compounding to a more-zoomed background. own = damped/camera,
+   so the two scales cancel down to exactly the damped target (see stage.js's
+   approach()). --cam-scale's fallback of 1 makes this identity at rest and
+   with JS never run. Anchored at 50%/sea-top (y=480, the same in all three
+   variants) so the horizon stays planted rather than sliding as it scales.
+   Transition duration/easing matches .camera's stylesheet default; stage.js
+   mirrors the entry's inline override onto .bg-layer too so the two never
+   shear mid-zoom. */
+.bg-layer {
+  --parallax-damp: 0.4;
+  transform-box: view-box;
+  transform-origin: 50% 480px;
+  /* --drift-x/-y (stage.js's idle micro-parallax) default to 0px so this stays
+     identity when JS never runs or the pointer never moves. */
+  transform: translate(var(--drift-x, 0px), var(--drift-y, 0px))
+             scale(calc((1 + (var(--cam-scale, 1) - 1) * var(--parallax-damp)) / var(--cam-scale, 1)));
+  transition: transform 950ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .bg-layer { transition: none; }
+}
+
+/* ── Rail post + rail-run contact shadows ────────────────────────────────────
+   Badger.astro's ellipse-at-the-base idiom. Night default: wide (diffuse
+   moonlight); day override: smaller/denser (a sharp sun). Fill is a class, not
+   an inline rgba() presentation attribute — var() doesn't resolve there. Night
+   stays below day's opacity (the standing ruling) but had to be raised well
+   past what that ratio alone implies: a flat #000 fill barely lifts off a
+   ground that's already near-black, so night needs real alpha just to clear
+   a visibility floor there, not only relative to day. */
+.f-rail-shadow ellipse { fill: #000; rx: 16; ry: 4; opacity: 0.55; }
+:root[data-time="day"] .f-rail-shadow ellipse { rx: 10; ry: 3; opacity: 0.75; }
+.f-rail-shadow rect { fill: #000; opacity: 0.5; }
+:root[data-time="day"] .f-rail-shadow rect { opacity: 0.62; }
 
 /* ── City lights: a low glimmer, night only ────────────────────────────────
    --o holds each window's own base opacity (emitted inline by CityScape.astro

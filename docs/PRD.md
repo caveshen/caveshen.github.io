@@ -61,7 +61,7 @@ the document body under their original `§` headings as history.
 | d15 | Admin page | §31 (remainder) | 🎨 IN DESIGN, no go-ahead |
 | d16 | Card avatar art refinement | §33b | 🎨 IN DESIGN, brief outstanding |
 | d17 | One character per route — Badger on `/`, hooded figure on `/404`; 1:1 **in interaction, not just scenery**; the toggle dies | §27 (remainder) | ✅ built 2026-08-02 `26a6ddb` — awaiting Caveshen's local-dev sign-off |
-| d18 | Visual validation in e2e | §16 | 💭 intent only |
+| d18 | Visual validation in e2e | §16 | 📋 specced, awaiting go |
 | d19 | Dialogue rework | §22 | ⏸ parked |
 | d20 | Social preview imagery | §32 | ⏸ unscheduled |
 | d21 | All copy | §23 checklist item 1 | Caveshen's alone; every `PLACEHOLDER` stands |
@@ -71,8 +71,10 @@ the document body under their original `§` headings as history.
 | d25 | Shared stage component — extracting the approach interaction | *new* | ✅ built 2026-08-02 — `1254dad`, landed on the mainline as `732f5a6` (#3); pure refactor, byte-identical `dist/index.html`, zero `e2e/` files modified |
 | d26 | Cleanup sweep — four of five items built, one closed as not-debt | *new* | ✅ built 2026-08-02 — `daaafb9`; item 5 closed, replaced by lossless PNG recompression in `3f322ae` |
 | d27 | CI: tag pushes fire the deploy workflow | *new* | ✅ built 2026-08-02 — `daaafb9` |
-| d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | 🎨 proposed 2026-08-02 — staged/iterative, Stage 1 is a single day; no go |
-| d29 | Comment sweep — repo-wide | *new* | ✅ both passes done on `item/comment-sweep` (`02d16cd`, `03eba87`) — awaiting go to push + PR |
+| d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | ✅ ACCEPTED 2026-08-04 (all stages + follow-ups, /code-review findings fixed, drift final at 1 unit) — PR open, awaiting merge |
+| d29 | Comment sweep — repo-wide | *new* | ✅ merged to main (PR #7) |
+| d30 | Easter egg — the banner plane crashes when clicked | *new* | 💭 proposed 2026-08-03, no go — design sketch in its section |
+| d31 | Game-feel UI pass — streaming dialogue text + one selection idiom for every button | *new* | ✅ approved as recommended 2026-08-04 — Part A (streaming) first, then B; deeper iteration on preview |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -84,9 +86,9 @@ rather than left as done-and-dusted: **the tracker must never constrain the
 code** — the misnamed file had been left alone precisely *because* the PRD
 referenced it, which is backwards.
 
-d1, d3–d5, d6–d8, d10–d14, d17, d23–d26 are written up as their own `## dN`
-sections (§30's old D-4/D-6/D-8/D-9…D-13 subsections moved there, not
-duplicated — see the note at each old location). d2, d9, d15, d16, d18–d21
+d1, d3–d5, d6–d8, d10–d14, d17, d18, d23–d26 are written up as their own
+`## dN` sections (§30's old D-4/D-6/D-8/D-9…D-13 subsections moved there, not
+duplicated — see the note at each old location). d2, d9, d15, d16, d19–d21
 have no separate `d` section: their detail still lives at the `§` heading
 named in "Was", which is unchanged. **§7's OG/touch-icon debt is closed** —
 see §30 D-2 (built 2026-07-26).
@@ -1067,6 +1069,9 @@ than the rest of the suite.
 ---
 
 ## 16. Proposed item — visual validation in e2e (NOT ACCEPTED, intent only)
+
+**Superseded 2026-08-03 by `## d18`**, which turns the intent below into a
+buildable spec. This section is kept as the reasoning that produced it.
 
 Raised by Caveshen 2026-07-22. **Recorded as intent only — no design, no
 research, no build.** Work starts fresh in a later session, on his go.
@@ -3567,6 +3572,227 @@ themes, before and after approach, per §2's draft-before-deploy rule.**
 
 ---
 
+## d18. Visual validation in e2e (was §16)
+
+Specced 2026-08-03 against the scene as it stands on `item/cityscape-depth`
+(d28 Stages 1–3 and 5a–5e: parallax layers, sky/far/ground gradients, mountain
+facets, building side-faces, celestial halos, paving seams). §16 recorded the
+intent and left the approach open; **this section closes it**: assert
+screen-space geometry and relationships, keep golden images ruled out, and
+build nothing perceptual (no hash, no checksum — the hypothesis §16 left open
+is declined; it buys a second failure mode for defects the boxes already
+catch).
+
+### Decisions taken, so the build does not re-litigate them
+
+- **Screen space only.** `getBoundingClientRect()`, never `getBBox()` — the
+  CLAUDE.md gotcha, and the reason the Table Mountain invariant works.
+- **No hit-testing.** `document.elementFromPoint`/`elementsFromPoint` is the
+  obvious "what is painted here" probe and **cannot be used here**:
+  `Stage.astro:105` sets `pointer-events: none` on `.stage-frame`, so every
+  scene shape is invisible to a hit test. Layer order is asserted from **DOM
+  order** instead (SVG paint order *is* document order) paired with a rect
+  overlap, so the assertion still means something visually.
+- **Boxes, chosen where a box is exact.** A polygon's bbox over-reports its
+  painted area at the corners. Every invariant below keys off an edge, a
+  baseline or an x-projection — quantities a bbox reports exactly — not off
+  area or containment of arbitrary points.
+- **One new spec file.** New `e2e/scene.spec.js` (subject: the scene's
+  composition). Extended: `e2e/geom.js`, `e2e/not-found.spec.js` (the hooded
+  figure's own tests already live there), `e2e/badger.spec.js`. No framework,
+  no new dependency, no visual-diff service, no file named after this item.
+- **Matrix breadth comes from the projects, not from `setViewportSize`.** The
+  invariants that must hold *everywhere* are written with no viewport call, so
+  they run at all eight projects' native viewports. Only tests that must force
+  a particular scene variant set a viewport, per the existing idiom.
+- **Scene geometry is asserted on `/` only.** Both routes render the same
+  `Scene.astro`; only the character differs, and `approach.spec.js` already
+  proves the per-route layer structure. Running the scene probes twice doubles
+  the cost for nothing. Figure invariants are per character, so they follow
+  their character's route.
+
+### What the suite already covers — do not rebuild it
+
+| Already guarded | Where |
+|---|---|
+| Table Mountain aspect 2.4194 (no stretch) in all three variants + 1200×1400 | `approach.spec.js:225-244`, `interview.spec.js:334` |
+| Card fully on-screen and centred, 3 viewports | `not-found.spec.js:27-56`, `approach.spec.js:196` |
+| Face clears the card after approach, both routes | `not-found.spec.js:141`, `interview.spec.js:409-417` |
+| Prompt does not overlap the figure; prompt stays inside the frame | `interview.spec.js:251-274`, `badger.spec.js:21` |
+| Figure and card not clipped by the crop, 2 extreme aspects | `interview.spec.js:353` |
+| Fullscreen button clears figure/prompt/card/toggle/foot | `interview.spec.js:377-479` |
+| Stage-frame fills 100% of the viewport, no overflow, 4 aspects | `interview.spec.js:289-317` |
+| Correct variant selected per aspect | `interview.spec.js:129-177`, `not-found.spec.js:114` |
+| Parallax damping (bg grows 0.4× the fg's growth) | `approach.spec.js:310` |
+| bg-layer holds the mountain, fg-layer holds sea + character | `approach.spec.js:297` |
+| Sky is a gradient; near/far/fringe are three distinct tones; side-face ≠ front-face — both themes | `interview.spec.js:191-229` |
+| Devil's Peak exists above-left of the summit; district exists west of x=0; ≥4 waves per variant | `approach.spec.js:250-342` |
+
+The gap is **inside** the figure, and **between** the scene's own parts. Those
+are the only two places the invariants below go.
+
+### The markup debt this item must pay (the one source edit)
+
+The "figure with no arms" class is **unassertable today**: the hooded figure's
+sleeve, leg and torso paths carry no class, so no selector can name them
+(`HoodedFigure.astro:20-36`). Five `class=` attributes are added — `fig-torso`
+(hoodie body), `fig-arm` ×2 (sleeve panels), `fig-leg` ×2 (jeans) — and nothing
+else changes: no fills, no geometry, no CSS rules. `.face-void` is already
+classed. **Alternatives considered and rejected:** silhouette-width probing
+(the arms sit inside the torso's own x-span, so a missing arm does not move the
+figure's bbox — it would never go red), and child-count assertions (goes red
+for any art edit, green for the wrong deletion).
+
+The Badger has no equivalent: it is two rasters (`Badger.astro:25-26`), so part
+integrity is not available. Its analogue is M2.
+
+### Must-have invariants (ranked — build in this order)
+
+Each names its assertion, its viewport/theme scope, and the injection that must
+be watched fail first. Injections are **temporary local source edits, reverted
+before commit** — never left in the test.
+
+**M1 — Figure part integrity (the "no arms" class).** `.fig-arm` and `.fig-leg`
+each have count 2 and a non-zero screen rect; every part intersects
+`.fig-torso`'s rect (attached, not floating); one arm's centre-x is left of the
+torso centre and the other right (catches both arms collapsing to one side);
+`.face-void` is non-zero and lies inside the torso's x-span. Route `/404`
+(the hooded figure), all project viewports, default theme.
+*Red by:* deleting one sleeve path from `HoodedFigure.astro`.
+
+**M2 — Character raster integrity (the silently-blank-character class).** Every
+`<image>` in the built page resolves — collect `href` values from the DOM and
+`request.get()` each, expect 200 (idiom already used in `hygiene.spec.js:27`) —
+and both `.badger-image` frames have equal, non-zero screen rects whose w/h
+matches the authored 1:1 within 1%. Route `/`, all project viewports.
+*Why it earns must-have:* a broken `href` still renders a box, so `.badger-figure`
+keeps a non-zero rect and today's whole suite stays green over an empty stage.
+*Red by:* renaming the `badger-up.png` href to a missing file.
+
+**M3 — Ground reaches the frame's bottom edge, full width.** `.f-ground`'s
+screen rect satisfies `left ≤ 0`, `right ≥ viewport.width`, and
+`bottom ≥ viewport.height - 1`. All project viewports, no `setViewportSize`,
+default theme. This pins d3's accepted contract — *"ground reaches the bottom
+edge at every viewport — sky is never exposed beneath the sea"* — which is
+currently recorded and untested.
+*Red by:* halving `ground.height` in `Scene.astro`'s standard variant.
+
+**M4 — Skyline integrity.** Three assertions over the screen rects of the
+visible scene's landform/city shapes (`.f-far`, `.f-fringe`, `.f-near`,
+`.f-mtn-lit`, `.f-mtn-shade`):
+1. *No gap in the chain.* Sorted by `left`, each next rect starts at or before
+   the running maximum `right` — no full-height sky column between adjacent
+   silhouettes. This is exactly the defect d28 Stage 5a closed by hand (Table
+   Mountain ended at world x=640, Lion's Head began at 695), so it is a live
+   regression guard, not a hypothetical.
+2. *Everything meets the water.* The maximum `bottom` across those shapes
+   equals `.f-sea`'s `top` within 1px, and no shape's `bottom` exceeds it by
+   more than 1px — the authored "the city and the mountains end exactly where
+   the water begins" contract from d28's diagnosis. Catches both a floating
+   skyline and a drowned one.
+3. *Summit in frame.* The minimum `top` across those shapes is `≥ 0` — the
+   skyline is not cropped off the top of the frame (d3's "summit cut 45px").
+All project viewports, default theme.
+*Red by:* (1) deleting the Kloof Nek polygon; (2) shifting `sea.y` down 20
+units; (3) raising Table Mountain's apex 200 units.
+**Build note:** measure assertion 3 across all eight projects *before* pinning
+it. If a project crops the summit today, that is a finding for Caveshen — raise
+it, do not weaken the invariant to fit. See open questions.
+
+**M5 — Layer sanity at the seams (guards d28's depth work).** For each pair, the
+rects overlap **and** the painter is later in document order: sea over the
+landform bases at the waterline; promenade (`.f-ground`) over the sea; the
+character over the railing (`.f-rail`). Route `/`, all project viewports.
+*Red by:* moving `<rect class="f-sea">` above `<g class="bg-layer">` in
+`Scene.astro`.
+
+### Nice-to-have — explicitly deferrable, do not build without a separate go
+
+- **N1 — Halo centring.** Each `.f-sun-glow`/`.f-moon-glow` rect contains its
+  disc's rect and shares its centre within 1px, in its own theme (day/night).
+  Guards 5b against a halo drifting off its disc.
+- **N2 — Facets stay inside their massif.** `.f-mtn-lit`/`.f-mtn-shade` rects sit
+  inside `.table-mountain`'s x-span and share its baseline.
+- **N3 — Seams stay on the promenade.** Every `.f-seam` line's rect is contained
+  in `.f-ground`'s rect (no seams painted over the water).
+- **N4 — Matrix breadth for the existing occlusion tests.** One unparameterised
+  copy of "prompt clears the figure" and "face clears the card", run at the
+  projects' native viewports rather than three hand-picked sizes.
+
+N1–N4 are cheap but guard art that is one review away from changing again.
+They wait until d28 is signed off.
+
+### Shared helpers — extend `e2e/geom.js`, do not fork it
+
+- `sceneRects(page, selector)` — screen rects of every match **inside the
+  visible scene variant** (find the `.scene` with a non-zero rect, query within
+  it). Generalises the existing `visibleRect`'s one-element lookup; `visibleRect`
+  stays as is, its callers untouched.
+- `paintsOver(page, aSel, bSel)` — `compareDocumentPosition` inside the visible
+  scene: does A paint after B.
+- `rectContains(outer, inner)` — already written twice
+  (`interview.spec.js:240`); move it here and import it there rather than
+  landing a third copy.
+
+### Steps
+
+1. Extend `e2e/geom.js` with `sceneRects`, `paintsOver`, `rectContains`; import
+   `rectContains` in `interview.spec.js` and delete its local copy. →
+   *verify:* `npm run test:e2e -- interview.spec.js` green, count unchanged.
+2. Add the five `class=` attributes to `HoodedFigure.astro`. →
+   *verify:* `npm run build` clean; `git diff --stat` shows one file, five lines.
+3. M1 in `not-found.spec.js`. → *verify:* injection (delete a sleeve path) red,
+   revert, green — on at least two projects.
+4. M2 in `badger.spec.js`. → *verify:* injection (bad href) red, revert, green.
+5. M3 + M4 in a new `e2e/scene.spec.js`. → *verify:* each of the four
+   injections red one at a time, revert, green; record the measured summit
+   margin per project before pinning M4.3.
+6. M5 in `e2e/scene.spec.js`. → *verify:* injection (sea moved above `bg-layer`)
+   red, revert, green.
+7. Full matrix. → *verify:* `npm run test:e2e` — 0 failed, skips still 7,
+   passed count up by the new tests × 8 projects.
+8. Flake gate. → *verify:* `npm run test:e2e -- --repeat-each=2` — 0 failed, 0
+   flaky. (If runtime makes that impractical, a second plain full run is the
+   floor; say which was run.) Both use the temp-config port workaround in
+   CLAUDE.md when a dev server is squatting on 4321.
+9. Update this section's status line and the board row.
+
+### Success criteria — "done" means all of these
+
+1. M1–M5 implemented; no golden image, no new dependency, no new npm script, no
+   file named after a tracker ID.
+2. Every must-have invariant **watched fail** against its named injection and
+   pass after the revert — recorded per invariant in the commit message or this
+   section, one line each.
+3. `git status` clean of injections: `grep -rn "fig-arm" src/` finds exactly the
+   two sleeve paths; the scene renders identically to before (the only source
+   diff is five `class=` attributes).
+4. Full matrix green: `npm run test:e2e` → 0 failed, 7 skipped.
+5. Zero flake: the repeat run above reports 0 flaky.
+6. Vitest untouched and green (`npm test`, 65/65).
+7. Suite runtime has not grown by more than ~10% — these are rect reads on an
+   already-loaded page; anything larger means a test is waiting on something it
+   should not.
+
+### Open questions for Caveshen
+
+1. **M4.3 (summit in frame) may already be false somewhere on the matrix** —
+   d3 recorded that portrait crops the moon by design. If the measurement finds
+   a project that crops the *summit*, is that a defect to fix or an accepted
+   limitation to record as an exception?
+2. **The five `class=` attributes on `HoodedFigure.astro`** are a test-driven
+   edit to locked art markup. Confirmed acceptable? Without them the "no arms"
+   class stays untestable and M1 is dropped.
+3. **Sequencing against d28.** M4 and M5 pin geometry that d28 Stage 4 (idle
+   parallax) and any later ground-plane pass would move. Build d18 now and
+   accept that Stage 4 updates two invariants, or hold d18 until d28 closes?
+   Recommendation: build now — the invariants are the point of d28's review
+   loop, and a test that needs updating is telling you the composition moved.
+
+**Status: 📋 specced 2026-08-03, awaiting go. No build.**
+
+---
+
 ## d23. Hosted site — domain + Cloudflare
 
 Post-merge work. Caveshen and Claude do it together in a later session. Not
@@ -3814,11 +4040,80 @@ untouched.
 ## d28. Cityscape depth — a staged pass against the "flat" read
 
 Raised 2026-08-02. Caveshen: *"the scene looks good but it's a bit flat, not
-as '3d'... more like a novice's attempt at a moving website."* **Design/
-experiment item — no go, no build.** Each stage below is proposed as its own
-small, reversible commit, reviewed on local dev before the next stage starts
-(§2's draft-before-deploy rule) — a sequence of reactions, not one reveal, per
-his own framing of this as a moving target.
+as '3d'... more like a novice's attempt at a moving website."* Each stage below
+is its own small, reversible commit, reviewed on local dev before the next
+stage starts (§2's draft-before-deploy rule) — a sequence of reactions, not
+one reveal, per his own framing of this as a moving target.
+
+**Guiding inspiration (Caveshen, 2026-08-02): the *Oblivion* post-tutorial
+dungeon exit** — grassy knoll overlooking Lake Rumare, bright sunny day, the
+Imperial City receding into hazy distance. This governs the *whole* pass, not
+just the later ground-plane idea: the target is bright, sunlit, atmospheric
+depth (far things paler, sunk toward the sky's tone), and it should steer the
+gradient and distance-tone choices in Stages 2–3 in particular. Reference
+only — never traced, shipped, or committed.
+
+**STATUS 2026-08-03: Stages 1–3 built and approved** on `item/cityscape-depth`
+(Caveshen on preview: *"I do like this... a step in the right direction...
+keep all of this!"*). Stage 5 raised from that same review — see below.
+- Stage 1 (`3527cca`, approved): `.bg-layer` counter-scales against the camera
+  (`own = damped/cam`, damp 0.4, one `--parallax-damp` knob in `tokens.css`),
+  anchored at the shared waterline (`y=480` in all three variants) so the
+  coastline seam holds during the zoom.
+- Stage 2 (`fc987b3`): sky + far-mountain gradients, `<defs>` per Scene with
+  variant-suffixed ids (duplicate-id/WebKit safety); both gradients bottom out
+  on one shared `--sky-horizon` token so they read as a single haze. Stops are
+  CSS-classed per the `var()` gotcha, and crossfade on theme toggle.
+- Stage 3 (`97207d2`): third distance tone `--mountain-fringe` on the
+  warehouse fringe (`f-fringe`), a flat fill blended further toward the sky.
+All tests proven red then green; suite 1545 passed / 7 skipped / 0 failed.
+Stage 4 (idle parallax) still gated on its own go.
+Also rode along with Stage 1: gitignored `screenshots/` folder is now the
+standing home for all screenshots (recipe updated in `CLAUDE.md`).
+
+### Stage 5 — texture & detail pass (Caveshen's review of Stages 1–3, 2026-08-03)
+
+His notes, verbatim in spirit: more "texture" on the promenade/road surface;
+the sun could use glow/bloom, the moon the same but slightly less; the
+mountains still look VERY flat, the buildings as well; the strange sky gap
+between Table Mountain and Lion's Head; Devil's Peak's peak should come down
+~2px. Direction confirmed — build on Stages 1–3, don't rework them.
+
+**STATUS 2026-08-03: 5a–5e built and APPROVED on preview** (*"You smashed
+it!"*). His same review raised Stage 6 below and gave Stage 4 its go.
+Commits in order: `d7ae68b` (5a: Kloof Nek saddle polygon closes the gap,
+Devil's Peak apex −2 units; approach-spec proxy test verified still sound),
+`5e08020` (5b: radial halos, sun 0.35 opacity / moon 0.18 ≈ half), `93e19ae`
+(5c: lit/shade facets on Table Mountain + Devil's Peak only — the other
+massifs stay flat so they don't fight the haze), `a0fda99` (5d: generated
+left-edge side-face strip per building, min(4, w×0.3), verified clear of all
+windows), `8e6f353` (5e: paving seams every 70 units + ground depth gradient,
+darker toward the viewer), `989443c` (regression test: side-face ≠ front-face
+fill, both themes, proven red first). Suite: build clean, vitest 65/65,
+Playwright **1553 passed / 7 skipped / 0 failed**. Verification note: the
+worker's night screenshot had silently captured a 404 page — night was
+re-captured and verified by the orchestrator before this status was written.
+
+Sub-items, each its own small commit, in this order (geometry first — it's
+the cheapest and the facets must be cut against final ridgelines):
+
+- **5a. Geometry corrections** — close (or at least soften) the sky gap
+  between Table Mountain's massif and Lion's Head by raising the saddle;
+  lower Devil's Peak's apex ~2 SVG units. Check the approach-spec's Devil's
+  Peak proxy test before and after.
+- **5b. Celestial glow** — radial-gradient halo behind the sun; the moon gets
+  the same at roughly half strength. `radialGradient`, not `feGaussianBlur`
+  (deterministic cross-engine, cheaper). Variant-suffixed ids, CSS-classed
+  stops — same discipline Stage 2 established.
+- **5c. Mountain form** — subtle lit/shade facets (vector polygons, ≤2 extra
+  tones per massif) with the light source matching the celestial disc's
+  screen position; the flat-silhouette aesthetic must survive, so facets are
+  form-hints, not rendering.
+- **5d. Building form** — a darker side-face per building with one consistent
+  light direction, so the blocks read as volumes instead of rectangles.
+- **5e. Promenade texture** — paving seams/expansion joints at low opacity
+  plus a subtle depth gradient on the ground plane; texture that reads at a
+  glance as surface, not pattern.
 
 ### Diagnosis — grounded in the current code, four contributors
 
@@ -3887,13 +4182,15 @@ tweak) and deserves its own `d` item when he's ready — left unopened here.
 ### Staged path — cheapest and highest-value first, each independently reactable
 
 - **Stage 1 — parallax on the existing zoom (near-free).** `stage.js` already
-  computes `tx`/`ty`/`scale` for the approach zoom. Expose them as CSS custom
-  properties on `.camera` (e.g. `--cam-tx`/`--cam-ty`/`--cam-scale`) alongside
-  the inline `transform`, then give `.bg-layer` its own
-  `transform: scale(calc(1 + (var(--cam-scale) - 1) * 0.4))`-shaped rule — a
-  **dampened** version of the same zoom, so mountains and sky lag the
-  foreground on approach. No new assets, no new dependency, reuses numbers
-  already computed. **Estimate: well under a day.**
+  computes `tx`/`ty`/`scale` for the approach zoom. Expose the scale as a CSS
+  custom property on `.camera` (`--cam-scale`; tx/ty were exposed too at
+  first, then dropped as unused on review 2026-08-03) alongside the inline
+  `transform`, then give `.bg-layer` its own counter-scale rule — a
+  **dampened** version of the same zoom, so the mountains lag the foreground
+  on approach. As built, the sky rect sits deliberately OUTSIDE `.bg-layer`
+  and zooms at full camera rate: a full-bleed gradient lagging the crop
+  would expose its own edges. No new assets, no new dependency, reuses
+  numbers already computed.
 - **Stage 2 — sky and mountain gradients (cheap, SVG-only).** A vertical
   `linearGradient` on `.f-sky` and a horizon-fade on `.f-far` so the far
   mountains sink toward the sky tone rather than hard-cutting to it. Zero new
@@ -3904,13 +4201,85 @@ tweak) and deserves its own `d` item when he's ready — left unopened here.
   warehouse-fringe cluster (already the furthest-west `f-far` group) so
   silhouette weight visibly recedes instead of banding in two flat steps.
   **Estimate: a few hours; rides with Stage 2.**
-- **Stage 4 — idle-state micro-parallax (moderate; wants its own go).**
+- **Stage 4 — idle-state micro-parallax. GO given 2026-08-03.**
   Extends Stage 1's technique from "on approach" to "always on," desktop
   only, `prefers-reduced-motion` respected — following the precedent already
   set by the wind motes (`Stage.astro:41-49`, deliberately kept outside
   `.camera` so they hold a constant speed under the zoom). The codebase
   already treats "moves independently of the camera" as a known pattern.
-  **Gate this on his reaction to Stages 1-3; do not build ahead of sign-off.**
+  Pointer-driven, rAF-throttled, and it must yield to the approach zoom
+  (suspend or damp while the card is open) rather than fight the camera.
+
+### Stage 6 — the "ray-tracing pass" (Caveshen's Stage-5 review, 2026-08-03)
+
+His notes: the promenade fixtures could use shadowing to match the Badger's —
+sharper in day, softer/less pronounced at night; and the day sun's edges
+should be less sharp, more blurred, to convey the strength of its shine.
+Physically these are one observation: a strong point light means bloom at the
+source and crisp contact shadows beneath objects; dim diffuse light means
+neither. Ruling (orchestrator, design): fixtures get **contact shadows in the
+Badger's own idiom** — the ellipse at the base — not directional cast
+shadows, which would fight the flat-vector world.
+
+- **6a. Fixture contact shadows** — base ellipses under the promenade
+  fixtures (the rail posts; anything else standing on the ground plane),
+  matching `Badger.astro`'s existing shadow form. Theme-differentiated via
+  tokens: day = smaller/denser (sharp light), night = wider/fainter (diffuse
+  light). Generated alongside the posts, not hand-placed.
+- **6b. Sun edge softening** — the sun disc's own fill becomes a radial
+  gradient: solid core holding `--celestial`, softening over the outer edge
+  band into the existing halo, so disc and bloom read as one source. The moon
+  keeps her crisp edge (his ask was the sun; the moon's halo already sits at
+  half strength). Same `radialGradient`/variant-id/CSS-stop discipline as
+  Stages 2 and 5b.
+
+**STATUS 2026-08-03: Stages 4 and 6 APPROVED — d28 complete, pre-PR review
+in flight.** 6a/6b were "overwhelmingly a yes" as built; Stage 4's drift was
+too strong at 6 units and was softened to 2.5 (`2898c5b`), then accepted.
+Commits: `e84d0f3` (Stage 4: pointer-driven drift, originally 6 SVG units,
+window-listener since the frame is pointer-events:none, rAF-coalesced,
+reduced-motion re-checked live, drift zeroed in the same frame as approach so
+it rides the mirrored 550ms transition), `dc7cf24` (6a: shadows generated
+from the same rail-post array — night rx16 wide/faint, day rx10 tight/dense
+(effective opacities 0.088/0.18: the stated 0.22/0.45 × a folded 0.4 alpha),
+differentiated by CSS rule + the `data-time` switch rather than tokens; Badger's
+own shadow untouched), `14d52c1` (6b: sun core solid to 0.81 fading to edge,
+radius 50→62 compensated so the perceived disc size holds; moon untouched,
+selector scoped to `circle.f-cel`), `681b2e0` (reviewer nit fixes — the
+worker ran its own reviewer pass mid-flight). New idle-parallax e2e test
+proven red then green. Suite: build clean, vitest 65/65, Playwright
+**1569 passed / 7 skipped / 0 failed**.
+
+Two further preview notes from Caveshen, 2026-08-03, both accepted:
+
+- **Waterline seam vs idle drift.** DONE — `0a19db4`: every baseline vertex
+  and generated rect extended 6 units below the waterline (`SEAM_MARGIN`,
+  applied only where a shape's bottom sat exactly on the baseline); facets
+  moved with their parents; edge audit found 15–150+ units of side overscan
+  already present. Gap proven red first (a real 3.5px rip at max drift), then
+  green. Table Mountain's bbox ratio legitimately changed 2.4194 → 2.3622;
+  both spec literals retargeted (not weakened). **NOTES for the d18 merge:**
+  `item/visual-validation`'s M4 "land bottom == sea top ±1px" tolerance must
+  widen to cover the 6-unit overscan, and any `2.4194` ratio literal on that
+  branch must become `2.3622`.
+- **The banner plane is always white.** DONE — `424d9b3`: `color: #fff` +
+  faint drop-shadow (day-sky legibility; naturally inert at night).
+  **Standing ruling (2026-08-03): the towed banner itself is black with
+  white text, ALWAYS — never themed.** It already sets its own colours
+  locally; keep it that way.
+
+**6a follow-up (Caveshen, 2026-08-03, from a preview crop): the railing still
+reads shadowless.** DONE — `a25cc30`: ellipse opacity 0.088→0.55 night /
+0.18→0.75 day, plus a full-width shadow band 2 units below the posts' foot
+line; visibility-floor test proven red against the old faint values. Suite
+1577 passed / 7 skipped / 0 failed. Two causes: the night post-shadow's effective opacity
+(0.088) is invisible on the dark ground, and the horizontal rail run casts
+nothing at all. Fix: raise the shadow opacities until they read at a glance
+in both themes (day stays denser than night, per the original ruling), and
+give the rail run itself a grounded presence — likely a faint continuous
+shadow band under the bottom rail, same contact-shadow idiom, subtle enough
+to stay surface rather than effect. Screenshot-verified in both themes, with
+a crop matching his.
 
 **`three.js` stays explicitly out of scope for all of the above** (his
 ruling), noted only as where it would eventually replace this whole layer if
@@ -3983,5 +4352,403 @@ and may also ship alone.
 **Status: 💭 proposed 2026-08-02 — no go, no build. Split from d26 on
 Caveshen's ruling; a worker taking this should not also be doing d26's
 mechanical items in the same commit.**
+
+---
+
+## d30. Easter egg — the banner plane crashes when clicked
+
+Proposed by Caveshen 2026-08-03, his own words: *"What if we click on the
+plane as it flies past, and the plane crashes???"* Deliberate scope-creep,
+owned as such. **💭 proposed — no go, no build; design sketch below is a
+starting point for his reaction, not a spec.**
+
+Sketch (cartoon physics, never grim — the register is slapstick):
+
+1. **Hit target**: the plane is small and moving; wrap it in an invisible
+   padded hitbox (≥44px effective) so clicking it is a game, not a test of
+   aim. Pointer and touch both.
+2. **The crash**: on click — a sputter (two or three tilt oscillations), then
+   a spiral dive toward the sea, the banner detaching to flutter down
+   separately; a small splash at entry reusing the existing wave idiom, brief
+   ripple, gone. Total under ~2s so it never upstages the interview.
+3. **Respawn**: the scheduler already flies the plane on a jittered interval
+   (`PLANE_JITTER_MS`) — the next scheduled flight simply happens, unbothered.
+   Optionally the banner text changes for the flight after a crash (one cheeky
+   PLACEHOLDER line, Caveshen's to write, per the copy rule).
+4. **Discipline**: CSS/vanilla JS only, no new deps, no sound (the site has
+   none). `prefers-reduced-motion`: no crash animation — the existing rule
+   already suppresses the flight itself, so the hitbox never exists there.
+   No-JS: the plane is JS-flown already; nothing to do.
+5. **Tests**: click mid-flight → crash class appears and the plane leaves the
+   viewport below the waterline; reduced-motion → no listener. Screen-space,
+   proven red first, per d18's discipline.
+
+Estimate: under a day. Natural branch `item/plane-crash` after d28 merges.
+
+---
+## d31. Game-feel UI pass — streaming dialogue text and a selection idiom
+
+**🎨 DESIGN BRIEF 2026-08-03 — awaiting Caveshen's reaction. No go, no build.**
+Every number below is a proposal with a veto-point attached; nothing here is
+settled. Natural branch `item/game-feel`, after d28's PR lands (it is the
+branch in flight and it touches `Stage.astro` styling too).
+
+Caveshen, raising it:
+
+> the buttons are quite static and feel more like a website button than a
+> "game"-y button … why doesn't the text stream, why does it immediately load,
+> it's so static and boring … perhaps a streaming character-set like an in-game
+> dialogue, where you can skip the streaming with a mouse tap to instantly
+> complete the stream. Hopefully not too much to hand-craft here.
+
+Two parts, independently shippable and independently vetoable. **A** is the
+typewriter; **B** is the button language. Neither depends on the other.
+
+---
+
+### Part A — streaming dialogue text
+
+#### A1. Cadence — **28 ms/char, with a punctuation beat.** *Propose.*
+
+**Because** 28 ms is ≈36 chars/s, mid-band for the genre (RPGs sit at 20–40 ms)
+and slow enough that the eye reads *with* the stream rather than chasing it.
+Today's placeholder lines run 70–190 chars, so a line takes 2.0–5.3 s — the
+skip is what makes that acceptable, not the cadence.
+
+The beat is the classic trick and it is three lines: **+180 ms after `.`
+`!` `?`, +90 ms after `,` `;` `:` `—`.** It is most of what separates "typing"
+from "speaking", and it costs nothing to remove.
+
+**Veto-points:** the 28; the two beat values; the beat at all. One constant
+`STREAM_MS` and one small `PAUSE` map in `dialogue.js`, no CSS, no data.
+
+**Deliberately skipped:** adaptive speed by line length, a settings toggle, a
+"hold to fast-forward". The skip already covers a reader in a hurry, and
+Caveshen owns the copy, so he owns line length. Add if his real copy runs long.
+
+#### A2. Skip — **any click, tap or keypress on the card completes the current line. It never advances past it.** *Propose.*
+
+| State | Input | Result |
+|---|---|---|
+| streaming | click/tap anywhere on the card (including on a choice) | line completes instantly; **the click is swallowed** — no choice is taken |
+| streaming | Enter / Space / any character key | line completes instantly; **no activation** |
+| streaming | Tab / Shift+Tab | normal focus movement, stream keeps running |
+| streaming | Escape | exits the dialogue (existing behaviour, always) |
+| complete | click on a choice | takes the choice — normal |
+| complete | Enter / Space on the focused choice | takes the choice — normal |
+| complete | Escape | exits — normal |
+
+Mechanically: one **capture-phase** `pointerdown` + `keydown` listener on
+`.card` that, while streaming, calls `complete()` then
+`stopPropagation()`/`preventDefault()`. Escape and Tab are exempted by key
+check — **the Escape exemption is load-bearing**: `stage.js` listens for
+Escape on `document` in the bubble phase, so swallowing keydown at the card
+would silently kill the exit contract that `approach.spec.js` pins on both
+routes.
+
+**The one real cost, stated plainly:** a keyboard or screen-reader user who
+already has the full line (A4) must press Enter twice — once to complete,
+once to choose. **The alternative** is exempting Enter/Space from the swallow
+so keyboard activation always activates (the next line's render supersedes the
+stream anyway, so nothing breaks). That is arguably kinder and is *less* code.
+**Recommended anyway: keys complete**, because he asked for "keypress" and
+because mouse and keyboard sharing one rule is the whole point of Part B.
+**Veto-point:** flip this and Enter/Space activate straight through.
+
+#### A3. Choices during the stream — **rendered immediately, dimmed, inert.** *Propose.*
+
+**Because** the focus contract demands it: `approach.spec.js` asserts the first
+choice is focused the moment the card opens, on both routes. "Appear on
+complete" means either that test breaks or focus has to be stolen mid-line —
+and it makes the card grow under the reader's eyes. Dimmed costs nothing and
+the buttons stay where they will be.
+
+Dim by `opacity: .55` on the `<ul>` while `.card.is-streaming`. **WCAG note:**
+this is a transient, non-interactive state (every activation is swallowed by
+A2), which is the disabled-control carve-out, not a contrast regression — and
+the settled state, which is what AA is measured on, is untouched.
+
+**Veto-point:** he may want them to fade *in* on completion for drama. That is
+buildable, but it costs a focus re-target and a card that changes height
+mid-line; say so and it gets specced properly rather than bolted on.
+
+#### A4. Hard constraints — not negotiable, encode them
+
+1. **`prefers-reduced-motion: reduce` → no stream at all.** Full text, instantly.
+   Reuses the `reduced` flag `initEngine` already computes for the 200 ms fade —
+   **no new mechanism**, one more `if` on the existing branch.
+2. **Screen readers get the whole line immediately. The stream is visual-only.**
+   `#speech` stays the live-region node and keeps receiving the complete line in
+   **one** mutation, exactly as today; the stream runs in a *separate*,
+   `aria-hidden="true"` node **outside** `[aria-live]`. Per-character mutation
+   inside a live region is the failure mode this avoids — most screen readers
+   re-announce on every subtree mutation, which would turn one line into sixty
+   interruptions.
+3. **`#speech` is visually swapped out, never `display:none`d.** Use the
+   clip-rect visually-hidden idiom while streaming (`position:absolute;
+   clip-path: inset(50%)`) — `display:none` and `visibility:hidden` both remove
+   the node from the a11y tree and kill the announcement outright.
+4. **At completion the DOM returns to exactly today's shape** — stream node
+   removed, `#speech` unhidden with the full text. The steady state, which is
+   what every existing test and screenshot samples, is unchanged by
+   construction.
+5. **Layout must not reflow per character.** The stream node holds the *whole*
+   line at all times, split into `<span>` shown + `<span class="pending">`
+   with `visibility: hidden` on the tail. The glyphs keep their boxes, so the
+   line wraps once and never re-wraps. This is the reason not to append text
+   node by node.
+6. **No-JS path is untouched.** `#speech` is server-rendered with the full line
+   and no stream node is ever created. `interview.spec.js`'s two no-JS
+   assertions must stay green without edit.
+7. **The 200 ms fade composes, it does not fight.** The stream starts *inside*
+   `apply()`, after the fade lands — old line fades out, new line types in.
+   The stream node is created fresh per line, so it needs no fade of its own.
+8. **The focus contract is unchanged.** Focus still lands on the first choice
+   the instant the card opens and after each choice, streaming or not.
+
+##### The trap that will bite: `.speech` must stay a single element
+
+`e2e/hygiene.spec.js:15` and `e2e/not-found.spec.js:80,83` locate **`.speech`
+by class**, not `#speech`. Playwright's strict mode throws the moment a second
+`.speech` exists in the DOM — even transiently, even on a page the test was not
+looking at. **The stream node must carry its own class** (`.speech-stream`),
+with the shared typography expressed as `.speech, .speech-stream { … }`. Also
+match `min-height: 3.2em` and the `.speech` font-size on it, or the card will
+jump by a line at the swap.
+
+##### The other trap: card CSS stays `is:global`
+
+d25's standing ruling. `dialogue.js` creates the choice buttons at runtime, so
+Astro's scoped-style hash never reaches them. Anything new here — the stream
+node's CSS, the dim state, every one of Part B's selectors — goes in
+`Stage.astro`'s `is:global` block. It compiles, builds green and passes every
+test while silently unstyling the whole card if it does not.
+
+#### A5. Implementation sketch — one reveal function, one skip handler
+
+All of it in `src/scripts/dialogue.js`, ~30 lines, **no library, no
+per-line hand-crafting** (his last sentence; nothing about this touches the
+dialogue JSON):
+
+- `initEngine`'s `els` argument gains **`cardEl`** (optional) and its options
+  gain **`streamMs`** (default 28, so tests do not sleep for seconds).
+  The return stays the bare `render` function — `stage.js` changes by one added
+  key, the vitest `mkEngine` helper by none.
+- `stream(text)` — sets `#speech`, hides it, builds the two spans, starts one
+  timer, returns nothing. Module-level `complete` holds the current line's
+  finisher (`null` when idle) — that *is* the "am I streaming?" state.
+- `complete()` — fill the shown span, clear the pending span, clear the timer,
+  swap `#speech` back, drop `.is-streaming`, `complete = null`.
+- The capture listener is attached once, at init, and no-ops when
+  `complete === null`.
+- `reduced || immediate` skips the whole path, as it already does for the fade.
+
+**Veto-point:** giving the engine a `cardEl` widens its DOM remit. It already
+creates buttons and manages focus, so this is a difference of degree; the
+alternative is exporting `skip()` and wiring the listener in `stage.js`, which
+splits one behaviour across two files.
+
+#### A6. Tests — red first, every one
+
+New (unit, happy-dom, `src/tests/dialogue.test.js`): mid-stream the visible
+text is a **strict prefix** and shorter than the line, while `#speech` already
+holds the line in full; `complete()` fills the line and clears the streaming
+state; `reducedMotion: true` never creates a stream node.
+
+New (e2e): click on the card mid-stream completes the line and **does not
+advance the node** (speech and choices unchanged after the click); click on a
+*choice* mid-stream needs a second click to navigate; Escape mid-stream still
+exits and returns focus to the prompt; reduced-motion shows the full line
+immediately after approach; exactly **one** `.speech` element exists at every
+point of a stream.
+
+Unchanged and must stay green **without edits**: `approach.spec.js`'s
+focus-after-approach and Escape contracts on both routes, `interview.spec.js`'s
+full keyboard playthrough and both no-JS assertions, `not-found.spec.js`'s
+speech-changes assertion, `hygiene.spec.js`'s `.speech` read.
+
+**Estimate: under a day.**
+
+---
+
+### Part B — game-feel buttons
+
+Today every control is the same pill: `border-radius: 999px`, mono, 1.5 px
+border, hover/focus swaps colour and border to `--btn-hover-*`. Choices add a
+`translateY(-1px)` lift. It is tidy, coherent, and it is a website. The pass
+below adds a **selection idiom** — the thing an RPG menu has and a web page
+does not — across the approach prompt, the dialogue choices, the system
+options, End dialogue and the theme toggle.
+
+#### B1. A selection caret — **`▸` (U+25B8), on `:hover` AND `:focus-visible`.** *Propose. Highest payoff for the least code.*
+
+**Because** one glyph does the whole job: it makes mouse hover and keyboard
+focus speak the same language (a cursor pointing at the selected row), it is
+unmistakably a menu, and it is native to the mono face already in use.
+
+- `::before` on every selectable control, in a **permanently reserved gutter**
+  (`1.25ch`), `opacity: 0 → 1`. Reserved, so nothing shifts when it appears —
+  a caret that reflows the row is worse than no caret.
+- **No motion on it.** No bounce, no slide-in, per the reduced-motion floor;
+  the existing `transition: none` blocks already cover the fade.
+- Colour follows the hover state's `--btn-hover-text` (choices) /
+  `--stage` (system), so it inherits both themes for free.
+
+**Veto-points:** the glyph (`▸` vs `»` vs `❯` vs `>`); whether it also shows
+on `:active`; the gutter width.
+
+#### B2. A press state — **`:active { translate: 0 1px; }`, everywhere.** *Propose.*
+
+**Because** nothing on this site currently responds to being pressed, and a
+1 px push is the cheapest possible "it is a physical thing". Choices already
+lift 1 px on hover, so hover → press is a 2 px travel: a real click.
+
+**Translate, not transform** — `.approach-prompt` carries a JS-set
+`transform: translateX(-50%)` from `positionPrompt()`, and a `transform` in CSS
+would blow it away and fling the prompt sideways. The independent `translate`
+property composes with it. (Same trap as B6.)
+
+**No scale.** On a full-width pill a scale reads as a wobble, not a press.
+**Veto-point:** whether the hover lift survives at all — press-only is also
+coherent.
+
+#### B3. The box — **pills become 4 px-radius rectangles with a 2 px border.** *Propose, and this is the one to argue about.*
+
+**Because** the pill is the single most "web form" thing on the page.
+A near-square, thicker-bordered row is the JRPG menu box, and it costs two
+property changes.
+
+**This is a deliberate deviation from Sample C's pill language (§2), which is
+why it is a proposal and not a plan.** Cheap fallback if he says no: keep the
+pills and take the game-feel from B1 + B2 + B4 alone — those three carry most
+of it.
+
+**Rejected alternative, recorded so nobody re-proposes it:** notched corners
+via `clip-path`. `clip-path` clips the `outline` too, so every
+`:focus-visible` ring on the site would vanish — a straight breach of §2's
+accessibility floor. Workarounds exist (wrapper elements, box-shadow rings);
+none is worth it for a corner cut.
+
+#### B4. Hover fill — **give night a real one.** *Propose.*
+
+`--btn-hover-bg` is `transparent` at night and a solid amber by day, so the two
+themes do not behave alike: day fills the row, night only recolours the text.
+Propose `--btn-hover-bg: rgba(255, 215, 94, .10)` at night — a wash that reads
+as "this row is selected" without touching the AA-checked foreground colours.
+**Veto-point:** he may prefer night's restraint, in which case day should
+arguably lose its fill instead, for parity.
+
+#### B5. System options stay distinct — **one language, two weights.** *Propose.*
+
+End dialogue and the `/sheet` link are chrome, not conversation, and they half
+say so already (dashed border, `--dim`, 0.82 rem). Make it deliberate: they
+**take the same caret** (one selection language, so a keyboard user is never
+confused about what is selected) but get **neither the hover fill nor the press
+lift** — border and text highlight only, as today. Conversation reacts; chrome
+acknowledges.
+
+**Rides along, cheap:** `.end-dialogue` duplicates `.choices button.system`'s
+rule block in the same file (`Stage.astro`) — this pass should merge them into
+one selector rather than author the new properties a third time. It is the
+same class of debt d11 closed.
+
+**Veto-point:** give system options no caret at all and let the caret mean
+"this is dialogue".
+
+#### B6. The approach prompt — **a slow idle bob.** *Propose.*
+
+**Because** this is the one control that is asking to be interacted with, and a
+prompt that never moves is exactly the "static" complaint. 2 px, 2.4 s
+ease-in-out, infinite. Off under `prefers-reduced-motion` (which the file
+already does for its transition).
+
+**Same trap as B2:** animate the independent `translate` property, never
+`transform` — `positionPrompt()` owns this element's `transform` at runtime and
+sets it twice, differently, depending on whether the figure has headroom.
+
+**Also in scope, and grounded:** the prompt is ~26 px tall
+(0.35 rem padding, 0.75 rem font). **That is well under the 44 px touch
+target** on the one control a phone visitor must hit first. Bump the padding.
+The fullscreen toggle is 40 px — near enough to mention, optional to fix.
+
+**Veto-point:** the bob at all; he may want the prompt dead still and the
+game-feel purely from the caret.
+
+#### B7. The theme toggle — **join the HUD, then flip.** *Propose.*
+
+It is the odd one out: `.page-foot` and `.fullscreen-toggle` are translucent
+glass chips with `backdrop-filter`, and the theme toggle sits in the opposite
+corner in solid `--card`. **Unify it onto the glass treatment** — four lines,
+and the three corner elements finally read as one HUD instead of two chrome
+styles.
+
+The diegetic touch: on click, the ☀/☾ glyph does **one 180° `rotateY` flip**
+(220 ms) as the theme crossfades — turning the sky over. `syncLabel()` already
+rewrites the glyph, so the flip just needs a class toggled around it. Off under
+reduced-motion.
+
+**Veto-point:** the flip; or the glass unification on its own if he likes the
+toggle's current weight.
+
+#### B8. Constraints on all of Part B
+
+Pure CSS wherever it can be (only B7's flip needs a JS class toggle);
+`:hover` and `:focus-visible` **always** styled together, no exceptions;
+`prefers-reduced-motion` kills every new transition and animation; touch
+targets only grow; both themes checked against the `--dim` AA bar noted in
+`tokens.css`; **zero new dependencies**; and every new selector lives in
+`Stage.astro`'s `is:global` block (see A4's second trap).
+
+**Estimate: under a day.**
+
+---
+
+### What does NOT change
+
+- **The dialogue engine's flow.** Node graph, `render(id, immediate)`,
+  `resolveNode`/`isPath`/`resolveTheme`, the JSON schema. Part A adds a
+  reveal function; it does not restructure the engine, and it touches no data.
+- **The focus contract.** First choice focused on approach and after every
+  choice; Escape returns focus to the prompt. Pinned on both routes.
+- **The no-JS path.** Full speech server-rendered, card visible, `/sheet`
+  reachable, End dialogue hidden. Not one byte.
+- **The reduced-motion patterns.** The existing `reduced` flag and the existing
+  `@media (prefers-reduced-motion: reduce)` blocks are the mechanism; this pass
+  adds entries to them and invents nothing.
+- **The 200 ms fade and the card's entry transition.** Untouched; the stream
+  starts after the fade lands.
+- **The camera, the scene, the parallax, the plane.** Out of scope entirely.
+- **All copy stays `PLACEHOLDER`** (§2). Nothing in this item writes, edits or
+  reflows a single visible word — including the banner, the prompt label and
+  every choice label. The typewriter renders whatever string it is handed.
+
+### Success criteria — what "done" means
+
+1. Every new behaviour has a test **proven red before it is made green**: the
+   stream reveals progressively, the skip completes without advancing, a
+   choice needs a second click, reduced-motion is instant, the live region
+   holds the full line from the first frame, exactly one `.speech` exists
+   throughout.
+2. **The full matrix is green** — vitest and tri-engine Playwright — with
+   **only additive** counts against the baseline recorded in d26
+   (vitest 65/65; Playwright 1521 passed / 7 skipped / 0 failed). Any test
+   *modified* rather than added must be justified in the PR; the existing
+   focus, Escape and no-JS specs should need no edit at all.
+3. **Both themes screenshot-verified** at 1920×1080 and 390×844: idle, hover,
+   `:focus-visible`, `:active`, mid-stream and settled.
+4. Keyboard parity proven by hand as well as by test — every state a mouse can
+   reach, a keyboard reaches, with a visible ring.
+5. Caveshen has seen it on local dev and said yes (§2, draft-before-deploy).
+
+### Open questions — RESOLVED (Caveshen, 2026-08-04: "happy to accept your
+recommendations and we can dig deeper into them after")
+
+1. **A first, then B** — two commits, reacted to separately.
+2. **Keys complete the stream** mid-line; activation requires a completed line.
+3. **B3 accepted** — pills become 4px-radius rectangles with the 2px border.
+4. **B6 accepted** — the slow idle bob, reduced-motion gated as proposed.
+
+**Status: ✅ APPROVED as recommended — Part A go. Deeper iteration expected
+on preview, per his note.**
 
 ---

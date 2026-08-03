@@ -1,5 +1,6 @@
 // The approach — e2e tests
 import { test, expect } from '@playwright/test';
+import { visibleRect } from './geom.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -210,7 +211,9 @@ test('the card stays fully on-screen on a short viewport', async ({ page }) => {
 // around it, never stretches it. getBBox() ignores ancestor transforms (including the
 // camera pan/scale), so we measure post-transform with getBoundingClientRect() instead,
 // at a viewport sized to force the target variant on.
-const MOUNTAIN_RATIO = 2.4194;
+// 600/254: baseline (y=352) overscans 6 units to y=358 for the d28 waterline-seam fix,
+// so the polygon's own bbox height grew from 248 to 254 — see CityScape.astro.
+const MOUNTAIN_RATIO = 2.3622;
 
 async function mountainRatio(page, selector) {
   const box = await page.locator(selector).evaluate((el) => {
@@ -303,6 +306,24 @@ for (const { route, characterClass, otherClass } of ROUTE_CHARACTERS) {
     }
   });
 }
+
+// Reduced motion turns off the .camera (and .bg-layer) transition, so the
+// dampened zoom applies instantly — a settled state with no timing wait needed.
+test('approach dampens background growth relative to the foreground (parallax)', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 }); // forces the standard variant on
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  const bgBefore = await visibleRect(page, '.table-mountain');
+  const fgBefore = await visibleRect(page, '.js-character');
+  await page.locator('#approach-prompt').click();
+  const bgAfter = await visibleRect(page, '.table-mountain');
+  const fgAfter = await visibleRect(page, '.js-character');
+  const bgGrowth = bgAfter.height / bgBefore.height;
+  const fgGrowth = fgAfter.height / fgBefore.height;
+  expect(bgGrowth, `bg grew ${bgGrowth}x, fg grew ${fgGrowth}x`).toBeLessThan(fgGrowth);
+  // The bg must track the damped curve, not merely grow "less" than the fg.
+  expect(bgGrowth).toBeCloseTo(1 + (fgGrowth - 1) * 0.4, 1);
+});
 
 test("Devil's Peak: an f-far polygon apex sits above and left of Table Mountain's summit", async ({ page }) => {
   const found = await page.locator('.scene-standard .world').evaluate((worldEl) => {

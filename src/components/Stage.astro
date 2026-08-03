@@ -262,7 +262,9 @@ const root = tree.root;
     display: flex;
     align-items: center;
     pointer-events: none;
-    color: var(--text);
+    /* Always white, not theme-linked — day sky needs the shadow to stay legible. */
+    color: #fff;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
     animation-name: plane-fly;
     animation-timing-function: linear;
     opacity: 1;

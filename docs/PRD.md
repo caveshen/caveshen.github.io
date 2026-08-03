@@ -71,7 +71,7 @@ the document body under their original `§` headings as history.
 | d25 | Shared stage component — extracting the approach interaction | *new* | ✅ built 2026-08-02 — `1254dad`, landed on the mainline as `732f5a6` (#3); pure refactor, byte-identical `dist/index.html`, zero `e2e/` files modified |
 | d26 | Cleanup sweep — four of five items built, one closed as not-debt | *new* | ✅ built 2026-08-02 — `daaafb9`; item 5 closed, replaced by lossless PNG recompression in `3f322ae` |
 | d27 | CI: tag pushes fire the deploy workflow | *new* | ✅ built 2026-08-02 — `daaafb9` |
-| d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | 🔨 in progress on `item/cityscape-depth` — Stages 1–3 + 5 approved; Stage 4 (go given) and Stage 6 (ray-tracing pass) in flight |
+| d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | 🔨 on `item/cityscape-depth` — Stages 1–3 + 5 approved; Stages 4 + 6 built, awaiting preview reaction |
 | d29 | Comment sweep — repo-wide | *new* | ✅ both passes done on `item/comment-sweep` (`02d16cd`, `03eba87`) — awaiting go to push + PR |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
@@ -4228,6 +4228,19 @@ shadows, which would fight the flat-vector world.
   keeps her crisp edge (his ask was the sun; the moon's halo already sits at
   half strength). Same `radialGradient`/variant-id/CSS-stop discipline as
   Stages 2 and 5b.
+
+**STATUS 2026-08-03: Stages 4 and 6 built, awaiting Caveshen's preview
+reaction.** Commits: `e84d0f3` (Stage 4: pointer-driven drift, 6 SVG units,
+window-listener since the frame is pointer-events:none, rAF-coalesced,
+reduced-motion re-checked live, drift zeroed in the same frame as approach so
+it rides the mirrored 550ms transition), `dc7cf24` (6a: shadows generated
+from the same rail-post array — night rx16/op0.22, day rx10/op0.45; Badger's
+own shadow untouched), `14d52c1` (6b: sun core solid to 0.81 fading to edge,
+radius 50→62 compensated so the perceived disc size holds; moon untouched,
+selector scoped to `circle.f-cel`), `681b2e0` (reviewer nit fixes — the
+worker ran its own reviewer pass mid-flight). New idle-parallax e2e test
+proven red then green. Suite: build clean, vitest 65/65, Playwright
+**1569 passed / 7 skipped / 0 failed**.
 
 **`three.js` stays explicitly out of scope for all of the above** (his
 ruling), noted only as where it would eventually replace this whole layer if

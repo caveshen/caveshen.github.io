@@ -71,10 +71,10 @@ the document body under their original `§` headings as history.
 | d25 | Shared stage component — extracting the approach interaction | *new* | ✅ built 2026-08-02 — `1254dad`, landed on the mainline as `732f5a6` (#3); pure refactor, byte-identical `dist/index.html`, zero `e2e/` files modified |
 | d26 | Cleanup sweep — four of five items built, one closed as not-debt | *new* | ✅ built 2026-08-02 — `daaafb9`; item 5 closed, replaced by lossless PNG recompression in `3f322ae` |
 | d27 | CI: tag pushes fire the deploy workflow | *new* | ✅ built 2026-08-02 — `daaafb9` |
-| d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | ✅ all stages (1–6) approved on preview; pre-PR /code-review in flight, then PR |
+| d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | ✅ ACCEPTED 2026-08-04 (all stages + follow-ups, /code-review findings fixed, drift final at 1 unit) — PR open, awaiting merge |
 | d29 | Comment sweep — repo-wide | *new* | ✅ merged to main (PR #7) |
 | d30 | Easter egg — the banner plane crashes when clicked | *new* | 💭 proposed 2026-08-03, no go — design sketch in its section |
-| d31 | Game-feel UI pass — streaming dialogue text + one selection idiom for every button | *new* | 🎨 design brief, awaiting Caveshen's reaction |
+| d31 | Game-feel UI pass — streaming dialogue text + one selection idiom for every button | *new* | ✅ approved as recommended 2026-08-04 — Part A (streaming) first, then B; deeper iteration on preview |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -4740,18 +4740,15 @@ targets only grow; both themes checked against the `--dim` AA bar noted in
    reach, a keyboard reaches, with a visible ring.
 5. Caveshen has seen it on local dev and said yes (§2, draft-before-deploy).
 
-### Open questions for Caveshen
+### Open questions — RESOLVED (Caveshen, 2026-08-04: "happy to accept your
+recommendations and we can dig deeper into them after")
 
-1. **Part A and Part B together, or A first?** They are independent. A is the
-   one he asked about twice, and it is the one that changes how the site feels
-   to read; B is the one he named first. Recommendation: **A, then B**, two
-   commits, reacted to separately — the d28 pattern that worked.
-2. **A2's keyboard rule** — keys complete the stream (recommended), or
-   Enter/Space activate straight through?
-3. **B3** — do the pills go square? This is the only proposal here that
-   departs from Sample C.
-4. **B6's bob** — motion on the approach prompt, or dead still?
+1. **A first, then B** — two commits, reacted to separately.
+2. **Keys complete the stream** mid-line; activation requires a completed line.
+3. **B3 accepted** — pills become 4px-radius rectangles with the 2px border.
+4. **B6 accepted** — the slow idle bob, reduced-motion gated as proposed.
 
-**Status: 🎨 DESIGN BRIEF — awaiting his reaction. No go, no build.**
+**Status: ✅ APPROVED as recommended — Part A go. Deeper iteration expected
+on preview, per his note.**
 
 ---

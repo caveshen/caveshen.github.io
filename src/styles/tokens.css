@@ -155,11 +155,19 @@
 .scene-standard .f-far { fill: url(#far-grad-standard); }
 .scene-wide     .f-far { fill: url(#far-grad-wide); }
 .scene-tall     .f-far { fill: url(#far-grad-tall); }
+.scene-standard .f-sun-glow { fill: url(#sun-glow-standard); }
+.scene-wide     .f-sun-glow { fill: url(#sun-glow-wide); }
+.scene-tall     .f-sun-glow { fill: url(#sun-glow-tall); }
+.scene-standard .f-moon-glow { fill: url(#moon-glow-standard); }
+.scene-wide     .f-moon-glow { fill: url(#moon-glow-wide); }
+.scene-tall     .f-moon-glow { fill: url(#moon-glow-tall); }
 
 .stop-sky-top    { stop-color: var(--sky); }
 .stop-sky-bottom { stop-color: var(--sky-horizon); }
 .stop-far-top    { stop-color: var(--mountain-far); }
 .stop-far-bottom { stop-color: var(--sky-horizon); }
+.stop-sun-glow   { stop-color: var(--celestial); }
+.stop-moon-glow  { stop-color: var(--moon); }
 
 /* ── Cityscape parallax ──────────────────────────────────────────────────
    .camera (Stage.astro) sets --cam-scale on approach; .bg-layer counters it

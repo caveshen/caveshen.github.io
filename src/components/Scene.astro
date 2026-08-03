@@ -111,6 +111,16 @@ const ariaLabel = characterLabel
       <stop class="stop-far-top" offset="0" />
       <stop class="stop-far-bottom" offset="1" />
     </linearGradient>
+    <!-- objectBoundingBox (the default) so the halo just sizes to whatever circle it's
+         painted on — same disc geometry in every variant, only the id needs suffixing. -->
+    <radialGradient id={`sun-glow-${variant}`}>
+      <stop class="stop-sun-glow" offset="0" stop-opacity="0.35" />
+      <stop class="stop-sun-glow" offset="1" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id={`moon-glow-${variant}`}>
+      <stop class="stop-moon-glow" offset="0" stop-opacity="0.18" />
+      <stop class="stop-moon-glow" offset="1" stop-opacity="0" />
+    </radialGradient>
   </defs>
   <rect class="f-sky" width={v.width} height={v.height} />
   <g class="bg-layer">
@@ -119,10 +129,12 @@ const ariaLabel = characterLabel
   </g>
   <!-- moon (night) -->
   <g class="night-only">
+    <circle class="f-moon-glow" cx={v.celestial.cx} cy={v.celestial.cy} r="128" />
     <Moon cx={v.celestial.cx} cy={v.celestial.cy} />
   </g>
   <!-- sun + clouds (day) -->
   <g class="day-only">
+    <circle class="f-sun-glow" cx={v.celestial.cx} cy={v.celestial.cy} r="135" />
     <circle class="f-cel" cx={v.celestial.cx} cy={v.celestial.cy} r="50" />
     {v.dayClouds.map(([x, y, w, h, rx, o]) => <rect x={x} y={y} width={w} height={h} rx={rx} fill="#fff" opacity={o} />)}
   </g>

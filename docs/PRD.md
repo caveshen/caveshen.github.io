@@ -4564,8 +4564,14 @@ point of a stream.
 
 Unchanged and must stay green **without edits**: `approach.spec.js`'s
 focus-after-approach and Escape contracts on both routes, `interview.spec.js`'s
-full keyboard playthrough and both no-JS assertions, `not-found.spec.js`'s
-speech-changes assertion, `hygiene.spec.js`'s `.speech` read.
+no-JS assertions, `not-found.spec.js`'s speech-changes assertion,
+`hygiene.spec.js`'s `.speech` read.
+
+**2026-08-04:** this section originally also listed `interview.spec.js`'s full
+keyboard playthrough as needing no edit — that missed that the A2 ruling below
+(keys complete a mid-stream line rather than activating it) changes what a
+keyboard playthrough of that test's exact path has to do. Retargeted to the
+new contract instead of exempted from it.
 
 **Estimate: under a day.**
 

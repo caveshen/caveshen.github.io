@@ -66,7 +66,7 @@ the document body under their original `§` headings as history.
 | d20 | Social preview imagery | §32 | ⏸ unscheduled |
 | d21 | All copy | §23 checklist item 1 | Caveshen's alone; every `PLACEHOLDER` stands |
 | d22 | Standardise test filenames — descriptive, not tracker IDs | *new* | ✅ built 2026-07-27 — 8 renames, counts unmoved |
-| d23 | Hosted site — `caveshen.com` + Cloudflare | *new* | ⏳ not started — **prerequisites met**: account created, API token held outside the repo, domain reserved |
+| d23 | Hosted site — `caveshen.com` + Cloudflare | *new* | ✅ hosting live 2026-08-05 — zone active, HTTPS posture set; cutover (records + site link) deferred |
 | d24 | The Badger on `/sheet` — character-select framing, outside the scene | *new* | 🎨 DESIGN STAGE — brief and his go outstanding; consider the `frontend-design` skill |
 | d25 | Shared stage component — extracting the approach interaction | *new* | ✅ built 2026-08-02 — `1254dad`, landed on the mainline as `732f5a6` (#3); pure refactor, byte-identical `dist/index.html`, zero `e2e/` files modified |
 | d26 | Cleanup sweep — four of five items built, one closed as not-debt | *new* | ✅ built 2026-08-02 — `daaafb9`; item 5 closed, replaced by lossless PNG recompression in `3f322ae` |
@@ -3832,7 +3832,12 @@ prevent:
   `docs/render-og.js` are the likely candidates. **Grep before assuming those
   are the only two.**
 
-**Status: ⏳ zone created 2026-08-04, pending nameserver switch.** Discovery,
+**Status: ✅ hosting live 2026-08-05 — zone ACTIVE, awaiting cutover.**
+Caveshen switched NameSilo's nameservers to the assigned pair 2026-08-05;
+the zone went active minutes later and the Universal cert
+(`caveshen.com` + `*.caveshen.com`) entered validation, which self-completes.
+Remaining d23 work is the cutover itself (records + CNAME file + Pages custom
+domain + hardcoded-URL grep), deliberately deferred. Discovery below kept,
 so it isn't re-derived: the domain is registered at **NameSilo** (transfer-
 locked; old NS parked at webway.host, served nothing). The token is
 **account-owned** (`/user/tokens/verify` reports it invalid — verify
@@ -4333,18 +4338,16 @@ hard-cut `steps()` pattern already proven by `Badger.astro`'s two-frame idle
 contract. No parallax or gradient work belongs there — a menu portrait has no
 depth to fake. (Cross-referenced at d24 itself.)
 
-**Status: 🎨 proposed 2026-08-02 — no go, no build. Stage 1 is the recommended
-first move if he wants to see something soon; each later stage waits on his
-reaction to the one before it.**
+**Status: ✅ merged to main (PR #8) — all stages built stage-by-stage on
+preview and accepted 2026-08-04; the STATUS blocks above are the record.**
 
 ---
 
 ## d29. Comment sweep — repo-wide
 
-**STATUS 2026-08-02: BOTH PASSES DONE, awaiting Caveshen's go to push and open
-the PR.** Branch `item/comment-sweep`, which also carries the fix for the
-deploy trigger d27 broke, d13 (`Avatar.astro` scoped, verified in built CSS),
-and two standing rules now in `CLAUDE.md`.
+**STATUS: ✅ merged to main (PR #7).** Branch `item/comment-sweep` also carried
+the fix for the deploy trigger d27 broke, d13 (`Avatar.astro` scoped, verified
+in built CSS), and two standing rules now in `CLAUDE.md`.
 
 Pass 1 (`02d16cd`) removed the tracker citations. Pass 2 (`03eba87`) read
 every comment in every file and cut what the code already says: 664 lines out,
@@ -4371,10 +4374,6 @@ heaviest in `e2e/interview.spec.js`, `src/components/Stage.astro`,
 **Judgment per line, not a blind strip:** a comment explaining *why*
 non-obvious code is the way it is stays; the tracker citation and any
 history of deleted code goes. Flag anything ambiguous rather than guessing.
-
-**Status: 💭 proposed 2026-08-02 — no go, no build. Split from d26 on
-Caveshen's ruling; a worker taking this should not also be doing d26's
-mechanical items in the same commit.**
 
 ---
 

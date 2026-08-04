@@ -56,7 +56,7 @@ the document body under their original `§` headings as history.
 | d10 | Fixed-sleep timing races | §30 D-8 | ✅ fixed 2026-07-29 — caught by CI, 3 of 4 sleeps removed |
 | d11 | Card CSS authored twice (~90 lines) | §30 D-9 | ✅ closed 2026-08-02 `26a6ddb` — `NotFound.astro` deleted; verify: `grep -rl "\.choices button" src/` finds `Stage.astro` and nothing else |
 | d12 | Shared scene component (`Scene.astro`) | §30 D-10 | ✅ built 2026-08-01 — `e96ecc8`, landed on the mainline as `672a988` (#2) |
-| d13 | `Avatar.astro` uses `is:global` needlessly | §30 D-12 | ⏳ — still global at `Avatar.astro:17` |
+| d13 | `Avatar.astro` uses `is:global` needlessly | §30 D-12 | ✅ built 2026-08-02 — scoped in `646754b`; verify: `grep -n "is:global" src/components/Avatar.astro` is empty |
 | d14 | `not-found.spec.js` coupled to placeholder copy | §30 D-13 | ✅ closed by construction — verify: `grep -rn "toContainText('404')" e2e/` is empty |
 | d15 | Admin page | §31 (remainder) | 🎨 IN DESIGN, no go-ahead |
 | d16 | Card avatar art refinement | §33b | 🎨 IN DESIGN, brief outstanding |
@@ -3446,14 +3446,19 @@ across the standard and wide variants are separate literals **deliberately** —
 they match because the camera height matches (§14), and deduplicating three
 fields across two of three variants costs more machinery than it saves.
 
-### d13 — `Avatar.astro` uses `is:global` where scoped would do — ⏳ OPEN
+### d13 — `Avatar.astro` uses `is:global` where scoped would do — ✅ BUILT 2026-08-02 (`646754b`)
 
 Every element its rules target lives inside the component, so Astro's scoped
-default works identically. As written it publishes a global `@keyframes blink`
-to every page rendering an avatar. Chosen to match
+default works identically. As written it published a global `@keyframes blink`
+to every page rendering an avatar. It was chosen to match
 `Badger.astro`/`HoodedFigure.astro`, which genuinely need `is:global` (they
-render as `<g>` fragments into a parent SVG). Avatar does not. Harmless today;
-needless reach.
+render as `<g>` fragments into a parent SVG). Avatar does not.
+
+**Status: ✅ BUILT** — scoped as a rider on d29's comment sweep, verified in the
+built CSS rather than by intent: all four rules emit as
+`.avatar[data-astro-cid-u5m3xj5o] …`, and all 7 avatar elements carry that
+attribute on both pages that render one. Nothing creates avatar markup from JS,
+so nothing needed to stay global.
 
 ### d14 — the 404 test coupled to placeholder prose — ✅ CLOSED by construction
 
@@ -3462,7 +3467,7 @@ surviving check is the negative one — no `.not-found-code` element — which n
 copy can break. **Residue for d21:** nothing in the suite forces the stage
 direction to keep the digits "404", so Caveshen's copy is unconstrained.
 
-**Status (d11–d14): d11, d12 and d14 closed; d13 open.**
+**Status (d11–d14): all four closed.**
 
 ---
 
@@ -4366,11 +4371,6 @@ heaviest in `e2e/interview.spec.js`, `src/components/Stage.astro`,
 **Judgment per line, not a blind strip:** a comment explaining *why*
 non-obvious code is the way it is stays; the tracker citation and any
 history of deleted code goes. Flag anything ambiguous rather than guessing.
-
-**Rides along:** d13 (`Avatar.astro`'s needless `is:global`, still open —
-see the d11–d14 section) is the same kind of one-line tidy in a file this
-sweep already touches. Fold it in if convenient; it is not blocked on this
-and may also ship alone.
 
 **Status: 💭 proposed 2026-08-02 — no go, no build. Split from d26 on
 Caveshen's ruling; a worker taking this should not also be doing d26's

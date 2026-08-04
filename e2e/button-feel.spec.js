@@ -65,7 +65,13 @@ test('caret does not shift the label when it appears — gutter is reserved, not
   expect(afterX).toBeCloseTo(beforeX, 0);
 });
 
-test('press state: :active resets the hover lift and presses further down', async ({ page }) => {
+test('press state: :active resets the hover lift and presses further down', async ({ page }, testInfo) => {
+  // Hover-then-press has no contract on a touch project — this test was
+  // simply ungated and passed locally on Windows WebKit but failed on Linux
+  // WebKit's touch emulation (iphone-se, zero press delta). Gate on the
+  // project's static hasTouch capability, chosen because a static config
+  // value can't diverge between hosts the way a runtime read could.
+  test.skip(!!testInfo.project.use.hasTouch, 'hover-then-press has no touch contract');
   // Screen-space boundingBox, not getComputedStyle('transform') — the
   // `transform` property does NOT bake in `translate` at the CSS OM level;
   // the two are independently-animatable properties that both affect the

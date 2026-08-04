@@ -26,6 +26,15 @@
     document.documentElement.dataset.time = next;
     localStorage.setItem('time', next);
     syncLabel(!isDay);
+    // animationstart failed to fire once on iphone-15pro in CI (root cause
+    // unconfirmed — plausibly the 220ms cleanup timeout below cancelling the
+    // animation before a stalled worker's first frame). remove/reflow/add is
+    // the canonical restart idiom and is defensive here regardless of cause;
+    // it also fixes a real bug the old add-only code had on rapid double
+    // clicks — inside the 220ms window 'flipping' is still present, so a
+    // bare classList.add() is a no-op and never restarts the animation.
+    toggle.classList.remove('flipping');
+    void toggle.offsetWidth;
     toggle.classList.add('flipping');
     clearTimeout(flipTimer);
     flipTimer = setTimeout(() => toggle.classList.remove('flipping'), 220);

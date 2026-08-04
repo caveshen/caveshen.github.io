@@ -1,5 +1,6 @@
 // The Badger owns `/` — no selection mechanism, the route is the selector.
 import { test, expect } from '@playwright/test';
+import { sceneRects } from './geom.js';
 
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
@@ -35,6 +36,25 @@ test('approach frames the Badger face-void', async ({ page }) => {
   });
   expect(faceBox.width).toBeGreaterThan(0);
   expect(faceBox.height).toBeGreaterThan(0);
+});
+
+// A broken href still paints a box (the <image> element itself has a size), so
+// .badger-figure's own rect stays non-zero and the rest of the suite stays green
+// over an empty stage — the request check is the only thing that catches it.
+test('badger raster images resolve, and both idle frames are equal, non-zero, and 1:1', async ({ page, request }) => {
+  const hrefs = await page.evaluate(() => [...document.querySelectorAll('image')].map((img) => img.getAttribute('href')));
+  expect(hrefs.length).toBeGreaterThan(0);
+  for (const href of new Set(hrefs)) {
+    const res = await request.get(href);
+    expect(res.status()).toBe(200);
+  }
+
+  const [up, down] = await sceneRects(page, '.badger-image');
+  expect(up.width).toBeGreaterThan(0);
+  expect(up.height).toBeGreaterThan(0);
+  expect(up.width).toBeCloseTo(down.width, 0);
+  expect(up.height).toBeCloseTo(down.height, 0);
+  expect(Math.abs(up.width / up.height - 1)).toBeLessThan(0.01);
 });
 
 test('no-JS: Badger visible, hooded figure absent', async ({ browser }) => {

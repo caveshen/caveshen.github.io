@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { rectsIntersect, visibleRect } from './geom.js';
+import { rectsIntersect, visibleRect, rectContains } from './geom.js';
 
 test.beforeEach(async ({ page }) => {
   // Each test gets a fresh browser context (Playwright default), so localStorage is
@@ -248,12 +248,6 @@ test('no horizontal overflow at ultra-wide (2560×1080)', async ({ page }) => {
   );
   expect(overflow).toBe(false);
 });
-
-function rectContains(outer, inner) {
-  return inner.x >= outer.x && inner.y >= outer.y &&
-         inner.x + inner.width  <= outer.x + outer.width &&
-         inner.y + inner.height <= outer.y + outer.height;
-}
 
 for (const vp of [
   { name: 'wide (2560×1080)',     width: 2560, height: 1080 },

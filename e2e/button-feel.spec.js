@@ -109,15 +109,20 @@ test('system options and End dialogue get the caret but no hover lift or press',
   // no need to navigate anywhere, which also sidesteps A2's mid-stream
   // click-swallow (a click here would otherwise just complete the line).
   await expect(page.locator('.card')).not.toHaveClass(/is-streaming/, { timeout: 5000 });
-  const system = page.locator('.choices button.system').first();
-  await expect(system).toBeVisible();
-  await system.hover();
-  expect(await beforeStyle(system, 'opacity')).toBe('1'); // same caret language
-  expect(hasNoOffset(await system.evaluate((el) => getComputedStyle(el).transform))).toBe(true);
-  await page.mouse.down();
-  await page.waitForTimeout(150);
-  expect(hasNoOffset(await system.evaluate((el) => getComputedStyle(el).transform))).toBe(true); // no press lift either
-  await page.mouse.up();
+  for (const selector of ['.choices button.system', '#end-dialogue']) {
+    const el = page.locator(selector).first();
+    await expect(el).toBeVisible();
+    await el.hover();
+    expect(await beforeStyle(el, 'opacity')).toBe('1'); // same caret language
+    expect(hasNoOffset(await el.evaluate((e) => getComputedStyle(e).transform))).toBe(true);
+    await page.mouse.down();
+    await page.waitForTimeout(150);
+    expect(hasNoOffset(await el.evaluate((e) => getComputedStyle(e).transform))).toBe(true); // no press lift either
+    // Both buttons navigate/exit on a real click — release away from the
+    // element so mouseup doesn't complete one and skip the loop's second half.
+    await page.mouse.move(0, 0);
+    await page.mouse.up();
+  }
 });
 
 test('boxes are square-cornered rectangles with a 2px border, not pills', async ({ page }) => {

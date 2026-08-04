@@ -4800,41 +4800,17 @@ state incl. system's no-lift carve-out, box shape, idle-bob and flip
 reduced-motion gating). Full matrix: vitest 70/70, Playwright 1727 passed /
 17 skipped / 0 failed — additive only, no existing spec edited.
 
-**Review pass (f970df0 → fix commit), nine findings, all fixed:**
-1. The `::before` caret's `content: '▸'` was announced as part of every
-   choice's accessible name — switched all three pseudos to the alt-text form
-   `content: '▸' / '';`.
-2. Test fix: "gutter is reserved, not inserted" measured the button's own box
-   (fixed by the card's `width:100%` regardless of the caret) — now measures
-   the label text's own rect via a `Range` over its text node.
-3. Test fix: the press-state test read `getComputedStyle().transform`
-   assuming it bakes in `translate` — it doesn't; the old test only passed
-   because the build's minifier happened to fold both into one `transform` at
-   build time. Rewritten to diff `boundingBox().y` (also fixed an unrelated
-   flake found along the way: the test wasn't waiting for the card's own
-   550ms entry transform to settle, which briefly outweighs the 2px offset).
-4. Real bug: `.choices button.system:active`/`.end-dialogue:active` only
-   zeroed `translate`, but the minifier folds `.choices button:active`'s
-   `transform:none; translate:0 1px` into a single `transform:translateY(1px)`
-   — so system options *did* press-lift on a touch tap after minification.
-   Both now also reset `transform: none`.
-5. Test fix: the reduced-motion flip test could pass vacuously if it read
-   `animationName` after the 220ms class-removal timeout had already fired —
-   switched to the same `animationstart`-flag technique as its sibling test,
-   asserting the event never fires.
-6. Fixed a drive-by: the toggle's `background` transition duration had
-   drifted from 0.4s to 0.15s, desyncing it from `.stage-frame`'s theme
-   crossfade. Restored to 0.4s.
-7. Fixed a double-click race: the flip's `setTimeout` is now held and cleared
-   on each click, so a rapid second click's animation always gets its own
-   full 220ms instead of being cut short by the first click's timer.
-8. `.end-dialogue:active { translate: none }` was dead weight (nothing sets
-   `translate` on it) — split out, keeping only the `transform: none` it needs.
-9. Trimmed the B6 constraint comment, previously stated three times, to one
-   — at the `.prompt-label` CSS rule.
+**Review pass (f970df0 → 20e6b33 → tidy-up), approved.** Two things worth
+remembering, not just fixing:
+- CSS generated content participates in accessible-name computation — a caret
+  glyph needs the alt-text form (`content: '▸' / '';`) to stay out of it.
+- The build's minifier folds the independent `translate` property into
+  `transform` (e.g. `transform:none; translate:0 1px` → `transform:
+  translateY(1px)`), so any carve-out that needs to neutralise a press/hover
+  offset must reset `transform`, not `translate` — resetting only `translate`
+  silently stops working once that folding happens.
 
-Findings 2/3/5 (test fixes) proven red against the defect they guard by
-temporarily reintroducing it, confirming failure, then reverting. Full matrix
-re-run clean: vitest 70/70, Playwright 1727 passed / 17 skipped / 0 failed.
+Full matrix, final state: vitest 70/70, Playwright 1727 passed / 17 skipped /
+0 failed.
 
 ---

@@ -48,12 +48,21 @@ test('skyline has no gap in the mountain chain', async ({ page }) => {
   }
 });
 
-test('skyline meets the water exactly — not floating, not drowned', async ({ page }) => {
+// d28 overscans every baseline-touching vertex 6 SVG units below the waterline
+// (SEAM_MARGIN, CityScape.astro) so idle drift never opens a gap at the seam —
+// land legitimately sits below sea.y now, never above it. Floating (above) stays
+// pinned to the old ±1px; drowned (below) widens to the worst-case screen-space
+// overscan: 6 units × 2560/1200 (desktop-2560's viewBox scale, the largest of
+// the 8 projects) = 12.8px, rounded up.
+const SEAM_OVERSCAN_PX = 13;
+
+test('skyline meets the water exactly — not floating, not drowned beyond the seam overscan', async ({ page }) => {
   const rects = await landformRects(page);
   const [sea] = await sceneRects(page, '.f-sea');
   const maxBottom = Math.max(...rects.map((r) => r.y + r.height));
-  expect(Math.abs(maxBottom - sea.y)).toBeLessThanOrEqual(1);
-  for (const r of rects) expect(r.y + r.height).toBeLessThanOrEqual(sea.y + 1);
+  expect(maxBottom - sea.y).toBeGreaterThanOrEqual(-1);
+  expect(maxBottom - sea.y).toBeLessThanOrEqual(SEAM_OVERSCAN_PX);
+  for (const r of rects) expect(r.y + r.height).toBeLessThanOrEqual(sea.y + SEAM_OVERSCAN_PX);
 });
 
 test('skyline summit is not cropped off the top of the frame', async ({ page }) => {

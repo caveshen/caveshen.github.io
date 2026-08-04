@@ -3827,7 +3827,20 @@ prevent:
   `docs/render-og.js` are the likely candidates. **Grep before assuming those
   are the only two.**
 
-**Status: ⏳ not started; prerequisites met.**
+**Status: ⏳ started 2026-08-04 — blocked on token permission.** Discovery,
+so it isn't re-derived: the domain is registered at **NameSilo** (transfer-
+locked, NS parked at webway.host — currently SERVFAILs, nothing serves).
+The Cloudflare account exists (standard, created 2026-08-02); the token is
+**account-owned** (so `/user/tokens/verify` reports it invalid — verify
+account-owned tokens against the account endpoint, not the user one) and can
+read the account but **cannot create zones**
+(`com.cloudflare.api.account.zone.create` missing). Unblock: either widen the
+token (Account → Zone → Edit) so Claude creates the zone via API, or add the
+site by hand in the dashboard (Add site → caveshen.com → Free). After either:
+point NameSilo's nameservers at the assigned Cloudflare pair, wait for the
+zone to go active, then set SSL (Universal cert auto-issues; Always Use
+HTTPS on). Linking the actual site (CNAME file, Pages custom domain, hardcoded
+URLs per the note above) is deliberately deferred to cutover.
 
 
 

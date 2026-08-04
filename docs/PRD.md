@@ -4841,12 +4841,24 @@ Full matrix, final state: vitest 70/70, Playwright 1727 passed / 17 skipped /
 the label-only bob covered it.) d31 complete.
 
 **CI-only fix, 2026-08-05.** Two button-feel.spec.js tests passed on local
-Windows WebKit but failed on CI's Linux WebKit (mobile projects only): the
-press-state test's hover-then-press premise doesn't hold on touch, now gated
-on the project's static `hasTouch` (not a runtime matchMedia read, which
-can't disagree between hosts); the flip test's `animationstart` never fired
-because `syncLabel()`'s innerHTML rewrite and the `flipping` class-add landed
-in the same tick, letting the engine coalesce the animation start — fixed
-with a forced reflow (`toggle.offsetWidth`) between them.
+Windows WebKit but failed on CI's Linux WebKit (mobile projects only, one
+failure each, iphone-se and iphone-15pro respectively — both were simply
+ungated). Press-state's hover-then-press premise doesn't hold on touch, now
+gated on the project's static `hasTouch` (chosen because a static value
+can't diverge between hosts). The flip test's `animationstart` failed to
+fire once on iphone-15pro; root cause unconfirmed — plausibly the 220ms
+cleanup timeout cancelling the animation before a stalled worker's first
+frame, not confirmed as an engine-semantics issue. Fixed with the canonical
+remove/reflow/add restart idiom, which is defensive regardless of cause and
+also fixes a real rapid-double-click bug the old add-only code had (inside
+the 220ms window `flipping` was already present, so a bare `classList.add()`
+was a no-op).
+
+**Durable simplification, noted not actioned:** `syncLabel()` recreates
+`.toggle-icon` via `innerHTML` on every click. That's the root of both the
+flip-restart fragility above and the second `is:global` style block (the
+scoped-hash trap A4 already flagged). Mutating the existing span's
+`textContent`/glyph instead of rebuilding it would remove both. Left for a
+future item — out of scope for this CI-only fix.
 
 ---

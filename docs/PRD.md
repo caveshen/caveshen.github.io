@@ -74,7 +74,7 @@ the document body under their original `§` headings as history.
 | d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | ✅ ACCEPTED 2026-08-04 (all stages + follow-ups, /code-review findings fixed, drift final at 1 unit) — PR open, awaiting merge |
 | d29 | Comment sweep — repo-wide | *new* | ✅ merged to main (PR #7) |
 | d30 | Easter egg — the banner plane crashes when clicked | *new* | 💭 proposed 2026-08-03, no go — design sketch in its section |
-| d31 | Game-feel UI pass — streaming dialogue text + one selection idiom for every button | *new* | ✅ Part A accepted 2026-08-04 ("Yeah, this is great! I love it"); Part B built 2026-08-04, on `item/game-feel-ui`, awaiting review |
+| d31 | Game-feel UI pass — streaming dialogue text + one selection idiom for every button | *new* | ✅ ACCEPTED 2026-08-04 (Parts A+B) — PR open from `item/game-feel-ui` |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -4812,5 +4812,9 @@ remembering, not just fixing:
 
 Full matrix, final state: vitest 70/70, Playwright 1727 passed / 17 skipped /
 0 failed.
+
+**Part B — accepted 2026-08-04.** Caveshen, on preview: "Yeah looks fantastic
+… I LOVE the idle bob on the text." (He'd considered bobbing the button itself;
+the label-only bob covered it.) d31 complete.
 
 ---

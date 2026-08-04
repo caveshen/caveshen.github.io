@@ -26,6 +26,13 @@
     document.documentElement.dataset.time = next;
     localStorage.setItem('time', next);
     syncLabel(!isDay);
+    // syncLabel() just replaced .toggle-icon (innerHTML rewrite) — force a
+    // style/layout flush before adding 'flipping' so the browser sees a real
+    // "no animation" -> "animation" transition on the new element instead of
+    // a same-tick DOM-insert-plus-class-add it can coalesce into no
+    // animationstart at all (observed on CI's Linux WebKit; passed locally
+    // on Windows WebKit, which doesn't hit the race).
+    void toggle.offsetWidth;
     toggle.classList.add('flipping');
     clearTimeout(flipTimer);
     flipTimer = setTimeout(() => toggle.classList.remove('flipping'), 220);

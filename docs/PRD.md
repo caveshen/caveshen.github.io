@@ -4840,4 +4840,13 @@ Full matrix, final state: vitest 70/70, Playwright 1727 passed / 17 skipped /
 … I LOVE the idle bob on the text." (He'd considered bobbing the button itself;
 the label-only bob covered it.) d31 complete.
 
+**CI-only fix, 2026-08-05.** Two button-feel.spec.js tests passed on local
+Windows WebKit but failed on CI's Linux WebKit (mobile projects only): the
+press-state test's hover-then-press premise doesn't hold on touch, now gated
+on the project's static `hasTouch` (not a runtime matchMedia read, which
+can't disagree between hosts); the flip test's `animationstart` never fired
+because `syncLabel()`'s innerHTML rewrite and the `flipping` class-add landed
+in the same tick, letting the engine coalesce the animation start — fixed
+with a forced reflow (`toggle.offsetWidth`) between them.
+
 ---

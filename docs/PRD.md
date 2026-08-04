@@ -3827,19 +3827,17 @@ prevent:
   `docs/render-og.js` are the likely candidates. **Grep before assuming those
   are the only two.**
 
-**Status: ⏳ started 2026-08-04 — blocked on token permission.** Discovery,
+**Status: ⏳ zone created 2026-08-04, pending nameserver switch.** Discovery,
 so it isn't re-derived: the domain is registered at **NameSilo** (transfer-
-locked, NS parked at webway.host — currently SERVFAILs, nothing serves).
-The Cloudflare account exists (standard, created 2026-08-02); the token is
-**account-owned** (so `/user/tokens/verify` reports it invalid — verify
-account-owned tokens against the account endpoint, not the user one) and can
-read the account but **cannot create zones**
-(`com.cloudflare.api.account.zone.create` missing). Unblock: either widen the
-token (Account → Zone → Edit) so Claude creates the zone via API, or add the
-site by hand in the dashboard (Add site → caveshen.com → Free). After either:
-point NameSilo's nameservers at the assigned Cloudflare pair, wait for the
-zone to go active, then set SSL (Universal cert auto-issues; Always Use
-HTTPS on). Linking the actual site (CNAME file, Pages custom domain, hardcoded
+locked; old NS parked at webway.host, served nothing). The token is
+**account-owned** (`/user/tokens/verify` reports it invalid — verify
+account-owned tokens against the account endpoint instead); Caveshen widened
+it with zone-create 2026-08-04. Zone `e6637ca173198a7d7c8e9f72b61851ae`
+created on the Free plan, assigned NS **bryce / sreeni .ns.cloudflare.com**.
+Pre-set while pending: Always Use HTTPS on, min TLS 1.2, automatic HTTPS
+rewrites on. **Next: Caveshen points NameSilo's nameservers at that pair**;
+on activation the Universal cert auto-issues. No DNS records exist yet, by
+design — linking the actual site (CNAME file, Pages custom domain, hardcoded
 URLs per the note above) is deliberately deferred to cutover.
 
 

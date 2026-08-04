@@ -49,7 +49,13 @@ const root = tree.root;
   Position is approximate right-foreground; JS places it near the measured figure.
 -->
 <button class="approach-prompt" id="approach-prompt" hidden>
-  {promptLabel}
+  <!-- B6's idle bob animates this inner span, not the button: Playwright's
+       click actionability requires the clicked element's own bounding box to
+       go two frames without moving, which an infinite animation on the
+       button itself can never satisfy. The label bobs; the button's own box
+       — what positionPrompt() measures and what stability checks poll — stays
+       put. -->
+  <span class="prompt-label">{promptLabel}</span>
 </button>
 
 <!-- Card ships hidden so it is never painted before JS runs.
@@ -158,12 +164,41 @@ const root = tree.root;
     letter-spacing: 0.08em;
     color: var(--text);
     background: rgba(10, 8, 22, 0.55);
-    border: 1px solid rgba(233, 226, 207, 0.22);
-    border-radius: 999px;
-    padding: 0.35rem 0.75rem;
+    border: 2px solid rgba(233, 226, 207, 0.22);
+    border-radius: 4px;
+    /* Vertical padding bumped from 0.35rem: this is the one control a phone
+       visitor must hit first, and it sat well under the 44px touch-target
+       floor. Left padding reserves a 1.25ch gutter for the caret (::before
+       below), same idiom as .choices button — nothing shifts when it fades in. */
+    padding: 0.85rem 0.75rem 0.85rem calc(0.75rem + 1.25ch);
     cursor: pointer;
     backdrop-filter: blur(3px);
-    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease,
+      translate 0.1s ease;
+  }
+  /* B6: the one control asking to be interacted with gets a slow idle bob —
+     animated on the inner label, not the button. Playwright's click
+     actionability requires the CLICKED element's own bounding box to hold
+     still across two frames; an infinite animation on .approach-prompt
+     itself made every existing click on it time out. The label bobs inside a
+     geometrically static button instead — same visual "this moves", no
+     conflict with positionPrompt()'s own use of the button's `transform`. */
+  .prompt-label {
+    display: inline-block;
+    animation: prompt-bob 2.4s ease-in-out infinite;
+  }
+  @keyframes prompt-bob {
+    0%, 100% { translate: 0 0; }
+    50%      { translate: 0 -2px; }
+  }
+  .approach-prompt::before {
+    content: '▸';
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    translate: 0 -50%;
+    opacity: 0;
+    color: var(--btn-hover-text);
   }
   .approach-prompt:hover,
   .approach-prompt:focus-visible {
@@ -171,9 +206,16 @@ const root = tree.root;
     border-color: var(--btn-hover-border);
     background: rgba(10, 8, 22, 0.75);
   }
+  .approach-prompt:hover::before,
+  .approach-prompt:focus-visible::before {
+    opacity: 1;
+  }
   .approach-prompt:focus-visible {
     outline: 2px solid var(--btn-hover-border);
     outline-offset: 2px;
+  }
+  .approach-prompt:active {
+    translate: 0 1px;
   }
   :root[data-time="day"] .approach-prompt {
     background: rgba(253, 251, 245, 0.65);
@@ -185,6 +227,7 @@ const root = tree.root;
   }
   @media (prefers-reduced-motion: reduce) {
     .approach-prompt { transition: none; }
+    .prompt-label { animation: none; }
   }
 
   .fullscreen-toggle {
@@ -301,30 +344,43 @@ const root = tree.root;
     .banner-plane { display: none; }
   }
 
-  /* .end-dialogue lives inside .card, styled like .choices button.system */
+  /* .end-dialogue lives inside .card, styled like .choices button.system —
+     the shared "system-language" colours, hover/focus and caret live in the
+     combined selectors alongside button.system below (d31 Part B, B5's
+     "rides along, cheap" note); this block keeps only the standalone box
+     model button.system gets for free from `.choices button`. */
   .end-dialogue {
     display: block;
+    position: relative;
     width: 100%;
     text-align: left;
     font-family: var(--mono);
     font-size: 0.82rem;
     color: var(--dim);
     background: transparent;
-    border: 1.5px dashed var(--option-border);
-    border-radius: 999px;
-    padding: 0.65rem 1.2rem;
+    border: 2px dashed var(--option-border);
+    border-radius: 4px;
+    /* Left padding reserves a 1.25ch gutter for the caret (::before below),
+       same idiom as .choices button — nothing shifts when it fades in. */
+    padding: 0.65rem 1.2rem 0.65rem calc(1.2rem + 1.25ch);
     cursor: pointer;
     margin-top: 0.75rem;
     transition: color 0.12s ease, border-color 0.12s ease;
   }
+  .end-dialogue::before {
+    content: '▸';
+    position: absolute;
+    left: 1.2rem;
+    top: 50%;
+    translate: 0 -50%;
+    opacity: 0;
+  }
+  .end-dialogue:hover::before,
+  .end-dialogue:focus-visible::before {
+    opacity: 1;
+  }
   /* Same author-origin-vs-UA-stylesheet override as .fullscreen-toggle[hidden] above */
   .end-dialogue[hidden] { display: none; }
-  .end-dialogue:hover,
-  .end-dialogue:focus-visible {
-    color: var(--stage);
-    border-color: var(--stage);
-    background: transparent;
-  }
   .end-dialogue:focus-visible {
     outline: 2px solid var(--stage);
     outline-offset: 2px;
@@ -417,17 +473,30 @@ const root = tree.root;
   }
   .choices button {
     display: block;
+    position: relative;
     width: 100%;
     text-align: left;
     font-family: var(--mono);
     font-size: 0.9rem;
     color: var(--option);
     background: transparent;
-    border: 1.5px solid var(--option-border);
-    border-radius: 999px;
-    padding: 0.65rem 1.2rem;
+    border: 2px solid var(--option-border);
+    border-radius: 4px;
+    /* Left padding reserves a 1.25ch gutter for the caret (::before below),
+       B1 (d31 Part B) — nothing shifts when it fades in on hover/focus. */
+    padding: 0.65rem 1.2rem 0.65rem calc(1.2rem + 1.25ch);
     cursor: pointer;
-    transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease, transform 0.12s ease;
+    transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease,
+      transform 0.12s ease, translate 0.12s ease;
+  }
+  .choices button::before {
+    content: '▸';
+    position: absolute;
+    left: 1.2rem;
+    top: 50%;
+    translate: 0 -50%;
+    opacity: 0;
+    color: var(--btn-hover-text);
   }
   .choices button:hover,
   .choices button:focus-visible {
@@ -436,20 +505,46 @@ const root = tree.root;
     background: var(--btn-hover-bg);
     transform: translateY(-1px);
   }
+  .choices button:hover::before,
+  .choices button:focus-visible::before {
+    opacity: 1;
+  }
   .choices button:focus-visible {
     outline: 2px solid var(--btn-hover-border);
     outline-offset: 2px;
+  }
+  /* B2: choices already lift 1px on hover via `transform`; :active resets
+     that (still-matching :hover would otherwise stack with it) and applies
+     its own 1px via the independent `translate` property, so hover -> press
+     is a real 2px travel rather than the two partially cancelling out. */
+  .choices button:active {
+    transform: none;
+    translate: 0 1px;
   }
   .choices button.system {
     border-style: dashed;
     color: var(--dim);
     font-size: 0.82rem;
   }
+  .choices button.system::before,
+  .end-dialogue::before {
+    color: var(--stage);
+  }
+  /* B5: system options and End dialogue take the same caret (one selection
+     language) but get neither the hover fill nor the press lift — border and
+     text highlight only. */
   .choices button.system:hover,
-  .choices button.system:focus-visible {
+  .choices button.system:focus-visible,
+  .end-dialogue:hover,
+  .end-dialogue:focus-visible {
     color: var(--stage);
     border-color: var(--stage);
     background: transparent;
+    transform: none;
+  }
+  .choices button.system:active,
+  .end-dialogue:active {
+    translate: none;
   }
   .noscript-note {
     margin-top: 1rem;

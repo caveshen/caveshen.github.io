@@ -1,13 +1,15 @@
 ---
 ---
-<button class="toggle" id="toggle" aria-label="Switch to day mode">&#9788; day</button>
+<button class="toggle" id="toggle" aria-label="Switch to day mode"><span class="toggle-icon">&#9788;</span> day</button>
 
 <script>
   const toggle = document.getElementById('toggle') as HTMLButtonElement;
 
   // Sync button label to the theme already applied by Base.astro's inline script
   function syncLabel(isDay: boolean) {
-    toggle.innerHTML = isDay ? '&#9789; night' : '&#9788; day';
+    toggle.innerHTML = isDay
+      ? '<span class="toggle-icon">&#9789;</span> night'
+      : '<span class="toggle-icon">&#9788;</span> day';
     toggle.setAttribute('aria-label', isDay ? 'Switch to night mode' : 'Switch to day mode');
   }
   syncLabel(document.documentElement.dataset.time === 'day');
@@ -18,6 +20,11 @@
     document.documentElement.dataset.time = next;
     localStorage.setItem('time', next);
     syncLabel(!isDay);
+    // B7 (d31 Part B): the diegetic touch — turning the sky over. Pure CSS
+    // keyframe (gated by prefers-reduced-motion in the stylesheet below);
+    // this just brackets it with a class so it replays every click.
+    toggle.classList.add('flipping');
+    setTimeout(() => toggle.classList.remove('flipping'), 220);
   });
 </script>
 
@@ -33,24 +40,65 @@
     font-family: var(--mono);
     font-size: 0.78rem;
     letter-spacing: 0.08em;
-    color: var(--option);
-    background: var(--card);
-    border: 1.5px solid var(--option-border);
-    border-radius: 999px;
+    color: var(--text);
+    /* B7 (d31 Part B): join the HUD — same translucent glass chip as
+       .page-foot/.fullscreen-toggle (Stage.astro) instead of a solid --card,
+       so the three corner elements read as one HUD language. Also B3's box:
+       4px-radius rectangle, 2px border, replacing the pill. */
+    background: rgba(10, 8, 22, 0.55);
+    border: 2px solid rgba(233, 226, 207, 0.22);
+    border-radius: 4px;
     padding: 0.45rem 0.95rem;
     cursor: pointer;
-    transition: color 0.12s ease, border-color 0.12s ease, background 0.4s ease;
+    backdrop-filter: blur(3px);
+    transition: color 0.12s ease, border-color 0.12s ease, background 0.15s ease,
+      translate 0.1s ease;
   }
   .toggle:hover, .toggle:focus-visible {
     color: var(--btn-hover-text);
     border-color: var(--btn-hover-border);
-    background: var(--btn-hover-bg, var(--card));
+    background: rgba(10, 8, 22, 0.75);
   }
   .toggle:focus-visible {
     outline: 2px solid var(--btn-hover-border);
     outline-offset: 2px;
   }
+  .toggle:active {
+    translate: 0 1px;
+  }
+  :root[data-time="day"] .toggle {
+    background: rgba(253, 251, 245, 0.65);
+    border-color: rgba(37, 48, 56, 0.22);
+  }
+  :root[data-time="day"] .toggle:hover,
+  :root[data-time="day"] .toggle:focus-visible {
+    background: rgba(253, 251, 245, 0.88);
+  }
   @media (prefers-reduced-motion: reduce) {
     .toggle { transition: none; }
+  }
+</style>
+
+<!-- Same trap as dialogue.js's card CSS (d31 Part A/B): syncLabel() rewrites
+     .toggle's innerHTML on load and on every click, so the .toggle-icon span
+     it creates never carries Astro's scoped-style hash — its rules must live
+     in an is:global block, not the scoped one above. .toggle itself is never
+     replaced (only its children), so its own styles stay scoped as normal. -->
+<style is:global>
+  /* B7's diegetic touch: one 180deg rotateY flip on the glyph as the theme
+     crossfades — turning the sky over. rotateY, not translate: nothing else
+     drives this element's transform, so there's no trap to dodge here. */
+  .toggle-icon {
+    display: inline-block;
+  }
+  .toggle.flipping .toggle-icon {
+    animation: toggle-flip 220ms ease;
+  }
+  @keyframes toggle-flip {
+    from { transform: rotateY(0deg); }
+    to   { transform: rotateY(180deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .toggle.flipping .toggle-icon { animation: none; }
   }
 </style>

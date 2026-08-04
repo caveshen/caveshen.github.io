@@ -74,7 +74,7 @@ the document body under their original `§` headings as history.
 | d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | ✅ ACCEPTED 2026-08-04 (all stages + follow-ups, /code-review findings fixed, drift final at 1 unit) — PR open, awaiting merge |
 | d29 | Comment sweep — repo-wide | *new* | ✅ merged to main (PR #7) |
 | d30 | Easter egg — the banner plane crashes when clicked | *new* | 💭 proposed 2026-08-03, no go — design sketch in its section |
-| d31 | Game-feel UI pass — streaming dialogue text + one selection idiom for every button | *new* | ✅ approved as recommended 2026-08-04 — Part A (streaming) first, then B; deeper iteration on preview |
+| d31 | Game-feel UI pass — streaming dialogue text + one selection idiom for every button | *new* | ✅ Part A accepted 2026-08-04 ("Yeah, this is great! I love it"); Part B built 2026-08-04, on `item/game-feel-ui`, awaiting review |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -4388,10 +4388,9 @@ Estimate: under a day. Natural branch `item/plane-crash` after d28 merges.
 ---
 ## d31. Game-feel UI pass — streaming dialogue text and a selection idiom
 
-**🎨 DESIGN BRIEF 2026-08-03 — awaiting Caveshen's reaction. No go, no build.**
-Every number below is a proposal with a veto-point attached; nothing here is
-settled. Natural branch `item/game-feel`, after d28's PR lands (it is the
-branch in flight and it touches `Stage.astro` styling too).
+**🎨 DESIGN BRIEF 2026-08-03 — resolved 2026-08-04, both parts built.** The
+proposals and veto-points below are the reasoning trail; see the status block
+at the end of this section for what shipped. Branch: `item/game-feel-ui`.
 
 Caveshen, raising it:
 
@@ -4754,7 +4753,51 @@ recommendations and we can dig deeper into them after")
 3. **B3 accepted** — pills become 4px-radius rectangles with the 2px border.
 4. **B6 accepted** — the slow idle bob, reduced-motion gated as proposed.
 
-**Status: ✅ APPROVED as recommended — Part A go. Deeper iteration expected
-on preview, per his note.**
+**Part A — accepted 2026-08-04.** Caveshen, on preview: "Yeah, this is great!
+I love it."
+
+**Part B — built 2026-08-04, on `item/game-feel-ui`.** B1–B8 as recommended
+above, plus two deviations forced by real constraints hit during the build:
+
+- **B1 caret**: added to the approach prompt, dialogue choices (regular +
+  system), and End dialogue. **Not** added to the theme toggle — B7 gives it
+  its own diegetic device (the flip) instead, and never asks for a caret.
+- **B2 press**: `:active { translate: 0 1px }` on the approach prompt, choices,
+  and theme toggle. Choices' `:active` also resets the hover-lift `transform`
+  (not just adds to it) — otherwise the -1px lift and +1px press cancel to a
+  1px net travel instead of the PRD's "hover -> press is a 2px travel".
+  System options and End dialogue get neither (B5).
+- **B3 box**: 4px radius, 2px border on the approach prompt, choices, End
+  dialogue, and theme toggle.
+- **B4**: night's `--btn-hover-bg` is now `rgba(255, 215, 94, .10)`.
+- **B5**: `.choices button.system` and `.end-dialogue` share their hover/caret
+  rules; merged per the "rides along" note.
+- **B6 idle bob — deviation.** The bob animates an inner `<span
+  class="prompt-label">` wrapping the button's text, not the button itself.
+  An infinite CSS animation directly on `#approach-prompt` makes its
+  `getBoundingClientRect()` change every frame, which permanently fails
+  Playwright's click-actionability "stable" check — proven empirically, it
+  broke every existing spec that clicks the approach prompt (approach.spec.js,
+  badger.spec.js, dialogue.spec.js, interview.spec.js, and more). The button's
+  own box now stays static (what positionPrompt() measures and what click
+  stability polls); only the label visibly bobs. Same "it moves" effect Caveshen
+  asked for, zero risk to the click contract. Also bumped the prompt's vertical
+  padding for the 44px touch target, as the PRD suggested.
+- **B7 theme toggle — deviation.** Glass-HUD background + B3's box + the 180°
+  rotateY flip on click, as specced. The flip's CSS (`.toggle-icon`,
+  `.toggle.flipping .toggle-icon`, `@keyframes toggle-flip`) lives in a
+  *second*, `is:global` `<style>` block in ThemeToggle.astro, not the scoped
+  one — `syncLabel()` rewrites the toggle's `innerHTML` on load and on every
+  click, so the glyph span it creates never carries Astro's scoped-style hash.
+  Same trap A4 flagged for dialogue.js's card elements, just in a component
+  Part A never touched.
+- **B8**: confirmed — pure CSS bar the flip's class toggle, `is:global` where
+  JS-created elements need it, reduced-motion kills every new transition and
+  animation, touch targets only grew.
+
+New coverage: `e2e/button-feel.spec.js` (caret on hover/focus-visible, press
+state incl. system's no-lift carve-out, box shape, idle-bob and flip
+reduced-motion gating). Full matrix: vitest 70/70, Playwright 1727 passed /
+17 skipped / 0 failed — additive only, no existing spec edited.
 
 ---

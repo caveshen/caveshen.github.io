@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { resolveNode, isPath, resolveTheme, initEngine } from '../scripts/dialogue.js';
 import tree from '../data/dialogue.json';
 
@@ -163,5 +163,93 @@ describe('engine DOM rendering', () => {
     mkEngine(path => { called = path; })('root', true);
     choicesEl.querySelector('button.system').click();
     expect(called).toBe('/sheet');
+  });
+});
+
+// ── Streaming reveal ──────────────────────────────────────────────────────────
+
+describe('streaming reveal', () => {
+  let speechEl, stageEl, choicesEl, cardEl;
+  const miniTree = {
+    root: { speech: 'Hello world', options: [{ label: 'Next', to: 'root' }] },
+  };
+
+  beforeEach(() => {
+    document.body.innerHTML = `
+      <main class="card">
+        <p id="stage"></p>
+        <div aria-live="polite"><p class="speech" id="speech"></p></div>
+        <ul id="choices"></ul>
+      </main>
+    `;
+    speechEl  = document.getElementById('speech');
+    stageEl   = document.getElementById('stage');
+    choicesEl = document.getElementById('choices');
+    cardEl    = document.querySelector('.card');
+  });
+
+  it('mid-stream: visible text is a strict, shorter prefix while #speech already holds the full line', () => {
+    vi.useFakeTimers();
+    const render = initEngine(miniTree, { speechEl, stageEl, choicesEl, cardEl }, () => {},
+      { reducedMotion: false, streamMs: 20 });
+    render('root');
+    vi.advanceTimersByTime(200 + 20 * 3); // land the fade, then reveal a few characters
+    const shown = cardEl.querySelector('.speech-stream span').textContent;
+    expect(speechEl.textContent).toBe('Hello world');
+    expect(shown.length).toBeGreaterThan(0);
+    expect(shown.length).toBeLessThan('Hello world'.length);
+    expect('Hello world'.startsWith(shown)).toBe(true);
+    vi.useRealTimers();
+  });
+
+  it('completes on a mid-stream keydown: fills the line and clears the streaming state', () => {
+    vi.useFakeTimers();
+    const render = initEngine(miniTree, { speechEl, stageEl, choicesEl, cardEl }, () => {},
+      { reducedMotion: false, streamMs: 20 });
+    render('root');
+    vi.advanceTimersByTime(200 + 20); // mid-stream
+    const evt = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
+    cardEl.dispatchEvent(evt);
+    expect(evt.defaultPrevented).toBe(true);
+    expect(cardEl.querySelector('.speech-stream')).toBeNull();
+    expect(cardEl.classList.contains('is-streaming')).toBe(false);
+    expect(speechEl.textContent).toBe('Hello world');
+    vi.useRealTimers();
+  });
+
+  it('Escape mid-stream is not swallowed (passes through, no defaultPrevented)', () => {
+    vi.useFakeTimers();
+    const render = initEngine(miniTree, { speechEl, stageEl, choicesEl, cardEl }, () => {},
+      { reducedMotion: false, streamMs: 20 });
+    render('root');
+    vi.advanceTimersByTime(200 + 20); // mid-stream
+    const evt = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+    cardEl.dispatchEvent(evt);
+    expect(evt.defaultPrevented).toBe(false);
+    vi.useRealTimers();
+  });
+
+  it('reducedMotion: true never creates a stream node', () => {
+    const render = initEngine(miniTree, { speechEl, stageEl, choicesEl, cardEl }, () => {},
+      { reducedMotion: true });
+    render('root');
+    expect(cardEl.querySelector('.speech-stream')).toBeNull();
+    expect(speechEl.textContent).toBe('Hello world');
+  });
+
+  it('a pointerdown on a choice mid-stream is swallowed, not activated', () => {
+    vi.useFakeTimers();
+    let navigated = false;
+    const render = initEngine(miniTree, { speechEl, stageEl, choicesEl, cardEl },
+      () => { navigated = true; }, { reducedMotion: false, streamMs: 20 });
+    render('root');
+    vi.advanceTimersByTime(200 + 20); // mid-stream
+    const btn = choicesEl.querySelector('button');
+    const evt = new MouseEvent('pointerdown', { bubbles: true, cancelable: true });
+    btn.dispatchEvent(evt);
+    expect(evt.defaultPrevented).toBe(true);
+    expect(cardEl.querySelector('.speech-stream')).toBeNull(); // swallow completed the line
+    expect(navigated).toBe(false); // swallowed pointerdown never produced a click
+    vi.useRealTimers();
   });
 });

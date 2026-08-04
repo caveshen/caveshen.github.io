@@ -60,6 +60,8 @@ test('full keyboard dialogue playthrough', async ({ page }) => {
   await expect(page.locator('#choices button').first()).toBeFocused();
 
   const rootSpeech = await page.locator('#speech').textContent();
+  // Root's line rendered instantly on card-open (never streamed), so this Enter
+  // activates the focused choice directly.
   await page.keyboard.press('Enter');
 
   // Wait for apply() (speech change proves replaceChildren fired) — otherwise the focus
@@ -68,8 +70,15 @@ test('full keyboard dialogue playthrough', async ({ page }) => {
 
   // Fails if the auto-focus fix in dialogue.js is absent.
   await expect(page.locator('#choices button').first()).toBeFocused();
-  await page.keyboard.press('Enter');
 
+  // The new node's line is streaming now — a keypress mid-stream completes the
+  // line, activation needs a completed line, so this Enter only completes it.
+  const speechBeforeComplete = await page.locator('#speech').textContent();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#choices button.system')).toHaveCount(0);
+  await expect(page.locator('#speech')).toHaveText(speechBeforeComplete ?? '');
+
+  await page.keyboard.press('Enter'); // line is complete now — this one activates
   await expect(page.locator('#choices button.system')).toBeVisible();
 });
 

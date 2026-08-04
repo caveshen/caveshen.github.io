@@ -21,7 +21,10 @@
   --card-shadow:      0 16px 40px rgba(0, 0, 0, 0.45);
   --dim:              #9aabc6; /* night: WCAG AA ≥4.5:1 on both --card and --bg */
   --option-border:    rgba(143, 180, 216, 0.35);
-  --btn-hover-bg:     transparent;
+  /* d31 Part B (B4): night was transparent on hover while day fills the row —
+     a faint amber wash so hover reads as "this row is selected" in both
+     themes, without touching the AA-checked foreground colours. */
+  --btn-hover-bg:     rgba(255, 215, 94, 0.10);
   --btn-hover-border: #ffd75e;
   --btn-hover-text:   #ffd75e;
   --chip-bg:          #ffd75e;

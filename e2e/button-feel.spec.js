@@ -43,44 +43,65 @@ test('caret appears on focus-visible via keyboard, matching hover', async ({ pag
   expect(await beforeStyle(choice, 'opacity')).toBe('1');
 });
 
+// The button's own box is fixed by the card (display:block; width:100%)
+// whether or not a caret shows — measuring it proves nothing. Measure where
+// the label TEXT itself starts instead, via a Range over its text node.
+async function labelTextX(locator) {
+  return locator.evaluate((el) => {
+    const range = document.createRange();
+    range.selectNodeContents(el.firstChild);
+    return range.getClientRects()[0].x;
+  });
+}
+
 test('caret does not shift the label when it appears — gutter is reserved, not inserted', async ({ page }) => {
   const pointerFine = await page.evaluate(() => matchMedia('(pointer: fine)').matches);
   test.skip(!pointerFine, 'hover is a desktop-pointer affordance');
   await approach(page);
   const choice = page.locator('.choices button').first();
-  const before = await choice.boundingBox();
+  const beforeX = await labelTextX(choice);
   await choice.hover();
-  const after = await choice.boundingBox();
-  expect(after.x).toBeCloseTo(before.x, 0);
-  expect(after.width).toBeCloseTo(before.width, 0);
+  const afterX = await labelTextX(choice);
+  expect(afterX).toBeCloseTo(beforeX, 0);
 });
 
-// getComputedStyle().transform reports the fully-combined matrix (transform +
-// translate baked together), so read the matrix's y-translation (its 6th,
-// "f", component) rather than expecting a literal 'none'.
-function translateY(matrixStr) {
-  const m = matrixStr.match(/matrix\(([^)]+)\)/);
-  return m ? Number(m[1].split(',')[5]) : 0;
-}
-
-test('press state: :active resets the hover lift and presses via translate', async ({ page }) => {
+test('press state: :active resets the hover lift and presses further down', async ({ page }) => {
+  // Screen-space boundingBox, not getComputedStyle('transform') — the
+  // `transform` property does NOT bake in `translate` at the CSS OM level;
+  // the two are independently-animatable properties that both affect the
+  // painted position, and only the render (boundingBox) reflects their sum.
   await approach(page);
+  // Let the card's own 550ms entry transform settle and wait out A2's stream
+  // skip — mouse.down() below is a real pointerdown on the card, and either
+  // still being in flight reflows/shifts the choices list under the button,
+  // swamping the 2px press offset the assertions below are trying to isolate.
+  await expect(page.locator('.card')).toHaveCSS('opacity', '1', { timeout: 5000 });
+  await expect(page.locator('.card')).not.toHaveClass(/is-streaming/, { timeout: 5000 });
   const choice = page.locator('.choices button').first();
   await choice.hover();
   await page.waitForTimeout(150); // let the 0.12s hover-lift transition settle
-  const hoverY = translateY(await choice.evaluate((el) => getComputedStyle(el).transform));
-  expect(hoverY).toBeLessThan(0); // hover's 1px lift (transform: translateY(-1px))
+  const hovered = await choice.boundingBox();
   await page.mouse.down();
   await page.waitForTimeout(150); // let the 0.12s transform/translate transition settle
-  const pressY = translateY(await choice.evaluate((el) => getComputedStyle(el).transform));
+  const pressed = await choice.boundingBox();
   await page.mouse.up();
   // :active resets the hover-lift transform and presses via the independent
-  // `translate` property instead — hover -> press is a real ~2px travel
-  // (screen space, via the combined matrix), not the two partially
-  // cancelling out.
-  expect(pressY).toBeGreaterThan(hoverY);
-  expect(pressY - hoverY).toBeGreaterThan(1);
+  // `translate` property instead — hover -> press is a real ~2px travel,
+  // not the two partially cancelling out.
+  expect(pressed.y).toBeGreaterThan(hovered.y);
+  expect(pressed.y - hovered.y).toBeGreaterThan(1);
 });
+
+// The build's minifier can fold `transform:none; translate:none` into a
+// literal identity matrix rather than the string 'none' (observed:
+// `transform:translate(0,0)`), so accept either serialization of "no offset".
+function hasNoOffset(transformStr) {
+  if (transformStr === 'none') return true;
+  const m = transformStr.match(/^matrix\(([^)]+)\)$/);
+  if (!m) return false;
+  const [a, b, c, d, e, f] = m[1].split(',').map(Number);
+  return a === 1 && b === 0 && c === 0 && d === 1 && e === 0 && f === 0;
+}
 
 test('system options and End dialogue get the caret but no hover lift or press', async ({ page }) => {
   await approach(page);
@@ -92,10 +113,10 @@ test('system options and End dialogue get the caret but no hover lift or press',
   await expect(system).toBeVisible();
   await system.hover();
   expect(await beforeStyle(system, 'opacity')).toBe('1'); // same caret language
-  expect(await system.evaluate((el) => getComputedStyle(el).transform)).toBe('none');
+  expect(hasNoOffset(await system.evaluate((el) => getComputedStyle(el).transform))).toBe(true);
   await page.mouse.down();
   await page.waitForTimeout(150);
-  expect(await system.evaluate((el) => getComputedStyle(el).transform)).toBe('none'); // no press lift either
+  expect(hasNoOffset(await system.evaluate((el) => getComputedStyle(el).transform))).toBe(true); // no press lift either
   await page.mouse.up();
 });
 
@@ -113,9 +134,8 @@ test('boxes are square-cornered rectangles with a 2px border, not pills', async 
   }
 });
 
-// B6's bob animates .prompt-label, not #approach-prompt itself — the button
-// stays geometrically static so Playwright's click actionability (which
-// requires the CLICKED element's own box to hold still) never fights it.
+// B6's bob animates .prompt-label, not #approach-prompt itself (see the CSS
+// rule in Stage.astro for why).
 test('idle bob: prompt label animates while idle, off under reduced motion', async ({ page }) => {
   const animName = await page.locator('.prompt-label').evaluate(
     (el) => getComputedStyle(el).animationName
@@ -152,12 +172,19 @@ test('theme toggle: click plays the flip', async ({ page }) => {
 });
 
 test('reduced motion: theme toggle flip is off', async ({ page }) => {
+  // Same animationstart-flag technique as the sibling test above, not a
+  // getComputedStyle read after a fixed wait — reading late enough that the
+  // (would-be) 220ms class-removal timeout has already fired would pass
+  // vacuously even if the flip weren't actually gated.
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.reload();
-  const toggle = page.locator('#toggle');
-  await toggle.click();
-  const animName = await toggle.evaluate(
-    (el) => getComputedStyle(el.querySelector('.toggle-icon')).animationName
-  );
-  expect(animName).toBe('none');
+  await page.evaluate(() => {
+    window.__flipName = null;
+    document.getElementById('toggle').addEventListener('animationstart', (e) => {
+      window.__flipName = e.animationName;
+    });
+  });
+  await page.locator('#toggle').click();
+  await page.waitForTimeout(300); // longer than the (would-be) 220ms flip
+  expect(await page.evaluate(() => window.__flipName)).toBeNull();
 });

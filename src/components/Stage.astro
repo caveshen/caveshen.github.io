@@ -49,12 +49,7 @@ const root = tree.root;
   Position is approximate right-foreground; JS places it near the measured figure.
 -->
 <button class="approach-prompt" id="approach-prompt" hidden>
-  <!-- B6's idle bob animates this inner span, not the button: Playwright's
-       click actionability requires the clicked element's own bounding box to
-       go two frames without moving, which an infinite animation on the
-       button itself can never satisfy. The label bobs; the button's own box
-       — what positionPrompt() measures and what stability checks poll — stays
-       put. -->
+  <!-- B6's idle bob animates this inner span, not the button — see .prompt-label below. -->
   <span class="prompt-label">{promptLabel}</span>
 </button>
 
@@ -192,7 +187,7 @@ const root = tree.root;
     50%      { translate: 0 -2px; }
   }
   .approach-prompt::before {
-    content: '▸';
+    content: '▸' / ''; /* alt-text form: excludes the caret from the accessible name */
     position: absolute;
     left: 0.75rem;
     top: 50%;
@@ -368,7 +363,7 @@ const root = tree.root;
     transition: color 0.12s ease, border-color 0.12s ease;
   }
   .end-dialogue::before {
-    content: '▸';
+    content: '▸' / ''; /* alt-text form: excludes the caret from the accessible name */
     position: absolute;
     left: 1.2rem;
     top: 50%;
@@ -490,7 +485,7 @@ const root = tree.root;
       transform 0.12s ease, translate 0.12s ease;
   }
   .choices button::before {
-    content: '▸';
+    content: '▸' / ''; /* alt-text form: excludes the caret from the accessible name */
     position: absolute;
     left: 1.2rem;
     top: 50%;
@@ -542,9 +537,16 @@ const root = tree.root;
     background: transparent;
     transform: none;
   }
-  .choices button.system:active,
-  .end-dialogue:active {
+  /* transform:none here too, not just translate:none — the build's minifier
+     folds .choices button:active's `transform:none; translate:0 1px` into a
+     single `transform:translateY(1px)`, so translate:none alone stops
+     neutralising the press lift once that folding happens. */
+  .choices button.system:active {
+    transform: none;
     translate: none;
+  }
+  .end-dialogue:active {
+    transform: none;
   }
   .noscript-note {
     margin-top: 1rem;

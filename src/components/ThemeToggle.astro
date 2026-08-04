@@ -14,17 +14,21 @@
   }
   syncLabel(document.documentElement.dataset.time === 'day');
 
+  // B7 (d31 Part B): the diegetic touch — turning the sky over. Pure CSS
+  // keyframe (gated by prefers-reduced-motion in the stylesheet below); this
+  // just brackets it with a class so it replays every click. The timer is
+  // held and cleared on each click so a rapid second click's animation gets
+  // its own full 220ms instead of being cut short by the first click's timer.
+  let flipTimer: ReturnType<typeof setTimeout>;
   toggle.addEventListener('click', () => {
     const isDay = document.documentElement.dataset.time === 'day';
     const next  = isDay ? 'night' : 'day';
     document.documentElement.dataset.time = next;
     localStorage.setItem('time', next);
     syncLabel(!isDay);
-    // B7 (d31 Part B): the diegetic touch — turning the sky over. Pure CSS
-    // keyframe (gated by prefers-reduced-motion in the stylesheet below);
-    // this just brackets it with a class so it replays every click.
     toggle.classList.add('flipping');
-    setTimeout(() => toggle.classList.remove('flipping'), 220);
+    clearTimeout(flipTimer);
+    flipTimer = setTimeout(() => toggle.classList.remove('flipping'), 220);
   });
 </script>
 
@@ -51,7 +55,7 @@
     padding: 0.45rem 0.95rem;
     cursor: pointer;
     backdrop-filter: blur(3px);
-    transition: color 0.12s ease, border-color 0.12s ease, background 0.15s ease,
+    transition: color 0.12s ease, border-color 0.12s ease, background 0.4s ease,
       translate 0.1s ease;
   }
   .toggle:hover, .toggle:focus-visible {

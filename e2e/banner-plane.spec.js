@@ -99,15 +99,41 @@ test('clicking the plane mid-flight crashes it, ending below the waterline, then
   // rect, sampled before .banner-rect/.banner-tow are reparented out — sample
   // either side of the click and allow only ordinary in-flight drift, not the
   // ~117px teleport a container-rect bake produces once the banner detaches.
-  const preClickBox = await page.locator('.plane-hit').boundingBox();
+  // Both rects are read in one page.evaluate() (not two separate boundingBox()
+  // round-trips) — the plane is still translating pre-click, so two sequential
+  // CDP calls would sample it at measurably different instants on slower
+  // (mobile/WebKit) projects, adding spurious drift to the delta below.
+  const sampleRects = () => page.evaluate(() => {
+    const r = (el) => el && { x: el.getBoundingClientRect().x, y: el.getBoundingClientRect().y };
+    return {
+      hit: r(document.querySelector('.plane-hit')),
+      banner: r(document.querySelector('.banner-rect')),
+    };
+  });
+  const pre = await sampleRects();
 
   // force: true — the plane is still moving (continuously translating), so
   // Playwright's stability check would otherwise wait forever for it to stop.
   await page.locator('.plane-hit').click({ force: true });
 
-  const postClickBox = await page.locator('.plane-hit').boundingBox();
-  expect(Math.abs(postClickBox.x - preClickBox.x)).toBeLessThan(20);
-  expect(Math.abs(postClickBox.y - preClickBox.y)).toBeLessThan(20);
+  const post = await sampleRects();
+  const hitDeltaX = post.hit.x - pre.hit.x;
+  const hitDeltaY = post.hit.y - pre.hit.y;
+  expect(Math.abs(hitDeltaX)).toBeLessThan(20);
+  expect(Math.abs(hitDeltaY)).toBeLessThan(20);
+
+  // .banner-rect is the node that actually gets reparented into .banner-detached.
+  // Both nodes ride the same pre-click flight, so ordinary click-delay drift
+  // (up to the 20px tolerance above) moves plane-hit and banner-rect by
+  // roughly the same amount — a tight bar on the banner's raw delta would
+  // just re-measure that shared drift. Compare how far each moved instead:
+  // in lockstep under the fix (each baked from its own rect), diverging
+  // under the bug (detached.style.left/top pinned to the hitbox's position,
+  // losing the fixed banner-to-hitbox offset — the ~11px hop).
+  const bannerDeltaX = post.banner.x - pre.banner.x;
+  const bannerDeltaY = post.banner.y - pre.banner.y;
+  expect(Math.abs(bannerDeltaX - hitDeltaX)).toBeLessThan(3);
+  expect(Math.abs(bannerDeltaY - hitDeltaY)).toBeLessThan(3);
 
   // Mechanism: the crash class is on immediately, driving a real (un-faked)
   // CSS animation — page.clock doesn't fast-forward it, same lesson as the
@@ -117,16 +143,18 @@ test('clicking the plane mid-flight crashes it, ending below the waterline, then
   expect(animationName).toBe('plane-crash');
 
   // Completion (waterline): once the dive settles, the plane holds a resting
-  // position clearly below mid-frame — not a mid-animation opacity sample,
-  // a settled post-animation position (animation-fill-mode: forwards).
-  const waterlineY = frame.y + frame.height * 0.5;
-  // Fixed short interval, not expect.poll's default growing backoff — the
-  // dive settles at CRASH_MS (~1.1s) and a wide backoff step can overshoot
-  // that window and time out having never sampled the settled position.
-  await expect.poll(async () => (await plane.boundingBox())?.y, {
-    timeout: 8000,
-    intervals: [50],
-  }).toBeGreaterThan(waterlineY);
+  // position at the actually-rendered sea line — not a mid-animation opacity
+  // sample, a settled post-animation position (animation-fill-mode: forwards).
+  // Waits out CRASH_MS (~1.1s) directly rather than polling for a crossing:
+  // a hardcoded-fraction bug shifts the dive's whole target by a constant
+  // offset (proven ~43px off at this viewport), so the plane still clears a
+  // one-sided ">bar" easily either way — only a band around where the sea is
+  // actually rendered catches it. Bar is .f-sea's own live rect (:visible
+  // picks the laid-out scene variant, same idiom as interview.spec.js).
+  await page.waitForTimeout(1300);
+  const seaBox = await page.locator('.f-sea:visible').first().boundingBox();
+  const settledY = (await plane.boundingBox())?.y;
+  expect(Math.abs(settledY - seaBox.y)).toBeLessThan(20);
 
   // Completion (removal): the plane element itself is ultimately gone.
   await expect(plane).toHaveCount(0);

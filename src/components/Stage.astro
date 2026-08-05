@@ -338,7 +338,10 @@ const root = tree.root;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    justify-content: center;
+    /* flex-start, not center: the icon sits flush against the tow-facing edge
+       of the padded hitbox instead of splitting the padding into a visible
+       gap between the tow line and the plane's tail. */
+    justify-content: flex-start;
     min-width: 44px;
     min-height: 44px;
   }

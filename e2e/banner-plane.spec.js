@@ -95,9 +95,19 @@ test('clicking the plane mid-flight crashes it, ending below the waterline, then
     return box ? box.x > frame.x : false;
   }, { timeout: 8000 }).toBe(true);
 
+  // d30 fix: crashPlane() bakes the in-flight position from .plane-hit's own
+  // rect, sampled before .banner-rect/.banner-tow are reparented out — sample
+  // either side of the click and allow only ordinary in-flight drift, not the
+  // ~117px teleport a container-rect bake produces once the banner detaches.
+  const preClickBox = await page.locator('.plane-hit').boundingBox();
+
   // force: true — the plane is still moving (continuously translating), so
   // Playwright's stability check would otherwise wait forever for it to stop.
   await page.locator('.plane-hit').click({ force: true });
+
+  const postClickBox = await page.locator('.plane-hit').boundingBox();
+  expect(Math.abs(postClickBox.x - preClickBox.x)).toBeLessThan(20);
+  expect(Math.abs(postClickBox.y - preClickBox.y)).toBeLessThan(20);
 
   // Mechanism: the crash class is on immediately, driving a real (un-faked)
   // CSS animation — page.clock doesn't fast-forward it, same lesson as the
@@ -115,7 +125,7 @@ test('clicking the plane mid-flight crashes it, ending below the waterline, then
   // that window and time out having never sampled the settled position.
   await expect.poll(async () => (await plane.boundingBox())?.y, {
     timeout: 8000,
-    intervals: [100],
+    intervals: [50],
   }).toBeGreaterThan(waterlineY);
 
   // Completion (removal): the plane element itself is ultimately gone.

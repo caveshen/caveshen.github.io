@@ -222,30 +222,46 @@ export function initStage(tree) {
   // `.crashing` class (higher specificity than the base `.banner-plane`
   // rule) take over the transform with the spiral-dive keyframes.
   function crashPlane(el) {
-    if (el.classList.contains('crashing')) return; // already going down
+    if (el.classList.contains('crashing') || el.classList.contains('plane-fade-out')) return; // already going down, or leaving
     el.removeEventListener('animationend', endPlane);
     planeEl = null; // so a mid-crash approach() finds nothing to fade out
     schedulePlane(nextPlaneDelay());
 
-    const frame = stageFrame.getBoundingClientRect();
-    const rect  = el.getBoundingClientRect();
-    const x = rect.left - frame.left;
-    const y = rect.top  - frame.top;
+    const frame    = stageFrame.getBoundingClientRect();
+    const hitEl    = el.querySelector('.plane-hit');
+    const bannerEl = el.querySelector('.banner-rect');
+    // el's own rect spans banner+tow+hitbox today but shrinks to just the
+    // hitbox once detached.append() below pulls banner-rect/banner-tow out —
+    // and hitEl sits flex-centred inside that taller box, not flush with
+    // bannerEl. Sample each node's own rect before anything moves, or the
+    // bake below pins the wrong element's old position and it visibly jumps.
+    const hitRect    = hitEl.getBoundingClientRect();
+    const bannerRect = bannerEl.getBoundingClientRect();
+    const x = hitRect.left - frame.left;
+    const y = hitRect.top  - frame.top;
+    const bx = bannerRect.left - frame.left;
+    const by = bannerRect.top  - frame.top;
     el.style.left = `${x}px`;
     el.style.transform = 'none';
     el.style.animationDuration = `${CRASH_MS}ms`;
 
-    const diveY = frame.height * SEA_FRACTION - y;
+    // The sea's rendered top depends on preserveAspectRatio's slice crop, which
+    // SEA_FRACTION (a viewBox fraction) doesn't account for — read .f-sea's
+    // live rect instead, falling back to the constant only if it's missing.
+    const seaEl  = visibleOne('.f-sea');
+    const seaTop = seaEl ? seaEl.getBoundingClientRect().top - frame.top : frame.height * SEA_FRACTION;
+
+    const diveY = seaTop - y;
     el.style.setProperty('--dive-y', `${diveY}px`);
 
     const detached = document.createElement('div');
     detached.className = 'banner-detached';
     detached.setAttribute('aria-hidden', 'true'); // sibling of el, not a descendant — doesn't inherit el's
-    detached.style.left = `${x}px`;
-    detached.style.top  = `${y}px`;
+    detached.style.left = `${bx}px`;
+    detached.style.top  = `${by}px`;
     detached.style.animationDuration = `${BANNER_FALL_MS}ms`;
-    detached.style.setProperty('--dive-y', `${diveY}px`);
-    detached.append(el.querySelector('.banner-rect'), el.querySelector('.banner-tow'));
+    detached.style.setProperty('--dive-y', `${seaTop - by}px`);
+    detached.append(bannerEl, el.querySelector('.banner-tow'));
     stageFrame.appendChild(detached);
     detached.addEventListener('animationend', () => detached.remove(), { once: true });
 
@@ -263,7 +279,11 @@ export function initStage(tree) {
     splash.className = 'plane-splash';
     splash.setAttribute('aria-hidden', 'true'); // sibling of el, not a descendant — doesn't inherit el's
     splash.style.left = el.style.left;
-    splash.style.top  = `${stageFrame.getBoundingClientRect().height * SEA_FRACTION}px`;
+    const frame = stageFrame.getBoundingClientRect();
+    const seaEl = visibleOne('.f-sea');
+    splash.style.top = seaEl
+      ? `${seaEl.getBoundingClientRect().top - frame.top}px`
+      : `${frame.height * SEA_FRACTION}px`;
     stageFrame.appendChild(splash);
     splash.addEventListener('animationend', (ev) => {
       if (ev.animationName !== 'splash-ripple') return; // ignore the earlier pop

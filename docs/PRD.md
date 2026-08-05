@@ -4888,11 +4888,17 @@ also fixes a real rapid-double-click bug the old add-only code had (inside
 the 220ms window `flipping` was already present, so a bare `classList.add()`
 was a no-op).
 
-**Durable simplification, noted not actioned:** `syncLabel()` recreates
-`.toggle-icon` via `innerHTML` on every click. That's the root of both the
-flip-restart fragility above and the second `is:global` style block (the
-scoped-hash trap A4 already flagged). Mutating the existing span's
-`textContent`/glyph instead of rebuilding it would remove both. Left for a
-future item — out of scope for this CI-only fix.
+**Durable simplification, actioned 2026-08-06:** `syncLabel()` no longer
+recreates `.toggle-icon` via `innerHTML`; it mutates the existing span's
+`textContent`/glyph and its adjacent label text node in place, plus the
+button's `aria-label`. The span is never rebuilt, so it keeps Astro's
+scoped-style hash — confirmed empirically in the `dist` build
+(`.toggle-icon[data-astro-cid-l6lhmie6]`) — and the second `is:global` style
+block (the scoped-hash trap A4 flagged) folded back into the normal scoped
+`<style>` block. The flip-restart idiom
+(`remove('flipping'); void offsetWidth; add('flipping')`) is unchanged — it
+independently fixes the rapid-double-click no-op regardless of this
+refactor. Full matrix: Playwright 1813 passed / 19 skipped / 0 failed,
+unchanged from the branch baseline.
 
 ---

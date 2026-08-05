@@ -3841,7 +3841,7 @@ They wait until d28 is signed off.
    viewports) or an accepted limitation? The matching test was left
    uncommitted rather than weakened — see N4's build note above.
 
-**Status: 📋 specced 2026-08-03, awaiting go. No build.**
+**Status: ✅ must-haves + N1–N3 (+ half of N4) built — see the STATUS notes above. Awaiting Caveshen's go to PR.**
 
 ---
 

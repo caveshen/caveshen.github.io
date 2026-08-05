@@ -93,27 +93,25 @@ test('layer order at the seams: sea over landform, ground over sea, character ov
 
 // N1: the halo (radial glow) must stay centred on its own disc, in both themes — a wide
 // but off-centre halo would look like a lighting bug that plain containment wouldn't catch.
-test('halo is centred on its disc, in both themes', async ({ page }) => {
+//
+// Both disc selectors are element-scoped (circle, not the bare class): `.f-cel` is also the
+// class of the night-only lit-windows group (CityScape.astro:103), and `.f-moon` is also the
+// class of the night-only moon group (Scene.astro:168) — the same collisions tokens.css
+// already documents and guards against with its own `circle.f-cel` selector.
+async function haloCentred(page, discSel, glowSel) {
   const centre = (r) => ({ x: r.x + r.width / 2, y: r.y + r.height / 2 });
+  const [disc] = await sceneRects(page, discSel);
+  const [glow] = await sceneRects(page, glowSel);
+  expect(rectContains(glow, disc)).toBe(true);
+  const discC = centre(disc), glowC = centre(glow);
+  expect(Math.abs(discC.x - glowC.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(discC.y - glowC.y)).toBeLessThanOrEqual(1);
+}
 
-  const [moonDisc] = await sceneRects(page, 'circle.f-moon');
-  const [moonGlow] = await sceneRects(page, '.f-moon-glow');
-  expect(rectContains(moonGlow, moonDisc)).toBe(true);
-  const moonDiscC = centre(moonDisc), moonGlowC = centre(moonGlow);
-  expect(Math.abs(moonDiscC.x - moonGlowC.x)).toBeLessThanOrEqual(1);
-  expect(Math.abs(moonDiscC.y - moonGlowC.y)).toBeLessThanOrEqual(1);
-
+test('halo is centred on its disc, in both themes', async ({ page }) => {
+  await haloCentred(page, 'circle.f-moon', '.f-moon-glow');
   await page.locator('#toggle').click();
-
-  // .f-cel is also the class of the night-only lit-windows group (CityScape.astro) — scope
-  // to the disc circle only, the same collision tokens.css already documents and guards
-  // against with its own `circle.f-cel` selector.
-  const [sunDisc] = await sceneRects(page, 'circle.f-cel');
-  const [sunGlow] = await sceneRects(page, '.f-sun-glow');
-  expect(rectContains(sunGlow, sunDisc)).toBe(true);
-  const sunDiscC = centre(sunDisc), sunGlowC = centre(sunGlow);
-  expect(Math.abs(sunDiscC.x - sunGlowC.x)).toBeLessThanOrEqual(1);
-  expect(Math.abs(sunDiscC.y - sunGlowC.y)).toBeLessThanOrEqual(1);
+  await haloCentred(page, 'circle.f-cel', '.f-sun-glow');
 });
 
 // N2: Table Mountain's own lit/shade facets must stay inside its own x-span and share its
@@ -143,5 +141,15 @@ test("mountain facets sit inside Table Mountain's own x-span and share its basel
 test('seam lines stay inside the ground', async ({ page }) => {
   const [ground] = await sceneRects(page, '.f-ground');
   const seamLines = await sceneRects(page, '.f-seam line');
-  for (const line of seamLines) expect(rectContains(ground, line)).toBe(true);
+  expect(seamLines.length).toBeGreaterThan(0);
+  // Sub-pixel float noise allowance, same as N2's x-span check above.
+  const FLOAT_EPSILON = 0.01;
+  for (const line of seamLines) {
+    expect(
+      line.x >= ground.x - FLOAT_EPSILON &&
+      line.y >= ground.y - FLOAT_EPSILON &&
+      line.x + line.width  <= ground.x + ground.width  + FLOAT_EPSILON &&
+      line.y + line.height <= ground.y + ground.height + FLOAT_EPSILON
+    ).toBe(true);
+  }
 });

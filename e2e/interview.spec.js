@@ -442,11 +442,7 @@ for (const vp of [
   });
 }
 
-// N4 attempted a third, unparameterised sibling of the test above at each project's native
-// viewport. Left out: it genuinely fails on iphone-se and iphone-15pro's real device
-// viewports — the zoomed face overlaps the card's top edge there (a real gap the
-// 390×844 stand-in above doesn't have enough headroom to catch). Reported as a finding,
-// not weakened into passing.
+// N4's withheld third case (native-viewport face/card check) — see PRD.md open question 4.
 
 // Real OS fullscreen is unreliable/vacuous in a headless matrix, so these tests assert
 // what's deterministic: presence/position/labelling, geometric non-occlusion, the

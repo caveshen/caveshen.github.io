@@ -3765,7 +3765,6 @@ character over the railing (`.f-rail`). Route `/`, all project viewports.
   the open question below.
 
 N1–N4 are cheap but guard art that is one review away from changing again.
-They wait until d28 is signed off.
 
 ### Shared helpers — extend `e2e/geom.js`, do not fork it
 

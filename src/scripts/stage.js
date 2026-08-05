@@ -166,6 +166,13 @@ export function initStage(tree) {
   const PLANE_INTERVAL_MS = 120_000;
   const PLANE_JITTER_MS = 30_000; // ± around the interval — not a metronome
   const PLANE_FLIGHT_MS = 16_000; // knob: crossing speed
+  // d30: click-to-crash easter egg — sputter + spiral dive is one continuous
+  // animation (CRASH_MS); the detached banner falls on its own, independent
+  // arc (BANNER_FALL_MS); SEA_FRACTION matches Scene.astro's sea.y/height
+  // for the standard/wide variants the plane is limited to.
+  const CRASH_MS = 1100;
+  const BANNER_FALL_MS = 900;
+  const SEA_FRACTION = 0.64;
   let planeTimer;
   let planeEl = null;
 
@@ -188,10 +195,16 @@ export function initStage(tree) {
     el.innerHTML = `
       <span class="banner-rect">MAVERICKS</span>
       <span class="banner-tow"></span>
-      <svg class="plane-icon" width="30" height="14" viewBox="0 0 30 14" aria-hidden="true">
-        <path d="M0 6 H20 V8 H0 Z M20 5 L28 7 L20 9 Z M8 6 L16 0 L20 6 Z M8 8 L16 14 L20 8 Z" fill="currentColor" />
-      </svg>`;
+      <span class="plane-hit">
+        <svg class="plane-icon" width="30" height="14" viewBox="0 0 30 14" aria-hidden="true">
+          <path d="M0 6 H20 V8 H0 Z M20 5 L28 7 L20 9 Z M8 6 L16 0 L20 6 Z M8 8 L16 14 L20 8 Z" fill="currentColor" />
+        </svg>
+      </span>`;
     el.addEventListener('animationend', endPlane);
+    // d30: .plane-hit is the padded hitbox (pointer + touch both — 'click'
+    // covers a tap too), scoped inside .banner-plane's aria-hidden so it
+    // never surfaces in the a11y tree, same as the plane itself today.
+    el.querySelector('.plane-hit').addEventListener('click', () => crashPlane(el));
     stageFrame.appendChild(el);
     planeEl = el;
   }
@@ -200,6 +213,63 @@ export function initStage(tree) {
     planeEl?.remove();
     planeEl = null;
     schedulePlane(nextPlaneDelay());
+  }
+
+  // d30: click-to-crash. Freezes the flight where it was clicked (baking the
+  // in-flight translateX into `left` so switching animation-name doesn't
+  // snap it back to the start), detaches the banner into its own sibling so
+  // it can flutter down on a slower, independent arc, then lets the
+  // `.crashing` class (higher specificity than the base `.banner-plane`
+  // rule) take over the transform with the spiral-dive keyframes.
+  function crashPlane(el) {
+    if (el.classList.contains('crashing')) return; // already going down
+    el.removeEventListener('animationend', endPlane);
+    planeEl = null; // so a mid-crash approach() finds nothing to fade out
+    schedulePlane(nextPlaneDelay());
+
+    const frame = stageFrame.getBoundingClientRect();
+    const rect  = el.getBoundingClientRect();
+    const x = rect.left - frame.left;
+    const y = rect.top  - frame.top;
+    el.style.left = `${x}px`;
+    el.style.transform = 'none';
+    el.style.animationDuration = `${CRASH_MS}ms`;
+
+    const diveY = frame.height * SEA_FRACTION - y;
+    el.style.setProperty('--dive-y', `${diveY}px`);
+
+    const detached = document.createElement('div');
+    detached.className = 'banner-detached';
+    detached.setAttribute('aria-hidden', 'true'); // sibling of el, not a descendant — doesn't inherit el's
+    detached.style.left = `${x}px`;
+    detached.style.top  = `${y}px`;
+    detached.style.animationDuration = `${BANNER_FALL_MS}ms`;
+    detached.style.setProperty('--dive-y', `${diveY}px`);
+    detached.append(el.querySelector('.banner-rect'), el.querySelector('.banner-tow'));
+    stageFrame.appendChild(detached);
+    detached.addEventListener('animationend', () => detached.remove(), { once: true });
+
+    el.classList.add('crashing');
+    el.addEventListener('animationend', splashPlane, { once: true });
+  }
+
+  // Splash reuses the scene's f-wave idiom (Scene.astro/tokens.css) — a small
+  // var(--wave)-coloured bar — plus a brief expanding ripple, then removes
+  // the plane. Runs after crashPlane()'s dive settles, so the plane sits at
+  // its below-the-waterline resting spot for this whole phase.
+  function splashPlane(e) {
+    const el = e.currentTarget;
+    const splash = document.createElement('div');
+    splash.className = 'plane-splash';
+    splash.setAttribute('aria-hidden', 'true'); // sibling of el, not a descendant — doesn't inherit el's
+    splash.style.left = el.style.left;
+    splash.style.top  = `${stageFrame.getBoundingClientRect().height * SEA_FRACTION}px`;
+    stageFrame.appendChild(splash);
+    splash.addEventListener('animationend', (ev) => {
+      if (ev.animationName !== 'splash-ripple') return; // ignore the earlier pop
+      splash.remove();
+      el.remove();
+    });
   }
 
   // Interrupted by approach: fade rather than freeze or hard-cut. Detaches the

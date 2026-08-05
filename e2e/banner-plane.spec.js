@@ -77,3 +77,56 @@ test('no-JS: no plane element exists in the DOM', async ({ browser }) => {
   await expect(page.locator('.banner-plane')).toHaveCount(0);
   await ctx.close();
 });
+
+// d30: click-to-crash easter egg.
+
+test('clicking the plane mid-flight crashes it, ending below the waterline, then removes it', async ({ page }) => {
+  await gotoAndFireFirstPass(page);
+  const plane = page.locator('.banner-plane');
+  await expect(plane).toBeAttached();
+  const frame = await page.locator('.stage-frame').boundingBox();
+
+  // The flight is a real (un-faked) CSS animation crossing from off-screen
+  // left to off-screen right — wait in real time until it's actually over
+  // the frame before clicking it (page.clock doesn't advance this, same
+  // compositor-vs-fake-timers lesson as the fade-out test above).
+  await expect.poll(async () => {
+    const box = await plane.boundingBox();
+    return box ? box.x > frame.x : false;
+  }, { timeout: 8000 }).toBe(true);
+
+  // force: true — the plane is still moving (continuously translating), so
+  // Playwright's stability check would otherwise wait forever for it to stop.
+  await page.locator('.plane-hit').click({ force: true });
+
+  // Mechanism: the crash class is on immediately, driving a real (un-faked)
+  // CSS animation — page.clock doesn't fast-forward it, same lesson as the
+  // fade-out test above, so the rest of this test polls in real time.
+  await expect(plane).toHaveClass(/crashing/);
+  const animationName = await plane.evaluate((el) => getComputedStyle(el).animationName);
+  expect(animationName).toBe('plane-crash');
+
+  // Completion (waterline): once the dive settles, the plane holds a resting
+  // position clearly below mid-frame — not a mid-animation opacity sample,
+  // a settled post-animation position (animation-fill-mode: forwards).
+  const waterlineY = frame.y + frame.height * 0.5;
+  // Fixed short interval, not expect.poll's default growing backoff — the
+  // dive settles at CRASH_MS (~1.1s) and a wide backoff step can overshoot
+  // that window and time out having never sampled the settled position.
+  await expect.poll(async () => (await plane.boundingBox())?.y, {
+    timeout: 8000,
+    intervals: [100],
+  }).toBeGreaterThan(waterlineY);
+
+  // Completion (removal): the plane element itself is ultimately gone.
+  await expect(plane).toHaveCount(0);
+});
+
+test('reduced-motion: no plane, so no crash hitbox or listener either', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.clock.install();
+  await page.goto('/');
+  await page.clock.fastForward(10_000);
+  await expect(page.locator('.banner-plane')).toHaveCount(0);
+  await expect(page.locator('.plane-hit')).toHaveCount(0);
+});

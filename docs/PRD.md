@@ -61,7 +61,7 @@ the document body under their original `§` headings as history.
 | d15 | Admin page | §31 (remainder) | 🎨 IN DESIGN, no go-ahead |
 | d16 | Card avatar art refinement | §33b | 🎨 IN DESIGN, brief outstanding |
 | d17 | One character per route — Badger on `/`, hooded figure on `/404`; 1:1 **in interaction, not just scenery**; the toggle dies | §27 (remainder) | ✅ built 2026-08-02 `26a6ddb` — awaiting Caveshen's local-dev sign-off |
-| d18 | Visual validation in e2e | §16 | ✅ must-haves built on `item/visual-validation`, reviewer-approved; awaiting Caveshen's go to PR (nice-to-haves deferred until d28 signs off) |
+| d18 | Visual validation in e2e | §16 | ✅ must-haves built on `item/visual-validation`, reviewer-approved; nice-to-haves N1–N3 built + N4 half-built on `test/d18-nice-to-haves` (see §16 status) — awaiting Caveshen's go to PR |
 | d19 | Dialogue rework | §22 | ⏸ parked |
 | d20 | Social preview imagery | §32 | ⏸ unscheduled |
 | d21 | All copy | §23 checklist item 1 | Caveshen's alone; every `PLACEHOLDER` stands |
@@ -3591,6 +3591,21 @@ gains only the 15 inert class strings). Suite 1609 passed / 7 skipped / 0
 failed; flake gate `--repeat-each=2` exactly double, 0 flaky. Awaiting
 Caveshen's go to PR; nice-to-haves N1–N4 stay deferred until d28 signs off.
 
+**STATUS 2026-08-06: nice-to-haves N1–N3 built, N4 half-built**, on
+`test/d18-nice-to-haves` (branched from `main`, not yet pushed). N1 (halo
+centring), N2 (facets inside the massif), N3 (seams on the promenade) all
+proven red via their named injections then green after revert. N4's
+"approach prompt does not overlap the figure" native-viewport copy is built
+and green on all 8 projects; its "face clears the dialogue card"
+native-viewport copy is **dropped, not committed** — it is genuinely red on
+`iphone-se` and `iphone-15pro`'s real device viewports (the zoomed face
+overlaps the card's top edge by ~20-40px there), a real gap the existing
+390×844 stand-in doesn't have enough headroom to catch. See the open
+question below. Full matrix: 1813 passed / 19 skipped / 0 failed; flake gate
+`--repeat-each=2` exactly double (3626/38), 0 flaky. Vitest: 70/70 (this
+item's earlier 65/65 note is stale — unrelated to this branch, `src/`
+untouched).
+
 Specced 2026-08-03 against the scene as it stands on `item/cityscape-depth`
 (d28 Stages 1–3 and 5a–5e: parallax layers, sky/far/ground gradients, mountain
 facets, building side-faces, celestial halos, paving seams). §16 recorded the
@@ -3728,13 +3743,26 @@ character over the railing (`.f-rail`). Route `/`, all project viewports.
 - **N1 — Halo centring.** Each `.f-sun-glow`/`.f-moon-glow` rect contains its
   disc's rect and shares its centre within 1px, in its own theme (day/night).
   Guards 5b against a halo drifting off its disc.
+  **Build note:** the sun disc's selector is `circle.f-cel`, not the bare
+  `.f-cel` — that class is also worn by CityScape's night-only lit-windows
+  `<g>` (`tokens.css:185-189` already documents and guards this same
+  collision), so an unscoped selector would match two elements.
 - **N2 — Facets stay inside their massif.** `.f-mtn-lit`/`.f-mtn-shade` rects sit
   inside `.table-mountain`'s x-span and share its baseline.
+  **Build note:** scoped to `.table-mountain ~ .f-mtn-shade` /
+  `.table-mountain ~ .f-mtn-lit` (general-sibling combinator) — Devil's Peak
+  reuses the same two facet classes for its own polygons, which sit outside
+  Table Mountain's x-span by design; the sibling scope picks out only the
+  pair authored after `.table-mountain` in `CityScape.astro`.
 - **N3 — Seams stay on the promenade.** Every `.f-seam` line's rect is contained
   in `.f-ground`'s rect (no seams painted over the water).
 - **N4 — Matrix breadth for the existing occlusion tests.** One unparameterised
   copy of "prompt clears the figure" and "face clears the card", run at the
   projects' native viewports rather than three hand-picked sizes.
+  **Build note:** only "prompt clears the figure" shipped. "Face clears the
+  card" is genuinely red on `iphone-se`/`iphone-15pro`'s real viewports — a
+  finding, not a scoping fix — so it was left out rather than weakened. See
+  the open question below.
 
 N1–N4 are cheap but guard art that is one review away from changing again.
 They wait until d28 is signed off.
@@ -3805,6 +3833,13 @@ They wait until d28 is signed off.
    accept that Stage 4 updates two invariants, or hold d18 until d28 closes?
    Recommendation: build now — the invariants are the point of d28's review
    loop, and a test that needs updating is telling you the composition moved.
+4. **N4 finding: the zoomed face overlaps the dialogue card on `iphone-se`
+   and `iphone-15pro`'s real viewports** (approach.spec.js-style camera zoom,
+   `interview.spec.js`'s "face clears the dialogue card" assertion). The
+   existing hand-picked 390×844 stand-in has enough headroom to miss it. Is
+   this a defect to fix (more headroom in the zoom/camera math at short
+   viewports) or an accepted limitation? The matching test was left
+   uncommitted rather than weakened — see N4's build note above.
 
 **Status: 📋 specced 2026-08-03, awaiting go. No build.**
 

@@ -2,7 +2,7 @@
 // seams. Figure/character integrity lives with their subject (not-found.spec.js,
 // badger.spec.js) — this file is only about the backdrop the characters stand in.
 import { test, expect } from '@playwright/test';
-import { sceneRects, paintsOver, rectsIntersect } from './geom.js';
+import { sceneRects, paintsOver, rectsIntersect, rectContains } from './geom.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -89,4 +89,59 @@ test('layer order at the seams: sea over landform, ground over sea, character ov
 
   expect(rectsIntersect(character, rail)).toBe(true);
   expect(await paintsOver(page, '.js-character', '.f-rail')).toBe(true);
+});
+
+// N1: the halo (radial glow) must stay centred on its own disc, in both themes — a wide
+// but off-centre halo would look like a lighting bug that plain containment wouldn't catch.
+test('halo is centred on its disc, in both themes', async ({ page }) => {
+  const centre = (r) => ({ x: r.x + r.width / 2, y: r.y + r.height / 2 });
+
+  const [moonDisc] = await sceneRects(page, 'circle.f-moon');
+  const [moonGlow] = await sceneRects(page, '.f-moon-glow');
+  expect(rectContains(moonGlow, moonDisc)).toBe(true);
+  const moonDiscC = centre(moonDisc), moonGlowC = centre(moonGlow);
+  expect(Math.abs(moonDiscC.x - moonGlowC.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(moonDiscC.y - moonGlowC.y)).toBeLessThanOrEqual(1);
+
+  await page.locator('#toggle').click();
+
+  // .f-cel is also the class of the night-only lit-windows group (CityScape.astro) — scope
+  // to the disc circle only, the same collision tokens.css already documents and guards
+  // against with its own `circle.f-cel` selector.
+  const [sunDisc] = await sceneRects(page, 'circle.f-cel');
+  const [sunGlow] = await sceneRects(page, '.f-sun-glow');
+  expect(rectContains(sunGlow, sunDisc)).toBe(true);
+  const sunDiscC = centre(sunDisc), sunGlowC = centre(sunGlow);
+  expect(Math.abs(sunDiscC.x - sunGlowC.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(sunDiscC.y - sunGlowC.y)).toBeLessThanOrEqual(1);
+});
+
+// N2: Table Mountain's own lit/shade facets must stay inside its own x-span and share its
+// baseline. Devil's Peak reuses the same .f-mtn-lit/.f-mtn-shade classes for its own facets
+// (CityScape.astro), so an unscoped selector would also catch Devil's Peak's facets — genuinely
+// outside Table Mountain's x-span by design, not a defect. General-sibling scoping to "after
+// .table-mountain in sibling order" picks out only Table Mountain's own pair.
+test("mountain facets sit inside Table Mountain's own x-span and share its baseline", async ({ page }) => {
+  const [tm] = await sceneRects(page, '.table-mountain');
+  const shadeFacets = await sceneRects(page, '.table-mountain ~ .f-mtn-shade');
+  const litFacets = await sceneRects(page, '.table-mountain ~ .f-mtn-lit');
+  expect(shadeFacets).toHaveLength(1);
+  expect(litFacets).toHaveLength(1);
+  // Sub-pixel float noise (getBoundingClientRect can differ from the containing rect by a
+  // few 1e-5 px depending on engine) needs a hairline allowance — the x-span check isn't
+  // otherwise tolerant of it like the ≥1px checks elsewhere in this file.
+  const FLOAT_EPSILON = 0.01;
+  for (const facet of [...shadeFacets, ...litFacets]) {
+    expect(facet.x).toBeGreaterThanOrEqual(tm.x - FLOAT_EPSILON);
+    expect(facet.x + facet.width).toBeLessThanOrEqual(tm.x + tm.width + FLOAT_EPSILON);
+    // Baseline tolerance mirrors the "meets the water" test above — same seam, same overscan.
+    expect(Math.abs((facet.y + facet.height) - (tm.y + tm.height))).toBeLessThanOrEqual(SEAM_OVERSCAN_PX);
+  }
+});
+
+// N3: every paving-seam line must stay inside the ground it's painted on.
+test('seam lines stay inside the ground', async ({ page }) => {
+  const [ground] = await sceneRects(page, '.f-ground');
+  const seamLines = await sceneRects(page, '.f-seam line');
+  for (const line of seamLines) expect(rectContains(ground, line)).toBe(true);
 });

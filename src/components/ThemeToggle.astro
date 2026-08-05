@@ -1,15 +1,18 @@
 ---
 ---
-<button class="toggle" id="toggle" aria-label="Switch to day mode"><span class="toggle-icon">&#9788;</span> day</button>
+<button class="toggle" id="toggle" aria-label="Switch to day mode"><span class="toggle-icon">☼</span> day</button>
 
 <script>
   const toggle = document.getElementById('toggle') as HTMLButtonElement;
+  const icon = toggle.querySelector('.toggle-icon') as HTMLSpanElement;
+  const label = icon.nextSibling as Text;
 
-  // Sync button label to the theme already applied by Base.astro's inline script
+  // Sync button label to the theme already applied by Base.astro's inline script.
+  // Mutates the existing icon span/text node in place rather than rebuilding
+  // them, so the span keeps Astro's scoped-style hash (see the style block below).
   function syncLabel(isDay: boolean) {
-    toggle.innerHTML = isDay
-      ? '<span class="toggle-icon">&#9789;</span> night'
-      : '<span class="toggle-icon">&#9788;</span> day';
+    icon.textContent = isDay ? '☽' : '☼';
+    label.textContent = isDay ? ' night' : ' day';
     toggle.setAttribute('aria-label', isDay ? 'Switch to night mode' : 'Switch to day mode');
   }
   syncLabel(document.documentElement.dataset.time === 'day');
@@ -90,14 +93,6 @@
   @media (prefers-reduced-motion: reduce) {
     .toggle { transition: none; }
   }
-</style>
-
-<!-- Same trap as dialogue.js's card CSS (d31 Part A/B): syncLabel() rewrites
-     .toggle's innerHTML on load and on every click, so the .toggle-icon span
-     it creates never carries Astro's scoped-style hash — its rules must live
-     in an is:global block, not the scoped one above. .toggle itself is never
-     replaced (only its children), so its own styles stay scoped as normal. -->
-<style is:global>
   /* B7's diegetic touch: one 180deg rotateY flip on the glyph as the theme
      crossfades — turning the sky over. rotateY, not translate: nothing else
      drives this element's transform, so there's no trap to dodge here. */

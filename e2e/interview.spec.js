@@ -275,6 +275,15 @@ for (const vp of [
   });
 }
 
+// N4: same assertion, no forced viewport — matrix breadth at each project's native size.
+test('approach prompt does not overlap the figure — native viewport', async ({ page }) => {
+  const promptBox = await page.locator('#approach-prompt').boundingBox();
+  const figureBox = await visibleRect(page, '.js-character');
+  const frameBox  = await page.locator('.stage-frame').boundingBox();
+  expect(rectsIntersect(promptBox, figureBox)).toBe(false);
+  expect(rectContains(frameBox, promptBox)).toBe(true);
+});
+
 // positionPrompt()'s beside-the-figure fallback (the "not enough headroom above the
 // head" branch) sets top but never clamps left/right, so it could leave .stage-frame.
 // At 240×280 the standard-variant stage-frame is small enough (it's always exactly the
@@ -432,6 +441,8 @@ for (const vp of [
     expect(rectsIntersect(faceBox, cardBox)).toBe(false);
   });
 }
+
+// N4's withheld third case (native-viewport face/card check) — see PRD.md open question 4.
 
 // Real OS fullscreen is unreliable/vacuous in a headless matrix, so these tests assert
 // what's deterministic: presence/position/labelling, geometric non-occlusion, the

@@ -73,7 +73,7 @@ the document body under their original `§` headings as history.
 | d27 | CI: tag pushes fire the deploy workflow | *new* | ✅ built 2026-08-02 — `daaafb9` |
 | d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | ✅ ACCEPTED 2026-08-04 (all stages + follow-ups, /code-review findings fixed, drift final at 1 unit) — PR open, awaiting merge |
 | d29 | Comment sweep — repo-wide | *new* | ✅ merged to main (PR #7) |
-| d30 | Easter egg — the banner plane crashes when clicked | *new* | 💭 proposed 2026-08-03, no go — design sketch in its section |
+| d30 | Easter egg — the banner plane crashes when clicked | *new* | 🔧 in build 2026-08-06 — go given, banner-copy follow-up deliberately skipped |
 | d31 | Game-feel UI pass — streaming dialogue text + one selection idiom for every button | *new* | ✅ ACCEPTED 2026-08-04 (Parts A+B) — PR open from `item/game-feel-ui` |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
@@ -4415,8 +4415,8 @@ history of deleted code goes. Flag anything ambiguous rather than guessing.
 
 Proposed by Caveshen 2026-08-03, his own words: *"What if we click on the
 plane as it flies past, and the plane crashes???"* Deliberate scope-creep,
-owned as such. **💭 proposed — no go, no build; design sketch below is a
-starting point for his reaction, not a spec.**
+owned as such. **🔧 in build — go given 2026-08-06.** The sketch below is the
+reasoning trail; success criteria are pinned immediately after it.
 
 Sketch (cartoon physics, never grim — the register is slapstick):
 
@@ -4439,7 +4439,43 @@ Sketch (cartoon physics, never grim — the register is slapstick):
    viewport below the waterline; reduced-motion → no listener. Screen-space,
    proven red first, per d18's discipline.
 
-Estimate: under a day. Natural branch `item/plane-crash` after d28 merges.
+Estimate: under a day. Built on `feat/plane-crash`.
+
+### Success criteria (distilled from the sketch, go 2026-08-06)
+
+1. An invisible padded hitbox (≥44px effective) sits over the plane while it
+   flies, pointer and touch both; it never exists under
+   `prefers-reduced-motion: reduce` (the flight itself is already suppressed
+   there — verified, not just assumed).
+2. Click: sputter (2–3 tilt oscillations) → spiral dive toward the sea → the
+   banner detaches and flutters down on its own, separate arc → a small
+   splash reusing the scene's `f-wave` colour/shape idiom → brief ripple,
+   gone. Total under ~2s.
+3. Respawn is free: the existing jittered scheduler (`PLANE_JITTER_MS`) just
+   flies the next plane. **The optional post-crash banner-text change is
+   deliberately not built** — that copy is Caveshen's to write later, per the
+   copy rule (§23 checklist item 1 / d21).
+4. CSS/vanilla JS only, no new dependencies, no sound. No-JS needs no change
+   (the plane is JS-flown already).
+5. `e2e/banner-plane.spec.js` gains: (a) click mid-flight → crash class
+   appears and the plane ends up below the waterline, then is ultimately
+   removed from the DOM; (b) reduced-motion → no plane, so no listener/hitbox
+   either. Existing banner-plane tests stay green, unchanged.
+
+**CI-only fix, 2026-08-06.** The waterline assertion in (a) passed 72/72 on
+local Windows (three runs) but failed on CI: iphone-se off by 59px, and
+desktop-firefox timed out inside `boundingBox()`. Root cause was the
+assertion itself, not the crash — it polled the plane's live position after a
+`waitForTimeout`, racing a real animation on a slower host (iphone-se sampled
+mid-dive; firefox's sample landed after splashPlane()'s later removal, where
+`boundingBox()` waits forever). Fixed by reading `--dive-y`, the dive's
+computed target, straight from the plane's inline style right after the click
+resolves — it's baked synchronously in `crashPlane()` before the animation
+starts, so there's nothing to race. Re-verified regression power by
+reinjecting both proven bugs locally: the SEA_FRACTION fallback still failed
+red on all 8 projects (~43px, matching the original bug's magnitude), and the
+untouched banner/hitbox differential still failed red on the detached-rect
+bug (~117px).
 
 ---
 ## d31. Game-feel UI pass — streaming dialogue text and a selection idiom

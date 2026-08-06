@@ -110,16 +110,24 @@ export function initStage(tree) {
     if (figEl) {
       const sf  = stageFrame.getBoundingClientRect();
       const fig = figEl.getBoundingClientRect();
-      const scale = 2.2;
       // faceTargetY = mid-point between stage top and the measured card top
       // (so the two can't drift apart); faceY = measured .face-void centre
       // (no correction term needed against camera.js's default heuristic).
       const faceVoidEl = visibleOne('.face-void');
       const cardTop = card.getBoundingClientRect().top - sf.top;
       const faceTargetY = cardTop / 2;
-      const faceY = faceVoidEl
-        ? (faceVoidEl.getBoundingClientRect().top + faceVoidEl.getBoundingClientRect().height / 2) - sf.top
-        : undefined;
+      const faceRect = faceVoidEl ? faceVoidEl.getBoundingClientRect() : undefined;
+      const faceY = faceRect ? (faceRect.top + faceRect.height / 2) - sf.top : undefined;
+      // Zoom scale hardcoded to 2.2 overshoots on short viewports — the face
+      // never shrinks with the viewport (Scene.astro's slice crop), so a
+      // fixed scale can zoom it past the headroom Stage.astro's cap leaves
+      // above the card. SAFETY_PX absorbs subpixel/layout-timing rounding so
+      // the scaled face doesn't land flush against the card's edge. Floor of
+      // 1.3 matches the smallest zoom that still reads as "zoomed in".
+      const SAFETY_PX = 6;
+      const scale = faceRect && faceRect.height > 0
+        ? Math.min(2.2, Math.max(1.3, (cardTop - SAFETY_PX) / faceRect.height))
+        : 2.2;
       const { tx, ty } = computeCameraTransform({ stage: sf, figure: fig, scale, faceTargetY, faceY });
       camera.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
       // Feeds .bg-layer's counter-scale (tokens.css).

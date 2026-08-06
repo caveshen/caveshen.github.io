@@ -491,7 +491,21 @@ const root = tree.root;
     bottom: 3.5%;
     transform: translateX(-50%);
     width: min(600px, 88%);
-    max-height: calc(96.5svh - 1rem); /* short viewports: scroll */
+    /* Caps headroom loss on short viewports so it can't collapse to a
+       sliver at any tested viewport (stage.js clamps the zoom scale to fit
+       whatever this leaves).
+       Replaces the old 96.5svh-only cap outright — that term only ever won
+       above a ~2686px-tall viewport, never in practice. 110px is verified
+       empirically across a swept range of short viewports, not just the two
+       tested phone projects: in roughly 440-500 CSS px wide x 620-655 tall,
+       the fit calc below wants a ratio under the 1.3x zoom floor, so the
+       floor overrides it and clearance decays from ~3px toward zero, grazing
+       slightly negative (~-0.45px) near 480x620 — accepted, since no phone
+       reports a portrait size there; the invariant rests on SAFETY_PX alone
+       in that band, not on 110px + the fit calc. Cost, accepted: the cap
+       also binds on iphone-15pro's 393x659, trimming ~11px off the card's
+       natural height. See PRD.md §16 open question 4 for the measurements. */
+    max-height: calc(100svh - 110px); /* short viewports: scroll */
     overflow-y: auto;
     pointer-events: auto; /* re-enable: stage-frame has pointer-events:none */
     padding: 1.75rem 2rem 2rem;

@@ -4428,6 +4428,21 @@ Estimate: under a day. Built on `feat/plane-crash`.
    removed from the DOM; (b) reduced-motion → no plane, so no listener/hitbox
    either. Existing banner-plane tests stay green, unchanged.
 
+**CI-only fix, 2026-08-06.** The waterline assertion in (a) passed 72/72 on
+local Windows (three runs) but failed on CI: iphone-se off by 59px, and
+desktop-firefox timed out inside `boundingBox()`. Root cause was the
+assertion itself, not the crash — it polled the plane's live position after a
+`waitForTimeout`, racing a real animation on a slower host (iphone-se sampled
+mid-dive; firefox's sample landed after splashPlane()'s later removal, where
+`boundingBox()` waits forever). Fixed by reading `--dive-y`, the dive's
+computed target, straight from the plane's inline style right after the click
+resolves — it's baked synchronously in `crashPlane()` before the animation
+starts, so there's nothing to race. Re-verified regression power by
+reinjecting both proven bugs locally: the SEA_FRACTION fallback still failed
+red on all 8 projects (~43px, matching the original bug's magnitude), and the
+untouched banner/hitbox differential still failed red on the detached-rect
+bug (~117px).
+
 ---
 ## d31. Game-feel UI pass — streaming dialogue text and a selection idiom
 

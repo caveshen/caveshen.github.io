@@ -142,19 +142,26 @@ test('clicking the plane mid-flight crashes it, ending below the waterline, then
   const animationName = await plane.evaluate((el) => getComputedStyle(el).animationName);
   expect(animationName).toBe('plane-crash');
 
-  // Completion (waterline): once the dive settles, the plane holds a resting
-  // position at the actually-rendered sea line — not a mid-animation opacity
-  // sample, a settled post-animation position (animation-fill-mode: forwards).
-  // Waits out CRASH_MS (~1.1s) directly rather than polling for a crossing:
-  // a hardcoded-fraction bug shifts the dive's whole target by a constant
-  // offset (proven ~43px off at this viewport), so the plane still clears a
-  // one-sided ">bar" easily either way — only a band around where the sea is
-  // actually rendered catches it. Bar is .f-sea's own live rect (:visible
-  // picks the laid-out scene variant, same idiom as interview.spec.js).
-  await page.waitForTimeout(1300);
+  // Completion (waterline): --dive-y is the dive's computed TARGET, baked
+  // into the plane's inline style synchronously inside crashPlane() (stage.js)
+  // — before the animation (or the click handler) even returns — so read it
+  // straight from the source instead of polling the animating element for a
+  // "settled" frame. Two CI-only failures came from doing the latter: on a
+  // slow host the poll can land mid-dive (not yet settled — a false negative
+  // on a correct crash), or land after splashPlane()'s later removal, where
+  // boundingBox() waits forever (the Firefox timeout this replaced). Neither
+  // risk applies to a value set before the dive starts.
+  // Still a real regression guard: --dive-y is computed from .f-sea's live
+  // rect the same way seaBox is below (crashPlane's seaTop falls back to a
+  // hardcoded SEA_FRACTION only if .f-sea is missing), so a regression to
+  // that fallback still produces a wrong number here — just read from the
+  // source instead of from rendered pixels. post.hit.y stands in for the
+  // pre-dive baseline: crashPlane bakes --dive-y from the hitbox's own rect
+  // at click time, which is the same instant post.hit was sampled above.
+  const diveY = await plane.evaluate((el) => parseFloat(el.style.getPropertyValue('--dive-y')));
   const seaBox = await page.locator('.f-sea:visible').first().boundingBox();
-  const settledY = (await plane.boundingBox())?.y;
-  expect(Math.abs(settledY - seaBox.y)).toBeLessThan(20);
+  const expectedDiveY = seaBox.y - post.hit.y;
+  expect(Math.abs(diveY - expectedDiveY)).toBeLessThan(20);
 
   // Completion (removal): the plane element itself is ultimately gone.
   await expect(plane).toHaveCount(0);

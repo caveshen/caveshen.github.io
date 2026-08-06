@@ -491,14 +491,20 @@ const root = tree.root;
     bottom: 3.5%;
     transform: translateX(-50%);
     width: min(600px, 88%);
-    /* Second term guarantees headroom above the card for the zoomed face
-       (stage.js clamps the zoom scale to fit whatever this leaves). 110px
-       is measured, not guessed: on iphone-se's real 320x568 viewport it
-       keeps the card's cap below the 96.5svh line so headroom clears the
-       face's min zoom (1.3x); on iphone-15pro's 393x659 the card's natural
-       height already sits under this cap, so nothing changes there. See
-       PRD.md SS16 open question 4 for the measurements. */
-    max-height: min(calc(96.5svh - 1rem), calc(100svh - 110px)); /* short viewports: scroll */
+    /* Caps headroom loss on short viewports so it can't collapse to a
+       sliver at any tested viewport (stage.js clamps the zoom scale to fit
+       whatever this leaves).
+       Replaces the old 96.5svh-only cap outright — that term only ever won
+       above a ~2686px-tall viewport, never in practice. 110px is verified
+       empirically across a swept range of short viewports, not just the two
+       tested phone projects: headroom tightens fastest around 440-460 CSS px
+       wide (where the card's own width-driven text-wrap steps interact with
+       the face's width-driven zoom) — worse than either tested phone (worst
+       swept ratio ~1.35x vs the 1.3x zoom floor below, iphone-se 320x568
+       alone would only need ~86px). Cost, accepted: the cap now binds on
+       iphone-15pro's 393x659 too, trimming ~11px off the card's natural
+       height. See PRD.md §16 open question 4 for the measurements. */
+    max-height: calc(100svh - 110px); /* short viewports: scroll */
     overflow-y: auto;
     pointer-events: auto; /* re-enable: stage-frame has pointer-events:none */
     padding: 1.75rem 2rem 2rem;

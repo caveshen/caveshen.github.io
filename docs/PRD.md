@@ -61,7 +61,7 @@ the document body under their original `§` headings as history.
 | d15 | Admin page | §31 (remainder) | 🎨 IN DESIGN, no go-ahead |
 | d16 | Card avatar art refinement | §33b | 🎨 IN DESIGN, brief outstanding |
 | d17 | One character per route — Badger on `/`, hooded figure on `/404`; 1:1 **in interaction, not just scenery**; the toggle dies | §27 (remainder) | ✅ built 2026-08-02 `26a6ddb` — awaiting Caveshen's local-dev sign-off |
-| d18 | Visual validation in e2e | §16 | ✅ must-haves built on `item/visual-validation`, reviewer-approved; nice-to-haves N1–N3 built + N4 half-built on `test/d18-nice-to-haves` (see §16 status) — awaiting Caveshen's go to PR |
+| d18 | Visual validation in e2e | §16 | ✅ must-haves built on `item/visual-validation`, reviewer-approved; nice-to-haves N1–N4 built (N1–N3 + N4's first case on `test/d18-nice-to-haves`, N4's face/card case fixed and committed on `fix/face-card-occlusion`) (see §16 status) — awaiting Caveshen's go to PR |
 | d19 | Dialogue rework | §22 | ⏸ parked |
 | d20 | Social preview imagery | §32 | ⏸ unscheduled |
 | d21 | All copy | §23 checklist item 1 | Caveshen's alone; every `PLACEHOLDER` stands |
@@ -3591,20 +3591,19 @@ gains only the 15 inert class strings). Suite 1609 passed / 7 skipped / 0
 failed; flake gate `--repeat-each=2` exactly double, 0 flaky. Awaiting
 Caveshen's go to PR; nice-to-haves N1–N4 stay deferred until d28 signs off.
 
-**STATUS 2026-08-06: nice-to-haves N1–N3 built, N4 half-built**, on
-`test/d18-nice-to-haves` (branched from `main`, not yet pushed). N1 (halo
-centring), N2 (facets inside the massif), N3 (seams on the promenade) all
-proven red via their named injections then green after revert. N4's
-"approach prompt does not overlap the figure" native-viewport copy is built
-and green on all 8 projects; its "face clears the dialogue card"
-native-viewport copy is **dropped, not committed** — it is genuinely red on
-`iphone-se` and `iphone-15pro`'s real device viewports (the zoomed face
-overlaps the card's top edge by ~20-40px there), a real gap the existing
-390×844 stand-in doesn't have enough headroom to catch. See the open
-question below. Full matrix: 1813 passed / 19 skipped / 0 failed; flake gate
-`--repeat-each=2` exactly double (3626/38), 0 flaky. Vitest: 70/70 (this
-item's earlier 65/65 note is stale — unrelated to this branch, `src/`
-untouched).
+**STATUS 2026-08-06: nice-to-haves N1–N4 all built.** N1–N3 built on
+`test/d18-nice-to-haves`: halo centring, facets inside the massif, seams on
+the promenade, all proven red via their named injections then green after
+revert. N4's "approach prompt does not overlap the figure" native-viewport
+copy is built and green on all 8 projects there too. N4's "face clears the
+dialogue card" native-viewport copy was genuinely red on `iphone-se` and
+`iphone-15pro`'s real device viewports at the time (the zoomed face
+overlapped the card's top edge by ~20-40px there) — a real gap the existing
+390×844 stand-in didn't have enough headroom to catch, so it shipped
+uncommitted rather than weakened. It's since been fixed and committed on
+`fix/face-card-occlusion` — see the Resolved block below. Full matrix: 1813
+passed / 19 skipped / 0 failed; flake gate `--repeat-each=2` exactly double
+(3626/38), 0 flaky. Vitest: 70/70.
 
 Specced 2026-08-03 against the scene as it stands on `item/cityscape-depth`
 (d28 Stages 1–3 and 5a–5e: parallax layers, sky/far/ground gradients, mountain
@@ -3811,7 +3810,7 @@ N1–N4 are cheap but guard art that is one review away from changing again.
 3. `git status` clean of injections: `grep -rn "fig-arm" src/` finds exactly the
    two sleeve paths; the scene renders identically to before (the only source
    diff is five `class=` attributes).
-4. Full matrix green: `npm run test:e2e` → 0 failed, 7 skipped.
+4. Full matrix green: `npm run test:e2e` → 0 failed, environment-dependent skips.
 5. Zero flake: the repeat run above reports 0 flaky.
 6. Vitest untouched and green (`npm test`, 70/70).
 7. Suite runtime has not grown by more than ~10% — these are rect reads on an
@@ -3846,11 +3845,13 @@ devices' marketing spec sheet again: Playwright's *actual* native viewports
 here are `iphone-se` 320×568 and `iphone-15pro` 393×659, not 375×667/393×852
 — real measured overlap was +42.3px and +24.0px respectively. Fixed on
 `fix/face-card-occlusion` by capping the card's `max-height` so headroom
-above it can never collapse to a sliver (`Stage.astro`) and clamping the
-camera's zoom scale to whatever that headroom actually fits
-(`stage.js`, was hardcoded to 2.2) — A alone can't rescue `iphone-se` (nothing
-fits a 16px gap), B alone can't force headroom to exist, together they close
-both. N4's withheld third case is now committed
+above it can't collapse to a sliver at all tested phone viewports
+(`Stage.astro`) and clamping the camera's zoom scale to whatever that
+headroom actually fits (`stage.js`, was hardcoded to 2.2) — A alone can't
+rescue `iphone-se` (nothing fits a 16px gap), B alone can't force headroom to
+exist, together they close both. Accepted cost: the cap now binds on
+`iphone-15pro` too, trimming ~11px off the card's natural height there — it
+didn't need to trim before. N4's withheld third case is now committed
 (`e2e/interview.spec.js`'s "face clears the dialogue card after approach —
 native viewport") and green at both native viewports, ~3px clearance, 0 flake
 over repeat runs.

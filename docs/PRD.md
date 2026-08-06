@@ -3813,7 +3813,7 @@ N1–N4 are cheap but guard art that is one review away from changing again.
    diff is five `class=` attributes).
 4. Full matrix green: `npm run test:e2e` → 0 failed, 7 skipped.
 5. Zero flake: the repeat run above reports 0 flaky.
-6. Vitest untouched and green (`npm test`, 65/65).
+6. Vitest untouched and green (`npm test`, 70/70).
 7. Suite runtime has not grown by more than ~10% — these are rect reads on an
    already-loaded page; anything larger means a test is waiting on something it
    should not.
@@ -3840,7 +3840,23 @@ N1–N4 are cheap but guard art that is one review away from changing again.
    viewports) or an accepted limitation? The matching test was left
    uncommitted rather than weakened — see N4's build note above.
 
-**Status: ✅ must-haves + N1–N3 (+ half of N4) built — see the STATUS notes above. Awaiting Caveshen's go to PR.**
+**Resolved (Caveshen, 2026-08-06): real defect, fixed — shape A+B from the
+investigation brief.** Worth recording so nobody re-derives it from the
+devices' marketing spec sheet again: Playwright's *actual* native viewports
+here are `iphone-se` 320×568 and `iphone-15pro` 393×659, not 375×667/393×852
+— real measured overlap was +42.3px and +24.0px respectively. Fixed on
+`fix/face-card-occlusion` by capping the card's `max-height` so headroom
+above it can never collapse to a sliver (`Stage.astro`) and clamping the
+camera's zoom scale to whatever that headroom actually fits
+(`stage.js`, was hardcoded to 2.2) — A alone can't rescue `iphone-se` (nothing
+fits a 16px gap), B alone can't force headroom to exist, together they close
+both. N4's withheld third case is now committed
+(`e2e/interview.spec.js`'s "face clears the dialogue card after approach —
+native viewport") and green at both native viewports, ~3px clearance, 0 flake
+over repeat runs.
+
+**Status: ✅ must-haves + N1–N4 built — see the STATUS notes above and the
+resolution just above. Awaiting Caveshen's go to PR.**
 
 ---
 

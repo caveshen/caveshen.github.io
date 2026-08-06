@@ -442,7 +442,18 @@ for (const vp of [
   });
 }
 
-// N4's withheld third case (native-viewport face/card check) — see PRD.md open question 4.
+// N4's withheld third case: same assertion as above, but native-viewport breadth —
+// runs at whatever viewport each project's own device profile sets (no forced
+// setViewportSize), so it exercises iphone-se's real 320x568 and iphone-15pro's
+// real 393x659 rather than the 390x844 stand-in above, which has more headroom
+// than any real phone browser hands a page. See PRD.md §16 open question 4.
+test('face clears the dialogue card after approach — native viewport', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.locator('#approach-prompt').click();
+  const cardBox = await page.locator('.card').boundingBox();
+  const faceBox = await visibleRect(page, '.face-void');
+  expect(rectsIntersect(faceBox, cardBox)).toBe(false);
+});
 
 // Real OS fullscreen is unreliable/vacuous in a headless matrix, so these tests assert
 // what's deterministic: presence/position/labelling, geometric non-occlusion, the

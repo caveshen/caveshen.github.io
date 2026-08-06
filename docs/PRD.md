@@ -3857,7 +3857,7 @@ native viewport") and green at both native viewports, ~3px clearance, 0 flake
 over repeat runs.
 
 **Status: ✅ must-haves + N1–N4 built — see the STATUS notes above and the
-resolution just above. Awaiting Caveshen's go to PR.**
+resolution just above. PR #14 open against main, not yet merged.**
 
 ---
 

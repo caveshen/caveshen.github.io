@@ -3953,19 +3953,21 @@ this section had left open.
    *document about the character*, and a menu portrait holds its pose. This
    supersedes the earlier "animated similarly" reading and the 2026-08-02 d28
    cross-reference note, which assumed an idle would exist here.
-2. **Oversized, anchored to the viewport's bottom-left corner**, bleeding off
-   the bottom and left edges **at paw and hip level only**. The face and torso
-   are always fully on screen. This is a chibi mascot: **never crop the head.**
-   The Mass-Effect-style face crop was considered and explicitly rejected for
-   this character.
-3. **It lives in the empty rail left of the centred wrap and never overlaps
-   sheet content.** Below the width where that rail can no longer hold it, it
-   is `display: none` — one rule, which also satisfies the settled "hide it on
+2. **`🔄 REVISED 2026-08-08`: no edge-bleed.** The figure renders whole — the
+   original "oversized, bottom-left edge-bleed, paw/hip cropped" reading is
+   **superseded**; see *Placement — revised 2026-08-08* below. Still never
+   crops the head or torso (that constraint didn't need bleed to hold).
+3. **It lives in the rail left of the centred wrap and never overlaps sheet
+   content.** Below the width where that rail can no longer hold it, it is
+   `display: none` — one rule, which also satisfies the settled "hide it on
    phones" decision without a second breakpoint.
-4. **Backing: two touches, no new art.** (a) A soft elliptical ground-shadow at
-   the figure's base; (b) a caption in the page's existing `.panel-caption`
-   convention (mono, uppercase, letterspaced, `var(--stage)`). **No vignette.**
-   Caption wording is `PLACEHOLDER` per the copy rule (d21).
+4. **`🔄 REVISED 2026-08-08`: one touch, no new art — the caption.** A caption
+   in the page's existing `.panel-caption` convention (mono, uppercase,
+   letterspaced, `var(--stage)`), **below** the figure per the convention's own
+   rule — the bend that put it over the figure's base is rescinded now the
+   bleed that forced it is gone. **The ground-shadow is dropped** — see
+   *Placement — revised 2026-08-08*. **No vignette.** Caption wording is
+   `PLACEHOLDER` per the copy rule (d21).
 5. **Decorative.** `aria-hidden="true"` on the wrapper, `alt=""` on the image.
    The nameplate already announces the character; the portrait adds nothing a
    screen reader needs, and the caption is flavour, not information.
@@ -3989,91 +3991,110 @@ raise**, never something to paper over with generated art.
 ### Layout — grounded in `src/pages/sheet.astro`
 
 `main.sheet-wrap` is `max-width: 1080px; margin: 0 auto; padding: 1.75rem
-1.25rem 4rem`. Everything on the page lives inside it. So at viewport width
-`W ≥ 1080` the empty rail from the left viewport edge to the first pixel of
-content is `(W − 1080) / 2 + 20px` — the centring margin plus the wrap's own
-20px padding, which the portrait may occupy because no content is painted
-there.
+1.25rem 4rem`. `.sheet-grid` (the three-column body — abilities rail, middle
+col, right col) sits inside it with `gap: 1.4rem`. At viewport width `W ≥
+1080` the rail from the left viewport edge to `.sheet-grid`'s own left edge is
+`(W − 1080)/2 + 1.25rem` — the centring margin plus the wrap's left padding.
 
-**Sizing.** Reserve a **32px gutter** between the portrait and the first panel
-border (it also absorbs the classic scrollbar, which `100vw` counts and
-`clientWidth` does not — `/sheet` always scrolls). Twenty per cent of the
-portrait's box bleeds off the left edge, so the box is wider than the part that
-must fit:
+### Placement — revised 2026-08-08
+
+Caveshen, from the first pair of screenshots (d24-full-colour.png,
+d24-grayscale.png): the bottom-left edge-bleed reads too far from the sheet
+and too low. Revised instruction — closer to the sheet, higher: (a)
+**vertically centred** on `.sheet-grid`'s own height; (b) **right-shifted**
+so the gap between the figure's right edge and `.sheet-grid`'s left edge
+**equals `.sheet-grid`'s own `gap: 1.4rem`** — the portrait reads as a fourth
+column sitting beside the three, same rhythm.
+
+**Implementation is a native-CSS win, not more arithmetic.** Rather than
+computing a pixel offset that *approximates* `.sheet-grid`'s gap (what a
+`position: fixed` wrapper would have forced), `.sheet-portrait` moves inside
+`.sheet-grid` as its last child, `.sheet-grid` gets `position: relative`, and
+the portrait is `position: absolute` against it:
 
 ```
-visible width  V = (W − 1080)/2 + 20px − 32px
-portrait box   S = V / 0.8
+right: calc(100% + 1.4rem);   /* right edge sits exactly one grid-gap left of .sheet-grid */
+top: 50%;
+transform: translateY(-50%);  /* centred on .sheet-grid's own height */
 ```
 
-One declaration carries it, capped so ultrawide screens get a portrait and not
-a billboard:
+An absolutely-positioned grid child is pulled out of grid placement entirely
+(CSS Grid §, standard behaviour) — no `grid-column` needed, and the gap now
+**can't drift out of sync** with `.sheet-grid`'s own `gap` value the way a
+hand-computed pixel offset could. Both the "reads as a fourth column" ask and
+the "exact gap" ask fall out of this for free.
+
+Consequence: `.sheet-portrait` no longer needs `.nameplate` as an exclusion
+zone by construction — it can only ever collide with `.nameplate` if the
+figure is taller than `.sheet-grid` itself pushes it above `.sheet-grid`'s own
+top edge, which the sizing below prevents. It can never overlap `.sheet-grid`
+at all: the gap is structural, not computed.
+
+**Sizing.** No bleed now, so *box width = visible width* — the `/0.8`
+bleed-inflation term is gone entirely. Available width, before caps:
 
 ```
---portrait: min(520px, calc(((100vw - 1080px) / 2 - 12px) / 0.8));
+S = (100vw − 1080px)/2 − 1.4rem [grid gap] − 1rem [outer margin from the browser edge]
+  = (100vw − 1080px)/2 − 1.15rem
 ```
 
-| W | rail | box `S` | visible `V` | clear of content |
-|---|---|---|---|---|
-| 1600 | 280px | 310px | 248px | 32px |
-| 1920 | 440px | 510px | 408px | 32px |
-| 2560 | 760px | 520px (capped) | 416px | 344px |
+Capped two ways — width, so ultrawide screens get a portrait and not a
+billboard; height, because a vertically-centred figure (unlike a
+bottom-anchored one) can now be tall enough to matter on a short viewport, and
+the asset is close to square so width and height track together:
 
-**Breakpoint: `@media (min-width: 1600px)`; hidden by default below it.** The
-arithmetic sets the floor — at 1500px the box computes to 247px and the face
-(29%–71% of the box, see below) would be under 105px wide, a sticker rather
-than a portrait. 1600 is where the visible width clears 240px, twice the
-118px ability rail. It also lands cleanly across the Playwright matrix, which
-is free coverage on both sides of the rule: **shown** on `desktop-1920` and
-`desktop-2560`; **hidden** on `desktop-1366`, `desktop-firefox` (1280), `ipad`
-and all three phones.
+```
+--portrait: min(480px, calc((100vw - 1080px) / 2 - 1.15rem), calc(100vh - 8rem));
+```
 
-**Bleed depths, and why the head is safe.** `Badger.astro`'s `.face-void`
-marker (`x="-42" width="84"` inside an image drawn `x="-100" width="200"`,
-`y` 34–100 inside `y` −4–196) puts the face at **29%–71% horizontally and
-19%–52% vertically** of the PNG's box. Therefore:
+| W | `S` (uncapped) | actual (after caps) |
+|---|---|---|
+| 1650 | 266.6px | 266.6px |
+| 1920 | 401.6px | 401.6px |
+| 2560 | 721.6px | 480px (width-capped) |
 
-- **Left bleed: 20% of `S`** — nine percentage points clear of the face's left
-  edge, cropping haunch and hip only.
-- **Bottom bleed: 6% of `S`** — the drawn content ends at 97.6% of the box, so
-  this takes toes and paw-tips and nothing else. Deliberately shallow: a deeper
-  bleed would push the ground-shadow off screen entirely and leave the figure
-  ungrounded, which is what the shadow exists to prevent.
+Verified against the live build at 1920×1080: measured gap 22.39px (1.4rem =
+22.4px, the ~0.01px is subpixel rounding), measured vertical-centre delta
+0px, measured box width 401.59px — the arithmetic and the render agree.
+
+**Breakpoint — re-derived, moved off 1600px.** The old 1600px threshold was
+sized for the *bled* box (of which only 80% was visible); at that same 1600px
+the new, un-bled formula gives `S = (1600−1080)/2 − 1.15rem = 241.6px`, face
+width `0.42 × 241.6 ≈ 101px` — **under** the ~105px sticker-vs-portrait floor
+this section already established (`Badger.astro`'s `.face-void` puts the face
+at 29%–71% of the image's own width, so face width is a flat 42% of `S`
+regardless of bleed). Solving `0.42S ≥ 105` gives `S ≥ 250px`, which needs
+`W ≥ 1080 + 2×(250 + 1.15rem) ≈ 1617px`. **New breakpoint: `@media
+(min-width: 1650px)`** — a round number with a comfortable margin over that
+floor (`S = 266.6px` at 1650, face `≈112px`), and it still clears the
+softer "twice the 118px ability rail" (240px) heuristic from the original
+design. **Target screens are 1920 wide** (Caveshen's own machines) — 1650
+leaves 270px of headroom below that, and at 1920 itself `S = 401.6px`, a
+substantial portrait, well under the 480px cap. The Playwright-matrix free
+coverage still holds at the new threshold: **shown** on `desktop-1920` and
+`desktop-2560`; **hidden** on `desktop-1366`, `desktop-firefox` (1280),
+`ipad`, and all three phones.
 
 **Composition.**
 
-- Wrapper: `position: fixed; bottom: 0; left: calc(var(--portrait) * -0.2);
-  width: var(--portrait); pointer-events: none; z-index: 0`. Fixed is the
-  literal reading of "anchored to the viewport's bottom-left corner" — the
-  portrait holds its place while the stats scroll, which *is* the character-
-  select read. It also makes the bleed safe by construction: fixed elements
-  never extend the scroll area, so nothing off the bottom or left edge can
-  create a scrollbar. `pointer-events: none` guarantees it can never intercept
-  a click. The `ThemeToggle` is `position: absolute; top/right: 1rem;
-  z-index: 1` — top-right, so there is no conflict.
-- DOM position: last child of `main.sheet-wrap`, immediately before `</main>`.
-  Fixed positioning makes the position layout-irrelevant; last keeps it out of
-  the way of the document's reading order.
-- The image is pulled down by `margin-bottom: calc(var(--portrait) * -0.06)`,
-  which puts the caption — its next sibling — **over the badger's base**, at the
-  very bottom of the viewport rather than off screen below it. This is the one
-  deliberate bend in the `.panel-caption` "caption below the card" convention:
-  a bottom-bleeding portrait and a caption strictly below it cannot both exist.
-  A name strip across a portrait's base is the character-select idiom anyway.
-  Pad the caption by `calc(var(--portrait) * 0.2)` on the left so it centres
-  under the *visible* figure, not under the box.
-- **Ground shadow:** one `radial-gradient` ellipse on the wrapper's `::before`,
-  wide and shallow, centred on the figure's base. Use flat black with a
-  day/night alpha split, matching the established contact-shadow idiom
-  (`Badger.astro`'s base ellipse and `.f-rail-shadow` in `src/styles/tokens.css`
-  — whose own comment records *why* a themed colour fails here: a near-black
-  ground needs real alpha, and the two themes need different densities). **No
-  new colour token, no new palette entry.** Exact stops are the worker's to
-  tune inside that constraint.
-- **Filter treatment: match the stage** — `grayscale(1) contrast(1.05)
-  brightness(.95)`, plus the extra `brightness(.7)` at night — so it is
-  recognisably the same character across both pages. See the open questions;
-  this is a one-line flip if Caveshen wants full colour.
+- Wrapper: last child of `.sheet-grid`; `position: absolute; top: 50%; right:
+  calc(100% + 1.4rem); width: var(--portrait); pointer-events: none;
+  transform: translateY(-50%)`. `.sheet-grid` gets `position: relative` so it
+  is the containing block. `pointer-events: none` guarantees the (still
+  decorative) figure can never intercept a click.
+- **Ground-shadow: dropped, 2026-08-08.** A vertically-centred, floating
+  figure has no ground plane for a contact shadow to sit on — keeping it would
+  have read as a shadow cast on nothing. The CSS was one `::before` rule with
+  a day/night alpha split; trivial to re-add if a future placement re-grounds
+  the figure. Judged from the recentred screenshot, not a test.
+- **Caption: back to the plain `.panel-caption` convention**, below the
+  figure — no bend, no compensating `padding-left`, no `margin-bottom` pull on
+  the image. Both existed only to serve the edge-bleed; removing the bleed
+  removes the need for either.
+- **Filter treatment: full colour — FINAL, 2026-08-08.** See *Open questions*.
+  No `filter` declared at all now (the single-switch scaffolding for a
+  grayscale alternative is removed along with the pending-decision framing —
+  there is no longer a decision pending).
 - **Class-name trap:** do not reuse `.badger-up`, `.badger-down` or
   `.badger-image`. `Badger.astro`'s styles are `is:global` and bind the
   two-frame idle animation to those names; `e2e/badger-idle.spec.js` queries
@@ -4087,15 +4108,27 @@ marker (`x="-42" width="84"` inside an image drawn `x="-100" width="200"`,
 
 CSS only. `animation-delay` staggering with `animation-fill-mode: both`; **no
 JS**, so it works in a JS-disabled context unchanged. Panels rise 10px and fade
-in; the portrait slides in from the left edge; the XP bar fills last.
+in; the portrait slides in from the left, landing at its (revised, 2026-08-08)
+vertically-centred position; the XP bar fills last. Timing table unchanged by
+the placement revision.
 
 | beat | target | delay | duration | ends |
 |---|---|---|---|---|
-| 1 | `.nameplate` | 0ms | 180ms | 180ms |
+| 1 | `.nameplate-inner` | 0ms | 180ms | 180ms |
 | 2 | `.abilities-col` | 70ms | 180ms | 250ms |
 | 3 | `.middle-col`, `.right-col` | 140ms | 180ms | 320ms |
 | 4 | `.sheet-portrait` (translateX −40% → 0) | 200ms | 240ms | 440ms |
 | 5 | `.xp-fill` (width 0 → 78%) | 260ms | 220ms | 480ms |
+
+Beat 1 targets `.nameplate-inner`, not `.nameplate` — `.sheet-nav`'s
+back/download links stay static from frame one, which also sidesteps a
+reproducible Playwright actionability race against an animating ancestor,
+found while building against the existing no-JS `/sheet` test (predates the
+2026-08-08 placement revision). `.sheet-portrait`'s resting position now
+carries a real `transform: translateY(-50%)` (the vertical centring, not
+motion), so the slide-in keyframes are `translateY(-50%) translateX(-40%)` →
+`translateY(-50%) translateX(0)` — both parts in both keyframes, since a
+second `transform` declaration would replace rather than compose.
 
 **The whole sequence ends at 480ms, under the 500ms budget**, and no element
 starts later than 260ms — readability is never gated on the animation.
@@ -4108,9 +4141,12 @@ it to `--xp: 78%` on `.xp-fill` and reference that in all three. Animate
 and, worse, leaves the computed width at 78% throughout, so a test could not
 tell a working bar from a broken one.
 
-**`prefers-reduced-motion: reduce`: no motion at all.** Every one of the five
-targets resets to its final state — `animation: none; opacity: 1; transform:
-none` — and the XP bar is full (`width: var(--xp)`) from the first frame.
+**`prefers-reduced-motion: reduce`: no motion at all.** Four of the five
+targets reset to `animation: none; opacity: 1; transform: none`. `.sheet-portrait`
+resets to `animation: none; transform: translateY(-50%)` instead of `none` —
+its transform isn't decorative motion, it's the vertical-centring itself, so
+zeroing it would mis-place the figure under reduced motion. The XP bar is
+full (`width: var(--xp)`) from the first frame.
 
 **Watch out:** Playwright's `toBeVisible()` passes at `opacity: 0`. The existing
 `/sheet` tests therefore cannot catch a choreography that never finishes. The
@@ -4124,25 +4160,33 @@ new tests below must assert final state explicitly.
    imported there and is not modified.
 2. At **1920** and **2560** the portrait is visible, and its bounding box
    intersects neither `.nameplate` nor `.sheet-grid`.
-3. At **1366** the portrait is `display: none` (`toBeHidden()`).
-4. At 1920 the head is intact: the box's top edge is at or below `y = 0`, and
-   its left edge is no further left than −25% of its own width — so the face,
-   which starts at 29%, is fully on screen.
+3. At **1650** the portrait is visible; below **1650** it is `display: none`
+   (`toBeHidden()`) — `🔄 REVISED 2026-08-08`, breakpoint moved from 1600px,
+   see *Placement — revised 2026-08-08* for the re-derivation.
+4. `🔄 REVISED 2026-08-08`: **vertically centred and gap-matched, not
+   edge-bled.** At 1920 (and 2560), read live from the DOM rather than
+   hardcoded pixel twins of the CSS: the portrait's vertical centre matches
+   `.sheet-grid`'s vertical centre within a small tolerance, and the gap
+   between the portrait's right edge and `.sheet-grid`'s left edge matches
+   `.sheet-grid`'s own computed `gap` within a small tolerance.
 5. The declared choreography fits its budget: for every animated target,
    `animation-delay + animation-duration ≤ 500ms`, and the delays are ordered
-   nameplate ≤ abilities ≤ columns ≤ portrait ≤ xp-fill.
+   nameplate-inner ≤ abilities ≤ columns ≤ portrait ≤ xp-fill.
 6. The XP bar settles at 78% of its track (± 1%).
-7. Under `prefers-reduced-motion: reduce`, all five targets report
-   `animation-name: none`, `opacity: 1`, no transform, and the XP bar is at 78%
-   from the first frame.
+7. Under `prefers-reduced-motion: reduce`, `.nameplate-inner`, `.abilities-col`,
+   `.middle-col`, `.right-col` report `animation-name: none`, `opacity: 1`, no
+   transform; `.sheet-portrait` reports `animation-name: none` and
+   `transform: translateY(-50%)` (not "no transform" — see the choreography
+   note above); the XP bar is at 78% from the first frame.
 8. No horizontal overflow at 1366 / 1920 / 2560 (the existing 2560 test is the
-   guard; the fixed positioning should make this free).
+   guard).
 9. **Every existing test stays green, and no existing `e2e/` file is modified
    except to add coverage.** In particular `e2e/badger-idle.spec.js` (which
    asserts the two-frame idle on `/`) is untouched and unaffected.
-10. Both themes and both time-of-day settings look right — the portrait and its
-    shadow read correctly on the AMOLED night ground and the parchment day
-    ground. Caveshen's eye, not a test.
+10. Both themes and both time-of-day settings look right — the portrait reads
+    correctly against the AMOLED night ground and the parchment day ground.
+    Caveshen's eye, not a test. (No ground-shadow to check any more — dropped
+    2026-08-08.)
 
 ### Tests
 
@@ -4152,11 +4196,15 @@ rather than relying on project geometry, matching the convention already used
 in `e2e/sheet.spec.js`. `rectsIntersect` from `e2e/geom.js` is the existing
 helper for criterion 2 — reuse it, do not write another.
 
-Cover: (a) visible and non-overlapping at 1920; (b) hidden at 1366; (c) head
-fully on screen at 1920; (d) `badger-down` absent from the source; (e) the
-declared timing budget and delay ordering, read from computed style — **no
+Cover: (a) visible and non-overlapping at 1920; (b) hidden below 1650, shown
+at 1650; (c) vertical-centre and gap-match tolerance at 1920, both read from
+the DOM (`.sheet-grid`'s own `getBoundingClientRect()` and computed `gap`) —
+not hardcoded pixel twins of the CSS, so the test still means something if the
+CSS constants move; (d) `badger-down` absent from the source; (e) the declared
+timing budget and delay ordering, read from computed style — **no
 `waitForTimeout`, no fixed sleeps** (d10's rule); (f) reduced-motion final
-state; (g) the XP bar reaching 78%, via `expect.poll`, not a sleep.
+state, including `.sheet-portrait`'s `translateY(-50%)`; (g) the XP bar
+reaching 78%, via `expect.poll`, not a sleep.
 
 Red-green proven per d18's discipline: each assertion must fail before the
 feature exists.
@@ -4168,23 +4216,27 @@ new spec file. Under half a day. Branch `feat/sheet-portrait`.
 
 ### Open questions — answered 2026-08-07, GO given
 
-1. **Breakpoint: `1600px` confirmed.** Caveshen's own screens are 1920 wide,
-   clear of the floor with margin. A "minimal" variant for narrower desktop
-   widths was floated and is **declined for now** — YAGNI; the page already
-   works below 1600 without a portrait, and a second layout is speculative
-   scope until a real need shows up.
-2. **The caption-over-toes bend — ACCEPTED.** Caption sits over the figure's
-   base, not below it, per the composition section above.
-3. **Grayscale vs full colour — UNDECIDED, provisional default full colour.**
-   Caveshen leans full colour but will decide from side-by-side screenshots of
-   both variants at 1920 (captured off this build). Implemented as a single
-   CSS filter switch on `.sheet-portrait img` so flipping it later is a
-   one-line change; the branch ships with full colour (no `filter` — i.e. the
-   stage-matching `grayscale(...)` is *not* applied) pending that call.
+1. **Breakpoint: `1600px` confirmed 2026-08-07 — `🔄 SUPERSEDED 2026-08-08`,
+   now `1650px`.** See *Placement — revised 2026-08-08* for the re-derivation;
+   the underlying reasoning (Caveshen's own screens are 1920 wide, comfortably
+   clear of the floor) still holds, only the number moved because the
+   bottom-left-bleed geometry it was computed against is gone. The declined-
+   for-now "minimal variant" YAGNI call is unaffected.
+2. **The caption-over-toes bend — ACCEPTED 2026-08-07, `🔄 RESCINDED
+   2026-08-08`.** Forced by the edge-bleed; the bleed is gone, so the caption
+   is back to the plain "below the figure" `.panel-caption` convention.
+3. **Grayscale vs full colour — `✅ FINAL 2026-08-08: full colour.`** Decided
+   from the side-by-side screenshots (d24-full-colour.png,
+   d24-grayscale.png, both gitignored, not committed). The single-CSS-filter-
+   switch scaffolding for a future grayscale alternative is removed along
+   with the pending-decision framing — there's no decision left pending, and
+   a config knob for a value that's now fixed is speculative scope.
 4. **Caption wording — `PLACEHOLDER`**, per the standing copy convention (d21).
-   Unchanged from the brief.
+   Unchanged.
 
-**Status: ✅ GO given 2026-08-07 — built on `feat/sheet-portrait`.**
+**Status: ✅ GO given 2026-08-07, built; placement revised 2026-08-08 per
+Caveshen's review of the first screenshots — see *Placement — revised
+2026-08-08* above. Branch `feat/sheet-portrait`, PR #16.**
 
 ---
 

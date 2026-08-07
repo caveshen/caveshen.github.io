@@ -19,28 +19,36 @@
 
   // B7 (d31 Part B): the diegetic touch — turning the sky over. Pure CSS
   // keyframe (gated by prefers-reduced-motion in the stylesheet below); this
-  // just brackets it with a class so it replays every click. The timer is
-  // held and cleared on each click so a rapid second click's animation gets
-  // its own full 220ms instead of being cut short by the first click's timer.
+  // brackets it with a class, removed on animationend so the class never
+  // outlives an animation that actually played. flipTimer is a fallback only,
+  // for when no animation plays (reduced motion) or animationend is missed.
+  // Must comfortably exceed the 220ms toggle-flip animation — a fallback
+  // near 220ms would race the animation's own animationend and strip the
+  // class early, recreating the phantom-failure bug this fallback exists
+  // alongside (see the comment above).
+  const FLIP_FALLBACK_MS = 2000;
   let flipTimer: ReturnType<typeof setTimeout>;
+  function endFlip() {
+    toggle.classList.remove('flipping');
+    clearTimeout(flipTimer);
+  }
+  toggle.addEventListener('animationend', (e) => {
+    // Guards against a bubbled animationend from some future descendant
+    // animation stripping the class before toggle-flip itself finishes.
+    if (e.animationName === 'toggle-flip') endFlip();
+  });
   toggle.addEventListener('click', () => {
     const isDay = document.documentElement.dataset.time === 'day';
     const next  = isDay ? 'night' : 'day';
     document.documentElement.dataset.time = next;
     localStorage.setItem('time', next);
     syncLabel(!isDay);
-    // animationstart failed to fire once on iphone-15pro in CI (root cause
-    // unconfirmed — plausibly the 220ms cleanup timeout below cancelling the
-    // animation before a stalled worker's first frame). remove/reflow/add is
-    // the canonical restart idiom and is defensive here regardless of cause;
-    // it also fixes a real bug the old add-only code had on rapid double
-    // clicks — inside the 220ms window 'flipping' is still present, so a
-    // bare classList.add() is a no-op and never restarts the animation.
-    toggle.classList.remove('flipping');
+    // remove/reflow/add restarts the animation on a rapid second click, when
+    // a bare add() would be a no-op since the class is still present.
+    endFlip();
     void toggle.offsetWidth;
     toggle.classList.add('flipping');
-    clearTimeout(flipTimer);
-    flipTimer = setTimeout(() => toggle.classList.remove('flipping'), 220);
+    flipTimer = setTimeout(endFlip, FLIP_FALLBACK_MS);
   });
 </script>
 

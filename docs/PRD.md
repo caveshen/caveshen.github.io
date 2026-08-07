@@ -75,6 +75,7 @@ the document body under their original `§` headings as history.
 | d29 | Comment sweep — repo-wide | *new* | ✅ merged to main (PR #7) |
 | d30 | Easter egg — the banner plane crashes when clicked | *new* | 🔧 in build 2026-08-06 — go given, banner-copy follow-up deliberately skipped |
 | d31 | Game-feel UI pass — streaming dialogue text + one selection idiom for every button | *new* | ✅ ACCEPTED 2026-08-04 (Parts A+B) — PR open from `item/game-feel-ui` |
+| d32 | Scene→sheet transition — the Badger travels from the scene to his portrait seat | *new* | 💡 RAISED 2026-08-08 — no brief, no go; sequenced after d24 merges |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -5229,3 +5230,45 @@ refactor. Full matrix: Playwright 1813 passed / 19 skipped / 0 failed,
 unchanged from the branch baseline.
 
 ---
+
+## d32. Scene→sheet transition — the Badger travels to his portrait seat
+
+### 💡 RAISED 2026-08-08 — Caveshen's idea, captured verbatim in spirit; no brief, no go, sequenced after d24 merges
+
+**The idea (Caveshen's):** when the dialogue option on `/` that leads to the
+character sheet is clicked, the scene Badger travels from his position in the
+scene to his d24 portrait seat on `/sheet`. The rest of the scene fades out,
+the sheet fades in through its menu-open choreography, the idle animation dies
+into the static portrait, and lighting gets a consistency pass across
+night/day.
+
+**Feasibility consult (frontend-design, 2026-08-08) — facts a future brief
+must not re-derive:**
+
+- **Mechanism: cross-document View Transitions** (`@view-transition`,
+  `pageswap`/`pagereveal`), NOT Astro's client router. The router would force
+  every script on `/` (stage, camera, plane crash) to survive soft page-swaps
+  — a retrofit across the most battle-tested code for a cosmetic gain.
+  Native transitions are pure progressive enhancement.
+- **The fallback is already built:** browsers without support (Firefox,
+  older Safari) get a normal navigation into d24's menu-open choreography.
+  The floor is finished; this item only layers on top.
+- **The SVG wrinkle:** browsers won't snapshot-morph SVG sub-elements, and
+  the scene Badger is a `<g>` in the stage viewBox. Solve by hand-off at
+  click time: freeze the idle on the up-frame, overlay an HTML `<img>` of
+  `badger-up.png` on his exact on-screen rect, give the overlay the
+  `view-transition-name`. Same art, invisible seam — and it produces the
+  "animation dies into the static image" beat for free.
+- **Lighting/colour:** the stage renders him under its scene filter; the d24
+  portrait is full colour. The morph crossfades the two — he comes into
+  colour as he takes his seat. Lean in; the "lighting pass" then shrinks to
+  tuning the crossfade against both themes.
+- **Choreography gating:** arriving via the transition suppresses the
+  portrait's slide-in (the morph replaces it); direct visits to `/sheet`
+  keep the current entrance. `prefers-reduced-motion`: instant, as
+  everywhere.
+- **Scope honesty:** touches `/` as well as `/sheet`; needs its own success
+  criteria and test story. Bigger than d24's build itself.
+
+**Status: 💡 RAISED — planner brief and Caveshen's explicit go both
+outstanding. Build starts only after d24 is merged.**

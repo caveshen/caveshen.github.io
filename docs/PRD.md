@@ -67,7 +67,7 @@ the document body under their original `§` headings as history.
 | d21 | All copy | §23 checklist item 1 | Caveshen's alone; every `PLACEHOLDER` stands |
 | d22 | Standardise test filenames — descriptive, not tracker IDs | *new* | ✅ built 2026-07-27 — 8 renames, counts unmoved |
 | d23 | Hosted site — `caveshen.com` + Cloudflare | *new* | ✅ hosting live 2026-08-05 — zone active, HTTPS posture set; cutover (records + site link) deferred |
-| d24 | The Badger on `/sheet` — character-select framing, outside the scene | *new* | ✅ GO given 2026-08-07 — building on `feat/sheet-portrait` |
+| d24 | The Badger on `/sheet` — character-select framing, outside the scene | *new* | ✅ built — PR #16 open, awaiting Caveshen's merge |
 | d25 | Shared stage component — extracting the approach interaction | *new* | ✅ built 2026-08-02 — `1254dad`, landed on the mainline as `732f5a6` (#3); pure refactor, byte-identical `dist/index.html`, zero `e2e/` files modified |
 | d26 | Cleanup sweep — four of five items built, one closed as not-debt | *new* | ✅ built 2026-08-02 — `daaafb9`; item 5 closed, replaced by lossless PNG recompression in `3f322ae` |
 | d27 | CI: tag pushes fire the deploy workflow | *new* | ✅ built 2026-08-02 — `daaafb9` |
@@ -4035,7 +4035,7 @@ at all: the gap is structural, not computed.
 bleed-inflation term is gone entirely. Available width, before caps:
 
 ```
-S = (100vw − 1080px)/2 − 1.4rem [grid gap] − 1rem [outer margin from the browser edge]
+S = (100vw − 1080px)/2 + 1.25rem [wrap's left padding] − 1.4rem [grid gap] − 1rem [outer margin from the browser edge]
   = (100vw − 1080px)/2 − 1.15rem
 ```
 
@@ -4663,7 +4663,7 @@ eventual brief should reuse the CSS-only, `prefers-reduced-motion`-gated,
 hard-cut `steps()` pattern already proven by `Badger.astro`'s two-frame idle
 (`--badger-cadence`, `:63-77`) rather than invent a second animation
 contract. No parallax or gradient work belongs there — a menu portrait has no
-depth to fake. (Cross-referenced at d24 itself.)
+depth to fake. (Cross-referenced at d24 itself.) [Note 2026-08-08: d24 has since shipped a STATIC portrait — decision 1, 2026-08-07; the idle-idiom recommendation above is superseded.]
 
 **Status: ✅ merged to main (PR #8) — all stages built stage-by-stage on
 preview and accepted 2026-08-04; the STATUS blocks above are the record.**

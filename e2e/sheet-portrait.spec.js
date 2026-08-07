@@ -23,7 +23,7 @@ async function settled(locator) {
   await locator.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
 }
 
-test('portrait is visible and overlaps neither the nameplate nor the sheet grid at 1920', async ({ page }) => {
+test('portrait is visible, overlaps neither the nameplate nor the sheet grid, is vertically centred on the grid, and gap-matches the grid gap at 1920', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto('/sheet');
   const portrait = page.locator('.sheet-portrait');
@@ -31,25 +31,36 @@ test('portrait is visible and overlaps neither the nameplate nor the sheet grid 
   await settled(portrait);
   const portraitBox = await portrait.boundingBox();
   const nameplateBox = await page.locator('.nameplate').boundingBox();
-  const gridBox = await page.locator('.sheet-grid').boundingBox();
+  const grid = page.locator('.sheet-grid');
+  const gridBox = await grid.boundingBox();
+  const gridGap = await grid.evaluate((el) => parseFloat(getComputedStyle(el).columnGap));
+
   expect(rectsIntersect(portraitBox, nameplateBox)).toBe(false);
   expect(rectsIntersect(portraitBox, gridBox)).toBe(false);
+
+  // Read from the DOM, not hardcoded pixel twins of the CSS — this still
+  // means something if --portrait or .sheet-grid's own gap ever move.
+  const portraitCenterY = portraitBox.y + portraitBox.height / 2;
+  const gridCenterY = gridBox.y + gridBox.height / 2;
+  expect(Math.abs(portraitCenterY - gridCenterY)).toBeLessThan(2);
+
+  const gap = gridBox.x - (portraitBox.x + portraitBox.width);
+  expect(Math.abs(gap - gridGap)).toBeLessThan(2);
 });
 
-test('portrait is hidden below the 1600px breakpoint', async ({ page }) => {
+test('portrait is hidden below the 1650px breakpoint, shown at and above it', async ({ page }) => {
   await page.setViewportSize({ width: 1366, height: 768 });
   await page.goto('/sheet');
   await expect(page.locator('.sheet-portrait')).toBeHidden();
 });
 
-test('head is never cropped at 1920: top on screen, left no further than -25% of own width', async ({ page }) => {
-  await page.setViewportSize({ width: 1920, height: 1080 });
+test('breakpoint boundary: hidden at 1649px, visible at 1650px', async ({ page }) => {
+  await page.setViewportSize({ width: 1649, height: 900 });
   await page.goto('/sheet');
-  const portrait = page.locator('.sheet-portrait');
-  await settled(portrait);
-  const box = await portrait.boundingBox();
-  expect(box.y).toBeGreaterThanOrEqual(0);
-  expect(box.x).toBeGreaterThanOrEqual(-0.25 * box.width);
+  await expect(page.locator('.sheet-portrait')).toBeHidden();
+
+  await page.setViewportSize({ width: 1650, height: 900 });
+  await expect(page.locator('.sheet-portrait')).toBeVisible();
 });
 
 test('badger-down never appears in the /sheet source', async ({ page }) => {
@@ -92,12 +103,12 @@ test('XP bar settles at 78% of its track', async ({ page }) => {
   expect(fill.width / track.width).toBeLessThan(0.79);
 });
 
-test('prefers-reduced-motion: all five targets land in final state immediately, no motion', async ({ page }) => {
+test('prefers-reduced-motion: panels land in final state immediately, no motion', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto('/sheet');
 
-  for (const sel of ['.nameplate-inner', '.abilities-col', '.middle-col', '.right-col', '.sheet-portrait']) {
+  for (const sel of ['.nameplate-inner', '.abilities-col', '.middle-col', '.right-col']) {
     const el = page.locator(sel);
     const style = await el.evaluate((e) => {
       const cs = getComputedStyle(e);
@@ -113,4 +124,27 @@ test('prefers-reduced-motion: all five targets land in final state immediately, 
   const ratio = fill.width / track.width;
   expect(ratio).toBeGreaterThan(0.77);
   expect(ratio).toBeLessThan(0.79);
+});
+
+test('prefers-reduced-motion: portrait has no animation but keeps its vertical-centring transform (not "none")', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto('/sheet');
+
+  const portrait = page.locator('.sheet-portrait');
+  const style = await portrait.evaluate((e) => {
+    const cs = getComputedStyle(e);
+    return { name: cs.animationName, transform: cs.transform };
+  });
+  expect(style.name).toBe('none');
+  // translateY(-50%) is load-bearing (the vertical centring), not decorative
+  // motion — reduced-motion must not zero it out, so it must NOT be 'none'.
+  expect(style.transform).not.toBe('none');
+
+  // Confirm it's still actually centred on .sheet-grid under reduced motion.
+  const portraitBox = await portrait.boundingBox();
+  const gridBox = await page.locator('.sheet-grid').boundingBox();
+  const portraitCenterY = portraitBox.y + portraitBox.height / 2;
+  const gridCenterY = gridBox.y + gridBox.height / 2;
+  expect(Math.abs(portraitCenterY - gridCenterY)).toBeLessThan(2);
 });

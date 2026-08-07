@@ -153,17 +153,17 @@ import ThemeToggle from '../components/ThemeToggle.astro';
         </section>
 
       </div>
+
+      <div class="sheet-portrait" aria-hidden="true">
+        <img src="/badger-up.png" alt="" />
+        <p class="panel-caption">PLACEHOLDER</p>
+      </div>
     </div>
 
     <footer class="sheet-foot">
       <a href="https://www.linkedin.com/in/caveshen" class="contact-link">LinkedIn</a>
       <a href="https://github.com/caveshen" class="contact-link">GitHub</a>
     </footer>
-
-    <div class="sheet-portrait" aria-hidden="true">
-      <img src="/badger-up.png" alt="" />
-      <p class="panel-caption">PLACEHOLDER</p>
-    </div>
 
   </main>
 </Base>
@@ -307,6 +307,7 @@ import ThemeToggle from '../components/ThemeToggle.astro';
   .xp-fill { --xp: 78%; width: var(--xp); height: 100%; background: var(--celestial); border-radius: 999px; }
 
   .sheet-grid {
+    position: relative;
     display: grid;
     grid-template-columns: 118px 1.2fr 1.4fr;
     gap: 1.4rem;
@@ -542,44 +543,31 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     .back-link, .download-btn, .contact-link { transition: none; }
   }
 
-  /* ── d24: Badger portrait — character-select framing, viewport-fixed ── */
+  /* ── d24: Badger portrait — reads as a 4th column beside .sheet-grid's
+     three, vertically centred on it, gap-matched via `right` rather than
+     replicated arithmetic. absolutely-positioned grid children skip grid
+     placement entirely, so this needs no grid-column of its own. ── */
   .sheet-portrait {
-    --portrait: min(520px, calc(((100vw - 1080px) / 2 - 12px) / 0.8));
+    /* available width = viewport rail left of .sheet-grid, minus the same
+       1.4rem gap the grid itself uses, minus a small outer margin (1rem) so
+       the figure never touches the browser edge; capped so ultrawide
+       screens get a portrait, not a billboard; vh term keeps the (roughly
+       square) figure from dwarfing a short viewport once centred. */
+    --portrait: min(480px, calc((100vw - 1080px) / 2 - 1.15rem), calc(100vh - 8rem));
     display: none;
-    position: fixed;
-    bottom: 0;
-    left: calc(var(--portrait) * -0.2);
+    position: absolute;
+    top: 50%;
+    right: calc(100% + 1.4rem);
     width: var(--portrait);
     pointer-events: none;
-    z-index: 0;
+    transform: translateY(-50%);
   }
-  @media (min-width: 1600px) {
+  @media (min-width: 1650px) {
     .sheet-portrait { display: block; }
-  }
-  .sheet-portrait::before {
-    content: '';
-    position: absolute;
-    left: 8%;
-    right: 8%;
-    top: calc(var(--portrait) * 0.86);
-    height: calc(var(--portrait) * 0.1);
-    background: radial-gradient(ellipse, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.55) 35%, transparent 75%);
-  }
-  :root[data-time="day"] .sheet-portrait::before {
-    background: radial-gradient(ellipse, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.75) 35%, transparent 75%);
   }
   .sheet-portrait img {
     display: block;
     width: 100%;
-    margin-bottom: calc(var(--portrait) * -0.06);
-    /* d24 open question: full colour is the provisional default pending Caveshen's
-       call from screenshots. Stage-match flip: grayscale(1) contrast(1.05) brightness(.95),
-       plus brightness(.7) at night (see Badger.astro's .badger-image treatment). */
-    filter: none;
-  }
-  .sheet-portrait .panel-caption {
-    padding-top: 0;
-    padding-left: calc(var(--portrait) * 0.2);
   }
 
   /* ── d24: menu-open choreography — CSS only, <500ms total ─────────── */
@@ -588,8 +576,8 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     to   { opacity: 1; transform: translateY(0); }
   }
   @keyframes portrait-slide-in {
-    from { transform: translateX(-40%); }
-    to   { transform: translateX(0); }
+    from { transform: translateY(-50%) translateX(-40%); }
+    to   { transform: translateY(-50%) translateX(0); }
   }
   @keyframes xp-fill-grow {
     from { width: 0; }
@@ -606,11 +594,13 @@ import ThemeToggle from '../components/ThemeToggle.astro';
   .xp-fill                { animation: xp-fill-grow 220ms ease-out 260ms both; }
 
   @media (prefers-reduced-motion: reduce) {
-    .nameplate-inner, .abilities-col, .middle-col, .right-col, .sheet-portrait {
+    .nameplate-inner, .abilities-col, .middle-col, .right-col {
       animation: none;
       opacity: 1;
       transform: none;
     }
+    /* translateY(-50%) is load-bearing (vertical centring), not motion — kept, not reset to none. */
+    .sheet-portrait { animation: none; transform: translateY(-50%); }
     .xp-fill { animation: none; width: var(--xp); }
   }
 </style>

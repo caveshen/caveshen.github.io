@@ -160,6 +160,11 @@ import ThemeToggle from '../components/ThemeToggle.astro';
       <a href="https://github.com/caveshen" class="contact-link">GitHub</a>
     </footer>
 
+    <div class="sheet-portrait" aria-hidden="true">
+      <img src="/badger-up.png" alt="" />
+      <p class="panel-caption">PLACEHOLDER</p>
+    </div>
+
   </main>
 </Base>
 
@@ -299,7 +304,7 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     border-radius: 999px;
     overflow: hidden;
   }
-  .xp-fill { width: 78%; height: 100%; background: var(--celestial); border-radius: 999px; }
+  .xp-fill { --xp: 78%; width: var(--xp); height: 100%; background: var(--celestial); border-radius: 999px; }
 
   .sheet-grid {
     display: grid;
@@ -535,5 +540,77 @@ import ThemeToggle from '../components/ThemeToggle.astro';
   @media (prefers-reduced-motion: reduce) {
     .panel, .name-box, .id-grid, .ability,
     .back-link, .download-btn, .contact-link { transition: none; }
+  }
+
+  /* ── d24: Badger portrait — character-select framing, viewport-fixed ── */
+  .sheet-portrait {
+    --portrait: min(520px, calc(((100vw - 1080px) / 2 - 12px) / 0.8));
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: calc(var(--portrait) * -0.2);
+    width: var(--portrait);
+    pointer-events: none;
+    z-index: 0;
+  }
+  @media (min-width: 1600px) {
+    .sheet-portrait { display: block; }
+  }
+  .sheet-portrait::before {
+    content: '';
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    top: calc(var(--portrait) * 0.86);
+    height: calc(var(--portrait) * 0.1);
+    background: radial-gradient(ellipse, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.55) 35%, transparent 75%);
+  }
+  :root[data-time="day"] .sheet-portrait::before {
+    background: radial-gradient(ellipse, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.75) 35%, transparent 75%);
+  }
+  .sheet-portrait img {
+    display: block;
+    width: 100%;
+    margin-bottom: calc(var(--portrait) * -0.06);
+    /* d24 open question: full colour is the provisional default pending Caveshen's
+       call from screenshots. Stage-match flip: grayscale(1) contrast(1.05) brightness(.95),
+       plus brightness(.7) at night (see Badger.astro's .badger-image treatment). */
+    filter: none;
+  }
+  .sheet-portrait .panel-caption {
+    padding-top: 0;
+    padding-left: calc(var(--portrait) * 0.2);
+  }
+
+  /* ── d24: menu-open choreography — CSS only, <500ms total ─────────── */
+  @keyframes sheet-rise-fade {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes portrait-slide-in {
+    from { transform: translateX(-40%); }
+    to   { transform: translateX(0); }
+  }
+  @keyframes xp-fill-grow {
+    from { width: 0; }
+    to   { width: var(--xp); }
+  }
+  /* Animates .nameplate-inner (name/epithet/id-grid), not .nameplate itself —
+     .sheet-nav's back/download links stay static from frame one, so nav never
+     moves under a pending click (the no-JS test clicks the back link before
+     any script could wait out the choreography). */
+  .nameplate-inner        { animation: sheet-rise-fade 180ms ease-out 0ms both; }
+  .abilities-col          { animation: sheet-rise-fade 180ms ease-out 70ms both; }
+  .middle-col, .right-col { animation: sheet-rise-fade 180ms ease-out 140ms both; }
+  .sheet-portrait         { animation: portrait-slide-in 240ms ease-out 200ms both; }
+  .xp-fill                { animation: xp-fill-grow 220ms ease-out 260ms both; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nameplate-inner, .abilities-col, .middle-col, .right-col, .sheet-portrait {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+    .xp-fill { animation: none; width: var(--xp); }
   }
 </style>

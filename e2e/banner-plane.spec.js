@@ -96,13 +96,13 @@ test('clicking the plane mid-flight crashes it, ending below the waterline, then
   }, { timeout: 8000 }).toBe(true);
 
   // d30 fix: crashPlane() bakes the in-flight position from .plane-hit's own
-  // rect, sampled before .banner-rect/.banner-tow are reparented out — sample
-  // either side of the click and allow only ordinary in-flight drift, not the
-  // ~117px teleport a container-rect bake produces once the banner detaches.
-  // Both rects are read in one page.evaluate() (not two separate boundingBox()
-  // round-trips) — the plane is still translating pre-click, so two sequential
-  // CDP calls would sample it at measurably different instants on slower
-  // (mobile/WebKit) projects, adding spurious drift to the delta below.
+  // rect, sampled before .banner-rect/.banner-tow are reparented out. Sample
+  // both rects either side of the click and compare their drift in lockstep
+  // (below) — that's what actually guards the fix now. Both rects are read in
+  // one page.evaluate() (not two separate boundingBox() round-trips) — the
+  // plane is still translating pre-click, so two sequential CDP calls would
+  // sample it at measurably different instants on slower (mobile/WebKit)
+  // projects, adding spurious drift to the delta below.
   const sampleRects = () => page.evaluate(() => {
     const r = (el) => el && { x: el.getBoundingClientRect().x, y: el.getBoundingClientRect().y };
     return {
@@ -117,18 +117,7 @@ test('clicking the plane mid-flight crashes it, ending below the waterline, then
   await page.locator('.plane-hit').click({ force: true });
 
   const post = await sampleRects();
-  // hitDeltaX/Y is how far .plane-hit itself moved between the two samples —
-  // in-flight drift from click dispatch latency, not a hit-accuracy read
-  // (locator.click always dispatches to the element's current center,
-  // force or not). This repo already learned this lesson once for the
-  // waterline assertion below: an absolute pixel bound on a moving element
-  // between two CDP round-trips is a timing lottery — a slow CI host samples
-  // further apart and a correct click produces a bigger drift, no bug
-  // involved (observed on iphone-15pro CI, once). What actually needs
-  // proving — the click landed and a crash resulted — is covered below
-  // (crashing class, plane-crash animation, correct diveY). The drift here
-  // is only meaningful relative to the banner's drift (next block), so no
-  // absolute bound on it.
+  // hitDeltaX/Y feed the lockstep comparison below — not asserted directly.
   const hitDeltaX = post.hit.x - pre.hit.x;
   const hitDeltaY = post.hit.y - pre.hit.y;
 

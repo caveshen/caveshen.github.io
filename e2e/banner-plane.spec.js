@@ -98,11 +98,7 @@ test('clicking the plane mid-flight crashes it, ending below the waterline, then
   // d30 fix: crashPlane() bakes the in-flight position from .plane-hit's own
   // rect, sampled before .banner-rect/.banner-tow are reparented out. Sample
   // both rects either side of the click and compare their drift in lockstep
-  // (below) — that's what actually guards the fix now. Both rects are read in
-  // one page.evaluate() (not two separate boundingBox() round-trips) — the
-  // plane is still translating pre-click, so two sequential CDP calls would
-  // sample it at measurably different instants on slower (mobile/WebKit)
-  // projects, adding spurious drift to the delta below.
+  // (below) — that's what actually guards the fix now.
   const sampleRects = () => page.evaluate(() => {
     const r = (el) => el && { x: el.getBoundingClientRect().x, y: el.getBoundingClientRect().y };
     return {
@@ -110,13 +106,22 @@ test('clicking the plane mid-flight crashes it, ending below the waterline, then
       banner: r(document.querySelector('.banner-rect')),
     };
   });
+
+  // Deterministic click: locator.click computes the target point, runs
+  // actionability checks, then dispatches — on a slow CI runner the plane
+  // (a real, un-faked CSS animation) can move between computation and
+  // dispatch, so the click lands on empty sky and the crash never fires.
+  // Pause the flight animation via the Web Animations API so the plane is
+  // stationary for a real (non-forced, real-hit-testing) click, then resume
+  // it. Safe to freeze: crashPlane() reads live rects at click time
+  // regardless of animation play state, and .crashing's CSS override (see
+  // Stage.astro) starts a brand-new plane-crash animation on class-add, so
+  // the old flight animation's paused state doesn't reach the crash.
+  await plane.evaluate((el) => el.getAnimations({ subtree: true }).forEach((a) => a.pause()));
   const pre = await sampleRects();
-
-  // force: true — the plane is still moving (continuously translating), so
-  // Playwright's stability check would otherwise wait forever for it to stop.
-  await page.locator('.plane-hit').click({ force: true });
-
+  await page.locator('.plane-hit').click();
   const post = await sampleRects();
+  await plane.evaluate((el) => el.getAnimations({ subtree: true }).forEach((a) => a.play()));
   // hitDeltaX/Y feed the lockstep comparison below — not asserted directly.
   const hitDeltaX = post.hit.x - pre.hit.x;
   const hitDeltaY = post.hit.y - pre.hit.y;

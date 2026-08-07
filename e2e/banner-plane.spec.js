@@ -117,16 +117,26 @@ test('clicking the plane mid-flight crashes it, ending below the waterline, then
   await page.locator('.plane-hit').click({ force: true });
 
   const post = await sampleRects();
+  // hitDeltaX/Y is how far .plane-hit itself moved between the two samples —
+  // in-flight drift from click dispatch latency, not a hit-accuracy read
+  // (locator.click always dispatches to the element's current center,
+  // force or not). This repo already learned this lesson once for the
+  // waterline assertion below: an absolute pixel bound on a moving element
+  // between two CDP round-trips is a timing lottery — a slow CI host samples
+  // further apart and a correct click produces a bigger drift, no bug
+  // involved (observed on iphone-15pro CI, once). What actually needs
+  // proving — the click landed and a crash resulted — is covered below
+  // (crashing class, plane-crash animation, correct diveY). The drift here
+  // is only meaningful relative to the banner's drift (next block), so no
+  // absolute bound on it.
   const hitDeltaX = post.hit.x - pre.hit.x;
   const hitDeltaY = post.hit.y - pre.hit.y;
-  expect(Math.abs(hitDeltaX)).toBeLessThan(20);
-  expect(Math.abs(hitDeltaY)).toBeLessThan(20);
 
   // .banner-rect is the node that actually gets reparented into .banner-detached.
-  // Both nodes ride the same pre-click flight, so ordinary click-delay drift
-  // (up to the 20px tolerance above) moves plane-hit and banner-rect by
-  // roughly the same amount — a tight bar on the banner's raw delta would
-  // just re-measure that shared drift. Compare how far each moved instead:
+  // Both nodes ride the same pre-click flight, so ordinary click-delay drift,
+  // whatever it turns out to be, moves plane-hit and banner-rect by roughly
+  // the same amount — a tight bar on the banner's raw delta would just
+  // re-measure that shared drift. Compare how far each moved instead:
   // in lockstep under the fix (each baked from its own rect), diverging
   // under the bug (detached.style.left/top pinned to the hitbox's position,
   // losing the fixed banner-to-hitbox offset — the ~11px hop).

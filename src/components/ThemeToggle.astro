@@ -42,6 +42,12 @@
     clearTimeout(flipTimer);
     flipTimer = setTimeout(() => toggle.classList.remove('flipping'), 220);
   });
+  // ponytail: test hook only. Set synchronously right after the click
+  // listener above is registered, so e2e/button-feel.spec.js can wait for
+  // this module script to have actually run (deferred module scripts race
+  // page.goto()'s 'load' resolution on a slow CI host) before it dispatches
+  // a click and expects the flip to play.
+  toggle.dataset.flipReady = '';
 </script>
 
 <style>

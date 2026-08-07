@@ -178,6 +178,15 @@ test('theme toggle: click plays the flip', async ({ page }) => {
       window.__flipName = e.animationName;
     });
   });
+  // Wait for ThemeToggle.astro's own click listener to be attached before
+  // dispatching the click. [data-flip-ready] is set synchronously right
+  // after that listener is registered — without this wait, a slow CI host
+  // can still be running the deferred module script when click() fires: the
+  // button already exists (page.goto resolved), but its click handler
+  // doesn't yet, so the click is a no-op. Nothing sets 'flipping', so
+  // animationstart never fires and the poll below times out with no bug
+  // involved (observed on ipad CI, once).
+  await page.locator('#toggle[data-flip-ready]').waitFor();
   await page.locator('#toggle').click();
   await expect.poll(() => page.evaluate(() => window.__flipName)).toBe('toggle-flip');
 });

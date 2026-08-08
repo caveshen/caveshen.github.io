@@ -101,7 +101,7 @@ test('direct goto /sheet: no arrived-by-morph marker; portrait plays portrait-sl
 });
 
 // Reduced motion: click-through is instant with no marker; final layout states are correct immediately.
-test('reduced motion: click-through is instant with no arrived-by-morph and d24 final state intact', async ({ page }) => {
+test('reduced motion: click-through is instant with no arrived-by-morph and final layout state intact', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.setViewportSize({ width: 1920, height: 1080 });
   await navigateToSheet(page);

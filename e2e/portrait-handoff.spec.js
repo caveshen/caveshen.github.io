@@ -1,5 +1,4 @@
-// portrait-handoff — hand-off module behaviour on /.
-// Covers T2 success criteria: no spurious overlay, navigation intact, cleanup after goBack.
+// portrait-handoff — hand-off cleanup and navigation behaviour on /.
 import { test, expect } from '@playwright/test';
 
 // Approaches and clicks the system button to navigate to /sheet.

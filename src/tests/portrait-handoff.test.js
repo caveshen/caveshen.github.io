@@ -1,7 +1,6 @@
-// portrait-handoff — gate predicate unit tests.
-// shouldHandoff is a pure function: all five gate conditions as explicit parameters.
+// portrait-handoff — gate predicate and cleanup unit tests.
 import { describe, it, expect } from 'vitest';
-import { shouldHandoff } from '../scripts/portrait-handoff.js';
+import { shouldHandoff, cleanupHandoff } from '../scripts/portrait-handoff.js';
 
 describe('shouldHandoff', () => {
   it('returns true when all gates pass', () => {
@@ -38,5 +37,47 @@ describe('shouldHandoff', () => {
 
   it('returns false when multiple gates fail simultaneously', () => {
     expect(shouldHandoff('/', false, 1000, true, false)).toBe(false);
+  });
+});
+
+describe('cleanupHandoff', () => {
+  function makeImg(parent) {
+    const img = document.createElement('img');
+    parent.appendChild(img);
+    return img;
+  }
+
+  function makeEl(tagName) {
+    const el = document.createElement(tagName);
+    el.style.animation  = 'none';
+    el.style.opacity    = '0';
+    el.style.visibility = 'hidden';
+    return el;
+  }
+
+  it('removes the overlay element and clears freeze styles on both images', () => {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+
+    const overlay = makeImg(container);
+    const up      = makeEl('img');
+    const down    = makeEl('img');
+
+    cleanupHandoff(overlay, up, down);
+
+    expect(overlay.parentNode).toBeNull();
+    expect(up.style.animation).toBe('');
+    expect(up.style.opacity).toBe('');
+    expect(up.style.visibility).toBe('');
+    expect(down.style.animation).toBe('');
+    expect(down.style.opacity).toBe('');
+    expect(down.style.visibility).toBe('');
+
+    document.body.removeChild(container);
+  });
+
+  it('no-ops when overlay is null', () => {
+    // Must not throw.
+    expect(() => cleanupHandoff(null, null, null)).not.toThrow();
   });
 });

@@ -8,20 +8,24 @@ let _overlay = null;
 let _up      = null;
 let _down    = null;
 
+// Teardown exported so unit tests can drive it without a real BFCache restore.
 // ponytail: always registered — cheap no-op on fresh loads where nothing was created.
-// ponytail: always registered — cheap no-op on fresh loads where nothing was created.
+export function cleanupHandoff(overlay, up, down) {
+  if (!overlay) return;
+  overlay.remove();
+  up.style.animation   = '';
+  up.style.opacity     = '';
+  up.style.visibility  = '';
+  down.style.animation  = '';
+  down.style.opacity    = '';
+  down.style.visibility = '';
+}
+
 window.addEventListener('pageshow', () => {
-  if (!_overlay) return;
-  _overlay.remove();
+  cleanupHandoff(_overlay, _up, _down);
   _overlay = null;
-  _up.style.animation   = '';
-  _up.style.opacity     = '';
-  _up.style.visibility  = '';
-  _up  = null;
-  _down.style.animation  = '';
-  _down.style.opacity    = '';
-  _down.style.visibility = '';
-  _down = null;
+  _up      = null;
+  _down    = null;
 });
 
 // Pure gate predicate — all five conditions as explicit parameters so vitest

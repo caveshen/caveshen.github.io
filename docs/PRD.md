@@ -75,7 +75,7 @@ the document body under their original `§` headings as history.
 | d29 | Comment sweep — repo-wide | *new* | ✅ merged to main (PR #7) |
 | d30 | Easter egg — the banner plane crashes when clicked | *new* | 🔧 in build 2026-08-06 — go given, banner-copy follow-up deliberately skipped |
 | d31 | Game-feel UI pass — streaming dialogue text + one selection idiom for every button | *new* | ✅ ACCEPTED 2026-08-04 (Parts A+B) — PR open from `item/game-feel-ui` |
-| d32 | Scene→sheet transition — the Badger travels from the scene to his portrait seat | *new* | 🚧 IN BUILD 2026-08-08 — T1 done (sheet arrival + opt-ins); T2 next (hand-off on /), then T3 (§d32) |
+| d32 | Scene→sheet transition — the Badger travels from the scene to his portrait seat | *new* | 🚧 IN BUILD 2026-08-08 — T1+T2 done (arrival + hand-off); T3 in build: joined journey + acceptance (§d32) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -5519,7 +5519,6 @@ meaning something when it does.
 **Status: 🚧 IN BUILD 2026-08-08 — go given, on branch `feat/scene-sheet-morph`.
 Push/PR held until Caveshen releases them after his local preview.**
 
-- **T1 — `/sheet` arrival + page opt-ins:** done. Reviewer approved; the
-  full test matrix is green.
-- **T2 — the hand-off on `/`:** in build.
-- **T3 — joined journey + acceptance evidence:** blocked on T1 and T2.
+- **T1 — `/sheet` arrival + page opt-ins:** done. Reviewer approved.
+- **T2 — the hand-off on `/`:** done. Reviewer approved.
+- **T3 — joined journey + acceptance evidence:** in build.

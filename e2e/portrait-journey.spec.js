@@ -20,7 +20,7 @@ async function supportsVT(page) {
 }
 
 // Full journey, 1920: both branches assert real state; neither is vacuous.
-test('full journey at 1920: supported engine arrives with marker + suppressed portrait + settled d24 geometry; unsupported gets full choreography', async ({ page }) => {
+test('full journey at 1920: supported engine arrives with marker + suppressed portrait + settled portrait geometry; unsupported gets full choreography', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await journey(page);
   const supported = await supportsVT(page);
@@ -45,8 +45,9 @@ test('full journey at 1920: supported engine arrives with marker + suppressed po
     // Within 0.05px of the expected translateY(-50%) value.
     expect(portraitStyle.actualTy).toBeCloseTo(portraitStyle.expectedTy, 1);
 
-    // Settled d24 geometry: no intersection with nameplate or grid,
+    // Settled portrait centring and gap geometry: no intersection with nameplate or grid,
     // portrait vertically centred on grid, gap matches grid column-gap.
+    // ponytail: settled() WAAPI helper is intentionally omitted — .sheet-portrait, .nameplate, and .sheet-grid do not animate on morph arrival (portrait animation is suppressed; only inner children animate and they do not reflow these containers).
     const portraitBox = await portrait.boundingBox();
     const nameplateBox = await page.locator('.nameplate').boundingBox();
     const grid = page.locator('.sheet-grid');

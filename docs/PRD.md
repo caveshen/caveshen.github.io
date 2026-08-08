@@ -75,8 +75,8 @@ the document body under their original `§` headings as history.
 | d29 | Comment sweep — repo-wide | *new* | ✅ merged to main (PR #7) |
 | d30 | Easter egg — the banner plane crashes when clicked | *new* | 🔧 in build 2026-08-06 — go given, banner-copy follow-up deliberately skipped |
 | d31 | Game-feel UI pass — streaming dialogue text + one selection idiom for every button | *new* | ✅ ACCEPTED 2026-08-04 (Parts A+B) — PR open from `item/game-feel-ui` |
-| d32 | Scene→sheet transition — the Badger travels from the scene to his portrait seat | *new* | ✅ ACCEPTED 2026-08-08 — PR #17 open, awaiting Caveshen's merge (§d32) |
-| d33 | Sheet→scene return — the Badger travels back from his portrait seat | *new* | 📝 BRIEFED — awaiting Caveshen's go; sequenced after d32 merges (§d33) |
+| d32 | Scene→sheet transition — the Badger travels from the scene to his portrait seat | *new* | ✅ MERGED 2026-08-09 (PR #17, `dc9de23`) |
+| d33 | Sheet→scene return — the Badger travels back from his portrait seat | *new* | 🚧 IN BUILD 2026-08-09 (§d33) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -5523,8 +5523,8 @@ must keep meaning something when it does.
    Bespoke exit only if the preview demands it.
 3. **Morph duration:** open at 400ms; Caveshen turns the knob at acceptance.
 
-**Status: ✅ ACCEPTED 2026-08-08 — criterion 8 passed on Caveshen's Edge
-preview ("very cool and very accepted"); PR #17 open, awaiting his merge.
+**Status: ✅ MERGED 2026-08-09 (PR #17, `dc9de23`) — criterion 8 passed on
+Caveshen’s Edge preview (“very cool and very accepted”).
 Item-level criteria 1–7 are confirmed against the
 code and tests on `feat/scene-sheet-morph`. The full matrix is green
 (1997 passed, 19 skipped, 0 failed; vitest 80/80). Four 1920 screenshots
@@ -5550,7 +5550,7 @@ accepted and recorded here:
 
 ## d33. Sheet→scene return — the Badger travels back from his portrait seat
 
-### 📝 BRIEFED — awaiting Caveshen's go; sequenced after d32 merges
+### 🚧 IN BUILD 2026-08-09 — go given; d32 merged first
 
 **The ruling (Caveshen's, 2026-08-08):** the return journey gets the d32
 treatment. When the "← Back to the interview" link on `/sheet` is clicked,

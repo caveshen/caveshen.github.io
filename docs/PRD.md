@@ -5415,26 +5415,30 @@ judged by his eye, not by pixels in CI).
 Workers use `/tdd` where criteria are test-shaped. Repo test rules bind: no
 `waitForTimeout`, no fixed sleeps; reuse the `settled()` WAAPI helper and
 `e2e/geom.js`; auto-retrying assertions (`toHaveClass`, `expect.poll`) for
-anything that settles. **Branch on runtime feature detection**
-(`'onpageswap' in window`, read via `page.evaluate`), never on the Playwright
-project name — WebKit support can drift under us and the tests must keep
-meaning something when it does.
+anything that settles. **Branch tests on execution evidence, not the API probe.**
+After `domcontentloaded` settles, read whether `<html>` has `arrived-by-morph`;
+branch on that. CI headless Chromium exposes `onpageswap` but does not execute
+cross-document transitions, so `'onpageswap' in window` gives false positives
+in tests. Production code (`portrait-handoff.js`) correctly still gates setup
+on `'onpageswap' in window` — that is a separate concern. Never branch tests on
+the Playwright project name — WebKit support can drift under us and the tests
+must keep meaning something when it does.
 
 **T1 done means:**
 
-1. In an engine with `onpageswap`: goto `/`, click `#approach-prompt`, click
-   `#choices button.system`, land on `/sheet`; `<html>` gains
-   `arrived-by-morph` (auto-retrying `toHaveClass`); `.sheet-portrait`
-   computed `animation-name` is `none` and its computed transform is still
-   the translateY(-50%) matrix; the d24 centred/gap geometry assertions hold
-   on arrival.
+1. When `arrived-by-morph` is set on `<html>` after navigation: goto `/`,
+   click `#approach-prompt`, click `#choices button.system`, land on `/sheet`;
+   `<html>` has `arrived-by-morph`; `.sheet-portrait` computed `animation-name`
+   is `none` and its computed transform is still the translateY(-50%) matrix;
+   the d24 centred/gap geometry assertions hold on arrival.
 2. Same arrival: `.nameplate-inner`, `.abilities-col`, `.middle-col`,
    `.right-col`, `.xp-fill` keep their d24 animation names — only the
    slide-in is suppressed.
 3. Direct `goto('/sheet')` in the same engine: no `arrived-by-morph`;
    `.sheet-portrait` computed `animation-name` is `portrait-slide-in`.
-4. In an engine without `onpageswap`: the same click-through lands on
-   `/sheet` with no marker and the full d24 choreography, slide-in included.
+4. When `arrived-by-morph` is absent after navigation: the same click-through
+   lands on `/sheet` with no marker and the full d24 choreography, slide-in
+   included.
 5. Reduced motion (emulated), supported engine: click-through arrives
    instantly with no marker (no transition ran), and the existing d24
    reduced-motion final-state assertions hold on arrival.

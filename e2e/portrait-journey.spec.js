@@ -14,19 +14,20 @@ async function journey(page) {
   await page.waitForLoadState('domcontentloaded');
 }
 
+// Execution evidence: pagereveal fires before first paint, so by domcontentloaded
+// the class is present or it never will be. The API probe ('onpageswap' in window)
+// is true on CI headless Chromium even when the GPU compositor does not execute
+// cross-document transitions, causing false positives.
+const arrivedByMorph = (page) =>
+  page.locator('html').evaluate(el => el.classList.contains('arrived-by-morph'));
+
 // Full journey, 1920: both branches assert real state; neither is vacuous.
 test('full journey at 1920: supported engine arrives with marker + suppressed portrait + settled portrait geometry; unsupported gets full choreography', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await journey(page);
-  // Gate on execution evidence: pagereveal fires before first paint, so by the time
-  // domcontentloaded settles the class is present or it never will be. The API probe
-  // ('onpageswap' in window) is true on CI headless Chromium even though the GPU
-  // compositor does not execute transitions there, causing false positives.
-  const supported = await page.locator('html').evaluate(el => el.classList.contains('arrived-by-morph'));
+  const supported = await arrivedByMorph(page);
 
   if (supported) {
-    // Marker set before first paint by the pagereveal handler.
-    await expect(page.locator('html')).toHaveClass(/arrived-by-morph/);
 
     // Portrait animation suppressed; translateY(-50%) vertical-centring is intact.
     const portrait = page.locator('.sheet-portrait');
@@ -68,8 +69,7 @@ test('full journey at 1920: supported engine arrives with marker + suppressed po
     }
   } else {
     // Unsupported: no marker; portrait plays its slide-in; full choreography runs.
-    const hasMarker = await page.locator('html').evaluate((el) => el.classList.contains('arrived-by-morph'));
-    expect(hasMarker).toBe(false);
+    expect(await arrivedByMorph(page)).toBe(false);
 
     const portraitAnim = await page.locator('.sheet-portrait').evaluate(
       (el) => getComputedStyle(el).animationName

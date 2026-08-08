@@ -13,20 +13,20 @@ async function navigateToSheet(page) {
   await page.waitForLoadState('domcontentloaded');
 }
 
+// Execution evidence: pagereveal fires before first paint, so by domcontentloaded
+// the class is present or it never will be. The API probe ('onpageswap' in window)
+// is true on CI headless Chromium even when the GPU compositor does not execute
+// cross-document transitions, causing false positives.
+const arrivedByMorph = (page) =>
+  page.locator('html').evaluate(el => el.classList.contains('arrived-by-morph'));
+
 // Supported engine: arrived-by-morph is set and portrait slide-in is suppressed; unsupported engine: no marker.
 test('click-through: supported engine sets arrived-by-morph and suppresses portrait slide-in; unsupported does not', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await navigateToSheet(page);
-  // Gate on execution evidence: pagereveal fires before first paint, so by the time
-  // domcontentloaded settles the class is present or it never will be. The API probe
-  // ('onpageswap' in window) is true on CI headless Chromium even though the GPU
-  // compositor does not execute transitions there, causing false positives.
-  const supported = await page.locator('html').evaluate(el => el.classList.contains('arrived-by-morph'));
+  const supported = await arrivedByMorph(page);
 
   if (supported) {
-    // Marker is set before first paint.
-    await expect(page.locator('html')).toHaveClass(/arrived-by-morph/);
-
     // Portrait animation suppressed; vertical-centring transform is translateY(-50%).
     const style = await page.locator('.sheet-portrait').evaluate((el) => {
       const cs = getComputedStyle(el);
@@ -43,8 +43,7 @@ test('click-through: supported engine sets arrived-by-morph and suppresses portr
     expect(style.actualTy).toBeCloseTo(style.expectedTy, 1);
   } else {
     // No marker, full choreography including portrait slide-in plays on unsupported path.
-    const hasMarker = await page.locator('html').evaluate((el) => el.classList.contains('arrived-by-morph'));
-    expect(hasMarker).toBe(false);
+    expect(await arrivedByMorph(page)).toBe(false);
     const animName = await page.locator('.sheet-portrait').evaluate((el) => getComputedStyle(el).animationName);
     expect(animName).toBe('portrait-slide-in');
     // Full menu-open choreography runs: other animated elements are not suppressed.
@@ -57,7 +56,7 @@ test('click-through: supported engine sets arrived-by-morph and suppresses portr
 test('click-through: portrait geometry is correct on arrival (supported engine)', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await navigateToSheet(page);
-  if (!(await page.locator('html').evaluate(el => el.classList.contains('arrived-by-morph')))) return;
+  if (!(await arrivedByMorph(page))) return;
 
   const portrait = page.locator('.sheet-portrait');
   // arrived-by-morph suppresses the slide-in (animation: none), so there is
@@ -81,7 +80,7 @@ test('click-through: portrait geometry is correct on arrival (supported engine)'
 test('click-through: nameplate, columns, and XP bar keep their animation names on morph arrival', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await navigateToSheet(page);
-  if (!(await page.locator('html').evaluate(el => el.classList.contains('arrived-by-morph')))) return;
+  if (!(await arrivedByMorph(page))) return;
 
   for (const sel of ['.nameplate-inner', '.abilities-col', '.middle-col', '.right-col', '.xp-fill']) {
     const animName = await page.locator(sel).evaluate((el) => getComputedStyle(el).animationName);
@@ -93,7 +92,7 @@ test('click-through: nameplate, columns, and XP bar keep their animation names o
 test('direct goto /sheet: no arrived-by-morph marker; portrait plays portrait-slide-in', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto('/sheet');
-  const hasMarker = await page.locator('html').evaluate((el) => el.classList.contains('arrived-by-morph'));
+  const hasMarker = await arrivedByMorph(page);
   expect(hasMarker).toBe(false);
   const animName = await page.locator('.sheet-portrait').evaluate((el) => getComputedStyle(el).animationName);
   expect(animName).toBe('portrait-slide-in');
@@ -106,7 +105,7 @@ test('reduced motion: click-through is instant with no arrived-by-morph and fina
   await navigateToSheet(page);
 
   // No transition ran so no marker should be set.
-  const hasMarker = await page.locator('html').evaluate((el) => el.classList.contains('arrived-by-morph'));
+  const hasMarker = await arrivedByMorph(page);
   expect(hasMarker).toBe(false);
 
   // Reduced-motion final states: panels land immediately with no animation.

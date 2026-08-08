@@ -9,7 +9,6 @@ async function timing(locator) {
     return {
       delay: parseFloat(cs.animationDelay) * 1000,
       duration: parseFloat(cs.animationDuration) * 1000,
-      name: cs.animationName,
     };
   });
 }
@@ -23,32 +22,34 @@ async function settled(locator) {
   await locator.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
 }
 
-test('portrait is visible, overlaps neither the nameplate nor the sheet grid, is vertically centred on the grid, and gap-matches the grid gap at 1920', async ({ page }) => {
-  await page.setViewportSize({ width: 1920, height: 1080 });
-  await page.goto('/sheet');
-  const portrait = page.locator('.sheet-portrait');
-  await expect(portrait).toBeVisible();
-  await settled(portrait);
-  const portraitBox = await portrait.boundingBox();
-  const nameplateBox = await page.locator('.nameplate').boundingBox();
-  const grid = page.locator('.sheet-grid');
-  const gridBox = await grid.boundingBox();
-  const gridGap = await grid.evaluate((el) => parseFloat(getComputedStyle(el).columnGap));
+for (const width of [1920, 2560]) {
+  test(`portrait is visible, overlaps neither the nameplate nor the sheet grid, is vertically centred on the grid, and gap-matches the grid gap at ${width}`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 1080 });
+    await page.goto('/sheet');
+    const portrait = page.locator('.sheet-portrait');
+    await expect(portrait).toBeVisible();
+    await settled(portrait);
+    const portraitBox = await portrait.boundingBox();
+    const nameplateBox = await page.locator('.nameplate').boundingBox();
+    const grid = page.locator('.sheet-grid');
+    const gridBox = await grid.boundingBox();
+    const gridGap = await grid.evaluate((el) => parseFloat(getComputedStyle(el).columnGap));
 
-  expect(rectsIntersect(portraitBox, nameplateBox)).toBe(false);
-  expect(rectsIntersect(portraitBox, gridBox)).toBe(false);
+    expect(rectsIntersect(portraitBox, nameplateBox)).toBe(false);
+    expect(rectsIntersect(portraitBox, gridBox)).toBe(false);
 
-  // Read from the DOM, not hardcoded pixel twins of the CSS — this still
-  // means something if --portrait or .sheet-grid's own gap ever move.
-  const portraitCenterY = portraitBox.y + portraitBox.height / 2;
-  const gridCenterY = gridBox.y + gridBox.height / 2;
-  expect(Math.abs(portraitCenterY - gridCenterY)).toBeLessThan(2);
+    // Read from the DOM, not hardcoded pixel twins of the CSS — this still
+    // means something if --portrait or .sheet-grid's own gap ever move.
+    const portraitCenterY = portraitBox.y + portraitBox.height / 2;
+    const gridCenterY = gridBox.y + gridBox.height / 2;
+    expect(Math.abs(portraitCenterY - gridCenterY)).toBeLessThan(2);
 
-  const gap = gridBox.x - (portraitBox.x + portraitBox.width);
-  expect(Math.abs(gap - gridGap)).toBeLessThan(2);
-});
+    const gap = gridBox.x - (portraitBox.x + portraitBox.width);
+    expect(Math.abs(gap - gridGap)).toBeLessThan(2);
+  });
+}
 
-test('portrait is hidden below the 1650px breakpoint, shown at and above it', async ({ page }) => {
+test('hidden at 1366, below the breakpoint', async ({ page }) => {
   await page.setViewportSize({ width: 1366, height: 768 });
   await page.goto('/sheet');
   await expect(page.locator('.sheet-portrait')).toBeHidden();

@@ -307,10 +307,11 @@ import ThemeToggle from '../components/ThemeToggle.astro';
   .xp-fill { --xp: 78%; width: var(--xp); height: 100%; background: var(--celestial); border-radius: 999px; }
 
   .sheet-grid {
+    --grid-gap: 1.4rem;
     position: relative;
     display: grid;
     grid-template-columns: 118px 1.2fr 1.4fr;
-    gap: 1.4rem;
+    gap: var(--grid-gap);
     align-items: start;
   }
   .middle-col, .right-col {
@@ -543,21 +544,17 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     .back-link, .download-btn, .contact-link { transition: none; }
   }
 
-  /* ── d24: Badger portrait — reads as a 4th column beside .sheet-grid's
+  /* ── Badger portrait — reads as a 4th column beside .sheet-grid's
      three, vertically centred on it, gap-matched via `right` rather than
      replicated arithmetic. absolutely-positioned grid children skip grid
      placement entirely, so this needs no grid-column of its own. ── */
   .sheet-portrait {
-    /* available width = viewport rail left of .sheet-grid, minus the same
-       1.4rem gap the grid itself uses, minus a small outer margin (1rem) so
-       the figure never touches the browser edge; capped so ultrawide
-       screens get a portrait, not a billboard; vh term keeps the (roughly
-       square) figure from dwarfing a short viewport once centred. */
+    /* rail width minus grid gap and outer margin; ultrawide- and height-capped */
     --portrait: min(480px, calc((100vw - 1080px) / 2 - 1.15rem), calc(100vh - 8rem));
     display: none;
     position: absolute;
     top: 50%;
-    right: calc(100% + 1.4rem);
+    right: calc(100% + var(--grid-gap));
     width: var(--portrait);
     pointer-events: none;
     transform: translateY(-50%);
@@ -570,7 +567,7 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     width: 100%;
   }
 
-  /* ── d24: menu-open choreography — CSS only, <500ms total ─────────── */
+  /* ── menu-open choreography — CSS only, <500ms total ─────────── */
   @keyframes sheet-rise-fade {
     from { opacity: 0; transform: translateY(10px); }
     to   { opacity: 1; transform: translateY(0); }

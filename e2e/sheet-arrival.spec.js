@@ -13,16 +13,15 @@ async function navigateToSheet(page) {
   await page.waitForLoadState('domcontentloaded');
 }
 
-// Does this page's engine support cross-document view transitions?
-async function supportsVT(page) {
-  return page.evaluate(() => 'onpageswap' in window);
-}
-
 // Supported engine: arrived-by-morph is set and portrait slide-in is suppressed; unsupported engine: no marker.
 test('click-through: supported engine sets arrived-by-morph and suppresses portrait slide-in; unsupported does not', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await navigateToSheet(page);
-  const supported = await supportsVT(page);
+  // Gate on execution evidence: pagereveal fires before first paint, so by the time
+  // domcontentloaded settles the class is present or it never will be. The API probe
+  // ('onpageswap' in window) is true on CI headless Chromium even though the GPU
+  // compositor does not execute transitions there, causing false positives.
+  const supported = await page.locator('html').evaluate(el => el.classList.contains('arrived-by-morph'));
 
   if (supported) {
     // Marker is set before first paint.
@@ -58,7 +57,7 @@ test('click-through: supported engine sets arrived-by-morph and suppresses portr
 test('click-through: portrait geometry is correct on arrival (supported engine)', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await navigateToSheet(page);
-  if (!(await supportsVT(page))) return;
+  if (!(await page.locator('html').evaluate(el => el.classList.contains('arrived-by-morph')))) return;
 
   const portrait = page.locator('.sheet-portrait');
   // arrived-by-morph suppresses the slide-in (animation: none), so there is
@@ -82,7 +81,7 @@ test('click-through: portrait geometry is correct on arrival (supported engine)'
 test('click-through: nameplate, columns, and XP bar keep their animation names on morph arrival', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await navigateToSheet(page);
-  if (!(await supportsVT(page))) return;
+  if (!(await page.locator('html').evaluate(el => el.classList.contains('arrived-by-morph')))) return;
 
   for (const sel of ['.nameplate-inner', '.abilities-col', '.middle-col', '.right-col', '.xp-fill']) {
     const animName = await page.locator(sel).evaluate((el) => getComputedStyle(el).animationName);

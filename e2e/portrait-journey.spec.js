@@ -14,16 +14,15 @@ async function journey(page) {
   await page.waitForLoadState('domcontentloaded');
 }
 
-// Does the current page's engine support cross-document view transitions?
-async function supportsVT(page) {
-  return page.evaluate(() => 'onpageswap' in window);
-}
-
 // Full journey, 1920: both branches assert real state; neither is vacuous.
 test('full journey at 1920: supported engine arrives with marker + suppressed portrait + settled portrait geometry; unsupported gets full choreography', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await journey(page);
-  const supported = await supportsVT(page);
+  // Gate on execution evidence: pagereveal fires before first paint, so by the time
+  // domcontentloaded settles the class is present or it never will be. The API probe
+  // ('onpageswap' in window) is true on CI headless Chromium even though the GPU
+  // compositor does not execute transitions there, causing false positives.
+  const supported = await page.locator('html').evaluate(el => el.classList.contains('arrived-by-morph'));
 
   if (supported) {
     // Marker set before first paint by the pagereveal handler.

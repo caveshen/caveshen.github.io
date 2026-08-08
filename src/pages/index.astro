@@ -12,6 +12,61 @@ const CHARACTER_LABEL = 'the Badger';
   title="The Interview — Caveshen Rajman"
   description="PLACEHOLDER — Caveshen Rajman's interactive portfolio. An adventure-game-styled CV for games industry and tech contacts."
 >
+  <script is:inline>
+    /* Arrival hand-off for the /sheet → / return morph. Builds the overlay
+       target before first paint so the browser can morph the portrait home. */
+    window.addEventListener('pagereveal', function(e) {
+      if (!e.viewTransition || window.innerWidth < 1650) return;
+      // Three scene variants exist — find the laid-out one (non-zero rect).
+      var figure = Array.prototype.find.call(
+        document.querySelectorAll('.badger-figure'),
+        function(el) { return el.getBoundingClientRect().width > 0; }
+      );
+      if (!figure) return;
+
+      // Remove any stranded forward-hand-off overlay (two live named elements
+      // make the browser skip the whole transition).
+      Array.prototype.forEach.call(document.body.children, function(el) {
+        if (el.style.viewTransitionName === 'character-portrait') el.remove();
+      });
+
+      var up     = figure.querySelector('.badger-up');
+      var down   = figure.querySelector('.badger-down');
+      var rect   = up.getBoundingClientRect();
+      var filter = getComputedStyle(up).filter;
+
+      var overlay    = document.createElement('img');
+      overlay.src    = '/badger-up.png';
+      overlay.style.cssText =
+        'position:fixed;top:' + rect.top + 'px;left:' + rect.left + 'px;' +
+        'width:' + rect.width + 'px;height:' + rect.height + 'px;' +
+        'filter:' + filter + ';view-transition-name:character-portrait;' +
+        'pointer-events:none;margin:0;padding:0;border:none;';
+      document.body.appendChild(overlay);
+
+      up.style.visibility   = 'hidden';
+      down.style.visibility = 'hidden';
+
+      // ready resolves after the new-page snapshot is captured and the morph
+      // animations are about to play. Clearing view-transition-name here is
+      // safe — the snapshot already holds it — and lets other cleanup checks
+      // (which query by inline name) find nothing while the morph is running.
+      e.viewTransition.ready.then(function() {
+        overlay.style.viewTransitionName = '';
+      }).catch(function() { /* transition skipped — finished.finally covers cleanup */ });
+
+      e.viewTransition.finished.finally(function() {
+        overlay.remove();
+        up.style.visibility   = '';
+        down.style.visibility = '';
+        up.style.animation   = 'none';
+        down.style.animation = 'none';
+        void up.offsetHeight; // force reflow to restart from time zero
+        up.style.animation   = '';
+        down.style.animation = '';
+      });
+    });
+  </script>
   <!-- Toggle: first in DOM so it's first in tab order -->
   <ThemeToggle />
 
@@ -41,4 +96,8 @@ const CHARACTER_LABEL = 'the Badger';
   @media (prefers-reduced-motion: no-preference) {
     @view-transition { navigation: auto; }
   }
+
+  /* Morph travel time for the return journey — preview-tuning knob, not a contract.
+     The group animates on the arriving page, so this governs the return, not /sheet's copy. */
+  ::view-transition-group(character-portrait) { animation-duration: 400ms; }
 </style>

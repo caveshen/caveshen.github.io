@@ -67,7 +67,7 @@ the document body under their original `§` headings as history.
 | d21 | All copy | §23 checklist item 1 | Caveshen's alone; every `PLACEHOLDER` stands |
 | d22 | Standardise test filenames — descriptive, not tracker IDs | *new* | ✅ built 2026-07-27 — 8 renames, counts unmoved |
 | d23 | Hosted site — `caveshen.com` + Cloudflare | *new* | ✅ hosting live 2026-08-05 — zone active, HTTPS posture set; cutover (records + site link) deferred |
-| d24 | The Badger on `/sheet` — character-select framing, outside the scene | *new* | 🎨 DESIGN STAGE — brief and his go outstanding; consider the `frontend-design` skill |
+| d24 | The Badger on `/sheet` — character-select framing, outside the scene | *new* | ✅ built — PR #16 open, awaiting Caveshen's merge |
 | d25 | Shared stage component — extracting the approach interaction | *new* | ✅ built 2026-08-02 — `1254dad`, landed on the mainline as `732f5a6` (#3); pure refactor, byte-identical `dist/index.html`, zero `e2e/` files modified |
 | d26 | Cleanup sweep — four of five items built, one closed as not-debt | *new* | ✅ built 2026-08-02 — `daaafb9`; item 5 closed, replaced by lossless PNG recompression in `3f322ae` |
 | d27 | CI: tag pushes fire the deploy workflow | *new* | ✅ built 2026-08-02 — `daaafb9` |
@@ -75,6 +75,7 @@ the document body under their original `§` headings as history.
 | d29 | Comment sweep — repo-wide | *new* | ✅ merged to main (PR #7) |
 | d30 | Easter egg — the banner plane crashes when clicked | *new* | 🔧 in build 2026-08-06 — go given, banner-copy follow-up deliberately skipped |
 | d31 | Game-feel UI pass — streaming dialogue text + one selection idiom for every button | *new* | ✅ ACCEPTED 2026-08-04 (Parts A+B) — PR open from `item/game-feel-ui` |
+| d32 | Scene→sheet transition — the Badger travels from the scene to his portrait seat | *new* | 💡 RAISED 2026-08-08 — no brief, no go; sequenced after d24 merges |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -3907,11 +3908,12 @@ URLs per the note above) is deliberately deferred to cutover.
 
 ## d24. The Badger on the character sheet — character-select framing
 
-### 🎨 DESIGN STAGE 2026-08-01 — needs a brief and Caveshen's explicit go
+### 🎨 DESIGN BRIEF 2026-08-07 — written, **awaiting Caveshen's explicit go**
 
-Raised, not scoped. **No build starts on this section as written.**
+**No build starts on this section until Caveshen says go.** The brief below is
+scoped and testable; it is not permission.
 
-Caveshen's words:
+Caveshen's original instruction, which the brief serves:
 
 > Add the Badger to the left side of the character sheet, similarly animated
 > but completely out of the 'scene' we've built — more similar to character
@@ -3919,49 +3921,323 @@ Caveshen's words:
 > stats sheet. It sorts out our art considerations for that page nicely, so no
 > more avatar required there.
 
-**What is fixed by that instruction:**
+### Standing constraints — carried forward, not up for re-litigation
 
-- **Left side of `/sheet`.** The page is `main.sheet-wrap` → `header.nameplate`
-  → `div.sheet-grid` (`src/pages/sheet.astro:11-54`); where in that structure
-  the Badger sits is a layout question, not a settled one.
-- **Animated "similarly"** — §29's two-frame idle, 800ms per frame, CSS only,
-  `prefers-reduced-motion` holds the up frame static. Reuse, do not re-invent.
 - **Out of the scene, deliberately.** No `viewBox`, no `CityScape`, no sky, no
   promenade. `/sheet` has no scene and does not get one. This is a portrait in
   a menu, not a third camera.
 - **No generated art.** Standing rule. The Badger raster already exists
   (`public/badger-up.png` / `badger-down.png`, commissioned, full rights, §27);
-  anything beyond it is Caveshen's to supply.
+  anything beyond it is Caveshen's to supply. Reference screenshots under
+  `screenshots/character-sheet-games/` are gitignored inspiration only — never
+  committed, never traced.
+- **§2 still binds.** The visual language is locked to Sample C and is not up
+  for reinvention. `frontend-design` may be consulted inside that lock.
+- **d16 is NOT retired by this.** d16 (§33b, card-avatar art refinement) governs
+  the **dialogue-card avatar on `/` and `/404`** and keeps that remit in full.
+  *"No more avatar required there"* means **on `/sheet`**, and `/sheet` was never
+  in d16's remit. Recorded because the two are easy to conflate.
+- **Purely additive — there is nothing to strip.** Verified: `Avatar.astro`
+  renders in exactly one place, `src/components/Stage.astro`, which both routes
+  use. **It is not on `/sheet` today.** *"Sorts out our art considerations for
+  that page"* is about what the page will no longer need, not about what is
+  there now.
 
-**d16 is NOT retired by this.** d16 (§33b, card-avatar art refinement) governs
-the **dialogue-card avatar on `/` and `/404`** and keeps that remit in full.
-*"No more avatar required there"* means **on `/sheet`**, and `/sheet` was never
-in d16's remit. Recorded because the two are easy to conflate.
+### The design — settled with Caveshen 2026-08-07
 
-**Verified, so nobody goes looking for something to remove:** `Avatar.astro`
-renders in exactly one place — `src/components/Stage.astro`, which both routes
-use. **It is not on `/sheet` today.** d24 is therefore **purely additive**; there
-is nothing to strip, and *"sorts out our art considerations for that page"* is
-about what the page will no longer need, not about what is there now.
+Decided, not proposed. Each item below closes a question the earlier draft of
+this section had left open.
 
-**Open before any brief:** where in the sheet's grid it sits and what it does
-at narrow widths (the sheet is read on phones); whether it is decorative
-(`aria-hidden`) or announced; and whether the idle animation is extracted from
-`Badger.astro` or the component is reused whole outside an SVG — it renders as
-a `<g>` fragment today, which `/sheet` has nothing to put it in.
+1. **Static portrait — `badger-up.png` only.** No idle animation on this page,
+   and `badger-down.png` never loads here. The reasoning, so nobody "restores"
+   the idle later: on `/` the character is *live in a scene*; `/sheet` is a
+   *document about the character*, and a menu portrait holds its pose. This
+   supersedes the earlier "animated similarly" reading and the 2026-08-02 d28
+   cross-reference note, which assumed an idle would exist here.
+2. **`🔄 REVISED 2026-08-08`: no edge-bleed.** The figure renders whole — the
+   original "oversized, bottom-left edge-bleed, paw/hip cropped" reading is
+   **superseded**; see *Placement — revised 2026-08-08* below. Still never
+   crops the head or torso (that constraint didn't need bleed to hold).
+3. **It lives in the rail left of the centred wrap and never overlaps sheet
+   content.** Below the width where that rail can no longer hold it, it is
+   `display: none` — one rule, which also satisfies the settled "hide it on
+   phones" decision without a second breakpoint.
+4. **`🔄 REVISED 2026-08-08`: one touch, no new art — the caption.** A caption
+   in the page's existing `.panel-caption` convention (mono, uppercase,
+   letterspaced, `var(--stage)`), **below** the figure per the convention's own
+   rule — the bend that put it over the figure's base is rescinded now the
+   bleed that forced it is gone. **The ground-shadow is dropped** — see
+   *Placement — revised 2026-08-08*. **No vignette.** Caption wording is
+   `PLACEHOLDER` per the copy rule (d21).
+5. **Decorative.** `aria-hidden="true"` on the wrapper, `alt=""` on the image.
+   The nameplate already announces the character; the portrait adds nothing a
+   screen reader needs, and the caption is flavour, not information.
+6. **Plain `<img>`, no SVG machinery.** `Badger.astro` renders as an SVG `<g>`
+   fragment and **stays on the stage** — it is not reused, not extracted, not
+   wrapped in a host `<svg>` for this. `/sheet` gets one `<img>` pointing at the
+   existing PNG.
+7. **A menu-open entrance** — the page-life beat, in scope (see *Choreography*).
+8. **Out of scope, rejected on the record:** fake game-menu chrome (invented tab
+   strips, controller-button prompts); any portrait animation; vignettes;
+   scroll-triggered or ambient effects. **After the menu-open, the page is
+   still.**
 
-**Caveshen wants the `frontend-design` skill considered when this starts**, as it
-was for d1's design pass. §2 still binds it: the visual language is locked to
-Sample C and is not up for reinvention.
+**Precondition — checked, not assumed: `badger-up.png` is genuinely
+transparent.** PNG colour type 6 (RGBA), 500×500, all four corners at alpha 0,
+44% of pixels opaque; drawn content occupies x 33–466, y 32–488. There is no
+white matte, so nothing blocks the build. Recorded so the worker does not
+re-derive it — and so that if this ever changes, a matte is a **blocker to
+raise**, never something to paper over with generated art.
 
-**Cross-ref 2026-08-02 (d28 triage):** if d28's cityscape depth work proceeds,
-this item's brief should reuse its idle-animation idiom — CSS-only,
-`prefers-reduced-motion`-gated, `steps()` hard-cut swap, already proven by
-`Badger.astro`'s two-frame idle (`--badger-cadence`) — rather than invent a new
-one. No parallax or gradient technique is needed here: this page has no scene
-depth to fake. This note does not change this item's own status or scope.
+### Layout — grounded in `src/pages/sheet.astro`
 
-**Status: 🎨 DESIGN STAGE — no brief, no go, no build.**
+`main.sheet-wrap` is `max-width: 1080px; margin: 0 auto; padding: 1.75rem
+1.25rem 4rem`. `.sheet-grid` (the three-column body — abilities rail, middle
+col, right col) sits inside it with `gap: 1.4rem`. At viewport width `W ≥
+1080` the rail from the left viewport edge to `.sheet-grid`'s own left edge is
+`(W − 1080)/2 + 1.25rem` — the centring margin plus the wrap's left padding.
+
+### Placement — revised 2026-08-08
+
+Caveshen, from the first pair of screenshots (d24-full-colour.png,
+d24-grayscale.png): the bottom-left edge-bleed reads too far from the sheet
+and too low. Revised instruction — closer to the sheet, higher: (a)
+**vertically centred** on `.sheet-grid`'s own height; (b) **right-shifted**
+so the gap between the figure's right edge and `.sheet-grid`'s left edge
+**equals `.sheet-grid`'s own `gap: 1.4rem`** — the portrait reads as a fourth
+column sitting beside the three, same rhythm.
+
+**Implementation is a native-CSS win, not more arithmetic.** Rather than
+computing a pixel offset that *approximates* `.sheet-grid`'s gap (what a
+`position: fixed` wrapper would have forced), `.sheet-portrait` moves inside
+`.sheet-grid` as its last child, `.sheet-grid` gets `position: relative`, and
+the portrait is `position: absolute` against it:
+
+```
+right: calc(100% + 1.4rem);   /* right edge sits exactly one grid-gap left of .sheet-grid */
+top: 50%;
+transform: translateY(-50%);  /* centred on .sheet-grid's own height */
+```
+
+An absolutely-positioned grid child is pulled out of grid placement entirely
+(CSS Grid §, standard behaviour) — no `grid-column` needed, and the gap now
+**can't drift out of sync** with `.sheet-grid`'s own `gap` value the way a
+hand-computed pixel offset could. Both the "reads as a fourth column" ask and
+the "exact gap" ask fall out of this for free.
+
+Consequence: `.sheet-portrait` no longer needs `.nameplate` as an exclusion
+zone by construction — it can only ever collide with `.nameplate` if the
+figure is taller than `.sheet-grid` itself pushes it above `.sheet-grid`'s own
+top edge, which the sizing below prevents. It can never overlap `.sheet-grid`
+at all: the gap is structural, not computed.
+
+**Sizing.** No bleed now, so *box width = visible width* — the `/0.8`
+bleed-inflation term is gone entirely. Available width, before caps:
+
+```
+S = (100vw − 1080px)/2 + 1.25rem [wrap's left padding] − 1.4rem [grid gap] − 1rem [outer margin from the browser edge]
+  = (100vw − 1080px)/2 − 1.15rem
+```
+
+Capped two ways — width, so ultrawide screens get a portrait and not a
+billboard; height, because a vertically-centred figure (unlike a
+bottom-anchored one) can now be tall enough to matter on a short viewport, and
+the asset is close to square so width and height track together:
+
+```
+--portrait: min(480px, calc((100vw - 1080px) / 2 - 1.15rem), calc(100vh - 8rem));
+```
+
+| W | `S` (uncapped) | actual (after caps) |
+|---|---|---|
+| 1650 | 266.6px | 266.6px |
+| 1920 | 401.6px | 401.6px |
+| 2560 | 721.6px | 480px (width-capped) |
+
+Verified against the live build at 1920×1080: measured gap 22.39px (1.4rem =
+22.4px, the ~0.01px is subpixel rounding), measured vertical-centre delta
+0px, measured box width 401.59px — the arithmetic and the render agree.
+
+**Breakpoint — re-derived, moved off 1600px.** The old 1600px threshold was
+sized for the *bled* box (of which only 80% was visible); at that same 1600px
+the new, un-bled formula gives `S = (1600−1080)/2 − 1.15rem = 241.6px`, face
+width `0.42 × 241.6 ≈ 101px` — **under** the ~105px sticker-vs-portrait floor
+this section already established (`Badger.astro`'s `.face-void` puts the face
+at 29%–71% of the image's own width, so face width is a flat 42% of `S`
+regardless of bleed). Solving `0.42S ≥ 105` gives `S ≥ 250px`, which needs
+`W ≥ 1080 + 2×(250 + 1.15rem) ≈ 1617px`. **New breakpoint: `@media
+(min-width: 1650px)`** — a round number with a comfortable margin over that
+floor (`S = 266.6px` at 1650, face `≈112px`), and it still clears the
+softer "twice the 118px ability rail" (240px) heuristic from the original
+design. **Target screens are 1920 wide** (Caveshen's own machines) — 1650
+leaves 270px of headroom below that, and at 1920 itself `S = 401.6px`, a
+substantial portrait, well under the 480px cap. The Playwright-matrix free
+coverage still holds at the new threshold: **shown** on `desktop-1920` and
+`desktop-2560`; **hidden** on `desktop-1366`, `desktop-firefox` (1280),
+`ipad`, and all three phones.
+
+**Composition.**
+
+- Wrapper: last child of `.sheet-grid`; `position: absolute; top: 50%; right:
+  calc(100% + 1.4rem); width: var(--portrait); pointer-events: none;
+  transform: translateY(-50%)`. `.sheet-grid` gets `position: relative` so it
+  is the containing block. `pointer-events: none` guarantees the (still
+  decorative) figure can never intercept a click.
+- **Ground-shadow: dropped, 2026-08-08.** A vertically-centred, floating
+  figure has no ground plane for a contact shadow to sit on — keeping it would
+  have read as a shadow cast on nothing. The CSS was one `::before` rule with
+  a day/night alpha split; trivial to re-add if a future placement re-grounds
+  the figure. Judged from the recentred screenshot, not a test.
+- **Caption: back to the plain `.panel-caption` convention**, below the
+  figure — no bend, no compensating `padding-left`, no `margin-bottom` pull on
+  the image. Both existed only to serve the edge-bleed; removing the bleed
+  removes the need for either.
+- **Filter treatment: full colour — FINAL, 2026-08-08.** See *Open questions*.
+  No `filter` declared at all now (the single-switch scaffolding for a
+  grayscale alternative is removed along with the pending-decision framing —
+  there is no longer a decision pending).
+- **Class-name trap:** do not reuse `.badger-up`, `.badger-down` or
+  `.badger-image`. `Badger.astro`'s styles are `is:global` and bind the
+  two-frame idle animation to those names; `e2e/badger-idle.spec.js` queries
+  them on `/`. Use a distinct namespace, e.g. `.sheet-portrait`.
+- **Skipped deliberately:** a `<picture>` element to spare phones the 43KB
+  download. `/sheet` is reached from `/`, which already served the same file,
+  so it is normally a cache hit; 43KB does not justify the markup. Add one only
+  if a real budget is ever set.
+
+### Choreography — the menu-open
+
+CSS only. `animation-delay` staggering with `animation-fill-mode: both`; **no
+JS**, so it works in a JS-disabled context unchanged. Panels rise 10px and fade
+in; the portrait slides in from the left, landing at its (revised, 2026-08-08)
+vertically-centred position; the XP bar fills last. Timing table unchanged by
+the placement revision.
+
+| beat | target | delay | duration | ends |
+|---|---|---|---|---|
+| 1 | `.nameplate-inner` | 0ms | 180ms | 180ms |
+| 2 | `.abilities-col` | 70ms | 180ms | 250ms |
+| 3 | `.middle-col`, `.right-col` | 140ms | 180ms | 320ms |
+| 4 | `.sheet-portrait` (translateX −40% → 0) | 200ms | 240ms | 440ms |
+| 5 | `.xp-fill` (width 0 → 78%) | 260ms | 220ms | 480ms |
+
+Beat 1 targets `.nameplate-inner`, not `.nameplate` — `.sheet-nav`'s
+back/download links stay static from frame one, which also sidesteps a
+reproducible Playwright actionability race against an animating ancestor,
+found while building against the existing no-JS `/sheet` test (predates the
+2026-08-08 placement revision). `.sheet-portrait`'s resting position now
+carries a real `transform: translateY(-50%)` (the vertical centring, not
+motion), so the slide-in keyframes are `translateY(-50%) translateX(-40%)` →
+`translateY(-50%) translateX(0)` — both parts in both keyframes, since a
+second `transform` declaration would replace rather than compose.
+
+**The whole sequence ends at 480ms, under the 500ms budget**, and no element
+starts later than 260ms — readability is never gated on the animation.
+`.sheet-foot` is not animated; it is below the fold and adding it buys nothing.
+
+`.xp-fill`'s 78% currently appears once, as a literal. Animating it would make
+it appear three times (base rule, keyframe end, reduced-motion reset), so lift
+it to `--xp: 78%` on `.xp-fill` and reference that in all three. Animate
+`width`, not `transform: scaleX()` — scaleX distorts the pill's `border-radius`
+and, worse, leaves the computed width at 78% throughout, so a test could not
+tell a working bar from a broken one.
+
+**`prefers-reduced-motion: reduce`: no motion at all.** Four of the five
+targets reset to `animation: none; opacity: 1; transform: none`. `.sheet-portrait`
+resets to `animation: none; transform: translateY(-50%)` instead of `none` —
+its transform isn't decorative motion, it's the vertical-centring itself, so
+zeroing it would mis-place the figure under reduced motion. The XP bar is
+full (`width: var(--xp)`) from the first frame.
+
+**Watch out:** Playwright's `toBeVisible()` passes at `opacity: 0`. The existing
+`/sheet` tests therefore cannot catch a choreography that never finishes. The
+new tests below must assert final state explicitly.
+
+### Success criteria — done means all of these
+
+1. `/sheet` renders one `<img src="/badger-up.png">` inside an
+   `aria-hidden="true"` wrapper with `alt=""`. **`badger-down` appears nowhere
+   in the page source.** No `<svg>` is added to `/sheet`; `Badger.astro` is not
+   imported there and is not modified.
+2. At **1920** and **2560** the portrait is visible, and its bounding box
+   intersects neither `.nameplate` nor `.sheet-grid`.
+3. At **1650** the portrait is visible; below **1650** it is `display: none`
+   (`toBeHidden()`) — `🔄 REVISED 2026-08-08`, breakpoint moved from 1600px,
+   see *Placement — revised 2026-08-08* for the re-derivation.
+4. `🔄 REVISED 2026-08-08`: **vertically centred and gap-matched, not
+   edge-bled.** At 1920 (and 2560), read live from the DOM rather than
+   hardcoded pixel twins of the CSS: the portrait's vertical centre matches
+   `.sheet-grid`'s vertical centre within a small tolerance, and the gap
+   between the portrait's right edge and `.sheet-grid`'s left edge matches
+   `.sheet-grid`'s own computed `gap` within a small tolerance.
+5. The declared choreography fits its budget: for every animated target,
+   `animation-delay + animation-duration ≤ 500ms`, and the delays are ordered
+   nameplate-inner ≤ abilities ≤ columns ≤ portrait ≤ xp-fill.
+6. The XP bar settles at 78% of its track (± 1%).
+7. Under `prefers-reduced-motion: reduce`, `.nameplate-inner`, `.abilities-col`,
+   `.middle-col`, `.right-col` report `animation-name: none`, `opacity: 1`, no
+   transform; `.sheet-portrait` reports `animation-name: none` and
+   `transform: translateY(-50%)` (not "no transform" — see the choreography
+   note above); the XP bar is at 78% from the first frame.
+8. No horizontal overflow at 1366 / 1920 / 2560 (the existing 2560 test is the
+   guard).
+9. **Every existing test stays green, and no existing `e2e/` file is modified
+   except to add coverage.** In particular `e2e/badger-idle.spec.js` (which
+   asserts the two-frame idle on `/`) is untouched and unaffected.
+10. Both themes and both time-of-day settings look right — the portrait reads
+    correctly against the AMOLED night ground and the parchment day ground.
+    Caveshen's eye, not a test. (No ground-shadow to check any more — dropped
+    2026-08-08.)
+
+### Tests
+
+New file `e2e/sheet-portrait.spec.js` (named for its subject, per d22 — never
+after a tracker ID). It drives viewport width with `page.setViewportSize()`
+rather than relying on project geometry, matching the convention already used
+in `e2e/sheet.spec.js`. `rectsIntersect` from `e2e/geom.js` is the existing
+helper for criterion 2 — reuse it, do not write another.
+
+Cover: (a) visible and non-overlapping at 1920; (b) hidden below 1650, shown
+at 1650; (c) vertical-centre and gap-match tolerance at 1920, both read from
+the DOM (`.sheet-grid`'s own `getBoundingClientRect()` and computed `gap`) —
+not hardcoded pixel twins of the CSS, so the test still means something if the
+CSS constants move; (d) `badger-down` absent from the source; (e) the declared
+timing budget and delay ordering, read from computed style — **no
+`waitForTimeout`, no fixed sleeps** (d10's rule); (f) reduced-motion final
+state, including `.sheet-portrait`'s `translateY(-50%)`; (g) the XP bar
+reaching 78%, via `expect.poll`, not a sleep.
+
+Red-green proven per d18's discipline: each assertion must fail before the
+feature exists.
+
+### Estimate and branch
+
+Small and additive — one markup block plus a CSS block in `sheet.astro`, one
+new spec file. Under half a day. Branch `feat/sheet-portrait`.
+
+### Open questions — answered 2026-08-07, GO given
+
+1. **Breakpoint: `1600px` confirmed 2026-08-07 — `🔄 SUPERSEDED 2026-08-08`,
+   now `1650px`.** See *Placement — revised 2026-08-08* for the re-derivation;
+   the underlying reasoning (Caveshen's own screens are 1920 wide, comfortably
+   clear of the floor) still holds, only the number moved because the
+   bottom-left-bleed geometry it was computed against is gone. The declined-
+   for-now "minimal variant" YAGNI call is unaffected.
+2. **The caption-over-toes bend — ACCEPTED 2026-08-07, `🔄 RESCINDED
+   2026-08-08`.** Forced by the edge-bleed; the bleed is gone, so the caption
+   is back to the plain "below the figure" `.panel-caption` convention.
+3. **Grayscale vs full colour — `✅ FINAL 2026-08-08: full colour.`** Decided
+   from the side-by-side screenshots (d24-full-colour.png,
+   d24-grayscale.png, both gitignored, not committed). The single-CSS-filter-
+   switch scaffolding for a future grayscale alternative is removed along
+   with the pending-decision framing — there's no decision left pending, and
+   a config knob for a value that's now fixed is speculative scope.
+4. **Caption wording — `PLACEHOLDER`**, per the standing copy convention (d21).
+   Unchanged.
+
+**Status: ✅ GO given 2026-08-07, built; placement revised 2026-08-08 per
+Caveshen's review of the first screenshots — see *Placement — revised
+2026-08-08* above. Branch `feat/sheet-portrait`, PR #16.**
 
 ---
 
@@ -4387,7 +4663,7 @@ eventual brief should reuse the CSS-only, `prefers-reduced-motion`-gated,
 hard-cut `steps()` pattern already proven by `Badger.astro`'s two-frame idle
 (`--badger-cadence`, `:63-77`) rather than invent a second animation
 contract. No parallax or gradient work belongs there — a menu portrait has no
-depth to fake. (Cross-referenced at d24 itself.)
+depth to fake. (Cross-referenced at d24 itself.) [Note 2026-08-08: d24 has since shipped a STATIC portrait — decision 1, 2026-08-07; the idle-idiom recommendation above is superseded.]
 
 **Status: ✅ merged to main (PR #8) — all stages built stage-by-stage on
 preview and accepted 2026-08-04; the STATUS blocks above are the record.**
@@ -4954,3 +5230,45 @@ refactor. Full matrix: Playwright 1813 passed / 19 skipped / 0 failed,
 unchanged from the branch baseline.
 
 ---
+
+## d32. Scene→sheet transition — the Badger travels to his portrait seat
+
+### 💡 RAISED 2026-08-08 — Caveshen's idea, captured verbatim in spirit; no brief, no go, sequenced after d24 merges
+
+**The idea (Caveshen's):** when the dialogue option on `/` that leads to the
+character sheet is clicked, the scene Badger travels from his position in the
+scene to his d24 portrait seat on `/sheet`. The rest of the scene fades out,
+the sheet fades in through its menu-open choreography, the idle animation dies
+into the static portrait, and lighting gets a consistency pass across
+night/day.
+
+**Feasibility consult (frontend-design, 2026-08-08) — facts a future brief
+must not re-derive:**
+
+- **Mechanism: cross-document View Transitions** (`@view-transition`,
+  `pageswap`/`pagereveal`), NOT Astro's client router. The router would force
+  every script on `/` (stage, camera, plane crash) to survive soft page-swaps
+  — a retrofit across the most battle-tested code for a cosmetic gain.
+  Native transitions are pure progressive enhancement.
+- **The fallback is already built:** browsers without support (Firefox,
+  older Safari) get a normal navigation into d24's menu-open choreography.
+  The floor is finished; this item only layers on top.
+- **The SVG wrinkle:** browsers won't snapshot-morph SVG sub-elements, and
+  the scene Badger is a `<g>` in the stage viewBox. Solve by hand-off at
+  click time: freeze the idle on the up-frame, overlay an HTML `<img>` of
+  `badger-up.png` on his exact on-screen rect, give the overlay the
+  `view-transition-name`. Same art, invisible seam — and it produces the
+  "animation dies into the static image" beat for free.
+- **Lighting/colour:** the stage renders him under its scene filter; the d24
+  portrait is full colour. The morph crossfades the two — he comes into
+  colour as he takes his seat. Lean in; the "lighting pass" then shrinks to
+  tuning the crossfade against both themes.
+- **Choreography gating:** arriving via the transition suppresses the
+  portrait's slide-in (the morph replaces it); direct visits to `/sheet`
+  keep the current entrance. `prefers-reduced-motion`: instant, as
+  everywhere.
+- **Scope honesty:** touches `/` as well as `/sheet`; needs its own success
+  criteria and test story. Bigger than d24's build itself.
+
+**Status: 💡 RAISED — planner brief and Caveshen's explicit go both
+outstanding. Build starts only after d24 is merged.**

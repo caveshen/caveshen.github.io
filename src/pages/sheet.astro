@@ -153,6 +153,11 @@ import ThemeToggle from '../components/ThemeToggle.astro';
         </section>
 
       </div>
+
+      <div class="sheet-portrait" aria-hidden="true">
+        <img src="/badger-up.png" alt="" />
+        <p class="panel-caption">PLACEHOLDER</p>
+      </div>
     </div>
 
     <footer class="sheet-foot">
@@ -299,12 +304,14 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     border-radius: 999px;
     overflow: hidden;
   }
-  .xp-fill { width: 78%; height: 100%; background: var(--celestial); border-radius: 999px; }
+  .xp-fill { --xp: 78%; width: var(--xp); height: 100%; background: var(--celestial); border-radius: 999px; }
 
   .sheet-grid {
+    --grid-gap: 1.4rem;
+    position: relative;
     display: grid;
     grid-template-columns: 118px 1.2fr 1.4fr;
-    gap: 1.4rem;
+    gap: var(--grid-gap);
     align-items: start;
   }
   .middle-col, .right-col {
@@ -535,5 +542,62 @@ import ThemeToggle from '../components/ThemeToggle.astro';
   @media (prefers-reduced-motion: reduce) {
     .panel, .name-box, .id-grid, .ability,
     .back-link, .download-btn, .contact-link { transition: none; }
+  }
+
+  /* ── Badger portrait — reads as a 4th column beside .sheet-grid's
+     three, vertically centred on it, gap-matched via `right` rather than
+     replicated arithmetic. absolutely-positioned grid children skip grid
+     placement entirely, so this needs no grid-column of its own. ── */
+  .sheet-portrait {
+    /* rail width minus grid gap and outer margin; ultrawide- and height-capped */
+    --portrait: min(480px, calc((100vw - 1080px) / 2 - 1.15rem), calc(100vh - 8rem));
+    display: none;
+    position: absolute;
+    top: 50%;
+    right: calc(100% + var(--grid-gap));
+    width: var(--portrait);
+    pointer-events: none;
+    transform: translateY(-50%);
+  }
+  @media (min-width: 1650px) {
+    .sheet-portrait { display: block; }
+  }
+  .sheet-portrait img {
+    display: block;
+    width: 100%;
+  }
+
+  /* ── menu-open choreography — CSS only, <500ms total ─────────── */
+  @keyframes sheet-rise-fade {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes portrait-slide-in {
+    from { transform: translateY(-50%) translateX(-40%); }
+    to   { transform: translateY(-50%) translateX(0); }
+  }
+  @keyframes xp-fill-grow {
+    from { width: 0; }
+    to   { width: var(--xp); }
+  }
+  /* Animates .nameplate-inner (name/epithet/id-grid), not .nameplate itself —
+     .sheet-nav's back/download links stay static from frame one, so nav never
+     moves under a pending click (the no-JS test clicks the back link before
+     any script could wait out the choreography). */
+  .nameplate-inner        { animation: sheet-rise-fade 180ms ease-out 0ms both; }
+  .abilities-col          { animation: sheet-rise-fade 180ms ease-out 70ms both; }
+  .middle-col, .right-col { animation: sheet-rise-fade 180ms ease-out 140ms both; }
+  .sheet-portrait         { animation: portrait-slide-in 240ms ease-out 200ms both; }
+  .xp-fill                { animation: xp-fill-grow 220ms ease-out 260ms both; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nameplate-inner, .abilities-col, .middle-col, .right-col {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+    /* translateY(-50%) is load-bearing (vertical centring), not motion — kept, not reset to none. */
+    .sheet-portrait { animation: none; transform: translateY(-50%); }
+    .xp-fill { animation: none; width: var(--xp); }
   }
 </style>

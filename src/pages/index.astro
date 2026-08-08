@@ -34,3 +34,11 @@ const CHARACTER_LABEL = 'the Badger';
 
   initStage(tree);
 </script>
+
+<style is:global>
+  /* Opt-in to cross-document view transitions. Gated under no-preference so
+     the swap is instant when reduced motion is requested. */
+  @media (prefers-reduced-motion: no-preference) {
+    @view-transition { navigation: auto; }
+  }
+</style>

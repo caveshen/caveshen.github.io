@@ -6,6 +6,13 @@ import ThemeToggle from '../components/ThemeToggle.astro';
   title="Character Sheet — Caveshen Rajman"
   description="PLACEHOLDER — Caveshen Rajman's RPG-flavoured CV: Engineering Manager, skills, quest log, and achievements."
 >
+  <script is:inline>
+    /* Sets arrived-by-morph on <html> before first paint when a cross-document
+       view transition is active — fires before the page renders. */
+    window.addEventListener('pagereveal', function(e) {
+      if (e.viewTransition) document.documentElement.classList.add('arrived-by-morph');
+    });
+  </script>
   <ThemeToggle />
 
   <main class="sheet-wrap">
@@ -565,6 +572,7 @@ import ThemeToggle from '../components/ThemeToggle.astro';
   .sheet-portrait img {
     display: block;
     width: 100%;
+    view-transition-name: character-portrait;
   }
 
   /* ── menu-open choreography — CSS only, <500ms total ─────────── */
@@ -600,4 +608,16 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     .sheet-portrait { animation: none; transform: translateY(-50%); }
     .xp-fill { animation: none; width: var(--xp); }
   }
+
+  /* Opt-in to cross-document view transitions. Gated under no-preference so
+     the swap is instant (no transition runs) when reduced motion is requested. */
+  @media (prefers-reduced-motion: no-preference) {
+    @view-transition { navigation: auto; }
+  }
+
+  /* Morph travel time — preview-tuning knob, not a contract. */
+  ::view-transition-group(character-portrait) { animation-duration: 400ms; }
+
+  /* When arriving via the morph, the portrait is already in place — suppress the slide-in. */
+  .arrived-by-morph .sheet-portrait { animation: none; }
 </style>

@@ -75,7 +75,7 @@ the document body under their original `§` headings as history.
 | d29 | Comment sweep — repo-wide | *new* | ✅ merged to main (PR #7) |
 | d30 | Easter egg — the banner plane crashes when clicked | *new* | 🔧 in build 2026-08-06 — go given, banner-copy follow-up deliberately skipped |
 | d31 | Game-feel UI pass — streaming dialogue text + one selection idiom for every button | *new* | ✅ ACCEPTED 2026-08-04 (Parts A+B) — PR open from `item/game-feel-ui` |
-| d32 | Scene→sheet transition — the Badger travels from the scene to his portrait seat | *new* | 🚧 BUILT 2026-08-08 — all tickets done and reviewer-approved on `feat/scene-sheet-morph`; awaiting local preview + acceptance (§d32) |
+| d32 | Scene→sheet transition — the Badger travels from the scene to his portrait seat | *new* | ✅ BUILT + VALIDATED 2026-08-08 — awaiting Caveshen's preview (criterion 8) and release (§d32) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -5516,12 +5516,25 @@ meaning something when it does.
    Bespoke exit only if the preview demands it.
 3. **Morph duration:** open at 400ms; Caveshen turns the knob at acceptance.
 
-**Status: 🚧 BUILT 2026-08-08 — all three tickets done and reviewer-approved on
-branch `feat/scene-sheet-morph`; the full test matrix is green (1997 passed,
-19 skipped, 0 failed). What is left is Caveshen's eye on local preview: the
-hand-off seam and the into-colour beat against both themes and both times of
-day (four 1920 screenshots wait in the gitignored `screenshots/` folder).
-Push/PR held until Caveshen releases them after that preview.**
+**Status: ✅ BUILT + VALIDATED 2026-08-08 — awaiting Caveshen's preview
+(criterion 8) and release. Item-level criteria 1–7 are confirmed against the
+code and tests on `feat/scene-sheet-morph`. The full matrix is green
+(1997 passed, 19 skipped, 0 failed; vitest 80/80). Four 1920 screenshots
+wait in the gitignored `screenshots/` folder. Push/PR held until Caveshen
+releases them after the preview.**
+
+Two deviations from the Design text were found at validation. Both are
+accepted and recorded here:
+
+1. The width gate reads `window.innerWidth >= 1650`, not
+   `matchMedia('(min-width: 1650px)')`. Both measure the same layout
+   viewport in the engines we ship to, and the 1650 boundary has a unit
+   test. Near-zero risk.
+2. At 1366px, Chromium logs a benign "Transition was skipped" console
+   line. It is a browser-internal effect of `view-transition-name` on a
+   `display: none` element, not an error in our code. The journey test
+   filters that exact string only and still fails on any other console
+   error.
 
 - **T1 — `/sheet` arrival + page opt-ins:** done. Reviewer approved.
 - **T2 — the hand-off on `/`:** done. Reviewer approved.

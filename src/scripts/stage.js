@@ -1,5 +1,6 @@
 import { initEngine } from './dialogue.js';
 import { computeCameraTransform } from './camera.js';
+import { maybeHandoff } from './portrait-handoff.js';
 
 // Two of Scene.astro's three variants are display:none at any given viewport
 // (only one matches the aspect-ratio media query) — this picks the laid-out one.
@@ -21,7 +22,7 @@ export function initStage(tree) {
   const render = initEngine(
     tree,
     { speechEl, stageEl: directionEl, choicesEl, cardEl: card },
-    (path) => { window.location.href = path; }
+    (path) => { maybeHandoff(path); window.location.href = path; }
   );
 
   // Initial render is immediate — static content is already in place from SSR.

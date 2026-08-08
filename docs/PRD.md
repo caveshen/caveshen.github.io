@@ -75,7 +75,8 @@ the document body under their original `§` headings as history.
 | d29 | Comment sweep — repo-wide | *new* | ✅ merged to main (PR #7) |
 | d30 | Easter egg — the banner plane crashes when clicked | *new* | 🔧 in build 2026-08-06 — go given, banner-copy follow-up deliberately skipped |
 | d31 | Game-feel UI pass — streaming dialogue text + one selection idiom for every button | *new* | ✅ ACCEPTED 2026-08-04 (Parts A+B) — PR open from `item/game-feel-ui` |
-| d32 | Scene→sheet transition — the Badger travels from the scene to his portrait seat | *new* | ✅ BUILT + VALIDATED 2026-08-08 — awaiting Caveshen's preview (criterion 8) and release (§d32) |
+| d32 | Scene→sheet transition — the Badger travels from the scene to his portrait seat | *new* | ✅ ACCEPTED 2026-08-08 — PR #17 open, awaiting Caveshen's merge (§d32) |
+| d33 | Sheet→scene return — the Badger travels back from his portrait seat | *new* | 📝 BRIEFED — awaiting Caveshen's go; sequenced after d32 merges (§d33) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -5512,12 +5513,15 @@ meaning something when it does.
 
 1. **Return trip:** accept the free whole-page cross-fade on `/sheet` → `/`.
    No extra `pageswap` gate.
+   *Superseded by §d33 (2026-08-08): Caveshen now wants the reverse morph.
+   This ruling stands until d33 ships; d32 ships as-is first.*
 2. **Scene exit weight:** ship the default root cross-fade; judge on preview.
    Bespoke exit only if the preview demands it.
 3. **Morph duration:** open at 400ms; Caveshen turns the knob at acceptance.
 
-**Status: ✅ BUILT + VALIDATED 2026-08-08 — awaiting Caveshen's preview
-(criterion 8) and release. Item-level criteria 1–7 are confirmed against the
+**Status: ✅ ACCEPTED 2026-08-08 — criterion 8 passed on Caveshen's Edge
+preview ("very cool and very accepted"); PR #17 open, awaiting his merge.
+Item-level criteria 1–7 are confirmed against the
 code and tests on `feat/scene-sheet-morph`. The full matrix is green
 (1997 passed, 19 skipped, 0 failed; vitest 80/80). Four 1920 screenshots
 wait in the gitignored `screenshots/` folder. Push/PR held until Caveshen
@@ -5539,3 +5543,259 @@ accepted and recorded here:
 - **T1 — `/sheet` arrival + page opt-ins:** done. Reviewer approved.
 - **T2 — the hand-off on `/`:** done. Reviewer approved.
 - **T3 — joined journey + acceptance evidence:** done. Reviewer approved.
+
+## d33. Sheet→scene return — the Badger travels back from his portrait seat
+
+### 📝 BRIEFED — awaiting Caveshen's go; sequenced after d32 merges
+
+**The ruling (Caveshen's, 2026-08-08):** the return journey gets the d32
+treatment. When the "← Back to the interview" link on `/sheet` is clicked,
+the Badger travels from his portrait seat back to his position in the
+landing scene. This supersedes d32's ruling #1 (the plain cross-fade
+return) — but only when this item ships. d32 ships as-is first, and this
+item builds on top of the merged d32 code.
+
+### Goal
+
+When the back link on `/sheet` is clicked in a browser that supports
+cross-document View Transitions, at ≥1650px, the Badger morphs from the
+portrait seat to his position in the scene on `/`. He goes out of full
+colour into the scene filter on the way — the reverse of d32's colour beat.
+The scene idle resumes with no visible jump. Everywhere else, the site
+behaves exactly as it does after d32.
+
+### Non-goals
+
+No Astro `ClientRouter` — d32's standing rule holds. No change to d32's
+forward journey: `sheet.astro`'s arrival script, `portrait-handoff.js`,
+`stage.js`, and the forward tests stay exactly as merged. No new art. No
+morph below 1650px. `/404` stays untouched. No departure code on `/sheet` —
+the sheet needs none (see *Asymmetries*).
+
+### The reverse is not a mirror — settled asymmetries
+
+d32's consult facts still bind: same mechanism (cross-document View
+Transitions), same shared name (`character-portrait`), same SVG wrinkle.
+But the work lands in different places. These asymmetries are settled; do
+not re-derive them.
+
+- **The source side needs no work.** d32 builds the morph source at click
+  time because the scene Badger is an SVG `<g>`. The reverse starts from
+  `.sheet-portrait img` — a plain HTML `<img>` that already carries
+  `view-transition-name: character-portrait`. The browser snapshots it on
+  `pageswap` with no help. The `/sheet` departure creates no overlay and
+  freezes nothing, so it also needs no `pageshow` cleanup. Zero code on
+  `/sheet`.
+- **All the work is on the target side.** `/` must give the browser a named
+  element to land on, and the scene Badger `<g>` cannot carry the name. So
+  `/` gets a `pagereveal`-time **arrival hand-off**: an overlay `<img>` at
+  the scene Badger's on-screen rect, as the morph target, removed when the
+  transition finishes.
+- **Colour runs the other way.** The seat is full colour; the scene is
+  filtered. The arrival overlay carries the computed scene filter (the same
+  copy the forward hand-off does), so the default cross-blend takes him out
+  of colour as he travels.
+- **`/` needs no arrival marker.** The landing page has no entrance
+  choreography to suppress. `arrived-by-morph` stays a `/sheet`-only term;
+  `/` never sets it, and no differently-named marker replaces it.
+- **The camera state on arrival varies.** A fresh load of `/` has the
+  default camera. A back/forward-cache restore can be mid-dialogue, zoomed.
+  Both cases resolve the same way: read the rect from the live DOM at
+  `pagereveal` time — `getBoundingClientRect` includes whatever transform
+  is in force, exactly as the forward hand-off relies on.
+
+### Design
+
+Vocabulary: d32's terms bind (**hand-off**, **morph**, **arrival marker**).
+One new term: the **arrival hand-off** — the `pagereveal`-time work on `/`
+that builds the morph target. (d32's hand-off builds the morph *source* at
+click time on the old page; the arrival hand-off builds the *target* on the
+new page, before first paint.)
+
+1. **Departure side: zero code on `/sheet`.** The named `.sheet-portrait
+   img` and the page opt-in already exist from d32. Nothing is added,
+   changed, or cleaned up on the sheet.
+2. **The arrival hand-off on `/`.** An `is:inline` head script in
+   `index.astro` registers `pagereveal` — the same idiom as `sheet.astro`'s
+   marker script; inline registration is the only way to guarantee the
+   listener exists before the event can fire. When the gates (design 3)
+   hold, the handler runs synchronously, in this order:
+   - remove any stranded element that carries an inline
+     `view-transition-name: character-portrait` (a forward-hand-off overlay
+     can survive into a back/forward-cache-restored `/`; two live elements
+     with one name make the browser skip the whole transition);
+   - find the laid-out `.badger-figure` (the one with a non-zero rect —
+     three scene variants exist, one is displayed; the same trick
+     `maybeHandoff` uses);
+   - read `.badger-up`'s `getBoundingClientRect()` and computed `filter`;
+   - append one `position: fixed` `<img src="/badger-up.png">` to
+     `document.body` at that rect, with the copied filter,
+     `view-transition-name: character-portrait`, and
+     `pointer-events: none`;
+   - hide the two SVG `<image>` elements (`visibility: hidden`) so the new
+     root snapshot shows no second Badger under the arriving one.
+
+   **Timing, stated on the record:** `pagereveal` fires before the first
+   paint, and the document is fully parsed at that point;
+   `getBoundingClientRect` forces synchronous layout, so the rect read is
+   correct without waiting a frame. The requirement binds, the mechanism
+   note does not — the overlay must sit on the Badger's true laid-out rect
+   and must exist before the browser captures the new state, which happens
+   right after the `pagereveal` handlers return. A `requestAnimationFrame`
+   deferral can never satisfy this (a frame later is after the capture); if
+   a worker finds the synchronous read wrong in Chromium, escalate to the
+   foreman.
+3. **Gates.** Three conditions, all required:
+   - `event.viewTransition` is truthy. This one check covers engine
+     support, the page opt-in, and reduced motion — the `@view-transition`
+     at-rule is gated under `prefers-reduced-motion: no-preference` on both
+     pages, so no transition object exists when reduced motion is on.
+   - `window.innerWidth >= 1650` — the same comparator d32's validation
+     recorded. The gate lives on the *departure* condition even though it
+     is read on `/`: the seat only exists at ≥1650 on `/sheet`, and the
+     window width does not change across a navigation, so the arriving
+     width proves whether an old snapshot exists. Below 1650 there is
+     nothing to morph *from*; a solo named overlay would fade in on its
+     own, which reads worse than the free root cross-fade. The scene
+     Badger exists at all widths, but that is not the deciding side.
+   - a laid-out `.badger-figure` exists.
+
+   **Deviation from d32's module shape, on the record:** the gate is one
+   boolean expression inside an inline script — no exported predicate, no
+   vitest. A separate module cannot reliably register `pagereveal` in time,
+   and d32's module ceremony for three conditions fails the simplicity
+   rule. The e2e matrix covers every gate.
+4. **Overlay lift and idle resume.** On `event.viewTransition.finished` —
+   chained with `.finally(...)`, because `finished` rejects when a
+   transition is skipped and the cleanup must run either way — the handler:
+   removes the overlay; clears `visibility` on both SVG `<image>` elements;
+   restarts both idle animations from time zero (set `animation: 'none'`,
+   force one reflow, clear the inline style). Both idle keyframes start on
+   the up frame, and the overlay shows the up frame, so the lift is
+   seamless: no jump, no double Badger, no half-cycle offset.
+5. **Duration knob.** Add `::view-transition-group(character-portrait)
+   { animation-duration: 400ms; }` to `index.astro`'s style block. The
+   group animates on the *arriving* page, so `sheet.astro`'s copy of this
+   rule does not govern the return. Open at whatever value d32's acceptance
+   settles; Caveshen turns the knob at preview, as with d32 ruling #3.
+6. **History traversals — decided here, pending ruling.** Both pages opt
+   in, so the browser Back button from `/sheet` fires the same
+   cross-document transition, and the arrival hand-off runs for it too.
+   Recommended: keep it — it is the same journey and costs nothing. If
+   Caveshen wants the morph on link clicks only,
+   `navigation.activation.navigationType` distinguishes `traverse` from
+   `push` and can gate it. See *Open questions*.
+7. **Below the gates.** Below 1650px: no travel; supporting browsers keep
+   the free root cross-fade from the opt-in. Unsupported browsers: today's
+   plain navigation. Reduced motion: instant swap, no transition. All
+   exactly as d32 design 8.
+
+### Tickets
+
+Each ticket is sized for one worker, one spawn. Never name a file, class,
+or comment after the tracker ID.
+
+**T1 — the arrival hand-off on `/`.** Files: `index.astro` only — the
+inline head script and the duration rule. Plus its e2e coverage in a new
+spec file named for its subject (suggested: `e2e/return-journey.spec.js`).
+No dependency; starts first.
+
+**T2 — the round trip: e2e + acceptance evidence.** Depends on T1. Extends
+the return spec (new in this item, so extending it does not break the
+untouched-specs rule) with the round-trip and Back-button cases, and
+captures screenshots for Caveshen's acceptance.
+
+### Per-ticket success criteria — test-shaped where possible
+
+Repo test rules bind, as in d32: no `waitForTimeout`, no fixed sleeps;
+auto-retrying assertions (`expect.poll`, `toHaveClass`) for anything that
+settles; branch on runtime feature detection (`'onpageswap' in window`,
+read via `page.evaluate`), never on the Playwright project name; reuse the
+journey spec's exact-string console filter ("Transition was skipped") where
+that benign Chromium line appears.
+
+**T1 done means:**
+
+1. Supported engine, 1920: journey `/` → `/sheet` (the d32 click path),
+   click `.back-link`, land on `/`; then, with auto-retrying assertions: no
+   overlay `<img>` remains in the DOM; `.badger-up`'s computed
+   `animation-name` is `badger-up` and its computed `visibility` is
+   `visible`; `.badger-down`'s `animation-name` is `badger-down`. The idle
+   is alive.
+2. Same arrival: `<html>` on `/` has no `arrived-by-morph` class; no
+   console errors beyond the filtered string.
+3. Unsupported engine: the same click path lands on `/` with the idle
+   running, no overlay ever created, no errors.
+4. Reduced motion (emulated), supported engine: the back-link arrival is
+   instant; no overlay exists; the Badger holds the up frame per the
+   existing reduced-motion behaviour.
+5. At 1366, supported engine: the back link lands correctly; no overlay;
+   error-clean under the same filter.
+6. `git diff` shows `index.astro` as the only changed source file.
+7. Every pre-d33 spec file is unmodified and green; the vitest suite is
+   untouched and green.
+
+**T2 done means:**
+
+1. Supported engine, 1920: a double round trip (`/` → `/sheet` → back link
+   → `/` → `/sheet` → back link → `/`); after each return, the T1-1 end
+   state holds. This proves the duplicate-name defence: the second forward
+   hand-off runs on a page the first return already touched, and the
+   second return runs against whatever the forward hand-off left behind.
+2. Supported engine, 1920: journey to `/sheet`, then `page.goBack()`; `/`
+   ends clean — no overlay, idle running — with or without the
+   back/forward cache. d32's existing `goBack` coverage stays green beside
+   it.
+3. Screenshots at 1920, night and day, both themes' grounds, captured on
+   the return for Caveshen's acceptance pass (the d24 criterion-10
+   precedent: the seam and the colour beat are judged by his eye).
+4. Full matrix numbers reported (passed / skipped / failed).
+
+### Item-level success criteria — done means all of these
+
+1. Supported browser at ≥1650px: the back link morphs the Badger from the
+   portrait seat to his scene position, and he goes out of full colour into
+   the scene filter on the way.
+2. The scene is alive on arrival: the idle resumes on the up frame with no
+   jump, no double Badger, and no stranded overlay.
+3. The d32 forward journey is unchanged: its files untouched, its tests
+   green.
+4. Unsupported browsers, reduced motion, and widths below 1650px behave
+   exactly as they do after d32 — no regressions, no errors.
+5. Browser Back from `/sheet` behaves per the ruling on open question 1,
+   and always ends clean.
+6. Every pre-d33 test file is unmodified and green; new coverage is
+   additive; the full matrix is green.
+7. Caveshen's eye on local preview: the arrival seam (overlay lift into
+   the running idle) is invisible, and the out-of-colour beat reads well
+   against both themes and both times of day.
+
+### Risks
+
+- **Duplicate names skip the transition.** A stranded forward overlay on a
+  restored `/` shares the name with the arrival overlay; the browser then
+  skips the morph. The remove-stranded step in design 2 exists for this;
+  T2 criterion 1 proves it.
+- **Event ordering on cache restores** (`pageshow` cleanup vs `pagereveal`
+  capture) is not something to depend on. The remove-stranded step makes
+  the order irrelevant.
+- **`finished` rejects on skipped transitions.** The `.finally` cleanup in
+  design 4 exists for this; without it the scene Badger stays hidden
+  forever.
+- **The inline head script must stay error-free.** The hygiene suite
+  watches the console. A throw costs only the morph (the fallback look),
+  but it must never log.
+- **Headless CI vs the supported branch:** as in d32 — if supported-branch
+  assertions flake on CI, the worker escalates to the foreman; never
+  silently weaken a branch into a vacuous test.
+
+### Open questions for Caveshen
+
+1. **The browser Back button.** With both pages opted in, Back from
+   `/sheet` fires the same transition, so the Badger morphs home on Back
+   as well as on the link click. Recommended: keep it — same journey, zero
+   extra code. If you want the morph on the link click only, the
+   navigation type can gate it; say the word and design 6 flips.
+
+**Status: 📝 BRIEFED — awaiting Caveshen's go; sequenced after d32
+merges.**

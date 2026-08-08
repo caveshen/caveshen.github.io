@@ -5789,13 +5789,15 @@ that benign Chromium line appears.
   assertions flake on CI, the worker escalates to the foreman; never
   silently weaken a branch into a vacuous test.
 
-### Open questions for Caveshen
+### Open questions — RESOLVED (Caveshen, 2026-08-09)
 
-1. **The browser Back button.** With both pages opted in, Back from
-   `/sheet` fires the same transition, so the Badger morphs home on Back
-   as well as on the link click. Recommended: keep it — same journey, zero
-   extra code. If you want the morph on the link click only, the
-   navigation type can gate it; say the word and design 6 flips.
+1. **The browser Back button.** RULED: keep it — Back from `/sheet` morphs
+   the Badger home, same as the link click. Zero extra code; design 6
+   stands as written.
 
-**Status: 📝 BRIEFED — awaiting Caveshen's go; sequenced after d32
-merges.**
+**Later idea (raised 2026-08-09, not in scope):** a dialogue option on
+`/sheet` for the return to the main page — the sheet speaks the way the
+scene does. Not briefed; revisit after d33 ships.
+
+**Status: 🟢 GO GIVEN 2026-08-09 — build sequenced after PR #17 (d32)
+merges. Do not start while d32 is open.**

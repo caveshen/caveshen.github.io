@@ -155,11 +155,10 @@ test('at 1366 (below breakpoint): back link returns correctly, no overlay, no er
 // Red proof (timing, manual): add a page.route interceptor with a delay long
 //   enough to surface the race (e.g. 100 ms on this stack, where DCL fires in
 //   <100 ms) and rerun; decoded=false proves the window exists.
-// Chromium-only: WebKit cross-document VT support is partial; the decode assertion
-//   is skipped when pagereveal never sets the flag.
+// The decode assertion self-gates on execution evidence: if pagereveal did not fire
+//   (VT unsupported in this engine), window.__badgerOverlayDecoded is null and the
+//   check is skipped. No project-name branch needed or used here.
 test('overlay image is decoded at pagereveal time — image-decode flash guard', async ({ page }) => {
-  test.skip(test.info().project.name !== 'desktop-1920', 'decode-timing proof runs on desktop-1920 (Chromium) only');
-
   await page.setViewportSize({ width: 1920, height: 1080 });
 
   // Structural assertion: the preload link must be present in the page head.

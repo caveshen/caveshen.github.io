@@ -24,33 +24,42 @@ const arrivedByMorph = (page) =>
 test('click-through: supported engine sets arrived-by-morph and suppresses portrait slide-in; unsupported does not', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await navigateToSheet(page);
-  const supported = await arrivedByMorph(page);
 
-  if (supported) {
+  // ponytail: single evaluate snapshot — marker and every animation read in one JS call; eliminates
+  // the inter-read race window where WebKit's pagereveal handler fires between the marker read and
+  // the style reads, causing the unsupported-branch assertion to see 'none' instead of 'portrait-slide-in'.
+  const snap = await page.locator('html').evaluate((html) => {
+    const supported = html.classList.contains('arrived-by-morph');
+    const portraitEl = document.querySelector('.sheet-portrait');
+    const portraitCs = getComputedStyle(portraitEl);
+    // Parse the Y translation from the computed matrix (6th value in matrix(a,b,c,d,tx,ty)).
+    const match = portraitCs.transform.match(/matrix\([^,]+,[^,]+,[^,]+,[^,]+,[^,]+,([^)]+)\)/);
+    return {
+      supported,
+      portrait: {
+        animName: portraitCs.animationName,
+        // Expected: -50% of border-box height; getBoundingClientRect gives sub-pixel border-box height.
+        actualTy: match ? parseFloat(match[1]) : null,
+        expectedTy: -(portraitEl.getBoundingClientRect().height / 2),
+      },
+      menuAnimName: getComputedStyle(document.querySelector('.nameplate-inner')).animationName,
+      xpAnim: getComputedStyle(document.querySelector('.xp-fill')).animationName,
+    };
+  });
+
+  if (snap.supported) {
     // Portrait animation suppressed; vertical-centring transform is translateY(-50%).
-    const style = await page.locator('.sheet-portrait').evaluate((el) => {
-      const cs = getComputedStyle(el);
-      // Parse the Y translation from the computed matrix (6th value in matrix(a,b,c,d,tx,ty)).
-      const match = cs.transform.match(/matrix\([^,]+,[^,]+,[^,]+,[^,]+,[^,]+,([^)]+)\)/);
-      const actualTy = match ? parseFloat(match[1]) : null;
-      // Expected: -50% of border-box height; getBoundingClientRect gives sub-pixel border-box height.
-      const expectedTy = -(el.getBoundingClientRect().height / 2);
-      return { animName: cs.animationName, actualTy, expectedTy };
-    });
-    expect(style.animName).toBe('none');
-    expect(style.actualTy).not.toBeNull();
+    expect(snap.portrait.animName).toBe('none');
+    expect(snap.portrait.actualTy).not.toBeNull();
     // toBeCloseTo with 1 decimal digit — within 0.05px — catches any non-translateY(-50%) transform.
-    expect(style.actualTy).toBeCloseTo(style.expectedTy, 1);
+    expect(snap.portrait.actualTy).toBeCloseTo(snap.portrait.expectedTy, 1);
   } else {
     // No marker, full choreography including portrait slide-in plays on unsupported path.
-    expect(supported).toBe(false);
-    const animName = await page.locator('.sheet-portrait').evaluate((el) => getComputedStyle(el).animationName);
-    expect(animName).toBe('portrait-slide-in');
+    expect(snap.supported).toBe(false);
+    expect(snap.portrait.animName).toBe('portrait-slide-in');
     // Full menu-open choreography runs: other animated elements are not suppressed.
-    const menuAnimName = await page.locator('.nameplate-inner').evaluate((el) => getComputedStyle(el).animationName);
-    expect(menuAnimName).not.toBe('none');
-    const xpAnim = await page.locator('.xp-fill').evaluate((el) => getComputedStyle(el).animationName);
-    expect(xpAnim, '.xp-fill animates in unsupported path').not.toBe('none');
+    expect(snap.menuAnimName).not.toBe('none');
+    expect(snap.xpAnim, '.xp-fill animates in unsupported path').not.toBe('none');
   }
 });
 

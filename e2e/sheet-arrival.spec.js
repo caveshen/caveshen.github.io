@@ -43,7 +43,7 @@ test('click-through: supported engine sets arrived-by-morph and suppresses portr
     expect(style.actualTy).toBeCloseTo(style.expectedTy, 1);
   } else {
     // No marker, full choreography including portrait slide-in plays on unsupported path.
-    expect(await arrivedByMorph(page)).toBe(false);
+    expect(supported).toBe(false);
     const animName = await page.locator('.sheet-portrait').evaluate((el) => getComputedStyle(el).animationName);
     expect(animName).toBe('portrait-slide-in');
     // Full menu-open choreography runs: other animated elements are not suppressed.

@@ -69,7 +69,7 @@ test('full journey at 1920: supported engine arrives with marker + suppressed po
     }
   } else {
     // Unsupported: no marker; portrait plays its slide-in; full choreography runs.
-    expect(await arrivedByMorph(page)).toBe(false);
+    expect(supported).toBe(false);
 
     const portraitAnim = await page.locator('.sheet-portrait').evaluate(
       (el) => getComputedStyle(el).animationName

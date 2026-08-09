@@ -77,7 +77,7 @@ the document body under their original `§` headings as history.
 | d31 | Game-feel UI pass — streaming dialogue text + one selection idiom for every button | *new* | ✅ ACCEPTED 2026-08-04 (Parts A+B) — PR open from `item/game-feel-ui` |
 | d32 | Scene→sheet transition — the Badger travels from the scene to his portrait seat | *new* | ✅ MERGED 2026-08-09 (PR #17, `dc9de23`) |
 | d33 | Sheet→scene return — the Badger travels back from his portrait seat | *new* | ✅ ACCEPTED 2026-08-09 — PR open, awaiting Caveshen's merge (§d33) |
-| d34 | Test-suite health — full test strategy (unit + integration) and execution | *new* | 📝 STRATEGY DRAFTED 2026-08-09 — awaiting Caveshen's approval; execution does not start (§d34) |
+| d34 | Test-suite health — full test strategy (unit + integration) and execution | *new* | 🚧 EXECUTING 2026-08-09 — strategy approved, all rulings in; phases 0-7 in build on `chore/test-strategy` (§d34) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -5874,12 +5874,12 @@ strategy is drafted here from that audit — it must also RULE on facet 1
 (CI browser alignment), since alignment changes what the audit's findings
 mean; (3) Caveshen approves the strategy; (4) execution against it.
 
-**Status: 📝 STRATEGY DRAFTED 2026-08-09 — the audit is done and the
-strategy below is written from it, on `chore/test-strategy`. It awaits
-Caveshen's approval. Execution (including any test deletion) does not
-start before that approval.**
+**Status: 🚧 EXECUTING 2026-08-09 — strategy APPROVED by Caveshen, all
+three rulings in (Edge CI: yes; screenshots: ad-hoc script; perf gate:
+report-only first), plus a Phase 7 local GPU/FPS harness added at his
+request. Phases 0-7 in build on `chore/test-strategy`.**
 
-### Test strategy (drafted 2026-08-09 — needs Caveshen's approval)
+### Test strategy (APPROVED 2026-08-09)
 
 **Goal, one sentence:** make both test levels fast, deterministic, and
 consistent — solitary unit tests for the modules we built, Playwright for
@@ -6045,15 +6045,31 @@ Caveshen approves this strategy.
 ruling 1 is declined), the unit run under 15 s, matrix green, and the
 e2e case count reported before and after so the expunge is visible.
 
-#### 6. Open questions for Caveshen
+#### 6. Open questions — RESOLVED (Caveshen, 2026-08-09)
 
-1. **The Phase 0 ruling (facet 1):** run CI on branded Edge?
-   Recommended: yes. If declined, ticket 2 is dropped and the
-   return-journey scar tissue stays, with its comments.
-2. **Acceptance screenshots:** keep the return-journey screenshot
-   capture as a standalone script for your eye passes, or delete it?
-   Recommended: keep as a script — cheap, and it served d33.
-3. **Perf gate posture:** should a perf regression fail the build at
-   once, or report-only for the first weeks while the baselines prove
-   themselves? Recommended: report-only first, then promote.
+1. **The Phase 0 ruling (facet 1):** APPROVED — CI runs on branded Edge.
+   Ticket 2 (scar-tissue deletion) proceeds.
+2. **Acceptance screenshots:** RULED — keep as a standalone script for
+   ad-hoc local runs, out of CI.
+3. **Perf gate posture:** RULED — report-only first, promote to blocking
+   after the baselines prove themselves.
+
+#### 7. Local GPU/FPS harness (added at Caveshen's request, 2026-08-09)
+
+CI cannot measure GPU or frame rate honestly (software rendering on
+shared runners). But the concern is real: hidden compute — animations
+that keep running while occluded or offscreen, paint storms nobody sees —
+wastes GPU cycles on every visitor's machine. So GPU/FPS testing rides
+as AD-HOC LOCAL tooling, next to the screenshot script, run on a real
+GPU in headed Edge on demand (not in CI):
+
+- Sample frame rate during the idle scene, dialogue, and both morphs.
+- Report long animation frames and dropped-frame counts.
+- Flag animations still running while the page is hidden
+  (`visibilitychange`) and elements animating while offscreen or fully
+  occluded — the hidden-compute checklist.
+- Output is a human-readable report for Caveshen's judgement; no
+  assertions, no gate.
+
+This is execution Phase 7, after the CI perf suite (Phase 6).
 

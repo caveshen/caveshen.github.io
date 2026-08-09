@@ -6008,6 +6008,16 @@ local matrix passes with no failures that were not already known before
 the ticket (the d32 WebKit marker race is known). Nothing starts before
 Caveshen approves this strategy.
 
+**Phase status (execution tracker; canonical strategy: docs/TEST-STRATEGY.md):**
+- P0 CI on Edge — DONE (829ac61)
+- P1 Scar-tissue deletion — pending
+- P2 Spec consolidation — pending
+- P3 Small expunges and demotions — pending
+- P4 stage.js extraction and unit tests — pending
+- P5 Fixed-sleep conversions — pending
+- P6 CI perf suite (report-only) — pending
+- P7 Local GPU/FPS harness (ad-hoc) — pending
+
 1. **P0 — CI on Edge.** Change `playwright.config.js:7` so CI also uses
    `channel: 'msedge'`; update the comment above it. Run one CI shakeout
    round. → verify: CI matrix green on Edge; no new flake class in the

@@ -5,25 +5,27 @@ import { mkdirSync } from 'node:fs';
 // Navigate from / to /sheet via the dialogue system option.
 async function navigateToSheet(page) {
   await page.goto('/');
-  // ponytail: el.click() via evaluate bypasses two problems at once —
-  // (a) bundled Chromium leaves rAF frozen after a skipped cross-document VT, which
-  //     starves Playwright's stability poll; (b) Edge runs the VT correctly (400ms),
-  //     so a CDP mouse click during the overlay hits the pseudo-element, not the anchor.
-  // el.click() is a trusted JS event that fires directly on the element regardless of
-  // overlay or compositor state. toBeVisible() guards confirm presence before each click.
-  // Ceiling: pointer-events:none or z-index coverage would not be caught — add a
-  // CSS assertion if that ever matters.
+  // ponytail: all clicks here use force:true — bundled Chromium (CI) freezes
+  // Playwright's rAF-based stability poll on pages arrived via a cross-document VT,
+  // in BOTH directions. The second journey's / arrives via the return morph; the rAF
+  // poll never settles and a plain .click() times out. Edge is also Chromium-based
+  // but does not freeze (channel build vs. bundled Chromium diverge here). Real-click
+  // coverage of the dialogue path lives in sheet-arrival/portrait-journey (fresh-goto
+  // journeys). Ceiling: force:true masks a pointer-intercepting overlay — mitigated by
+  // toBeVisible guards and the __vtFinished await below.
   await expect(page.locator('#approach-prompt')).toBeVisible();
-  await page.evaluate(() => document.querySelector('#approach-prompt').click());
+  await page.locator('#approach-prompt').click({ force: true });
   await expect(page.locator('#choices button.system')).toBeVisible();
-  await page.evaluate(() => document.querySelector('#choices button.system').click());
+  await page.locator('#choices button.system').click({ force: true });
   await page.waitForURL('/sheet');
   // Cross-document VT can leave WebKit in a transient state where subsequent
   // interactions fail immediately after waitForURL resolves.
   await page.waitForLoadState('domcontentloaded');
-  // In Edge/WebKit the VT runs correctly (400ms); wait for it before interacting.
-  // In bundled Chromium the VT is skipped (e.viewTransition = null), __vtFinished is
-  // not set, and Promise.resolve() is used immediately.
+  // DCL resolves before pagereveal, so __vtFinished may not exist yet when we check.
+  // waitForFunction polls until pagereveal fires and sets it (bounded at 5s); if it
+  // never fires (bundled Chromium: VT skipped, __vtFinished never assigned), the
+  // caught timeout lets us fall through to Promise.resolve() at no behavioural cost.
+  await page.waitForFunction(() => window.__vtFinished !== undefined, null, { timeout: 5000 }).catch(() => {});
   await page.evaluate(() => window.__vtFinished ?? Promise.resolve());
   await expect(page.locator('.back-link')).toBeVisible();
 }
@@ -52,7 +54,7 @@ test('back link returns to / with idle running, no overlay, no arrived-by-morph'
 
   await page.setViewportSize({ width: 1920, height: 1080 });
   await navigateToSheet(page);
-  await page.evaluate(() => document.querySelector('.back-link').click());
+  await page.locator('.back-link').click({ force: true });
   await page.waitForURL('/');
   await page.waitForLoadState('domcontentloaded');
 
@@ -80,14 +82,14 @@ test('double round trip: back link end state holds after each of two returns', a
 
   // First round trip.
   await navigateToSheet(page);
-  await page.evaluate(() => document.querySelector('.back-link').click());
+  await page.locator('.back-link').click({ force: true });
   await page.waitForURL('/');
   await page.waitForLoadState('domcontentloaded');
   await assertReturnEndState(page);
 
   // Second round trip — runs on the page the first return already cleaned up.
   await navigateToSheet(page);
-  await page.evaluate(() => document.querySelector('.back-link').click());
+  await page.locator('.back-link').click({ force: true });
   await page.waitForURL('/');
   await page.waitForLoadState('domcontentloaded');
   await assertReturnEndState(page);
@@ -146,7 +148,7 @@ test('at 1366 (below breakpoint): back link returns correctly, no overlay, no er
 
   await page.setViewportSize({ width: 1366, height: 768 });
   await navigateToSheet(page);
-  await page.evaluate(() => document.querySelector('.back-link').click());
+  await page.locator('.back-link').click({ force: true });
   await page.waitForURL('/');
   await page.waitForLoadState('domcontentloaded');
 
@@ -189,10 +191,11 @@ test('overlay image is decoded at pagereveal time — image-decode flash guard',
   await page.locator('#choices button.system').click();
   await page.waitForURL('/sheet');
   await page.waitForLoadState('domcontentloaded');
+  await page.waitForFunction(() => window.__vtFinished !== undefined, null, { timeout: 5000 }).catch(() => {});
   await page.evaluate(() => window.__vtFinished ?? Promise.resolve());
 
   await expect(page.locator('.back-link')).toBeVisible();
-  await page.evaluate(() => document.querySelector('.back-link').click());
+  await page.locator('.back-link').click({ force: true });
   await page.waitForURL('/');
   await page.waitForLoadState('domcontentloaded');
 
@@ -215,7 +218,7 @@ test('acceptance screenshots: return arrival at 1920 in night and day themes', a
 
   // Night (default — no time key in localStorage).
   await navigateToSheet(page);
-  await page.evaluate(() => document.querySelector('.back-link').click());
+  await page.locator('.back-link').click({ force: true });
   await page.waitForURL('/');
   await page.waitForLoadState('domcontentloaded');
   await expect(page.locator('body > img[src="/badger-up.png"]')).toHaveCount(0);
@@ -224,7 +227,7 @@ test('acceptance screenshots: return arrival at 1920 in night and day themes', a
   // Day: set theme in localStorage — persists across the cross-document navigation.
   await page.evaluate(() => localStorage.setItem('time', 'day'));
   await navigateToSheet(page);
-  await page.evaluate(() => document.querySelector('.back-link').click());
+  await page.locator('.back-link').click({ force: true });
   await page.waitForURL('/');
   await page.waitForLoadState('domcontentloaded');
   await expect(page.locator('body > img[src="/badger-up.png"]')).toHaveCount(0);

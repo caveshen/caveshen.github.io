@@ -12,9 +12,8 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     window.addEventListener('pagereveal', function(e) {
       if (e.viewTransition) {
         document.documentElement.classList.add('arrived-by-morph');
-        // Awaited in navigateToSheet() so evaluate-clicks fire after the VT overlay
-        // clears. Edge/WebKit: VT runs (400ms), finished resolves on completion.
-        // Bundled Chromium: VT is null so this branch is never entered.
+        // Software-rendered compositor may release the VT rendering layer after domcontentloaded;
+        // finished resolves on both completion and skip.
         window.__vtFinished = e.viewTransition.finished;
       }
     });

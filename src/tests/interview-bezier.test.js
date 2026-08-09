@@ -22,6 +22,7 @@ function parseTransition(css) {
   return { durationMs: parseFloat(durationMatch[1]) * 1000, p1x, p1y, p2x, p2y };
 }
 
+// ponytail: CSS curves pinned as literals; drift in the real stage.js / tokens.css transitions goes uncaught here — re-sync these if the curves change.
 // Static CSS strings as normalised by the browser (550ms → 0.55s, 950ms → 0.95s).
 const ENTRY_CSS = 'transform 0.55s cubic-bezier(0.4, 0, 0.2, 1)';
 const EXIT_CSS  = 'transform 0.95s cubic-bezier(0.16, 1, 0.3, 1)';
@@ -38,10 +39,6 @@ test('exit easing (unchanged) advances more than 10% in the first frame (16ms), 
   const { durationMs, p1x, p1y, p2x, p2y } = parseTransition(EXIT_CSS);
   const pct = bezierProgressAt(p1x, p1y, p2x, p2y, durationMs, 16) * 100;
   expect(pct).toBeGreaterThan(10);
-});
-
-test('entry and exit have different computed transitions', () => {
-  expect(ENTRY_CSS).not.toBe(EXIT_CSS);
 });
 
 test('exit computed transition matches the unchanged, approved 950ms curve', () => {

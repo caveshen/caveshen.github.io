@@ -76,7 +76,7 @@ the document body under their original `§` headings as history.
 | d30 | Easter egg — the banner plane crashes when clicked | *new* | 🔧 in build 2026-08-06 — go given, banner-copy follow-up deliberately skipped |
 | d31 | Game-feel UI pass — streaming dialogue text + one selection idiom for every button | *new* | ✅ ACCEPTED 2026-08-04 (Parts A+B) — PR open from `item/game-feel-ui` |
 | d32 | Scene→sheet transition — the Badger travels from the scene to his portrait seat | *new* | ✅ MERGED 2026-08-09 (PR #17, `dc9de23`) |
-| d33 | Sheet→scene return — the Badger travels back from his portrait seat | *new* | ✅ BUILT + VALIDATED 2026-08-09 (feat/portrait-return) — awaiting Caveshen's preview (§d33) |
+| d33 | Sheet→scene return — the Badger travels back from his portrait seat | *new* | ✅ ACCEPTED 2026-08-09 — PR open, awaiting Caveshen's merge (§d33) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -5810,7 +5810,10 @@ that benign Chromium line appears.
 `/sheet` for the return to the main page — the sheet speaks the way the
 scene does. Not briefed; revisit after d33 ships.
 
-**Status: ✅ BUILT + VALIDATED 2026-08-09 — all testable item criteria
-confirmed on `feat/portrait-return` (matrix 2036 passed / 26 skipped /
+**Status: ✅ ACCEPTED 2026-08-09 — Caveshen's eye passed on the second
+preview, after one acceptance fix (a transparent flash at reverse-morph
+start; root cause: overlay image decode race; cure: parse-time preload of
+badger-up.png on `/` via a named head slot in Base.astro — the shared-layout
+touch was blessed with the acceptance). Matrix 2036 passed / 26 skipped /
 2 failed, both failures inherited from the d32 specs' WebKit marker race —
-see the follow-up note above). Awaiting Caveshen's preview and release.**
+see the follow-up note above. PR open, awaiting his merge.**

@@ -2,6 +2,33 @@ import { initEngine } from './dialogue.js';
 import { computeCameraTransform } from './camera.js';
 import { maybeHandoff } from './portrait-handoff.js';
 
+// Module-scope so computeNextPlaneDelay (exported pure fn) can reference them.
+const PLANE_INTERVAL_MS = 120_000;
+const PLANE_JITTER_MS   = 30_000; // ± around the interval — not a metronome
+
+// Pure: clamp the "beside" prompt position when there is not enough headroom above.
+// All lengths are frame-relative px (subtract sf.top/sf.left before passing).
+export function clampPromptBeside({ figTop, figRight, sfWidth, sfHeight, btnWidth, btnHeight, gap }) {
+  const top      = Math.max(8, figTop);
+  const wantsLeft = figRight + gap;
+  const left     = Math.min(Math.max(8, wantsLeft), Math.max(8, sfWidth - btnWidth - 8));
+  return { left, top: Math.min(top, Math.max(8, sfHeight - btnHeight - 8)) };
+}
+
+// Pure: approach-zoom scale, clamped to [1.3, 2.2].
+// SAFETY_PX absorbs subpixel rounding so the face never lands flush on the card edge.
+export function computeApproachScale(cardTop, faceRect) {
+  const SAFETY_PX = 6;
+  return faceRect && faceRect.height > 0
+    ? Math.min(2.2, Math.max(1.3, (cardTop - SAFETY_PX) / faceRect.height))
+    : 2.2;
+}
+
+// Pure: next plane delay — base interval with ± jitter. rand is injectable for tests.
+export function computeNextPlaneDelay(rand = Math.random) {
+  return PLANE_INTERVAL_MS + (rand() * 2 - 1) * PLANE_JITTER_MS;
+}
+
 // Two of Scene.astro's three variants are display:none at any given viewport
 // (only one matches the aspect-ratio media query) — this picks the laid-out one.
 const visibleOne = (selector) =>
@@ -57,16 +84,17 @@ export function initStage(tree) {
     if (top < 8) {
       // Not enough headroom above the head to clear it inside the frame —
       // sit beside the figure instead of pushing the prompt down onto it.
-      top = Math.max(8, fig.top - sf.top);
       approachBtn.style.transform = 'none';
       // No translateX centring to absorb an edge overrun here, so left/top
       // must be clamped into the frame — a figure near the edge could
       // otherwise push the prompt out of .stage-frame.
-      const btnWidth  = approachBtn.getBoundingClientRect().width;
-      const wantsLeft = (fig.right - sf.left) + GAP;
-      const left      = Math.min(Math.max(8, wantsLeft), Math.max(8, sf.width - btnWidth - 8));
-      approachBtn.style.left = `${left}px`;
-      top = Math.min(top, Math.max(8, sf.height - btnHeight - 8));
+      const btnWidth = approachBtn.getBoundingClientRect().width;
+      const { left: clampedLeft, top: clampedTop } = clampPromptBeside({
+        figTop: fig.top - sf.top, figRight: fig.right - sf.left,
+        sfWidth: sf.width, sfHeight: sf.height, btnWidth, btnHeight, gap: GAP,
+      });
+      approachBtn.style.left = `${clampedLeft}px`;
+      top = clampedTop;
     }
     approachBtn.style.top = `${top}px`;
   }
@@ -125,10 +153,7 @@ export function initStage(tree) {
       // above the card. SAFETY_PX absorbs subpixel/layout-timing rounding so
       // the scaled face doesn't land flush against the card's edge. Floor of
       // 1.3 matches the smallest zoom that still reads as "zoomed in".
-      const SAFETY_PX = 6;
-      const scale = faceRect && faceRect.height > 0
-        ? Math.min(2.2, Math.max(1.3, (cardTop - SAFETY_PX) / faceRect.height))
-        : 2.2;
+      const scale = computeApproachScale(cardTop, faceRect);
       const { tx, ty } = computeCameraTransform({ stage: sf, figure: fig, scale, faceTargetY, faceY });
       camera.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
       // Feeds .bg-layer's counter-scale (tokens.css).
@@ -172,8 +197,6 @@ export function initStage(tree) {
   // (not a cancelled timer) — schedulePlane() always clears the previous one
   // before arming the next, so only one timer chain ever runs.
   const PLANE_FIRST_MS = 10_000;
-  const PLANE_INTERVAL_MS = 120_000;
-  const PLANE_JITTER_MS = 30_000; // ± around the interval — not a metronome
   const PLANE_FLIGHT_MS = 16_000; // knob: crossing speed
   // d30: click-to-crash easter egg — sputter + spiral dive is one continuous
   // animation (CRASH_MS); the detached banner falls on its own, independent
@@ -185,7 +208,7 @@ export function initStage(tree) {
   let planeTimer;
   let planeEl = null;
 
-  const nextPlaneDelay = () => PLANE_INTERVAL_MS + (Math.random() * 2 - 1) * PLANE_JITTER_MS;
+  const nextPlaneDelay = computeNextPlaneDelay; // ponytail: alias; no-arg call uses Math.random default
   function schedulePlane(delay) {
     clearTimeout(planeTimer);
     planeTimer = setTimeout(flyPlane, delay);

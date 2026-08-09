@@ -12,9 +12,6 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     window.addEventListener('pagereveal', function(e) {
       if (e.viewTransition) {
         document.documentElement.classList.add('arrived-by-morph');
-        // Software-rendered compositor may release the VT rendering layer after domcontentloaded;
-        // finished resolves on both completion and skip.
-        window.__vtFinished = e.viewTransition.finished;
       }
     });
   </script>

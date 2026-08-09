@@ -76,7 +76,7 @@ the document body under their original `§` headings as history.
 | d30 | Easter egg — the banner plane crashes when clicked | *new* | 🔧 in build 2026-08-06 — go given, banner-copy follow-up deliberately skipped |
 | d31 | Game-feel UI pass — streaming dialogue text + one selection idiom for every button | *new* | ✅ ACCEPTED 2026-08-04 (Parts A+B) — PR open from `item/game-feel-ui` |
 | d32 | Scene→sheet transition — the Badger travels from the scene to his portrait seat | *new* | ✅ MERGED 2026-08-09 (PR #17, `dc9de23`) |
-| d33 | Sheet→scene return — the Badger travels back from his portrait seat | *new* | 🚧 IN BUILD 2026-08-09 (§d33) |
+| d33 | Sheet→scene return — the Badger travels back from his portrait seat | *new* | ✅ BUILT 2026-08-09 (feat/portrait-return) — T1+T2 done, reviewer-approved; awaiting Caveshen’s preview (§d33) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -5550,10 +5550,14 @@ accepted and recorded here:
 
 ## d33. Sheet→scene return — the Badger travels back from his portrait seat
 
-### 🚧 IN BUILD 2026-08-09 — go given; d32 merged first
+### ✅ BUILT 2026-08-09 — T1+T2 done, reviewer-approved; awaiting Caveshen’s acceptance preview
 
 - **T1 — arrival hand-off on `/`:** done, reviewer approved (`521fe7e`). One non-blocking nit (dead test helper) folded into T2.
 - **T2 — round trip + acceptance evidence:** done, reviewer approved (`87e8db7`). Double round trip, `goBack` case, and 1920 night/day acceptance screenshots (gitignored).
+
+**Verification (2026-08-09).** Vitest 80/80. Full serialized matrix (all 8 projects): 2036 passed, 26 skipped, 2 failed. The 2 failures are a pre-existing WebKit flake in `portrait-journey.spec.js` (a two-read race on the `arrived-by-morph` marker, line 28 vs 72); the same race also hits `sheet-arrival.spec.js`. Proven pre-existing: the failing spec and `sheet.astro` are byte-identical on main `dc9de23`, main fails the same race, and the failure set wanders run to run (always WebKit). d33 is not implicated (it changed only `/`; the marker is set on `/sheet`). ESCALATED to Caveshen as a separate flake — not fixed here (the fix is in pre-existing specs outside this delivery’s scope). One-place fix when taken: reuse the already-read `supported` value in the `else` branch instead of re-reading the marker, in `portrait-journey.spec.js:72` and `sheet-arrival.spec.js:46`.
+
+Item criteria 1–6 met in code and tests; criterion 7 (Caveshen’s eye on the seam and the out-of-colour beat) waits on his local preview. Two 1920 acceptance screenshots (night/day) sit in the gitignored `screenshots/`. No push/PR/merge — held for his preview.
 
 **The ruling (Caveshen's, 2026-08-08):** the return journey gets the d32
 treatment. When the "← Back to the interview" link on `/sheet` is clicked,

@@ -212,6 +212,10 @@ test('overlay image is decoded at pagereveal time — image-decode flash guard',
 test('acceptance screenshots: return arrival at 1920 in night and day themes', async ({ page }) => {
   // ponytail: pin to desktop-1920 so only one project writes these files; pixel-8 and desktop-1366 are below the 1650px morph gate.
   test.skip(test.info().project.name !== 'desktop-1920', 'Acceptance screenshots captured on desktop-1920 only (1920px, morph fires)');
+  // Local acceptance aid only: the PNGs are for Caveshen's eye and CI discards its
+  // filesystem — and page.screenshot stalls on CI's bundled Chromium anyway (its
+  // font-settle wait rides the same rendering pipeline the skipped VT freezes).
+  test.skip(!!process.env.CI, 'Acceptance screenshots are a local aid; not generated on CI');
 
   mkdirSync('screenshots', { recursive: true });
   await page.setViewportSize({ width: 1920, height: 1080 });

@@ -77,7 +77,7 @@ the document body under their original `§` headings as history.
 | d31 | Game-feel UI pass — streaming dialogue text + one selection idiom for every button | *new* | ✅ ACCEPTED 2026-08-04 (Parts A+B) — PR open from `item/game-feel-ui` |
 | d32 | Scene→sheet transition — the Badger travels from the scene to his portrait seat | *new* | ✅ MERGED 2026-08-09 (PR #17, `dc9de23`) |
 | d33 | Sheet→scene return — the Badger travels back from his portrait seat | *new* | ✅ ACCEPTED 2026-08-09 — PR open, awaiting Caveshen's merge (§d33) |
-| d34 | Test-suite health — full test strategy (unit + integration) and execution | *new* | 🚧 AUDIT 2026-08-09 — scope expanded, go given; strategy needs Caveshen's approval before execution (§d34) |
+| d34 | Test-suite health — full test strategy (unit + integration) and execution | *new* | 📝 STRATEGY DRAFTED 2026-08-09 — awaiting Caveshen's approval; execution does not start (§d34) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -5874,6 +5874,186 @@ strategy is drafted here from that audit — it must also RULE on facet 1
 (CI browser alignment), since alignment changes what the audit's findings
 mean; (3) Caveshen approves the strategy; (4) execution against it.
 
-**Status: 🚧 AUDIT IN PROGRESS 2026-08-09 — go given for audit and
-strategy draft on `chore/test-strategy`. Execution (including any test
-deletion) starts only after Caveshen approves the written strategy.**
+**Status: 📝 STRATEGY DRAFTED 2026-08-09 — the audit is done and the
+strategy below is written from it, on `chore/test-strategy`. It awaits
+Caveshen's approval. Execution (including any test deletion) does not
+start before that approval.**
+
+### Test strategy (drafted 2026-08-09 — needs Caveshen's approval)
+
+**Goal, one sentence:** make both test levels fast, deterministic, and
+consistent — solitary unit tests for the modules we built, Playwright for
+the user-visible contract plus honest performance signals — and expunge
+every test that does not protect the site.
+
+All findings below come from the senior reviewer's audit (2026-08-09,
+read-only, on this branch). Suite state at audit time: unit = 80 tests in
+~8 s (camera 9, portrait-handoff 10, dialogue 24, theme 18, hygiene 19);
+e2e = 18 files, ~235 cases × 8 projects ≈ 2050, full matrix ~16 min.
+
+#### 1. The keystone ruling — CI browser (facet 1)
+
+This is the first decision. Ticket 2 hangs on it.
+
+**Proposal (Phase 0):** point the Chromium-family CI projects at branded
+Edge. One line changes: `playwright.config.js:7` now reads
+`const ch = ci ? {} : { channel: 'msedge' };` — drop the CI split so CI
+and local both run `channel: 'msedge'`. Edge is preinstalled on the
+ubuntu runners, so the switch costs no CI time. The pros and cons are
+recorded under facet 1 above and are not repeated here.
+
+**What the ruling buys:** all the heavy scar tissue in
+`e2e/return-journey.spec.js` — nine force-clicks, the `__vtFinished`
+settle awaits, the bounded `waitForFunction` guards — exists only because
+Playwright's bundled Chromium freezes `requestAnimationFrame` after a
+skipped cross-document view transition. Branded Edge and Chrome do not.
+If approved, all of that is deleted, not maintained. If declined, it
+stays, with its comments, and ticket 2 is dropped.
+
+**Recommendation: approve** — the suite then tests the browser users
+actually run, and the largest single source of test complexity becomes
+deletable.
+
+Kept in either case (load-bearing, not scar):
+
+- the `arrivedByMorph` execution-evidence gate
+  (`e2e/sheet-arrival.spec.js:20-22`);
+- the "Transition was skipped" console filter;
+- the banner-plane WAAPI pause/play discipline and `page.clock`.
+
+#### 2. Unit charter
+
+- Home: vitest, `src/tests/*.test.js`, run by `npm test`.
+- Style: classical and solitary. A unit test exercises one module we
+  built (`src/scripts/*`) through its own interface. No browser, no
+  network, no expectation beyond the module's contract.
+- The current 80-test, ~8 s suite is the model to keep. Target: the unit
+  run stays under 15 s.
+- Gap: `src/scripts/stage.js` (403 lines, the largest module) has no
+  unit test. Three pure-ish pieces are reachable: the `positionPrompt`
+  clamp (stage.js:57-70), the approach scale floor (stage.js:128-131),
+  and the `nextPlaneDelay` jitter (stage.js:188). Plan: extract that
+  logic into pure functions and test them solitary. No behaviour change;
+  the full matrix proves it.
+- Two unit tests in e2e costume get demoted to their true home:
+  - `e2e/badger-idle.spec.js:4-16` (asset 200 checks) duplicates
+    `src/tests/hygiene.test.js` and `e2e/badger.spec.js:44-50` — the
+    duplicate is deleted;
+  - `e2e/interview.spec.js:583-642` (a bezier evaluator run on static
+    CSS numbers) moves to `src/tests/`.
+
+#### 3. Integration charter
+
+Playwright verifies the user-visible contract only: look and feel, and
+functionality. A spec earns its place when its failure means a user sees
+something wrong. These specs qualify and stay: approach, dialogue, scene,
+not-found, sheet, interview, banner-plane, idle-parallax, button-feel.
+
+Rules:
+
+- **One journey per arrival mode.** `e2e/portrait-journey.spec.js` is a
+  near-total duplicate of `sheet-arrival.spec.js` walked via a dialogue
+  click. It merges in; one dialogue-entry journey case survives.
+- **No implementation trivia.** `e2e/sheet-portrait.spec.js:73-92`
+  asserts animation-delay ordering against a 500 ms budget — it becomes
+  a cheap stylesheet assertion. `e2e/sheet-arrival.spec.js:40,47` uses
+  `animationName === 'none'` as a proxy — same cleanup.
+- **No copied blocks.** The portrait geometry block exists three times
+  (sheet-portrait:38-48, sheet-arrival:70-77, portrait-journey:56-63);
+  the morph-suppression block twice. The helper home already exists:
+  `e2e/geom.js`. All copies route through it.
+- **Determinism idioms already won stay law:** branch on execution
+  evidence (the `arrived-by-morph` marker), never on API probes or the
+  Playwright project name; read markers once.
+- **No fixed sleeps.** Remaining offenders: `e2e/idle-parallax.spec.js`
+  lines 17 and 48 (1100 ms), one 400 ms sleep in dialogue, and the 8 s
+  real-animation poll in banner-plane. Each converts to an event or
+  state wait, or to `page.clock`.
+- Expunged outright: `pw-sw-config.js` (untracked, unused); the
+  return-journey acceptance-screenshots test leaves the matrix for a
+  standalone script (open question 2).
+
+#### 4. Performance charter (new)
+
+The brief asks for site performance including GPU and CPU. On CI this
+splits into what is honest and what is noise.
+
+Honest on CI — we assert on these:
+
+- Core Web Vitals via a `PerformanceObserver` injection on `/` and
+  `/sheet`: LCP and CLS. INP only as a synthetic proxy.
+- CDP `Performance.getMetrics`: JS heap size, layout and style-recalc
+  counts, and TaskDuration. TaskDuration plus the layout counts are the
+  CPU signal — this is how the CPU wish is honoured.
+- Trace-based timings and event counts.
+
+Noise on CI — we never promise these: GPU utilisation, FPS, paint
+smoothness, absolute wall-clock budgets. Reason: the runners render in
+software, with no real GPU and shared throttled CPUs. A GPU number there
+measures the runner, not the site. The GPU wish is honoured indirectly:
+heap, layout counts, and TaskDuration catch the regressions that would
+also cost GPU on real hardware. True GPU/FPS checks stay a local,
+eyes-on activity, not a CI gate.
+
+Assertion rule: compare against recorded baselines and fail only on a
+regression delta outside a generous tolerance. Never assert absolute
+budgets. Baselines live in the repo and are re-recorded deliberately,
+never auto-updated. The perf suite runs on one desktop project only, not
+across the ×8 matrix.
+
+#### 5. Execution plan
+
+Each ticket is one worker, one spawn. "Matrix green" means the full
+local matrix passes with no failures that were not already known before
+the ticket (the d32 WebKit marker race is known). Nothing starts before
+Caveshen approves this strategy.
+
+1. **P0 — CI on Edge.** Change `playwright.config.js:7` so CI also uses
+   `channel: 'msedge'`; update the comment above it. Run one CI shakeout
+   round. → verify: CI matrix green on Edge; no new flake class in the
+   shakeout. *Also blocked on ruling 1.*
+2. **Scar-tissue deletion** (needs 1). In `e2e/return-journey.spec.js`
+   remove the nine force-clicks, the `__vtFinished` awaits, and the
+   `waitForFunction` guards; keep the three load-bearing items in
+   strategy §1. → verify: no `force: true` and no `__vtFinished` left in
+   the file; matrix green locally and on CI.
+3. **Spec consolidation** (needs 2). Merge `portrait-journey.spec.js`
+   into `sheet-arrival.spec.js` with one dialogue-entry journey; move
+   the acceptance-screenshots test into a standalone script (or delete —
+   open question 2). → verify: `portrait-journey.spec.js` gone; the
+   dialogue-entry journey still runs; matrix green.
+4. **Small expunges and demotions** (needs 3). Geometry and
+   morph-suppression dedupe through `e2e/geom.js`; the sheet-portrait
+   timing budget becomes a stylesheet assertion; badger-idle asset-200
+   dedupe; the interview bezier evaluator moves to `src/tests/`; delete
+   `pw-sw-config.js`. → verify: no copied geometry block remains (grep);
+   unit run still under 15 s; matrix green.
+5. **stage.js extraction and unit tests** (after 4, to avoid diff
+   collisions). Extract the three pure pieces; test them solitary; no
+   behaviour change. → verify: new unit tests pass; matrix green.
+6. **Fixed-sleep conversions** (needs 4). idle-parallax, dialogue, and
+   banner-plane per strategy §3. → verify: no literal `waitForTimeout`
+   sleeps left in those files; matrix green on three consecutive local
+   runs.
+7. **Performance suite** (needs 6 — the suite must be stable first).
+   Build the perf spec per strategy §4; record baselines; wire it into
+   CI on one desktop project. → verify: perf spec green against its own
+   baselines; a deliberate local regression (an injected layout thrash)
+   turns it red.
+
+**Done for d34 as a whole:** tickets 1–7 closed (ticket 2 dropped if
+ruling 1 is declined), the unit run under 15 s, matrix green, and the
+e2e case count reported before and after so the expunge is visible.
+
+#### 6. Open questions for Caveshen
+
+1. **The Phase 0 ruling (facet 1):** run CI on branded Edge?
+   Recommended: yes. If declined, ticket 2 is dropped and the
+   return-journey scar tissue stays, with its comments.
+2. **Acceptance screenshots:** keep the return-journey screenshot
+   capture as a standalone script for your eye passes, or delete it?
+   Recommended: keep as a script — cheap, and it served d33.
+3. **Perf gate posture:** should a perf regression fail the build at
+   once, or report-only for the first weeks while the baselines prove
+   themselves? Recommended: report-only first, then promote.
+

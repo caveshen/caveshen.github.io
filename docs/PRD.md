@@ -6011,7 +6011,7 @@ Caveshen approves this strategy.
 **Phase status (execution tracker; canonical strategy: docs/TEST-STRATEGY.md):**
 - P0 CI on Edge — DONE (829ac61)
 - P1 Scar-tissue deletion — DONE (5de5d91)
-- P2 Spec consolidation — pending
+- P2 Spec consolidation — DONE (f6b5db8)
 - P3 Small expunges and demotions — pending
 - P4 stage.js extraction and unit tests — pending
 - P5 Fixed-sleep conversions — pending

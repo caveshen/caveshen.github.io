@@ -79,13 +79,15 @@ export async function waitBgSettle(page) {
   }));
 }
 
-// Asserts the portrait has no animation but retains its vertical-centring transform.
+// Asserts the portrait is at its settled seat: no X offset (proves no slide-in) and Y=-50% centring intact.
+// portrait-slide-in animates only X, so tx≈0 is the direct user-facing contract (not animationName).
 export async function assertPortraitNoAnim(locator) {
-  const style = await locator.evaluate((el) => {
-    const cs = getComputedStyle(el);
-    return { name: cs.animationName, transform: cs.transform };
+  const geom = await locator.evaluate((el) => {
+    const m = new DOMMatrix(getComputedStyle(el).transform);
+    return { tx: m.m41, ty: m.m42, halfH: el.getBoundingClientRect().height / 2 };
   });
-  expect(style.name).toBe('none');
-  // translateY(-50%) is load-bearing (vertical centring) — must survive reduced-motion.
-  expect(style.transform).not.toBe('none');
+  // X=0: fill-mode:both keeps the from-keyframe during the 200ms delay, so any unsuppressed slide-in lands here.
+  expect(Math.abs(geom.tx)).toBeLessThan(1);
+  // translateY(-50%) is load-bearing (vertical centring) — must survive animation suppression.
+  expect(geom.ty).toBeCloseTo(-geom.halfH, 1);
 }

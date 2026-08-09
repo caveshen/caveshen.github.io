@@ -25,22 +25,23 @@ test('click-through: supported engine sets arrived-by-morph and suppresses portr
   await page.setViewportSize({ width: 1920, height: 1080 });
   await navigateToSheet(page);
 
-  // ponytail: single evaluate snapshot — marker and every animation read in one JS call; eliminates
+  // Single evaluate snapshot — marker and every animation read in one JS call; eliminates
   // the inter-read race window where WebKit's pagereveal handler fires between the marker read and
   // the style reads, causing the unsupported-branch assertion to see 'none' instead of 'portrait-slide-in'.
   const snap = await page.locator('html').evaluate((html) => {
     const supported = html.classList.contains('arrived-by-morph');
     const portraitEl = document.querySelector('.sheet-portrait');
     const portraitCs = getComputedStyle(portraitEl);
-    // Parse the Y translation from the computed matrix (6th value in matrix(a,b,c,d,tx,ty)).
-    const match = portraitCs.transform.match(/matrix\([^,]+,[^,]+,[^,]+,[^,]+,[^,]+,([^)]+)\)/);
+    const m = new DOMMatrix(portraitCs.transform);
+    const halfH = portraitEl.getBoundingClientRect().height / 2;
     return {
       supported,
       portrait: {
         animName: portraitCs.animationName,
-        // Expected: -50% of border-box height; getBoundingClientRect gives sub-pixel border-box height.
-        actualTy: match ? parseFloat(match[1]) : null,
-        expectedTy: -(portraitEl.getBoundingClientRect().height / 2),
+        // portrait-slide-in only moves X; tx≈0 is the direct settled-seat contract.
+        actualTx: m.m41,
+        actualTy: m.m42,
+        expectedTy: -halfH,
       },
       menuAnimName: getComputedStyle(document.querySelector('.nameplate-inner')).animationName,
       xpAnim: getComputedStyle(document.querySelector('.xp-fill')).animationName,
@@ -48,9 +49,8 @@ test('click-through: supported engine sets arrived-by-morph and suppresses portr
   });
 
   if (snap.supported) {
-    // Portrait animation suppressed; vertical-centring transform is translateY(-50%).
-    expect(snap.portrait.animName).toBe('none');
-    expect(snap.portrait.actualTy).not.toBeNull();
+    // Portrait seated: X=0 (no slide-in offset), Y=-50% centring intact.
+    expect(Math.abs(snap.portrait.actualTx)).toBeLessThan(1);
     // toBeCloseTo with 1 decimal digit — within 0.05px — catches any non-translateY(-50%) transform.
     expect(snap.portrait.actualTy).toBeCloseTo(snap.portrait.expectedTy, 1);
   } else {

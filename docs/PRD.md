@@ -77,7 +77,7 @@ the document body under their original `§` headings as history.
 | d31 | Game-feel UI pass — streaming dialogue text + one selection idiom for every button | *new* | ✅ ACCEPTED 2026-08-04 (Parts A+B) — PR open from `item/game-feel-ui` |
 | d32 | Scene→sheet transition — the Badger travels from the scene to his portrait seat | *new* | ✅ MERGED 2026-08-09 (PR #17, `dc9de23`) |
 | d33 | Sheet→scene return — the Badger travels back from his portrait seat | *new* | ✅ ACCEPTED 2026-08-09 — PR open, awaiting Caveshen's merge (§d33) |
-| d34 | Test-suite health — CI browser alignment (Edge) + e2e relevance audit | *new* | 💡 RAISED 2026-08-09 — no brief, no go; sequenced after d33 (PR #18) merges (§d34) |
+| d34 | Test-suite health — full test strategy (unit + integration) and execution | *new* | 🚧 AUDIT 2026-08-09 — scope expanded, go given; strategy needs Caveshen's approval before execution (§d34) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -5857,6 +5857,23 @@ protect the site.
    specs overlap; whether the VT journey specs consolidate; which scar
    tissue an aligned CI browser would let us delete outright.
 
-**Status: 💡 RAISED — planner brief and Caveshen's go both outstanding.
-Sequence facet 1 before facet 2 if both proceed: alignment changes what
-the audit would delete.**
+**Scope expanded by Caveshen, 2026-08-09 (go given for audit + strategy):**
+the once-over grows into a full test strategy across two levels, then
+execution against it:
+
+- **Unit tests: classical, solitary.** They test the modules we built,
+  with no further expectation. Fast, deterministic.
+- **Integration tests: the Playwright suite.** They verify look and feel,
+  functionality, and site performance (including GPU and CPU usage).
+- **Pointless tests get expunged.** The aim is fast-running,
+  deterministic, consistent tests at both levels.
+
+**Process:** (1) the senior reviewer (Opus) audits the state of affairs,
+leaning on a ponytail over-engineering audit — read-only; (2) a test
+strategy is drafted here from that audit — it must also RULE on facet 1
+(CI browser alignment), since alignment changes what the audit's findings
+mean; (3) Caveshen approves the strategy; (4) execution against it.
+
+**Status: 🚧 AUDIT IN PROGRESS 2026-08-09 — go given for audit and
+strategy draft on `chore/test-strategy`. Execution (including any test
+deletion) starts only after Caveshen approves the written strategy.**

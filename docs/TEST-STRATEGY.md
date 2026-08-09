@@ -60,6 +60,14 @@ tests:
   "Transition was skipped" line), never patterns broad enough to hide a
   real error.
 
+- **Zero tolerance on flakes.** A test seen to flake — even once — is
+  marked flaky, and the delivery stops moving past it until an analysis
+  names the root cause and an explicit correction lands: a test rewrite or
+  a source fix, whichever the analysis judges most correct for that
+  instance. There is no "tolerated known failure" category. "Matrix clean"
+  means zero failures, never zero-new-failures. (Ruling: Caveshen,
+  2026-08-10.)
+
 ### Recorded deviation — `waitBgSettle` pointer gate (Phase 5)
 
 The shared e2e helper `waitBgSettle(page)` in `e2e/geom.js` branches on

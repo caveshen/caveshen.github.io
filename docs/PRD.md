@@ -6013,7 +6013,7 @@ Caveshen approves this strategy.
 - P1 Scar-tissue deletion — DONE (5de5d91)
 - P2 Spec consolidation — DONE (f6b5db8)
 - P3 Small expunges and demotions — DONE (0fcf409 + 38d512b)
-- P4 stage.js extraction and unit tests — pending
+- P4 stage.js extraction and unit tests — DONE (1037efb)
 - P5 Fixed-sleep conversions — pending
 - P6 CI perf suite (report-only) — pending
 - P7 Local GPU/FPS harness (ad-hoc) — pending

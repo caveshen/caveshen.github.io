@@ -1,10 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const ci = !!process.env.CI;
-// Local: use installed Edge for Chromium projects (no browser download needed). CI: bundled Chromium.
-// ponytail: channel spread omitted in CI so Playwright uses its installed chromium.
+// Both CI and local use branded Edge for Chromium projects — Edge is preinstalled on ubuntu runners,
+// so no extra download, and it closes the local/CI seam (same browser engine everywhere).
 // Apple device projects use real WebKit everywhere — channel is chromium-only, never applied to webkit.
-const ch = ci ? {} : { channel: 'msedge' };
+const ch = { channel: 'msedge' };
 
 export default defineConfig({
   testDir: './e2e',

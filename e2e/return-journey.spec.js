@@ -1,6 +1,5 @@
 // return-journey.spec.js — /sheet → / return via cross-document view transition.
 import { test, expect } from '@playwright/test';
-import { mkdirSync } from 'node:fs';
 
 // Navigate from / to /sheet via the dialogue system option.
 async function navigateToSheet(page) {
@@ -187,33 +186,3 @@ test('overlay image is decoded at pagereveal time — image-decode flash guard',
   expect(decoded).toBe(true);
 });
 
-// Acceptance screenshots for Caveshen's eye: return arrival at 1920, night and day.
-// desktop-1920 only — this is the sole Chromium project at exactly 1920px, where the morph fires.
-// All other Chromium projects (pixel-8, desktop-1366, desktop-2560) and all non-Chromium engines are skipped.
-// Written to the gitignored screenshots/ folder.
-test('acceptance screenshots: return arrival at 1920 in night and day themes', async ({ page }) => {
-  // ponytail: pin to desktop-1920 so only one project writes these files; pixel-8 and desktop-1366 are below the 1650px morph gate.
-  test.skip(test.info().project.name !== 'desktop-1920', 'Acceptance screenshots captured on desktop-1920 only (1920px, morph fires)');
-  // Local acceptance aid only: the PNGs are for Caveshen's eye; CI discards its filesystem.
-  test.skip(!!process.env.CI, 'Acceptance screenshots are a local aid; not generated on CI');
-
-  mkdirSync('screenshots', { recursive: true });
-  await page.setViewportSize({ width: 1920, height: 1080 });
-
-  // Night (default — no time key in localStorage).
-  await navigateToSheet(page);
-  await page.locator('.back-link').click();
-  await page.waitForURL('/');
-  await page.waitForLoadState('domcontentloaded');
-  await expect(page.locator('body > img[src="/badger-up.png"]')).toHaveCount(0);
-  await page.screenshot({ path: 'screenshots/return-arrival-night.png' });
-
-  // Day: set theme in localStorage — persists across the cross-document navigation.
-  await page.evaluate(() => localStorage.setItem('time', 'day'));
-  await navigateToSheet(page);
-  await page.locator('.back-link').click();
-  await page.waitForURL('/');
-  await page.waitForLoadState('domcontentloaded');
-  await expect(page.locator('body > img[src="/badger-up.png"]')).toHaveCount(0);
-  await page.screenshot({ path: 'screenshots/return-arrival-day.png' });
-});

@@ -49,6 +49,8 @@ test('click-through: supported engine sets arrived-by-morph and suppresses portr
     // Full menu-open choreography runs: other animated elements are not suppressed.
     const menuAnimName = await page.locator('.nameplate-inner').evaluate((el) => getComputedStyle(el).animationName);
     expect(menuAnimName).not.toBe('none');
+    const xpAnim = await page.locator('.xp-fill').evaluate((el) => getComputedStyle(el).animationName);
+    expect(xpAnim, '.xp-fill animates in unsupported path').not.toBe('none');
   }
 });
 
@@ -126,6 +128,24 @@ test('reduced motion: click-through is instant with no arrived-by-morph and fina
   });
   expect(portraitStyle.name).toBe('none');
   expect(portraitStyle.transform).not.toBe('none');
+});
+
+// Dialogue-entry at 1366 (below the 1650px breakpoint): journey completes,
+// .sheet-portrait is hidden, and no console errors from our code.
+test('dialogue-entry at 1366 (below breakpoint): portrait hidden, no console errors', async ({ page }) => {
+  const errors = [];
+  page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
+  page.on('pageerror', (err) => errors.push(err.message));
+
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await navigateToSheet(page);
+
+  await expect(page.locator('.sheet-portrait')).toBeHidden();
+
+  // "Transition was skipped" is benign on Chromium when .sheet-portrait img carries
+  // view-transition-name but is display:none at this width.
+  const unexpected = errors.filter((e) => e !== 'Transition was skipped');
+  expect(unexpected).toEqual([]);
 });
 
 // /404 has no @view-transition opt-in in its stylesheets.

@@ -141,6 +141,51 @@ test('at 1366 (below breakpoint): back link returns correctly, no overlay, no er
   expect(unexpected).toEqual([]);
 });
 
+// Regression guard: the overlay image must be decoded at pagereveal time so the
+// ::view-transition-new snapshot is opaque from frame one.
+//
+// Root cause: without the preload the overlay img.src fetch starts INSIDE the
+// pagereveal handler — after the parse-time window — so the image is still being
+// decoded when the VT snapshot is taken, producing a transparent Badger flash.
+// With the preload the fetch fires at HTML-parse time and the image is already in
+// the decoded memory cache by the time pagereveal runs.
+//
+// Red proof (structural): remove the <link rel="preload"> from index.astro →
+//   locator count drops to 0 → first assertion fails immediately.
+// Red proof (timing, manual): add a page.route interceptor with a delay long
+//   enough to surface the race (e.g. 100 ms on this stack, where DCL fires in
+//   <100 ms) and rerun; decoded=false proves the window exists.
+// Chromium-only: WebKit cross-document VT support is partial; the decode assertion
+//   is skipped when pagereveal never sets the flag.
+test('overlay image is decoded at pagereveal time — image-decode flash guard', async ({ page }) => {
+  test.skip(test.info().project.name !== 'desktop-1920', 'decode-timing proof runs on desktop-1920 (Chromium) only');
+
+  await page.setViewportSize({ width: 1920, height: 1080 });
+
+  // Structural assertion: the preload link must be present in the page head.
+  // This is the deterministic red/green — absent the link, count = 0 → fail.
+  await page.goto('/');
+  await expect(page.locator('link[rel="preload"][as="image"][href="/badger-up.png"]')).toHaveCount(1);
+
+  // Execution-evidence assertion: the image must already be decoded at pagereveal time.
+  // In un-throttled preview conditions the preload (T ≈ 5 ms) completes well before
+  // DOMContentLoaded/pagereveal (T ≈ 50–80 ms on this stack). Without the preload
+  // the overlay fetch starts at pagereveal and complete=false at that instant.
+  await page.locator('#approach-prompt').click();
+  await page.locator('#choices button.system').click();
+  await page.waitForURL('/sheet');
+  await page.waitForLoadState('domcontentloaded');
+
+  await page.locator('.back-link').click();
+  await page.waitForURL('/');
+  await page.waitForLoadState('domcontentloaded');
+
+  const decoded = await page.evaluate(() => window.__badgerOverlayDecoded ?? null);
+  // null = pagereveal did not fire (VT unsupported in this engine) — not a failure.
+  if (decoded === null) return;
+  expect(decoded).toBe(true);
+});
+
 // Acceptance screenshots for Caveshen's eye: return arrival at 1920, night and day.
 // desktop-1920 only — this is the sole Chromium project at exactly 1920px, where the morph fires.
 // All other Chromium projects (pixel-8, desktop-1366, desktop-2560) and all non-Chromium engines are skipped.

@@ -12,6 +12,10 @@ const CHARACTER_LABEL = 'the Badger';
   title="The Interview — Caveshen Rajman"
   description="PLACEHOLDER — Caveshen Rajman's interactive portfolio. An adventure-game-styled CV for games industry and tech contacts."
 >
+  <!-- Preload the Badger image so it is decoded before pagereveal fires on return from /sheet.
+       Without this, the overlay img.src fetch starts inside the pagereveal handler — too late
+       for the VT snapshot — causing a brief transparent flash at the start of the reverse morph. -->
+  <link rel="preload" as="image" href="/badger-up.png" fetchpriority="high" slot="head" />
   <script is:inline>
     /* Arrival hand-off for the /sheet → / return morph. Builds the overlay
        target before first paint so the browser can morph the portrait home. */
@@ -43,6 +47,9 @@ const CHARACTER_LABEL = 'the Badger';
         'filter:' + filter + ';view-transition-name:character-portrait;' +
         'pointer-events:none;margin:0;padding:0;border:none;';
       document.body.appendChild(overlay);
+      // Execution-evidence capture: records whether the image was already decoded at
+      // the moment the VT snapshot is taken. Used by the decode-race regression test.
+      window.__badgerOverlayDecoded = overlay.complete && overlay.naturalWidth > 0;
 
       up.style.visibility   = 'hidden';
       down.style.visibility = 'hidden';

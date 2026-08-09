@@ -49,6 +49,8 @@ const ogImageURL = new URL(ogImage, Astro.site).toString();
         // Night is the default — no attribute needed
       })();
     </script>
+    <!-- Page-specific head injections (preloads, etc.) -->
+    <slot name="head" />
   </head>
   <body class={bodyClass}>
     <slot />

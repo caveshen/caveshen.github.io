@@ -5552,6 +5552,9 @@ accepted and recorded here:
 
 ### 🚧 IN BUILD 2026-08-09 — go given; d32 merged first
 
+- **T1 — arrival hand-off on `/`:** done, reviewer approved (`521fe7e`). One non-blocking nit (dead test helper) folded into T2.
+- **T2 — round trip + acceptance evidence:** in build.
+
 **The ruling (Caveshen's, 2026-08-08):** the return journey gets the d32
 treatment. When the "← Back to the interview" link on `/sheet` is clicked,
 the Badger travels from his portrait seat back to his position in the

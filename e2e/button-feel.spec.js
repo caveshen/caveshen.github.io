@@ -58,6 +58,11 @@ test('caret does not shift the label when it appears — gutter is reserved, not
   const pointerFine = await page.evaluate(() => matchMedia('(pointer: fine)').matches);
   test.skip(!pointerFine, 'hover is a desktop-pointer affordance');
   await approach(page);
+  // Let the card's entry transform settle (same gate as the press-state test) —
+  // beforeX must be read after the card has centred itself or the position is
+  // the raw left-padding value, not the final layout position.
+  await expect(page.locator('.card')).toHaveCSS('opacity', '1', { timeout: 5000 });
+  await expect(page.locator('.card')).not.toHaveClass(/is-streaming/, { timeout: 5000 });
   const choice = page.locator('.choices button').first();
   const beforeX = await labelTextX(choice);
   await choice.hover();

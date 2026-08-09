@@ -10,7 +10,12 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     /* Sets arrived-by-morph on <html> before first paint when a cross-document
        view transition is active — fires before the page renders. */
     window.addEventListener('pagereveal', function(e) {
-      if (e.viewTransition) document.documentElement.classList.add('arrived-by-morph');
+      if (e.viewTransition) {
+        document.documentElement.classList.add('arrived-by-morph');
+        // Software-rendered compositor may release the VT rendering layer after domcontentloaded;
+        // finished resolves on both completion and skip.
+        window.__vtFinished = e.viewTransition.finished;
+      }
     });
   </script>
   <ThemeToggle />

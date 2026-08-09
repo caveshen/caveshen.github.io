@@ -12,6 +12,71 @@ const CHARACTER_LABEL = 'the Badger';
   title="The Interview — Caveshen Rajman"
   description="PLACEHOLDER — Caveshen Rajman's interactive portfolio. An adventure-game-styled CV for games industry and tech contacts."
 >
+  <!-- Preload the Badger image so it is decoded before pagereveal fires on return from /sheet.
+       Without this, the overlay img.src fetch starts inside the pagereveal handler — too late
+       for the VT snapshot — causing a brief transparent flash at the start of the reverse morph. -->
+  <link rel="preload" as="image" href="/badger-up.png" fetchpriority="high" slot="head" />
+  <script is:inline>
+    /* Arrival hand-off for the /sheet → / return morph. Builds the overlay
+       target before first paint so the browser can morph the portrait home. */
+    window.addEventListener('pagereveal', function(e) {
+      // Set unconditionally so navigateToSheet() can await the return morph on VT-arrived
+      // pages; null on plain loads (e.viewTransition is null) so the test guard is a no-op.
+      window.__vtFinished = e.viewTransition ? e.viewTransition.finished : null;
+      if (!e.viewTransition || window.innerWidth < 1650) return;
+      // Three scene variants exist — find the laid-out one (non-zero rect).
+      var figure = Array.prototype.find.call(
+        document.querySelectorAll('.badger-figure'),
+        function(el) { return el.getBoundingClientRect().width > 0; }
+      );
+      if (!figure) return;
+
+      // Remove any stranded forward-hand-off overlay (two live named elements
+      // make the browser skip the whole transition).
+      Array.prototype.forEach.call(document.body.children, function(el) {
+        if (el.style.viewTransitionName === 'character-portrait') el.remove();
+      });
+
+      var up     = figure.querySelector('.badger-up');
+      var down   = figure.querySelector('.badger-down');
+      var rect   = up.getBoundingClientRect();
+      var filter = getComputedStyle(up).filter;
+
+      var overlay    = document.createElement('img');
+      overlay.src    = '/badger-up.png';
+      overlay.style.cssText =
+        'position:fixed;top:' + rect.top + 'px;left:' + rect.left + 'px;' +
+        'width:' + rect.width + 'px;height:' + rect.height + 'px;' +
+        'filter:' + filter + ';view-transition-name:character-portrait;' +
+        'pointer-events:none;margin:0;padding:0;border:none;';
+      document.body.appendChild(overlay);
+      // Execution-evidence capture: records whether the image was already decoded at
+      // the moment the VT snapshot is taken. Used by the decode-race regression test.
+      window.__badgerOverlayDecoded = overlay.complete && overlay.naturalWidth > 0;
+
+      up.style.visibility   = 'hidden';
+      down.style.visibility = 'hidden';
+
+      // ready resolves after the new-page snapshot is captured and the morph
+      // animations are about to play. Clearing view-transition-name here is
+      // safe — the snapshot already holds it — and lets other cleanup checks
+      // (which query by inline name) find nothing while the morph is running.
+      e.viewTransition.ready.then(function() {
+        overlay.style.viewTransitionName = '';
+      }).catch(function() { /* transition skipped — finished.finally covers cleanup */ });
+
+      e.viewTransition.finished.finally(function() {
+        overlay.remove();
+        up.style.visibility   = '';
+        down.style.visibility = '';
+        up.style.animation   = 'none';
+        down.style.animation = 'none';
+        void up.offsetHeight; // force reflow to restart from time zero
+        up.style.animation   = '';
+        down.style.animation = '';
+      });
+    });
+  </script>
   <!-- Toggle: first in DOM so it's first in tab order -->
   <ThemeToggle />
 
@@ -41,4 +106,8 @@ const CHARACTER_LABEL = 'the Badger';
   @media (prefers-reduced-motion: no-preference) {
     @view-transition { navigation: auto; }
   }
+
+  /* Morph travel time for the return journey — preview-tuning knob, not a contract.
+     The group animates on the arriving page, so this governs the return, not /sheet's copy. */
+  ::view-transition-group(character-portrait) { animation-duration: 400ms; }
 </style>

@@ -75,8 +75,9 @@ the document body under their original `§` headings as history.
 | d29 | Comment sweep — repo-wide | *new* | ✅ merged to main (PR #7) |
 | d30 | Easter egg — the banner plane crashes when clicked | *new* | 🔧 in build 2026-08-06 — go given, banner-copy follow-up deliberately skipped |
 | d31 | Game-feel UI pass — streaming dialogue text + one selection idiom for every button | *new* | ✅ ACCEPTED 2026-08-04 (Parts A+B) — PR open from `item/game-feel-ui` |
-| d32 | Scene→sheet transition — the Badger travels from the scene to his portrait seat | *new* | ✅ ACCEPTED 2026-08-08 — PR #17 open, awaiting Caveshen's merge (§d32) |
-| d33 | Sheet→scene return — the Badger travels back from his portrait seat | *new* | 📝 BRIEFED — awaiting Caveshen's go; sequenced after d32 merges (§d33) |
+| d32 | Scene→sheet transition — the Badger travels from the scene to his portrait seat | *new* | ✅ MERGED 2026-08-09 (PR #17, `dc9de23`) |
+| d33 | Sheet→scene return — the Badger travels back from his portrait seat | *new* | ✅ ACCEPTED 2026-08-09 — PR open, awaiting Caveshen's merge (§d33) |
+| d34 | Test-suite health — CI browser alignment (Edge) + e2e relevance audit | *new* | 💡 RAISED 2026-08-09 — no brief, no go; sequenced after d33 (PR #18) merges (§d34) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -5523,8 +5524,8 @@ must keep meaning something when it does.
    Bespoke exit only if the preview demands it.
 3. **Morph duration:** open at 400ms; Caveshen turns the knob at acceptance.
 
-**Status: ✅ ACCEPTED 2026-08-08 — criterion 8 passed on Caveshen's Edge
-preview ("very cool and very accepted"); PR #17 open, awaiting his merge.
+**Status: ✅ MERGED 2026-08-09 (PR #17, `dc9de23`) — criterion 8 passed on
+Caveshen’s Edge preview (“very cool and very accepted”).
 Item-level criteria 1–7 are confirmed against the
 code and tests on `feat/scene-sheet-morph`. The full matrix is green
 (1997 passed, 19 skipped, 0 failed; vitest 80/80). Four 1920 screenshots
@@ -5550,7 +5551,14 @@ accepted and recorded here:
 
 ## d33. Sheet→scene return — the Badger travels back from his portrait seat
 
-### 📝 BRIEFED — awaiting Caveshen's go; sequenced after d32 merges
+### ✅ BUILT 2026-08-09 — T1+T2 done, reviewer-approved; awaiting Caveshen’s acceptance preview
+
+- **T1 — arrival hand-off on `/`:** done, reviewer approved (`521fe7e`). One non-blocking nit (dead test helper) folded into T2.
+- **T2 — round trip + acceptance evidence:** done, reviewer approved (`87e8db7`). Double round trip, `goBack` case, and 1920 night/day acceptance screenshots (gitignored).
+
+**Verification (2026-08-09).** Vitest 80/80. Full serialized matrix (all 8 projects): 2036 passed, 26 skipped, 2 failed. The 2 failures are a pre-existing WebKit flake in `portrait-journey.spec.js` (a two-read race on the `arrived-by-morph` marker, line 28 vs 72); the same race also hits `sheet-arrival.spec.js`. Proven pre-existing: the failing spec and `sheet.astro` are byte-identical on main `dc9de23`, main fails the same race, and the failure set wanders run to run (always WebKit). d33 is not implicated (it changed only `/`; the marker is set on `/sheet`). FIXED on `feat/portrait-return`: reused the already-read `supported` value in the `else` branch in `portrait-journey.spec.js:72` and `sheet-arrival.spec.js:46`.
+
+Item criteria 1–6 met in code and tests; criterion 7 (Caveshen’s eye on the seam and the out-of-colour beat) waits on his local preview. Two 1920 acceptance screenshots (night/day) sit in the gitignored `screenshots/`. No push/PR/merge — held for his preview.
 
 **The ruling (Caveshen's, 2026-08-08):** the return journey gets the d32
 treatment. When the "← Back to the interview" link on `/sheet` is clicked,
@@ -5803,5 +5811,52 @@ that benign Chromium line appears.
 `/sheet` for the return to the main page — the sheet speaks the way the
 scene does. Not briefed; revisit after d33 ships.
 
-**Status: 🟢 GO GIVEN 2026-08-09 — build sequenced after PR #17 (d32)
-merges. Do not start while d32 is open.**
+**Status: ✅ ACCEPTED 2026-08-09 — Caveshen's eye passed on the second
+preview, after one acceptance fix (a transparent flash at reverse-morph
+start; root cause: overlay image decode race; cure: parse-time preload of
+badger-up.png on `/` via a named head slot in Base.astro — the shared-layout
+touch was blessed with the acceptance). Matrix 2036 passed / 26 skipped /
+2 failed, both failures inherited from the d32 specs' WebKit marker race —
+see the follow-up note above. PR open, awaiting his merge.**
+
+## d34. Test-suite health — CI browser alignment and e2e relevance audit
+
+### 💡 RAISED 2026-08-09 — Caveshen's concern, captured; no brief, no go, sequenced after d33 (PR #18) merges
+
+**The concern (Caveshen's):** the e2e suite may need a once-over for
+relevance — the view-transition work has forced repeated race-condition
+fixes, and the fear is the tests now fight the tooling more than they
+protect the site.
+
+**Facts a future brief must not re-derive (from the PR #18 CI saga):**
+
+- The local matrix runs branded Edge (`channel: 'msedge'`); CI runs
+  Playwright's bundled Chromium. This split alone caused three failed CI
+  rounds: the bundled build freezes `requestAnimationFrame` on any page
+  arrived via a cross-document view transition (both directions). Branded
+  Edge and Chrome do not. Real users are unaffected.
+- The scar tissue this bought, all in `e2e/return-journey.spec.js`:
+  force-clicks on the journey clicks, a `__vtFinished` settle await, a
+  bounded `waitForFunction` guard for the pagereveal race, and visibility
+  guards. Each is individually justified and commented; together they are
+  the smell that raised this item.
+- Two prior flake classes already fixed by the execution-evidence idiom
+  (branch tests on the `arrived-by-morph` marker, never on API probes or
+  the Playwright project name) and by read-once marker discipline.
+
+**Two facets, one decision space:**
+
+1. **CI browser alignment:** point the Chromium-family CI projects at Edge
+   (`channel: 'msedge'`; preinstalled on ubuntu runners, time-neutral).
+   Pro: closes the local/CI seam that caused the saga; tests what users
+   run; a breaking Edge update turns CI red before users see it. Con: the
+   CI browser now floats on Microsoft's cadence — a new failure class
+   ("Edge moved") traded for the old one; local and runner Edge can still
+   drift for days after a release.
+2. **Relevance audit:** which assertions still earn their keep; which
+   specs overlap; whether the VT journey specs consolidate; which scar
+   tissue an aligned CI browser would let us delete outright.
+
+**Status: 💡 RAISED — planner brief and Caveshen's go both outstanding.
+Sequence facet 1 before facet 2 if both proceed: alignment changes what
+the audit would delete.**

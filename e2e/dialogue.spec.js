@@ -18,13 +18,15 @@ async function startStream(page) {
 
 test('exactly one .speech element exists throughout a stream', async ({ page }) => {
   await startStream(page);
-  await page.waitForTimeout(400); // mid-stream (past the 200ms fade)
+  await expect(page.locator('.speech-stream')).toBeVisible();
   await expect(page.locator('.speech')).toHaveCount(1);
 });
 
 test('screen-reader node (#speech) already holds the full line while the visual stream is mid-line', async ({ page }) => {
   await startStream(page);
-  await page.waitForTimeout(400); // mid-stream (past the 200ms fade)
+  // Wait for the stream to have typed at least one character — toBeVisible on
+  // .speech-stream fires before the first char, which is too early for this test.
+  await expect(page.locator('.speech-stream span').first()).not.toBeEmpty();
   const speech = (await page.locator('#speech').textContent())?.trim();
   const shown = (await page.locator('.speech-stream span').first().textContent()) ?? '';
   expect(speech.length).toBeGreaterThan(0);
@@ -35,7 +37,7 @@ test('screen-reader node (#speech) already holds the full line while the visual 
 
 test('a click on the card mid-stream completes the line instantly and does not advance', async ({ page }) => {
   await startStream(page);
-  await page.waitForTimeout(400); // mid-stream (past the 200ms fade)
+  await expect(page.locator('.speech-stream')).toBeVisible();
   const speechBefore = await page.locator('#speech').textContent();
   await page.locator('.card-head').click(); // anywhere on the card, not a choice
   await expect(page.locator('.speech-stream')).toHaveCount(0); // completed
@@ -46,7 +48,7 @@ test('a click on the card mid-stream completes the line instantly and does not a
 
 test('a keypress mid-stream completes the line instantly and does not activate the focused choice', async ({ page }) => {
   await startStream(page);
-  await page.waitForTimeout(400); // mid-stream (past the 200ms fade)
+  await expect(page.locator('.speech-stream')).toBeVisible();
   const speechBefore = await page.locator('#speech').textContent();
   await page.keyboard.press('Enter'); // focused choice is "experience"'s single option
   await expect(page.locator('.speech-stream')).toHaveCount(0); // completed, not activated
@@ -56,7 +58,7 @@ test('a keypress mid-stream completes the line instantly and does not activate t
 
 test('a click on a choice mid-stream needs a second click to navigate', async ({ page }) => {
   await startStream(page);
-  await page.waitForTimeout(400); // mid-stream (past the 200ms fade) on "experience"
+  await expect(page.locator('.speech-stream')).toBeVisible();
   const choice = page.locator('.choices button').first();
   await choice.click(); // swallowed — completes the stream, no navigation
   await expect(page.locator('.choices button.system')).toHaveCount(0);
@@ -66,7 +68,7 @@ test('a click on a choice mid-stream needs a second click to navigate', async ({
 
 test('Escape mid-stream still exits and returns focus to the prompt', async ({ page }) => {
   await startStream(page);
-  await page.waitForTimeout(400); // mid-stream (past the 200ms fade)
+  await expect(page.locator('.speech-stream')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.locator('.card')).not.toBeVisible();
   await expect(page.locator('#approach-prompt')).toBeFocused();
@@ -74,7 +76,7 @@ test('Escape mid-stream still exits and returns focus to the prompt', async ({ p
 
 test('dimmed choices are visually de-emphasised while streaming', async ({ page }) => {
   await startStream(page);
-  await page.waitForTimeout(400); // mid-stream (past the 200ms fade)
+  await expect(page.locator('.speech-stream')).toBeVisible();
   const opacity = await page.locator('.choices').evaluate((el) => getComputedStyle(el).opacity);
   expect(parseFloat(opacity)).toBeLessThan(1);
   // Retry instead of a fixed sleep — the stream's real duration (~2.2s on this

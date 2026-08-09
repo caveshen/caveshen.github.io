@@ -11,10 +11,14 @@ test('resting pointer position drifts the background, never the foreground', asy
   const bgBefore = await visibleRect(page, '.table-mountain');
   const fgBefore = await visibleRect(page, '.js-character');
 
+  // Set up transitionend listener BEFORE the move so the promise resolves when the
+  // 950ms bg-layer transform transition settles, not on a wall-clock guess.
+  const settled = page.evaluate(() => new Promise(r => {
+    const el = document.querySelector('.bg-layer');
+    el.addEventListener('transitionend', (e) => { if (e.target === el) r(); });
+  }));
   await page.mouse.move(frame.x + 10, frame.y + frame.height / 2);
-  // .bg-layer's transform transition (tokens.css) is 950ms — give it time to settle
-  // before sampling, or the drift would still be mid-interpolation.
-  await page.waitForTimeout(1100);
+  await settled;
 
   const bgAfter = await visibleRect(page, '.table-mountain');
   const fgAfter = await visibleRect(page, '.js-character');
@@ -44,8 +48,12 @@ test('idle drift at max upward excursion never opens a sky gap at the waterline'
 
   // Bottom stage edge drives drift-y to its full upward excursion (stage.js: ny=+1 ->
   // drift-y = -DRIFT_MAX), the direction that pulls land up and away from the sea.
+  const settled = page.evaluate(() => new Promise(r => {
+    const el = document.querySelector('.bg-layer');
+    el.addEventListener('transitionend', (e) => { if (e.target === el) r(); });
+  }));
   await page.mouse.move(frame.x + frame.width / 2, frame.y + frame.height - 1);
-  await page.waitForTimeout(1100); // .bg-layer's 950ms transition settling
+  await settled;
 
   const land = await page.locator('.scene-standard .world').boundingBox();
   const sea  = await page.locator('.scene-standard .f-sea').boundingBox();
@@ -62,9 +70,7 @@ test('reduced motion disables the pointer drift entirely', async ({ page }) => {
   const bgBefore = await visibleRect(page, '.table-mountain');
 
   await page.mouse.move(frame.x + 10, frame.y + frame.height / 2);
-  await page.waitForTimeout(200);
   await page.mouse.move(frame.x + frame.width - 10, frame.y + frame.height / 2);
-  await page.waitForTimeout(200);
 
   const bgAfter = await visibleRect(page, '.table-mountain');
   expect(Math.abs(bgAfter.x - bgBefore.x)).toBe(0);

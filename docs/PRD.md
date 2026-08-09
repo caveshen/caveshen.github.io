@@ -5553,7 +5553,7 @@ accepted and recorded here:
 ### 🚧 IN BUILD 2026-08-09 — go given; d32 merged first
 
 - **T1 — arrival hand-off on `/`:** done, reviewer approved (`521fe7e`). One non-blocking nit (dead test helper) folded into T2.
-- **T2 — round trip + acceptance evidence:** in build.
+- **T2 — round trip + acceptance evidence:** done, reviewer approved (`87e8db7`). Double round trip, `goBack` case, and 1920 night/day acceptance screenshots (gitignored).
 
 **The ruling (Caveshen's, 2026-08-08):** the return journey gets the d32
 treatment. When the "← Back to the interview" link on `/sheet` is clicked,

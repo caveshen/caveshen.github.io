@@ -13,7 +13,7 @@ async function navigateToSheet(page) {
   await page.waitForLoadState('domcontentloaded');
 }
 
-// T1-criterion-1 end state: no overlay img, idle animation names and visibility restored.
+// Return end state: no overlay img, idle animation names and visibility restored.
 // Auto-retrying assertions — holds in all engines whether or not the morph ran.
 async function assertReturnEndState(page) {
   await expect(page.locator('body > img[src="/badger-up.png"]')).toHaveCount(0);
@@ -53,7 +53,7 @@ test('back link returns to / with idle running, no overlay, no arrived-by-morph'
 });
 
 // Double round trip: / → /sheet → back link → / → /sheet → back link → /.
-// After each return the T1 end state holds. This proves the duplicate-name defence:
+// After each return the end state holds. This proves the duplicate-name defence:
 // the second forward hand-off runs on a page the first return already touched,
 // and the second return runs against whatever the forward hand-off left behind.
 test('double round trip: back link end state holds after each of two returns', async ({ page }) => {

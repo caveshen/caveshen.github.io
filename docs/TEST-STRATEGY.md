@@ -60,6 +60,22 @@ tests:
   "Transition was skipped" line), never patterns broad enough to hide a
   real error.
 
+### Recorded deviation — `waitBgSettle` pointer gate (Phase 5)
+
+The shared e2e helper `waitBgSettle(page)` in `e2e/geom.js` branches on
+`matchMedia('(pointer: fine)')` and `(prefers-reduced-motion: reduce)` to
+decide whether to await the `.bg-layer` transition or resolve at once. That
+is a capability probe, which the first determinism law warns against. It is
+kept on purpose: it mirrors the source drift gate (`src/scripts/stage.js` —
+fine-pointer only, no-op under reduced motion) exactly, and the
+execution-evidence alternative would need a test-only state marker added to
+source, which the strategy resists more than it resists this probe. Valid
+only while the helper's conditions match the source gate — re-check the
+helper if that gate changes. Known ceiling: the fine-pointer path awaits a
+bare `transitionend` with no fallback; both current call sites move from
+identity to a screen edge (drift always non-zero), so it cannot hang. If a
+no-op move is ever added, race the listener against a bounded fallback.
+
 ## CI browser policy
 
 CI and local both run branded Edge (`channel: 'msedge'`) for the

@@ -11,6 +11,9 @@ async function navigateToSheet(page) {
   // Cross-document VT can leave WebKit in a transient state where evaluate()
   // is rejected immediately after waitForURL resolves.
   await page.waitForLoadState('domcontentloaded');
+  // CI headless Chromium: the compositor may release the VT rendering layer after
+  // domcontentloaded; finished resolves on both completion and skip.
+  await page.evaluate(() => window.__vtFinished ?? Promise.resolve());
 }
 
 // Return end state: no overlay img, idle animation names and visibility restored.

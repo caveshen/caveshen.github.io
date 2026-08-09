@@ -5,6 +5,11 @@ import { mkdirSync } from 'node:fs';
 // Navigate from / to /sheet via the dialogue system option.
 async function navigateToSheet(page) {
   await page.goto('/');
+  // On a VT-arrived / (second and later journeys) this waits out the return morph
+  // before force-clicking; on fresh loads index.astro's pagereveal sets __vtFinished=null
+  // immediately and the guard is a no-op (null ?? Promise.resolve() → no wait).
+  await page.waitForFunction(() => window.__vtFinished !== undefined, null, { timeout: 5000 }).catch(() => {});
+  await page.evaluate(() => window.__vtFinished ?? Promise.resolve());
   // ponytail: all clicks here use force:true — bundled Chromium (CI) freezes
   // Playwright's rAF-based stability poll on pages arrived via a cross-document VT,
   // in BOTH directions. The second journey's / arrives via the return morph; the rAF
@@ -12,7 +17,7 @@ async function navigateToSheet(page) {
   // but does not freeze (channel build vs. bundled Chromium diverge here). Real-click
   // coverage of the dialogue path lives in sheet-arrival/portrait-journey (fresh-goto
   // journeys). Ceiling: force:true masks a pointer-intercepting overlay — mitigated by
-  // toBeVisible guards and the __vtFinished await below.
+  // toBeVisible guards and the __vtFinished awaits.
   await expect(page.locator('#approach-prompt')).toBeVisible();
   await page.locator('#approach-prompt').click({ force: true });
   await expect(page.locator('#choices button.system')).toBeVisible();

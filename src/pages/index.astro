@@ -20,6 +20,9 @@ const CHARACTER_LABEL = 'the Badger';
     /* Arrival hand-off for the /sheet → / return morph. Builds the overlay
        target before first paint so the browser can morph the portrait home. */
     window.addEventListener('pagereveal', function(e) {
+      // Set unconditionally so navigateToSheet() can await the return morph on VT-arrived
+      // pages; null on plain loads (e.viewTransition is null) so the test guard is a no-op.
+      window.__vtFinished = e.viewTransition ? e.viewTransition.finished : null;
       if (!e.viewTransition || window.innerWidth < 1650) return;
       // Three scene variants exist — find the laid-out one (non-zero rect).
       var figure = Array.prototype.find.call(

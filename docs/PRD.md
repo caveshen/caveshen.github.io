@@ -77,6 +77,7 @@ the document body under their original `§` headings as history.
 | d31 | Game-feel UI pass — streaming dialogue text + one selection idiom for every button | *new* | ✅ ACCEPTED 2026-08-04 (Parts A+B) — PR open from `item/game-feel-ui` |
 | d32 | Scene→sheet transition — the Badger travels from the scene to his portrait seat | *new* | ✅ MERGED 2026-08-09 (PR #17, `dc9de23`) |
 | d33 | Sheet→scene return — the Badger travels back from his portrait seat | *new* | ✅ ACCEPTED 2026-08-09 — PR open, awaiting Caveshen's merge (§d33) |
+| d34 | Test-suite health — CI browser alignment (Edge) + e2e relevance audit | *new* | 💡 RAISED 2026-08-09 — no brief, no go; sequenced after d33 (PR #18) merges (§d34) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -5817,3 +5818,45 @@ badger-up.png on `/` via a named head slot in Base.astro — the shared-layout
 touch was blessed with the acceptance). Matrix 2036 passed / 26 skipped /
 2 failed, both failures inherited from the d32 specs' WebKit marker race —
 see the follow-up note above. PR open, awaiting his merge.**
+
+## d34. Test-suite health — CI browser alignment and e2e relevance audit
+
+### 💡 RAISED 2026-08-09 — Caveshen's concern, captured; no brief, no go, sequenced after d33 (PR #18) merges
+
+**The concern (Caveshen's):** the e2e suite may need a once-over for
+relevance — the view-transition work has forced repeated race-condition
+fixes, and the fear is the tests now fight the tooling more than they
+protect the site.
+
+**Facts a future brief must not re-derive (from the PR #18 CI saga):**
+
+- The local matrix runs branded Edge (`channel: 'msedge'`); CI runs
+  Playwright's bundled Chromium. This split alone caused three failed CI
+  rounds: the bundled build freezes `requestAnimationFrame` on any page
+  arrived via a cross-document view transition (both directions). Branded
+  Edge and Chrome do not. Real users are unaffected.
+- The scar tissue this bought, all in `e2e/return-journey.spec.js`:
+  force-clicks on the journey clicks, a `__vtFinished` settle await, a
+  bounded `waitForFunction` guard for the pagereveal race, and visibility
+  guards. Each is individually justified and commented; together they are
+  the smell that raised this item.
+- Two prior flake classes already fixed by the execution-evidence idiom
+  (branch tests on the `arrived-by-morph` marker, never on API probes or
+  the Playwright project name) and by read-once marker discipline.
+
+**Two facets, one decision space:**
+
+1. **CI browser alignment:** point the Chromium-family CI projects at Edge
+   (`channel: 'msedge'`; preinstalled on ubuntu runners, time-neutral).
+   Pro: closes the local/CI seam that caused the saga; tests what users
+   run; a breaking Edge update turns CI red before users see it. Con: the
+   CI browser now floats on Microsoft's cadence — a new failure class
+   ("Edge moved") traded for the old one; local and runner Edge can still
+   drift for days after a release.
+2. **Relevance audit:** which assertions still earn their keep; which
+   specs overlap; whether the VT journey specs consolidate; which scar
+   tissue an aligned CI browser would let us delete outright.
+
+**Status: 💡 RAISED — planner brief and Caveshen's go both outstanding.
+Sequence facet 1 before facet 2 if both proceed: alignment changes what
+the audit would delete.**

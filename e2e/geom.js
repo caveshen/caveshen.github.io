@@ -1,4 +1,5 @@
 // geom.js — rect-geometry helpers shared across e2e specs.
+import { expect } from '@playwright/test';
 
 export function rectsIntersect(a, b) {
   return a.x < b.x + b.width && a.x + a.width > b.x &&
@@ -43,4 +44,33 @@ export function rectContains(outer, inner) {
   return inner.x >= outer.x && inner.y >= outer.y &&
          inner.x + inner.width  <= outer.x + outer.width &&
          inner.y + inner.height <= outer.y + outer.height;
+}
+
+// Asserts the portrait's geometry against the nameplate and sheet-grid:
+// no overlap, vertically centred on the grid, and gap matches the grid's column-gap.
+// Read from the DOM, not hardcoded pixel twins — holds if --portrait or grid gap ever move.
+export async function assertPortraitGeometry(page, portrait) {
+  const portraitBox  = await portrait.boundingBox();
+  const nameplateBox = await page.locator('.nameplate').boundingBox();
+  const grid         = page.locator('.sheet-grid');
+  const gridBox      = await grid.boundingBox();
+  const gridGap      = await grid.evaluate((el) => parseFloat(getComputedStyle(el).columnGap));
+  expect(rectsIntersect(portraitBox, nameplateBox)).toBe(false);
+  expect(rectsIntersect(portraitBox, gridBox)).toBe(false);
+  const portraitCenterY = portraitBox.y + portraitBox.height / 2;
+  const gridCenterY     = gridBox.y + gridBox.height / 2;
+  expect(Math.abs(portraitCenterY - gridCenterY)).toBeLessThan(2);
+  const gap = gridBox.x - (portraitBox.x + portraitBox.width);
+  expect(Math.abs(gap - gridGap)).toBeLessThan(2);
+}
+
+// Asserts the portrait has no animation but retains its vertical-centring transform.
+export async function assertPortraitNoAnim(locator) {
+  const style = await locator.evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return { name: cs.animationName, transform: cs.transform };
+  });
+  expect(style.name).toBe('none');
+  // translateY(-50%) is load-bearing (vertical centring) — must survive reduced-motion.
+  expect(style.transform).not.toBe('none');
 }

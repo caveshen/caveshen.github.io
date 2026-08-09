@@ -1,6 +1,6 @@
 // sheet-arrival.spec.js — /sheet arrival via cross-document view transition.
 import { test, expect } from '@playwright/test';
-import { rectsIntersect } from './geom.js';
+import { assertPortraitGeometry, assertPortraitNoAnim } from './geom.js';
 
 // Navigate from / to /sheet via the dialogue system option.
 async function navigateToSheet(page) {
@@ -61,21 +61,8 @@ test('click-through: portrait geometry is correct on arrival (supported engine)'
   if (!(await arrivedByMorph(page))) return;
 
   const portrait = page.locator('.sheet-portrait');
-  // arrived-by-morph suppresses the slide-in (animation: none), so there is
-  // nothing to wait for — portrait is already at its settled position.
-  const portraitBox = await portrait.boundingBox();
-  const nameplateBox = await page.locator('.nameplate').boundingBox();
-  const grid = page.locator('.sheet-grid');
-  const gridBox = await grid.boundingBox();
-  const gridGap = await grid.evaluate((el) => parseFloat(getComputedStyle(el).columnGap));
-
-  expect(rectsIntersect(portraitBox, nameplateBox)).toBe(false);
-  expect(rectsIntersect(portraitBox, gridBox)).toBe(false);
-  const portraitCenterY = portraitBox.y + portraitBox.height / 2;
-  const gridCenterY = gridBox.y + gridBox.height / 2;
-  expect(Math.abs(portraitCenterY - gridCenterY)).toBeLessThan(2);
-  const gap = gridBox.x - (portraitBox.x + portraitBox.width);
-  expect(Math.abs(gap - gridGap)).toBeLessThan(2);
+  // arrived-by-morph suppresses the slide-in, so portrait is already at its settled position.
+  await assertPortraitGeometry(page, portrait);
 });
 
 // Only portrait slide-in is suppressed on morph arrival; nameplate, columns, and XP bar keep their animations.
@@ -122,12 +109,7 @@ test('reduced motion: click-through is instant with no arrived-by-morph and fina
   }
 
   // Portrait: no animation, vertical-centring transform intact.
-  const portraitStyle = await page.locator('.sheet-portrait').evaluate((el) => {
-    const cs = getComputedStyle(el);
-    return { name: cs.animationName, transform: cs.transform };
-  });
-  expect(portraitStyle.name).toBe('none');
-  expect(portraitStyle.transform).not.toBe('none');
+  await assertPortraitNoAnim(page.locator('.sheet-portrait'));
 });
 
 // Dialogue-entry at 1366 (below the 1650px breakpoint): journey completes,

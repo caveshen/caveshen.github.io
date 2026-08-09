@@ -84,7 +84,6 @@ test('clicking the plane mid-flight crashes it, ending below the waterline, then
   await gotoAndFireFirstPass(page);
   const plane = page.locator('.banner-plane');
   await expect(plane).toBeAttached();
-  const frame = await page.locator('.stage-frame').boundingBox();
 
   // d30 fix: crashPlane() bakes the in-flight position from .plane-hit's own
   // rect, sampled before .banner-rect/.banner-tow are reparented out. Sample
@@ -104,7 +103,7 @@ test('clicking the plane mid-flight crashes it, ending below the waterline, then
   // .crashing's CSS override starts a fresh plane-crash animation on class-add.
   await plane.evaluate((el) => {
     el.getAnimations({ subtree: true }).forEach((a) => {
-      const dur = a.effect.getComputedTiming().duration;
+      const dur = a.effect && a.effect.getComputedTiming().duration;
       if (typeof dur === 'number') a.currentTime = dur * 0.5;
       a.pause();
     });

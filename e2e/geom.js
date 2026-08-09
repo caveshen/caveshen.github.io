@@ -64,6 +64,21 @@ export async function assertPortraitGeometry(page, portrait) {
   expect(Math.abs(gap - gridGap)).toBeLessThan(2);
 }
 
+// Resolves when the .bg-layer transform transition settles after a mouse move,
+// or immediately when drift will not fire (coarse pointer or reduced motion).
+// Call BEFORE the mouse move so the transitionend listener is registered first.
+export async function waitBgSettle(page) {
+  return page.evaluate(() => new Promise(r => {
+    if (!matchMedia('(pointer: fine)').matches ||
+        matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      r();
+      return;
+    }
+    const el = document.querySelector('.bg-layer');
+    el.addEventListener('transitionend', (e) => { if (e.target === el) r(); });
+  }));
+}
+
 // Asserts the portrait has no animation but retains its vertical-centring transform.
 export async function assertPortraitNoAnim(locator) {
   const style = await locator.evaluate((el) => {

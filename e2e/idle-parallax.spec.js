@@ -1,6 +1,6 @@
 // Idle micro-parallax — pointer-driven background drift, desktop pointers only.
 import { test, expect } from '@playwright/test';
-import { visibleRect } from './geom.js';
+import { visibleRect, waitBgSettle } from './geom.js';
 
 test('resting pointer position drifts the background, never the foreground', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 }); // forces the standard variant on
@@ -13,10 +13,8 @@ test('resting pointer position drifts the background, never the foreground', asy
 
   // Set up transitionend listener BEFORE the move so the promise resolves when the
   // 950ms bg-layer transform transition settles, not on a wall-clock guess.
-  const settled = page.evaluate(() => new Promise(r => {
-    const el = document.querySelector('.bg-layer');
-    el.addEventListener('transitionend', (e) => { if (e.target === el) r(); });
-  }));
+  // On coarse-pointer or reduced-motion projects, drift never fires — resolves immediately.
+  const settled = waitBgSettle(page);
   await page.mouse.move(frame.x + 10, frame.y + frame.height / 2);
   await settled;
 
@@ -48,10 +46,7 @@ test('idle drift at max upward excursion never opens a sky gap at the waterline'
 
   // Bottom stage edge drives drift-y to its full upward excursion (stage.js: ny=+1 ->
   // drift-y = -DRIFT_MAX), the direction that pulls land up and away from the sea.
-  const settled = page.evaluate(() => new Promise(r => {
-    const el = document.querySelector('.bg-layer');
-    el.addEventListener('transitionend', (e) => { if (e.target === el) r(); });
-  }));
+  const settled = waitBgSettle(page);
   await page.mouse.move(frame.x + frame.width / 2, frame.y + frame.height - 1);
   await settled;
 

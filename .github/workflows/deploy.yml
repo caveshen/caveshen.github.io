@@ -56,6 +56,11 @@ jobs:
       - name: Integration tests
         run: npm run test:e2e -- ${{ env.LIGHT == 'true' && '--project=desktop-1920' || '' }}
 
+      - name: Performance suite (report-only)
+        # The suite never asserts budgets — it captures metrics and warns on regression.
+        # A later ticket converts warnings to hard failures once baselines prove themselves.
+        run: npm run test:perf
+
   build:
     needs: test
     if: github.ref == 'refs/heads/main'

@@ -58,6 +58,8 @@ jobs:
 
       - name: Performance suite (report-only)
         # The suite never asserts budgets — it captures metrics and warns on regression.
+        # continue-on-error: a broken harness must never block a main deploy.
+        continue-on-error: true
         run: npm run test:perf
 
   build:

@@ -45,8 +45,8 @@ async function measureFps(page, durationMs) {
         const worst   = iv.length ? Math.max(...iv) : 0;
         const sorted  = [...iv].sort((a, b) => a - b);
         const median  = sorted[Math.floor(sorted.length / 2)] ?? 0;
-        // ponytail: derive drop threshold from measured refresh rate, not a fixed 60 Hz constant.
-        const dropThreshold = median > 0 ? median * 1.5 : 25;
+        // ponytail: per-phase median self-masks sustained jank (slow phase lifts its own threshold); mean/min/worst columns carry that signal instead.
+        const dropThreshold = median > 0 ? median * 1.5 : 25; // fallback: 25 ms ≈ 40 Hz minimum, only if no frames were captured
         const dropped = iv.filter(d => d > dropThreshold).length;
         resolve({
           mean: +mean.toFixed(1), min: +min.toFixed(1),
@@ -259,9 +259,9 @@ async function hiddenComputeChecklist(page) {
     });
     if (scenes.length < 2) return { skipped: true, reason: 'fewer than 2 .scene elements found' };
     if (invisible.length === 0) return { skipped: true, reason: 'no zero-box .scene variants found' };
-    const running = invisible.flatMap(s => [...s.getAnimations({ subtree: true })])
-                             .filter(a => a.playState === 'running').length;
-    const total   = invisible.flatMap(s => [...s.getAnimations({ subtree: true })]).length;
+    const all     = invisible.flatMap(s => [...s.getAnimations({ subtree: true })]);
+    const running = all.filter(a => a.playState === 'running').length;
+    const total   = all.length;
     return { skipped: false, totalScenes: scenes.length, invisible: invisible.length, running, total };
   });
 
@@ -332,7 +332,6 @@ console.log('\nHidden-compute checklist\n');
 for (const item of hiddenItems) {
   console.log(`  CHECK  : ${item.check}`);
   console.log(`  RESULT : ${item.result}`);
-  if (item.note) console.log(`  NOTE   : ${item.note}`);
   console.log('');
 }
 

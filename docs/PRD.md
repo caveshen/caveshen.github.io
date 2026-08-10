@@ -44,7 +44,7 @@ the document body under their original `§` headings as history.
 
 | d | Item | Was | Status |
 |---|---|---|---|
-| d1 | The interactive 404 | §30 D-4 | ✅ built & reviewer-approved 2026-07-27, awaiting Caveshen's visual sign-off |
+| d1 | The interactive 404 | §30 D-4 | ✅ signed off 2026-08-10 (Caveshen) — built & reviewer-approved 2026-07-27 |
 | d2 | Card avatar extraction | §33a | ✅ built & reviewer-approved 2026-07-27, awaiting sign-off |
 | d3 | 404 backdrop re-anchor (moon lost above ~2.1 AR) | §30 D-15 | ✅ built & accepted 2026-07-27 — viewBox 1200→1900 |
 | d4 | 404 day clouds | §30 D-11 | ✅ built 2026-07-27 — two `.day-only` rects, offset to d3's camera |
@@ -60,7 +60,7 @@ the document body under their original `§` headings as history.
 | d14 | `not-found.spec.js` coupled to placeholder copy | §30 D-13 | ✅ closed by construction — verify: `grep -rn "toContainText('404')" e2e/` is empty |
 | d15 | Admin page | §31 (remainder) | 🎨 IN DESIGN, no go-ahead |
 | d16 | Card avatar art refinement | §33b | 🎨 IN DESIGN, brief outstanding |
-| d17 | One character per route — Badger on `/`, hooded figure on `/404`; 1:1 **in interaction, not just scenery**; the toggle dies | §27 (remainder) | ✅ built 2026-08-02 `26a6ddb` — awaiting Caveshen's local-dev sign-off |
+| d17 | One character per route — Badger on `/`, hooded figure on `/404`; 1:1 **in interaction, not just scenery**; the toggle dies | §27 (remainder) | ✅ signed off 2026-08-10 (Caveshen) — built 2026-08-02 `26a6ddb` |
 | d18 | Visual validation in e2e | §16 | ✅ merged — must-haves PR #9 (2026-08-04), nice-to-haves PR #12, N4 face/card fix PR #14 (2026-08-06) |
 | d19 | Dialogue rework | §22 | ⏸ parked |
 | d20 | Social preview imagery | §32 | ⏸ unscheduled |
@@ -3575,8 +3575,7 @@ asymmetry is deliberate: neither line is a placeholder, neither carries a
 - **The byte deltas and the Lighthouse question live in d26.** The `/404` growth
   is accepted, measured, and **not a bug**.
 
-**Status: ✅ BUILT — awaiting Caveshen's look on local dev: both routes, both
-themes, before and after approach, per §2's draft-before-deploy rule.**
+**Status: ✅ SIGNED OFF 2026-08-10 (Caveshen).**
 
 ---
 

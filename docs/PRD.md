@@ -59,7 +59,7 @@ the document body under their original `§` headings as history.
 | d13 | `Avatar.astro` uses `is:global` needlessly | §30 D-12 | ✅ built 2026-08-02 — scoped in `646754b`; verify: `grep -n "is:global" src/components/Avatar.astro` is empty |
 | d14 | `not-found.spec.js` coupled to placeholder copy | §30 D-13 | ✅ closed by construction — verify: `grep -rn "toContainText('404')" e2e/` is empty |
 | d15 | Admin page | §31 (remainder) | 🎨 IN DESIGN, no go-ahead |
-| d16 | Dialogue box re-envisioning — the avatar and nameplate leave the card (was: card avatar art refinement) | §33b | 📋 SPEC READY 2026-08-10 — `docs/specs/dialogue-plaque.md` (single e2e seam, ruled by Caveshen); mock on `feat/dialogue-plaque` (uncommitted); next: /to-tickets |
+| d16 | Dialogue box re-envisioning — the avatar and nameplate leave the card (was: card avatar art refinement) | §33b | 🎫 TICKETED 2026-08-11 — 3 tickets, breakdown ruled by Caveshen, local under `.scratch/dialogue-plaque/issues/` (gitignored; spec `docs/specs/dialogue-plaque.md` is the durable record); next: build on his go |
 | d17 | One character per route — Badger on `/`, hooded figure on `/404`; 1:1 **in interaction, not just scenery**; the toggle dies | §27 (remainder) | ✅ signed off 2026-08-10 (Caveshen) — built 2026-08-02 `26a6ddb` |
 | d18 | Visual validation in e2e | §16 | ✅ merged — must-haves PR #9 (2026-08-04), nice-to-haves PR #12, N4 face/card fix PR #14 (2026-08-06) |
 | d19 | Dialogue rework | §22 | ⏸ parked |
@@ -2812,8 +2812,13 @@ Merged with landing v2 (PR #1). One follow-up logged as **d13** (was §30 D-12,
 avatar. Brief below; design workshop ran the same day and the mock was
 accepted (outcome below). Spec published:
 `docs/specs/dialogue-plaque.md` (2026-08-10; seams ruled by Caveshen —
-single e2e seam, PRD-native publication). Next: /to-tickets.** The
-head-art appetite moved to its own item, §d35.
+single e2e seam, PRD-native publication). Ticketed 2026-08-11
+(breakdown ruled by Caveshen): three tickets, local under
+`.scratch/dialogue-plaque/issues/` (gitignored) — 01 the plaque
+replaces the card (unblocked), 02 AA proven on glass (blocked by 01),
+03 frame-draw entrance (blocked by 01; the cut-first nice-to-have).
+Next: build on his go.** The head-art appetite moved to its own item,
+§d35.
 
 #### 33b brief — dialogue box re-envisioning (rulings: Caveshen, 2026-08-10)
 

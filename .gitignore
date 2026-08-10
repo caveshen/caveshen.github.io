@@ -29,3 +29,6 @@ playwright-report/
 
 # ad-hoc verification screenshots
 screenshots/
+
+# local ticket files (work management lives in docs/PRD.md)
+.scratch/

@@ -59,7 +59,7 @@ the document body under their original `§` headings as history.
 | d13 | `Avatar.astro` uses `is:global` needlessly | §30 D-12 | ✅ built 2026-08-02 — scoped in `646754b`; verify: `grep -n "is:global" src/components/Avatar.astro` is empty |
 | d14 | `not-found.spec.js` coupled to placeholder copy | §30 D-13 | ✅ closed by construction — verify: `grep -rn "toContainText('404')" e2e/` is empty |
 | d15 | Admin page | §31 (remainder) | 🎨 IN DESIGN, no go-ahead |
-| d16 | Dialogue box re-envisioning — the avatar and nameplate leave the card (was: card avatar art refinement) | §33b | 🎨 BRIEFED 2026-08-10 — awaiting Caveshen's go (§33b brief) |
+| d16 | Dialogue box re-envisioning — the avatar and nameplate leave the card (was: card avatar art refinement) | §33b | 🎨 mock ACCEPTED 2026-08-10 — design workshop done, mock on `feat/dialogue-plaque` (uncommitted); next: /to-spec tickets (§33b outcome) |
 | d17 | One character per route — Badger on `/`, hooded figure on `/404`; 1:1 **in interaction, not just scenery**; the toggle dies | §27 (remainder) | ✅ signed off 2026-08-10 (Caveshen) — built 2026-08-02 `26a6ddb` |
 | d18 | Visual validation in e2e | §16 | ✅ merged — must-haves PR #9 (2026-08-04), nice-to-haves PR #12, N4 face/card fix PR #14 (2026-08-06) |
 | d19 | Dialogue rework | §22 | ⏸ parked |
@@ -2809,8 +2809,9 @@ Merged with landing v2 (PR #1). One follow-up logged as **d13** (was §30 D-12,
 `is:global` where scoped would do).
 
 🎨 **33b RESCOPED 2026-08-10 (Caveshen's ruling) — the box, not the
-avatar. Brief below; awaiting his go to build.** The head-art appetite
-moved to its own item, §d35.
+avatar. Brief below; design workshop ran the same day and the mock was
+accepted (outcome below). Next: /to-spec tickets.** The head-art
+appetite moved to its own item, §d35.
 
 #### 33b brief — dialogue box re-envisioning (rulings: Caveshen, 2026-08-10)
 
@@ -2848,6 +2849,54 @@ screen, the box is text-only; portraits serve off-screen speakers.
 **Process:** design workshop at build time with the frontend-design
 skill — mock first, Caveshen's eye on local dev, then tickets and
 success criteria at /to-spec. Draft-before-deploy binds as always.
+
+#### 33b workshop outcome — mock accepted (Caveshen, 2026-08-10)
+
+Mock lives uncommitted on `feat/dialogue-plaque` (draft-before-deploy).
+
+**Accepted design.** The head row (avatar + nameplate) is gone. The
+card takes the same glass material as the rest of the overlay family
+(`.approach-prompt` / `.fullscreen-toggle` / `.page-foot`): night
+`rgba(10, 8, 22, 0.55)` with a 2px cream-at-22% border, day
+`rgba(253, 251, 245, 0.65)` with ink-at-22%, 4px radius,
+`backdrop-filter: blur(3px)`, no box-shadow. On top of the glass, an
+**etched inner frame**: a 1px hairline 8px inside the border
+(negative-offset `outline` — legal because `.card` is never focusable)
+and four corner brackets (background layers, 14px arms), both driven by
+two locally scoped custom properties (`--frame` 50%, `--frame-faint`
+18%; cream by night, ink by day).
+
+**Rejected on the way (keep — prevents re-litigating):** an opaque
+riveted-iron plaque forged from `--rail` was built first. Caveshen
+pivoted to the glass; the iron made the card the odd, heavier one out
+while the rest of the overlay chrome is glass, and the translucency
+keeps the scene present through the box.
+
+**Vision ruling (Caveshen + design pass, 2026-08-10):** the site's
+grammar is diegetic — a living Cape Town landscape whose characters
+tell the story; UI behaves as world wherever it can. Flair in the
+dialogue window lives in *time* (behaviour, entrances, streaming), not
+in ornament; the box stays quiet so the on-screen speaker keeps the
+stage. The fantastical-medieval flourish is banked for §d35.
+
+**For the /to-spec tickets:**
+- Build scope per the brief: `Avatar.astro` deleted with its call site;
+  orphaned tokens go with it (`--avatar-ring`, `--hair`, `--chip-bg` —
+  verify no other consumers at build time). `--chip-text` is **not** an
+  orphan: `sheet.astro`'s `.download-btn` still consumes it (reviewer
+  catch, 2026-08-10) — keep it.
+- Known e2e touchpoints to rework: `e2e/dialogue.spec.js:42` (clicks
+  `.card-head`) and `e2e/interview.spec.js:96` (asserts the avatar
+  blink animation).
+- **Hard success criterion — AA re-verification.** The old AA checks
+  validated foregrounds against the opaque `--card`. The glass surface
+  makes effective contrast depend on the scene behind the card, in both
+  themes and at zoom. Re-verify; the glass alpha is the dial if it
+  fails (the prompt's hover densities, 0.75 night / 0.88 day, are the
+  next stop).
+- Nice-to-have candidate (accepted as a candidate, not committed): the
+  etched frame *draws itself* during the card's entrance, riding the
+  existing 550ms entrance window; disabled under reduced motion.
 
 ---
 

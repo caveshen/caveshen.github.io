@@ -1,6 +1,6 @@
 // sheet-arrival.spec.js — /sheet arrival via cross-document view transition.
 import { test, expect } from '@playwright/test';
-import { rectsIntersect } from './geom.js';
+import { assertPortraitGeometry, assertPortraitNoAnim } from './geom.js';
 
 // Navigate from / to /sheet via the dialogue system option.
 async function navigateToSheet(page) {
@@ -23,32 +23,54 @@ const arrivedByMorph = (page) =>
 // Supported engine: arrived-by-morph is set and portrait slide-in is suppressed; unsupported engine: no marker.
 test('click-through: supported engine sets arrived-by-morph and suppresses portrait slide-in; unsupported does not', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
-  await navigateToSheet(page);
-  const supported = await arrivedByMorph(page);
 
-  if (supported) {
-    // Portrait animation suppressed; vertical-centring transform is translateY(-50%).
-    const style = await page.locator('.sheet-portrait').evaluate((el) => {
-      const cs = getComputedStyle(el);
-      // Parse the Y translation from the computed matrix (6th value in matrix(a,b,c,d,tx,ty)).
-      const match = cs.transform.match(/matrix\([^,]+,[^,]+,[^,]+,[^,]+,[^,]+,([^)]+)\)/);
-      const actualTy = match ? parseFloat(match[1]) : null;
-      // Expected: -50% of border-box height; getBoundingClientRect gives sub-pixel border-box height.
-      const expectedTy = -(el.getBoundingClientRect().height / 2);
-      return { animName: cs.animationName, actualTy, expectedTy };
-    });
-    expect(style.animName).toBe('none');
-    expect(style.actualTy).not.toBeNull();
+  // page.clock.install({ time: 0 }) freezes the animation timeline at virtual t=0. At t=0,
+  // portrait-slide-in (fill-mode:both, 200ms delay) holds its from-keyframe: translateX(-40%).
+  // animation:none reads tx=0 at every instant. A broken suppression reads tx≈-40% and fails
+  // the |tx|<1 assertion; a working one passes.
+  await page.clock.install({ time: 0 });
+
+  await navigateToSheet(page);
+
+  // runFor(100) advances virtual time to t=100ms and flushes pending timers. 100ms is
+  // inside the animation's 200ms delay, so the from-keyframe offset still holds.
+  await page.clock.runFor(100);
+
+  // Single evaluate snapshot — marker and every animation read in one JS call; eliminates
+  // the inter-read race window where WebKit's pagereveal handler fires between the marker read and
+  // the style reads, causing the unsupported-branch assertion to see 'none' instead of 'portrait-slide-in'.
+  const snap = await page.locator('html').evaluate((html) => {
+    const supported = html.classList.contains('arrived-by-morph');
+    const portraitEl = document.querySelector('.sheet-portrait');
+    const portraitCs = getComputedStyle(portraitEl);
+    const m = new DOMMatrix(portraitCs.transform);
+    const halfH = portraitEl.getBoundingClientRect().height / 2;
+    return {
+      supported,
+      portrait: {
+        animName: portraitCs.animationName,
+        // portrait-slide-in only moves X; tx≈0 is the direct settled-seat contract.
+        actualTx: m.m41,
+        actualTy: m.m42,
+        expectedTy: -halfH,
+      },
+      menuAnimName: getComputedStyle(document.querySelector('.nameplate-inner')).animationName,
+      xpAnim: getComputedStyle(document.querySelector('.xp-fill')).animationName,
+    };
+  });
+
+  if (snap.supported) {
+    // Portrait seated: X=0 (no slide-in offset), Y=-50% centring intact.
+    expect(Math.abs(snap.portrait.actualTx)).toBeLessThan(1);
     // toBeCloseTo with 1 decimal digit — within 0.05px — catches any non-translateY(-50%) transform.
-    expect(style.actualTy).toBeCloseTo(style.expectedTy, 1);
+    expect(snap.portrait.actualTy).toBeCloseTo(snap.portrait.expectedTy, 1);
   } else {
     // No marker, full choreography including portrait slide-in plays on unsupported path.
-    expect(supported).toBe(false);
-    const animName = await page.locator('.sheet-portrait').evaluate((el) => getComputedStyle(el).animationName);
-    expect(animName).toBe('portrait-slide-in');
+    expect(snap.supported).toBe(false);
+    expect(snap.portrait.animName).toBe('portrait-slide-in');
     // Full menu-open choreography runs: other animated elements are not suppressed.
-    const menuAnimName = await page.locator('.nameplate-inner').evaluate((el) => getComputedStyle(el).animationName);
-    expect(menuAnimName).not.toBe('none');
+    expect(snap.menuAnimName).not.toBe('none');
+    expect(snap.xpAnim, '.xp-fill animates in unsupported path').not.toBe('none');
   }
 });
 
@@ -59,21 +81,8 @@ test('click-through: portrait geometry is correct on arrival (supported engine)'
   if (!(await arrivedByMorph(page))) return;
 
   const portrait = page.locator('.sheet-portrait');
-  // arrived-by-morph suppresses the slide-in (animation: none), so there is
-  // nothing to wait for — portrait is already at its settled position.
-  const portraitBox = await portrait.boundingBox();
-  const nameplateBox = await page.locator('.nameplate').boundingBox();
-  const grid = page.locator('.sheet-grid');
-  const gridBox = await grid.boundingBox();
-  const gridGap = await grid.evaluate((el) => parseFloat(getComputedStyle(el).columnGap));
-
-  expect(rectsIntersect(portraitBox, nameplateBox)).toBe(false);
-  expect(rectsIntersect(portraitBox, gridBox)).toBe(false);
-  const portraitCenterY = portraitBox.y + portraitBox.height / 2;
-  const gridCenterY = gridBox.y + gridBox.height / 2;
-  expect(Math.abs(portraitCenterY - gridCenterY)).toBeLessThan(2);
-  const gap = gridBox.x - (portraitBox.x + portraitBox.width);
-  expect(Math.abs(gap - gridGap)).toBeLessThan(2);
+  // arrived-by-morph suppresses the slide-in, so portrait is already at its settled position.
+  await assertPortraitGeometry(page, portrait);
 });
 
 // Only portrait slide-in is suppressed on morph arrival; nameplate, columns, and XP bar keep their animations.
@@ -102,7 +111,15 @@ test('direct goto /sheet: no arrived-by-morph marker; portrait plays portrait-sl
 test('reduced motion: click-through is instant with no arrived-by-morph and final layout state intact', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.setViewportSize({ width: 1920, height: 1080 });
+
+  // Clock pin — see the assertPortraitNoAnim precondition in geom.js.
+  await page.clock.install({ time: 0 });
+
   await navigateToSheet(page);
+
+  // 100ms of virtual time stays inside the animation's 200ms delay, so a
+  // wrongly running slide-in still holds its from-keyframe offset here.
+  await page.clock.runFor(100);
 
   // No transition ran so no marker should be set.
   const hasMarker = await arrivedByMorph(page);
@@ -120,12 +137,25 @@ test('reduced motion: click-through is instant with no arrived-by-morph and fina
   }
 
   // Portrait: no animation, vertical-centring transform intact.
-  const portraitStyle = await page.locator('.sheet-portrait').evaluate((el) => {
-    const cs = getComputedStyle(el);
-    return { name: cs.animationName, transform: cs.transform };
-  });
-  expect(portraitStyle.name).toBe('none');
-  expect(portraitStyle.transform).not.toBe('none');
+  await assertPortraitNoAnim(page.locator('.sheet-portrait'));
+});
+
+// Dialogue-entry at 1366 (below the 1650px breakpoint): journey completes,
+// .sheet-portrait is hidden, and no console errors from our code.
+test('dialogue-entry at 1366 (below breakpoint): portrait hidden, no console errors', async ({ page }) => {
+  const errors = [];
+  page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
+  page.on('pageerror', (err) => errors.push(err.message));
+
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await navigateToSheet(page);
+
+  await expect(page.locator('.sheet-portrait')).toBeHidden();
+
+  // "Transition was skipped" is benign on Chromium when .sheet-portrait img carries
+  // view-transition-name but is display:none at this width.
+  const unexpected = errors.filter((e) => e !== 'Transition was skipped');
+  expect(unexpected).toEqual([]);
 });
 
 // /404 has no @view-transition opt-in in its stylesheets.

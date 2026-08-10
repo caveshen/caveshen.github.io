@@ -84,16 +84,6 @@ test('clicking the plane mid-flight crashes it, ending below the waterline, then
   await gotoAndFireFirstPass(page);
   const plane = page.locator('.banner-plane');
   await expect(plane).toBeAttached();
-  const frame = await page.locator('.stage-frame').boundingBox();
-
-  // The flight is a real (un-faked) CSS animation crossing from off-screen
-  // left to off-screen right — wait in real time until it's actually over
-  // the frame before clicking it (page.clock doesn't advance this, same
-  // compositor-vs-fake-timers lesson as the fade-out test above).
-  await expect.poll(async () => {
-    const box = await plane.boundingBox();
-    return box ? box.x > frame.x : false;
-  }, { timeout: 8000 }).toBe(true);
 
   // d30 fix: crashPlane() bakes the in-flight position from .plane-hit's own
   // rect, sampled before .banner-rect/.banner-tow are reparented out. Sample
@@ -107,17 +97,17 @@ test('clicking the plane mid-flight crashes it, ending below the waterline, then
     };
   });
 
-  // Deterministic click: locator.click computes the target point, runs
-  // actionability checks, then dispatches — on a slow CI runner the plane
-  // (a real, un-faked CSS animation) can move between computation and
-  // dispatch, so the click lands on empty sky and the crash never fires.
-  // Pause the flight animation via the Web Animations API so the plane is
-  // stationary for a real (non-forced, real-hit-testing) click, then resume
-  // it. Safe to freeze: crashPlane() reads live rects at click time
-  // regardless of animation play state, and .crashing's CSS override (see
-  // Stage.astro) starts a brand-new plane-crash animation on class-add, so
-  // the old flight animation's paused state doesn't reach the crash.
-  await plane.evaluate((el) => el.getAnimations({ subtree: true }).forEach((a) => a.pause()));
+  // Seek to mid-flight so the plane is over the frame, then pause for a stationary click.
+  // WAAPI currentTime seeks a CSS animation directly — page.clock does not advance compositor animations.
+  // Safe to pause: crashPlane() reads live rects at click time regardless of play state, and
+  // .crashing's CSS override starts a fresh plane-crash animation on class-add.
+  await plane.evaluate((el) => {
+    el.getAnimations({ subtree: true }).forEach((a) => {
+      const dur = a.effect && a.effect.getComputedTiming().duration;
+      if (typeof dur === 'number') a.currentTime = dur * 0.5;
+      a.pause();
+    });
+  });
   const pre = await sampleRects();
   await page.locator('.plane-hit').click();
   const post = await sampleRects();

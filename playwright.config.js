@@ -1,10 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const ci = !!process.env.CI;
-// Local: use installed Edge for Chromium projects (no browser download needed). CI: bundled Chromium.
-// ponytail: channel spread omitted in CI so Playwright uses its installed chromium.
+// Both CI and local use branded Edge for Chromium projects — Edge is preinstalled on ubuntu runners,
+// so no extra download, and it closes the local/CI seam (same browser engine everywhere).
 // Apple device projects use real WebKit everywhere — channel is chromium-only, never applied to webkit.
-const ch = ci ? {} : { channel: 'msedge' };
+const ch = { channel: 'msedge' };
 
 export default defineConfig({
   testDir: './e2e',
@@ -29,5 +28,6 @@ export default defineConfig({
     { name: 'desktop-2560', use: { viewport: { width: 2560, height: 1440 }, ...ch } },
     // Firefox: desktop only — Playwright's Firefox engine cannot emulate mobile.
     { name: 'desktop-firefox', use: { ...devices['Desktop Firefox'], browserName: 'firefox' } },
+    // The perf project lives in playwright.perf.config.js so `playwright test` never runs it.
   ],
 });

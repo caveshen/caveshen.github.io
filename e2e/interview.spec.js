@@ -576,70 +576,7 @@ test('no-JS: fullscreen button is absent', async ({ browser }) => {
   await ctx.close();
 });
 
-// Cubic-bezier evaluator, local to this spec (test-only — the shipped code
-// never needs to evaluate its own curve, only apply it via CSS). X(t) is the
-// elapsed-time fraction, Y(t) is progress; CSS solves X(t)=x for t then
-// returns Y(t), so we do the same via bisection on the monotonic X(t).
-function bezierProgressAt(p1x, p1y, p2x, p2y, durationMs, elapsedMs) {
-  const x = elapsedMs / durationMs;
-  const X = (t) => { const m = 1 - t; return 3 * m * m * t * p1x + 3 * m * t * t * p2x + t ** 3; };
-  const Y = (t) => { const m = 1 - t; return 3 * m * m * t * p1y + 3 * m * t * t * p2y + t ** 3; };
-  let lo = 0, hi = 1;
-  // 30 halvings takes the interval below 1e-9 — far past what a percentage
-  // threshold needs, and past float64's useful precision here anyway.
-  for (let i = 0; i < 30; i++) {
-    const mid = (lo + hi) / 2;
-    if (X(mid) < x) lo = mid; else hi = mid;
-  }
-  return Y((lo + hi) / 2);
-}
-
-// Parses a computed `transition` shorthand (e.g. "transform 0.55s cubic-bezier(0.4, 0, 0.2, 1)")
-// into duration (ms) and the four bezier control-point numbers.
-function parseTransition(css) {
-  const durationMatch = css.match(/([\d.]+)s\b/);
-  const bezierMatch   = css.match(/cubic-bezier\(([^)]+)\)/);
-  const [p1x, p1y, p2x, p2y] = bezierMatch[1].split(',').map(Number);
-  return { durationMs: parseFloat(durationMatch[1]) * 1000, p1x, p1y, p2x, p2y };
-}
-
-async function computedTransition(page, approached) {
-  if (approached) await page.locator('#approach-prompt').click();
-  else await page.locator('#end-dialogue').click();
-  return page.locator('.camera').evaluate((el) => getComputedStyle(el).transition);
-}
-
-test('entry easing starts from rest — advances less than 4% in the first frame (16ms)', async ({ page }) => {
-  const css = await computedTransition(page, true);
-  const { durationMs, p1x, p1y, p2x, p2y } = parseTransition(css);
-  const pct = bezierProgressAt(p1x, p1y, p2x, p2y, durationMs, 16) * 100;
-  expect(pct).toBeLessThan(4);
-});
-
-// Contrast case: the exit curve is deliberately NOT eased from rest (a fast departure
-// that settles reads as a natural retreat) — documents *why* entry and exit can't share
-// a curve, so it fails loudly if someone later "simplifies" by unifying them.
-test('exit easing (unchanged) advances more than 10% in the first frame (16ms), by contrast', async ({ page }) => {
-  await page.locator('#approach-prompt').click();
-  const css = await computedTransition(page, false);
-  const { durationMs, p1x, p1y, p2x, p2y } = parseTransition(css);
-  const pct = bezierProgressAt(p1x, p1y, p2x, p2y, durationMs, 16) * 100;
-  expect(pct).toBeGreaterThan(10);
-});
-
-test('entry and exit have different computed transitions', async ({ page }) => {
-  const entryCss = await computedTransition(page, true);
-  const exitCss  = await computedTransition(page, false);
-  expect(entryCss).not.toBe(exitCss);
-});
-
-test('exit computed transition matches the unchanged, approved 950ms curve', async ({ page }) => {
-  await page.locator('#approach-prompt').click();
-  const css = await computedTransition(page, false);
-  const { durationMs, p1x, p1y, p2x, p2y } = parseTransition(css);
-  expect(durationMs).toBeCloseTo(950, 0);
-  expect([p1x, p1y, p2x, p2y]).toEqual([0.16, 1, 0.3, 1]);
-});
+// Bezier evaluator tests (pure math, static CSS constants) live in src/tests/interview-bezier.test.js.
 
 test('prefers-reduced-motion skips the camera transition entirely, entry and exit', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });

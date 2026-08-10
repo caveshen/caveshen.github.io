@@ -1,19 +1,6 @@
 // Badger two-frame idle animation.
+// HTTP-200 asset checks live in e2e/badger.spec.js and src/tests/hygiene.test.js.
 import { test, expect } from '@playwright/test';
-
-test('badger-up.png is served', async ({ request }) => {
-  const res = await request.get('/badger-up.png');
-  expect(res.status()).toBe(200);
-  const body = await res.body();
-  expect(body.length).toBeGreaterThan(0);
-});
-
-test('badger-down.png is served', async ({ request }) => {
-  const res = await request.get('/badger-down.png');
-  expect(res.status()).toBe(200);
-  const body = await res.body();
-  expect(body.length).toBeGreaterThan(0);
-});
 
 test('reduced-motion: down frame has no animation', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });

@@ -56,6 +56,12 @@ jobs:
       - name: Integration tests
         run: npm run test:e2e -- ${{ env.LIGHT == 'true' && '--project=desktop-1920' || '' }}
 
+      - name: Performance suite (report-only)
+        # The suite never asserts budgets — it captures metrics and warns on regression.
+        # continue-on-error: a broken harness must never block a main deploy.
+        continue-on-error: true
+        run: npm run test:perf
+
   build:
     needs: test
     if: github.ref == 'refs/heads/main'

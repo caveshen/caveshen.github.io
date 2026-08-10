@@ -106,16 +106,13 @@ test('prefers-reduced-motion: portrait has no animation but keeps its vertical-c
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.setViewportSize({ width: 1920, height: 1080 });
 
-  // page.clock.install({ time: 0 }) freezes the CSS animation timeline at virtual t=0.
-  // At t=0, portrait-slide-in (fill-mode:both, 200ms delay) holds its from-keyframe:
-  // translateX(-40%). A correctly gated animation reads tx=0; a broken one reads tx≈-40%
-  // and fails the |tx|<1 assertion inside assertPortraitNoAnim.
+  // Clock pin — see the assertPortraitNoAnim precondition in geom.js.
   await page.clock.install({ time: 0 });
 
   await page.goto('/sheet');
 
-  // runFor(100) flushes pending timers and microtasks after navigation.
-  // It does not advance the CSS animation timeline — the from-keyframe offset persists.
+  // 100ms of virtual time stays inside the animation's 200ms delay, so a
+  // wrongly running slide-in still holds its from-keyframe offset here.
   await page.clock.runFor(100);
 
   const portrait = page.locator('.sheet-portrait');

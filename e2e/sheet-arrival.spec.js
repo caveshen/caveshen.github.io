@@ -32,8 +32,8 @@ test('click-through: supported engine sets arrived-by-morph and suppresses portr
 
   await navigateToSheet(page);
 
-  // runFor(100) flushes pending timers/microtasks after navigation; it does not advance the
-  // CSS animation timeline — the from-keyframe offset persists regardless of virtual time elapsed.
+  // runFor(100) advances virtual time to t=100ms and flushes pending timers. 100ms is
+  // inside the animation's 200ms delay, so the from-keyframe offset still holds.
   await page.clock.runFor(100);
 
   // Single evaluate snapshot — marker and every animation read in one JS call; eliminates
@@ -112,16 +112,13 @@ test('reduced motion: click-through is instant with no arrived-by-morph and fina
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.setViewportSize({ width: 1920, height: 1080 });
 
-  // page.clock.install({ time: 0 }) freezes the CSS animation timeline at virtual t=0.
-  // At t=0, portrait-slide-in (fill-mode:both, 200ms delay) holds its from-keyframe:
-  // translateX(-40%). A correctly gated animation reads tx=0; a broken one reads tx≈-40%
-  // and fails the |tx|<1 assertion inside assertPortraitNoAnim.
+  // Clock pin — see the assertPortraitNoAnim precondition in geom.js.
   await page.clock.install({ time: 0 });
 
   await navigateToSheet(page);
 
-  // runFor(100) flushes pending timers and microtasks after navigation.
-  // It does not advance the CSS animation timeline — the from-keyframe offset persists.
+  // 100ms of virtual time stays inside the animation's 200ms delay, so a
+  // wrongly running slide-in still holds its from-keyframe offset here.
   await page.clock.runFor(100);
 
   // No transition ran so no marker should be set.

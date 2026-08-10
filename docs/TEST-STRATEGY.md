@@ -146,14 +146,15 @@ The harness instead measures animations on the non-visible `display:none`
 `.scene` variants — real hidden-compute. The wording "offscreen/occluded"
 does not map literally to this site.
 
-### Recorded deviation — perf suite CI reliability caveat (Phase 6)
+### Recorded deviation — perf step isolation in CI (Phase 6)
 
-The report-only perf step has no `continue-on-error`. It cannot fail CI
-on a performance regression (it never asserts budgets), but a harness
-failure — for example, a network-idle or CDP hiccup — would fail the
-test job and could block a `main` deploy. This is a deliberate honest
-state: a broken perf harness is worth knowing. Whether to isolate it is
-Caveshen's call.
+The report-only perf step runs with `continue-on-error: true`. (Ruling:
+Caveshen, 2026-08-10.) The step never asserts budgets, so the isolation
+loses no regression gate. A harness fault — for example, a network-idle
+or CDP hiccup — no longer fails the test job and can never block a
+`main` deploy. The trade: a broken harness shows as an amber step in
+the workflow run, not a red build. When you read CI results, check the
+perf step; an amber perf step means the harness needs repair.
 
 ## House rules that also bind tests
 

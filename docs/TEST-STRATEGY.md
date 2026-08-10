@@ -129,6 +129,29 @@ hidden-compute checklist — animations still running while the page is
 hidden or the element is offscreen/occluded. Output is a human-readable
 report for Caveshen's judgement; no assertions, no gate.
 
+### Recorded deviation — P7 offscreen/occluded limb (Phase 7)
+
+The "Locally (ad hoc)" charter names checking animations while "the page
+is hidden or the element is offscreen/occluded". On this fullscreen
+`overflow:hidden`, non-scrolling layout, true offscreen or occluded
+elements are structurally impossible. A real hidden
+`document.visibilityState` cannot be forced in headed Playwright/Edge
+automation: the `bringToFront` second-tab technique does not flip it, and
+`Emulation.setVisibilityState` was removed years ago. The harness instead
+measures animations on the non-visible `display:none` `.scene` variants
+(real hidden-compute) and reports the hidden-tab limb honestly as
+undrivable. The wording "offscreen/occluded" does not map literally to
+this site.
+
+### Recorded deviation — perf suite CI reliability caveat (Phase 6)
+
+The report-only perf step has no `continue-on-error`. It cannot fail CI
+on a performance regression (it never asserts budgets), but a harness
+failure — for example, a network-idle or CDP hiccup — would fail the
+test job and could block a `main` deploy. This is a deliberate honest
+state: a broken perf harness is worth knowing. Whether to isolate it is
+Caveshen's call.
+
 ## House rules that also bind tests
 
 - Name a test after what it tests, never after a tracker ID.

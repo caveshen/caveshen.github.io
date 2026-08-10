@@ -77,7 +77,7 @@ the document body under their original `§` headings as history.
 | d31 | Game-feel UI pass — streaming dialogue text + one selection idiom for every button | *new* | ✅ ACCEPTED 2026-08-04 (Parts A+B) — PR open from `item/game-feel-ui` |
 | d32 | Scene→sheet transition — the Badger travels from the scene to his portrait seat | *new* | ✅ MERGED 2026-08-09 (PR #17, `dc9de23`) |
 | d33 | Sheet→scene return — the Badger travels back from his portrait seat | *new* | ✅ ACCEPTED 2026-08-09 — PR open, awaiting Caveshen's merge (§d33) |
-| d34 | Test-suite health — full test strategy (unit + integration) and execution | *new* | 🚧 EXECUTING 2026-08-09 — strategy approved, all rulings in; phases 0-7 in build on `chore/test-strategy` (§d34) |
+| d34 | Test-suite health — full test strategy (unit + integration) and execution | *new* | 🔧 ENGINEERING-COMPLETE 2026-08-10 — phases 0–7 built and reviewer-approved on `chore/test-strategy`; ×8 matrix clean (2008 / 0 failed), unit 97/97; not released — awaiting Caveshen's push/PR/merge (§d34) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -5556,7 +5556,7 @@ accepted and recorded here:
 - **T1 — arrival hand-off on `/`:** done, reviewer approved (`521fe7e`). One non-blocking nit (dead test helper) folded into T2.
 - **T2 — round trip + acceptance evidence:** done, reviewer approved (`87e8db7`). Double round trip, `goBack` case, and 1920 night/day acceptance screenshots (gitignored).
 
-**Verification (2026-08-09).** Vitest 80/80. Full serialized matrix (all 8 projects): 2036 passed, 26 skipped, 2 failed. The 2 failures are a pre-existing WebKit flake in `portrait-journey.spec.js` (a two-read race on the `arrived-by-morph` marker, line 28 vs 72); the same race also hits `sheet-arrival.spec.js`. Proven pre-existing: the failing spec and `sheet.astro` are byte-identical on main `dc9de23`, main fails the same race, and the failure set wanders run to run (always WebKit). d33 is not implicated (it changed only `/`; the marker is set on `/sheet`). FIXED on `feat/portrait-return`: reused the already-read `supported` value in the `else` branch in `portrait-journey.spec.js:72` and `sheet-arrival.spec.js:46`.
+**Verification (2026-08-09).** Vitest 80/80. Full serialized matrix (all 8 projects): 2036 passed, 26 skipped, 2 failed. The 2 failures are a pre-existing WebKit flake in `portrait-journey.spec.js` (a two-read race on the `arrived-by-morph` marker, line 28 vs 72); the same race also hits `sheet-arrival.spec.js`. Proven pre-existing: the failing spec and `sheet.astro` are byte-identical on main `dc9de23`, main fails the same race, and the failure set wanders run to run (always WebKit). d33 is not implicated (it changed only `/`; the marker is set on `/sheet`). FIXED on `feat/portrait-return`: reused the already-read `supported` value in the `else` branch in `portrait-journey.spec.js:72` and `sheet-arrival.spec.js:46`. **[SUPERSEDED — the "pre-existing" framing and the `feat/portrait-return` partial fix did not hold: the race survived into d34. Zero tolerance on flakes is now law; see docs/TEST-STRATEGY.md §Determinism laws (ruling: Caveshen, 2026-08-10). The race was genuinely cured in d34 by an atomic single-`evaluate` read of the marker and dependent styles (commit 79e462c), proven --repeat-each=10 green on iphone-15pro and ipad.]**
 
 Item criteria 1–6 met in code and tests; criterion 7 (Caveshen’s eye on the seam and the out-of-colour beat) waits on his local preview. Two 1920 acceptance screenshots (night/day) sit in the gitignored `screenshots/`. No push/PR/merge — held for his preview.
 
@@ -5817,7 +5817,7 @@ start; root cause: overlay image decode race; cure: parse-time preload of
 badger-up.png on `/` via a named head slot in Base.astro — the shared-layout
 touch was blessed with the acceptance). Matrix 2036 passed / 26 skipped /
 2 failed, both failures inherited from the d32 specs' WebKit marker race —
-see the follow-up note above. PR open, awaiting his merge.**
+see the follow-up note above. PR open, awaiting his merge. **[SUPERSEDED — the "inherited known failure" framing no longer holds. Zero tolerance on flakes is now law; see docs/TEST-STRATEGY.md §Determinism laws (ruling: Caveshen, 2026-08-10). The race was genuinely cured in d34 by an atomic single-`evaluate` read (commit 79e462c), proven --repeat-each=10 green on iphone-15pro and ipad.]**
 
 ## d34. Test-suite health — CI browser alignment and e2e relevance audit
 
@@ -5874,212 +5874,112 @@ strategy is drafted here from that audit — it must also RULE on facet 1
 (CI browser alignment), since alignment changes what the audit's findings
 mean; (3) Caveshen approves the strategy; (4) execution against it.
 
-**Status: 🚧 EXECUTING 2026-08-09 — strategy APPROVED by Caveshen, all
-three rulings in (Edge CI: yes; screenshots: ad-hoc script; perf gate:
-report-only first), plus a Phase 7 local GPU/FPS harness added at his
-request. Phases 0-7 in build on `chore/test-strategy`.**
+**Status: 🔧 ENGINEERING-COMPLETE 2026-08-10 — phases 0–7 built and
+reviewer-approved on `chore/test-strategy`; ×8 matrix clean (2008 / 0
+failed), unit 97/97. Not released — no push, no PR; awaiting
+Caveshen's release.**
 
-### Test strategy (APPROVED 2026-08-09)
+### Strategy pointer and audit baseline
 
-**Goal, one sentence:** make both test levels fast, deterministic, and
-consistent — solitary unit tests for the modules we built, Playwright for
-the user-visible contract plus honest performance signals — and expunge
-every test that does not protect the site.
+Canonical strategy: docs/TEST-STRATEGY.md. This section tracks the
+execution work and rulings only.
 
-All findings below come from the senior reviewer's audit (2026-08-09,
-read-only, on this branch). Suite state at audit time: unit = 80 tests in
-~8 s (camera 9, portrait-handoff 10, dialogue 24, theme 18, hygiene 19);
-e2e = 18 files, ~235 cases × 8 projects ≈ 2050, full matrix ~16 min.
+**Audit baseline (2026-08-09):** Unit = 80 tests / ~8 s (camera 9,
+portrait-handoff 10, dialogue 24, theme 18, hygiene 19); e2e = 18 files,
+~235 cases × 8 projects ≈ 2050, full matrix ~16 min.
 
-#### 1. The keystone ruling — CI browser (facet 1)
+### Rulings record
 
-This is the first decision. Ticket 2 hangs on it.
+1. **CI on Edge (Caveshen, 2026-08-09):** APPROVED — Chromium-family CI
+   runs on branded Edge (`channel: 'msedge'`). The scar tissue in
+   `return-journey.spec.js` (force-clicks, `__vtFinished` awaits,
+   `waitForFunction` guards) became deletable in P1.
+2. **Acceptance screenshots (Caveshen, 2026-08-09):** RULED — standalone
+   script, ad-hoc local runs only, out of CI.
+3. **Perf gate posture (Caveshen, 2026-08-09):** RULED — report-only
+   first; promote to blocking after the baselines prove themselves.
+4. **Zero tolerance on flakes (Caveshen, 2026-08-10):** no tolerated
+   known failure category. A test seen to flake stops delivery until the
+   root cause is named and an explicit correction lands. Law recorded in
+   docs/TEST-STRATEGY.md §Determinism laws. Supersedes the "d32 WebKit
+   marker race is known" framing previously in the execution plan.
+5. **Geometry micro-ticket (2026-08-10):** geometry consolidation
+   corrections committed as 4762e9c (final; superseded f915e47/a98518a).
 
-**Proposal (Phase 0):** point the Chromium-family CI projects at branded
-Edge. One line changes: `playwright.config.js:7` now reads
-`const ch = ci ? {} : { channel: 'msedge' };` — drop the CI split so CI
-and local both run `channel: 'msedge'`. Edge is preinstalled on the
-ubuntu runners, so the switch costs no CI time. The pros and cons are
-recorded under facet 1 above and are not repeated here.
+### Execution plan
 
-**What the ruling buys:** all the heavy scar tissue in
-`e2e/return-journey.spec.js` — nine force-clicks, the `__vtFinished`
-settle awaits, the bounded `waitForFunction` guards — exists only because
-Playwright's bundled Chromium freezes `requestAnimationFrame` after a
-skipped cross-document view transition. Branded Edge and Chrome do not.
-If approved, all of that is deleted, not maintained. If declined, it
-stays, with its comments, and ticket 2 is dropped.
+Each ticket is one worker, one spawn.
 
-**Recommendation: approve** — the suite then tests the browser users
-actually run, and the largest single source of test complexity becomes
-deletable.
-
-Kept in either case (load-bearing, not scar):
-
-- the `arrivedByMorph` execution-evidence gate
-  (`e2e/sheet-arrival.spec.js:20-22`);
-- the "Transition was skipped" console filter;
-- the banner-plane WAAPI pause/play discipline and `page.clock`.
-
-#### 2. Unit charter
-
-- Home: vitest, `src/tests/*.test.js`, run by `npm test`.
-- Style: classical and solitary. A unit test exercises one module we
-  built (`src/scripts/*`) through its own interface. No browser, no
-  network, no expectation beyond the module's contract.
-- The current 80-test, ~8 s suite is the model to keep. Target: the unit
-  run stays under 15 s.
-- Gap: `src/scripts/stage.js` (403 lines, the largest module) has no
-  unit test. Three pure-ish pieces are reachable: the `positionPrompt`
-  clamp (stage.js:57-70), the approach scale floor (stage.js:128-131),
-  and the `nextPlaneDelay` jitter (stage.js:188). Plan: extract that
-  logic into pure functions and test them solitary. No behaviour change;
-  the full matrix proves it.
-- Two unit tests in e2e costume get demoted to their true home:
-  - `e2e/badger-idle.spec.js:4-16` (asset 200 checks) duplicates
-    `src/tests/hygiene.test.js` and `e2e/badger.spec.js:44-50` — the
-    duplicate is deleted;
-  - `e2e/interview.spec.js:583-642` (a bezier evaluator run on static
-    CSS numbers) moves to `src/tests/`.
-
-#### 3. Integration charter
-
-Playwright verifies the user-visible contract only: look and feel, and
-functionality. A spec earns its place when its failure means a user sees
-something wrong. These specs qualify and stay: approach, dialogue, scene,
-not-found, sheet, interview, banner-plane, idle-parallax, button-feel.
-
-Rules:
-
-- **One journey per arrival mode.** `e2e/portrait-journey.spec.js` is a
-  near-total duplicate of `sheet-arrival.spec.js` walked via a dialogue
-  click. It merges in; one dialogue-entry journey case survives.
-- **No implementation trivia.** `e2e/sheet-portrait.spec.js:73-92`
-  asserts animation-delay ordering against a 500 ms budget — it becomes
-  a cheap stylesheet assertion. `e2e/sheet-arrival.spec.js:40,47` uses
-  `animationName === 'none'` as a proxy — same cleanup.
-- **No copied blocks.** The portrait geometry block exists three times
-  (sheet-portrait:38-48, sheet-arrival:70-77, portrait-journey:56-63);
-  the morph-suppression block twice. The helper home already exists:
-  `e2e/geom.js`. All copies route through it.
-- **Determinism idioms already won stay law:** branch on execution
-  evidence (the `arrived-by-morph` marker), never on API probes or the
-  Playwright project name; read markers once.
-- **No fixed sleeps.** Remaining offenders: `e2e/idle-parallax.spec.js`
-  lines 17 and 48 (1100 ms), one 400 ms sleep in dialogue, and the 8 s
-  real-animation poll in banner-plane. Each converts to an event or
-  state wait, or to `page.clock`.
-- Expunged outright: `pw-sw-config.js` (untracked, unused); the
-  return-journey acceptance-screenshots test leaves the matrix for a
-  standalone script (open question 2).
-
-#### 4. Performance charter (new)
-
-The brief asks for site performance including GPU and CPU. On CI this
-splits into what is honest and what is noise.
-
-Honest on CI — we assert on these:
-
-- Core Web Vitals via a `PerformanceObserver` injection on `/` and
-  `/sheet`: LCP and CLS. INP only as a synthetic proxy.
-- CDP `Performance.getMetrics`: JS heap size, layout and style-recalc
-  counts, and TaskDuration. TaskDuration plus the layout counts are the
-  CPU signal — this is how the CPU wish is honoured.
-- Trace-based timings and event counts.
-
-Noise on CI — we never promise these: GPU utilisation, FPS, paint
-smoothness, absolute wall-clock budgets. Reason: the runners render in
-software, with no real GPU and shared throttled CPUs. A GPU number there
-measures the runner, not the site. The GPU wish is honoured indirectly:
-heap, layout counts, and TaskDuration catch the regressions that would
-also cost GPU on real hardware. True GPU/FPS checks stay a local,
-eyes-on activity, not a CI gate.
-
-Assertion rule: compare against recorded baselines and fail only on a
-regression delta outside a generous tolerance. Never assert absolute
-budgets. Baselines live in the repo and are re-recorded deliberately,
-never auto-updated. The perf suite runs on one desktop project only, not
-across the ×8 matrix.
-
-#### 5. Execution plan
-
-Each ticket is one worker, one spawn. "Matrix green" means the full
-local matrix passes with no failures that were not already known before
-the ticket (the d32 WebKit marker race is known). Nothing starts before
-Caveshen approves this strategy.
-
-**Phase status (execution tracker; canonical strategy: docs/TEST-STRATEGY.md):**
+**Phase status:**
 - P0 CI on Edge — DONE (829ac61)
 - P1 Scar-tissue deletion — DONE (5de5d91)
 - P2 Spec consolidation — DONE (f6b5db8)
-- P3 Small expunges and demotions — DONE (0fcf409 + 38d512b)
+- P3 Small expunges and demotions — DONE (0fcf409)
 - P4 stage.js extraction and unit tests — DONE (1037efb)
-- P5 Fixed-sleep conversions — DONE (751e2d8 + fix e02a9c9)
-- P6 CI perf suite (report-only) — pending
-- P7 Local GPU/FPS harness (ad-hoc) — pending
+- P5 Fixed-sleep conversions — DONE (751e2d8)
+- WebKit race fix — DONE (79e462c; atomic single-`evaluate` read of marker and dependent styles; --repeat-each=10 green on iphone-15pro and ipad)
+- Geometry micro-ticket — DONE (4762e9c; superseded f915e47/a98518a)
+- Zero-flake law commit — e4b37a2
+- P6 CI perf suite (report-only) — DONE (881cfbf → d015fbe)
+- P7 Local GPU/FPS harness — DONE (435f2da; superseded 1f6bb08/4782ebf)
 
 1. **P0 — CI on Edge.** Change `playwright.config.js:7` so CI also uses
    `channel: 'msedge'`; update the comment above it. Run one CI shakeout
    round. → verify: CI matrix green on Edge; no new flake class in the
-   shakeout. *Also blocked on ruling 1.*
+   shakeout.
 2. **Scar-tissue deletion** (needs 1). In `e2e/return-journey.spec.js`
    remove the nine force-clicks, the `__vtFinished` awaits, and the
-   `waitForFunction` guards; keep the three load-bearing items in
-   strategy §1. → verify: no `force: true` and no `__vtFinished` left in
-   the file; matrix green locally and on CI.
+   `waitForFunction` guards; keep the three load-bearing items. → verify:
+   no `force: true` and no `__vtFinished` left in the file; matrix green
+   locally and on CI.
 3. **Spec consolidation** (needs 2). Merge `portrait-journey.spec.js`
    into `sheet-arrival.spec.js` with one dialogue-entry journey; move
-   the acceptance-screenshots test into a standalone script (or delete —
-   open question 2). → verify: `portrait-journey.spec.js` gone; the
-   dialogue-entry journey still runs; matrix green.
+   the acceptance-screenshots test into a standalone script. → verify:
+   `portrait-journey.spec.js` gone; the dialogue-entry journey still
+   runs; matrix green.
 4. **Small expunges and demotions** (needs 3). Geometry and
    morph-suppression dedupe through `e2e/geom.js`; the sheet-portrait
    timing budget becomes a stylesheet assertion; badger-idle asset-200
    dedupe; the interview bezier evaluator moves to `src/tests/`; delete
    `pw-sw-config.js`. → verify: no copied geometry block remains (grep);
    unit run still under 15 s; matrix green.
-5. **stage.js extraction and unit tests** (after 4, to avoid diff
-   collisions). Extract the three pure pieces; test them solitary; no
-   behaviour change. → verify: new unit tests pass; matrix green.
+5. **stage.js extraction and unit tests** (after 4). Extract the three
+   pure pieces; test them solitary; no behaviour change. → verify: new
+   unit tests pass; matrix green.
 6. **Fixed-sleep conversions** (needs 4). idle-parallax, dialogue, and
-   banner-plane per strategy §3. → verify: no literal `waitForTimeout`
-   sleeps left in those files; matrix green on three consecutive local
-   runs.
-7. **Performance suite** (needs 6 — the suite must be stable first).
-   Build the perf spec per strategy §4; record baselines; wire it into
-   CI on one desktop project. → verify: perf spec green against its own
-   baselines; a deliberate local regression (an injected layout thrash)
-   turns it red.
+   banner-plane. → verify: no literal `waitForTimeout` sleeps left in
+   those files; matrix green on three consecutive local runs.
+7. **Performance suite** (needs 6). Build the perf spec; record
+   baselines; wire into CI on one desktop project. → verify: perf spec
+   green against its own baselines; a deliberate local regression (an
+   injected layout thrash) turns it red.
 
-**Done for d34 as a whole:** tickets 1–7 closed (ticket 2 dropped if
-ruling 1 is declined), the unit run under 15 s, matrix green, and the
-e2e case count reported before and after so the expunge is visible.
+**d34 complete:** all phases done; unit 97/97 (under 15 s); e2e 2008
+cases / 0 failed; ×8 matrix wall-clock 5m01s.
 
-#### 6. Open questions — RESOLVED (Caveshen, 2026-08-09)
+### Outcomes
 
-1. **The Phase 0 ruling (facet 1):** APPROVED — CI runs on branded Edge.
-   Ticket 2 (scar-tissue deletion) proceeds.
-2. **Acceptance screenshots:** RULED — keep as a standalone script for
-   ad-hoc local runs, out of CI.
-3. **Perf gate posture:** RULED — report-only first, promote to blocking
-   after the baselines prove themselves.
+- **e2e:** baseline 2072 (18 files, full matrix ~16 min) → 2008 after
+  expunge/consolidation → **2008 final** (1989 passed / 19 skipped / 0
+  failed). Full ×8 matrix wall-clock 5m01s (commit 4762e9c). Net −64
+  cases, ~3× faster, zero failures.
+- **Unit:** 80 → 97 (P4 stage.js extraction).
+- **Perf suite (P6):** +2 report-only cases on a dedicated one-desktop
+  `perf` project — separate from the 2008 functional matrix; report-only,
+  never blocks CI on a regression.
 
-#### 7. Local GPU/FPS harness (added at Caveshen's request, 2026-08-09)
+### Deferred follow-ups
 
-CI cannot measure GPU or frame rate honestly (software rendering on
-shared runners). But the concern is real: hidden compute — animations
-that keep running while occluded or offscreen, paint storms nobody sees —
-wastes GPU cycles on every visitor's machine. So GPU/FPS testing rides
-as AD-HOC LOCAL tooling, next to the screenshot script, run on a real
-GPU in headed Edge on demand (not in CI):
-
-- Sample frame rate during the idle scene, dialogue, and both morphs.
-- Report long animation frames and dropped-frame counts.
-- Flag animations still running while the page is hidden
-  (`visibilitychange`) and elements animating while offscreen or fully
-  occluded — the hidden-compute checklist.
-- Output is a human-readable report for Caveshen's judgement; no
-  assertions, no gate.
-
-This is execution Phase 7, after the CI perf suite (Phase 6).
+- **`assertPortraitNoAnim` reduced-motion latent vacuity (geom.js):** the
+  `assertPortraitNoAnim` helper shares the same latent vacuity the
+  supported-branch fix closed: a completed slide-in and a suppressed one
+  both end at tx=0. Sound only because reduced-motion suppression is
+  static. Fix = the same `page.clock` pin (threads the clock through two
+  more specs), or accept. Low severity. Needs a ruling.
+- **P6 promotion deferred:** trace-based timings, event counts, and the
+  INP synthetic proxy are deferred until baselines prove themselves and
+  the suite turns blocking.
+- **Open design question (pre-existing, for the planner, post-d34):** is
+  the unsupported-branch portrait-slide-in assertion still meaningful now
+  that WebKit runs cross-document view transitions?
 

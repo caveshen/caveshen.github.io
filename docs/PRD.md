@@ -61,7 +61,7 @@ the document body under their original `§` headings as history.
 | d15 | Admin page | §31 (remainder) | 🎨 IN DESIGN, no go-ahead |
 | d16 | Card avatar art refinement | §33b | 🎨 IN DESIGN, brief outstanding |
 | d17 | One character per route — Badger on `/`, hooded figure on `/404`; 1:1 **in interaction, not just scenery**; the toggle dies | §27 (remainder) | ✅ built 2026-08-02 `26a6ddb` — awaiting Caveshen's local-dev sign-off |
-| d18 | Visual validation in e2e | §16 | ✅ must-haves built on `item/visual-validation`, reviewer-approved; nice-to-haves N1–N4 built (N1–N3 + N4's first case on `test/d18-nice-to-haves`, N4's face/card case fixed and committed on `fix/face-card-occlusion`) (see §16 status) — awaiting Caveshen's go to PR |
+| d18 | Visual validation in e2e | §16 | ✅ merged — must-haves PR #9 (2026-08-04), nice-to-haves PR #12, N4 face/card fix PR #14 (2026-08-06) |
 | d19 | Dialogue rework | §22 | ⏸ parked |
 | d20 | Social preview imagery | §32 | ⏸ unscheduled |
 | d21 | All copy | §23 checklist item 1 | Caveshen's alone; every `PLACEHOLDER` stands |
@@ -71,13 +71,13 @@ the document body under their original `§` headings as history.
 | d25 | Shared stage component — extracting the approach interaction | *new* | ✅ built 2026-08-02 — `1254dad`, landed on the mainline as `732f5a6` (#3); pure refactor, byte-identical `dist/index.html`, zero `e2e/` files modified |
 | d26 | Cleanup sweep — four of five items built, one closed as not-debt | *new* | ✅ built 2026-08-02 — `daaafb9`; item 5 closed, replaced by lossless PNG recompression in `3f322ae` |
 | d27 | CI: tag pushes fire the deploy workflow | *new* | ✅ built 2026-08-02 — `daaafb9` |
-| d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | ✅ ACCEPTED 2026-08-04 (all stages + follow-ups, /code-review findings fixed, drift final at 1 unit) — PR open, awaiting merge |
+| d28 | Cityscape depth — staged parallax/gradient pass against the "flat" read | *new* | ✅ merged 2026-08-03 (PR #8) — all stages + follow-ups accepted, drift final at 1 unit |
 | d29 | Comment sweep — repo-wide | *new* | ✅ merged to main (PR #7) |
-| d30 | Easter egg — the banner plane crashes when clicked | *new* | 🔧 in build 2026-08-06 — go given, banner-copy follow-up deliberately skipped |
-| d31 | Game-feel UI pass — streaming dialogue text + one selection idiom for every button | *new* | ✅ ACCEPTED 2026-08-04 (Parts A+B) — PR open from `item/game-feel-ui` |
+| d30 | Easter egg — the banner plane crashes when clicked | *new* | ✅ merged 2026-08-06 (PR #13) — banner-copy line stays PLACEHOLDER (d21) |
+| d31 | Game-feel UI pass — streaming dialogue text + one selection idiom for every button | *new* | ✅ merged 2026-08-04 (PRs #10, #11) |
 | d32 | Scene→sheet transition — the Badger travels from the scene to his portrait seat | *new* | ✅ MERGED 2026-08-09 (PR #17, `dc9de23`) |
-| d33 | Sheet→scene return — the Badger travels back from his portrait seat | *new* | ✅ ACCEPTED 2026-08-09 — PR open, awaiting Caveshen's merge (§d33) |
-| d34 | Test-suite health — full test strategy (unit + integration) and execution | *new* | 🔧 ENGINEERING-COMPLETE 2026-08-10. Phases 0–7 built and reviewer-approved on `chore/test-strategy`. ×8 matrix clean: 2008 passed, 0 failed. Unit: 97/97. Not released — awaiting Caveshen's push/PR/merge (§d34). |
+| d33 | Sheet→scene return — the Badger travels back from his portrait seat | *new* | ✅ MERGED 2026-08-09 (PR #18, `6ea67bf`) |
+| d34 | Test-suite health — full test strategy (unit + integration) and execution | *new* | ✅ MERGED 2026-08-10 (PR #19, `7f85dea`), deploy green — e2e 2072→2008 / 0 failed, unit 97/97; strategy canonical in docs/TEST-STRATEGY.md (§d34) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -5551,14 +5551,14 @@ accepted and recorded here:
 
 ## d33. Sheet→scene return — the Badger travels back from his portrait seat
 
-### ✅ BUILT 2026-08-09 — T1+T2 done, reviewer-approved; awaiting Caveshen’s acceptance preview
+### ✅ MERGED 2026-08-09 — PR #18 (`6ea67bf`), deploy green
 
 - **T1 — arrival hand-off on `/`:** done, reviewer approved (`521fe7e`). One non-blocking nit (dead test helper) folded into T2.
 - **T2 — round trip + acceptance evidence:** done, reviewer approved (`87e8db7`). Double round trip, `goBack` case, and 1920 night/day acceptance screenshots (gitignored).
 
 **Verification (2026-08-09).** Vitest 80/80. Full serialized matrix (all 8 projects): 2036 passed, 26 skipped, 2 failed. The 2 failures are a pre-existing WebKit flake in `portrait-journey.spec.js` (a two-read race on the `arrived-by-morph` marker, line 28 vs 72); the same race also hits `sheet-arrival.spec.js`. Proven pre-existing: the failing spec and `sheet.astro` are byte-identical on main `dc9de23`, main fails the same race, and the failure set wanders run to run (always WebKit). d33 is not implicated (it changed only `/`; the marker is set on `/sheet`). FIXED on `feat/portrait-return`: reused the already-read `supported` value in the `else` branch in `portrait-journey.spec.js:72` and `sheet-arrival.spec.js:46`. **[SUPERSEDED — the "pre-existing" framing and the `feat/portrait-return` partial fix did not hold. The race survived into d34. Zero tolerance on flakes is now law; see docs/TEST-STRATEGY.md §Determinism laws (ruling: Caveshen, 2026-08-10). The race was genuinely cured in d34 by an atomic single-`evaluate` read of the marker and dependent styles (commit 79e462c). Proven --repeat-each=10 green on iphone-15pro and ipad.]**
 
-Item criteria 1–6 met in code and tests; criterion 7 (Caveshen’s eye on the seam and the out-of-colour beat) waits on his local preview. Two 1920 acceptance screenshots (night/day) sit in the gitignored `screenshots/`. No push/PR/merge — held for his preview.
+Item criteria 1–7 met — criterion 7 (Caveshen’s eye on the seam and the out-of-colour beat) passed on his second preview; see Status below.
 
 **The ruling (Caveshen's, 2026-08-08):** the return journey gets the d32
 treatment. When the "← Back to the interview" link on `/sheet` is clicked,
@@ -5817,11 +5817,11 @@ start; root cause: overlay image decode race; cure: parse-time preload of
 badger-up.png on `/` via a named head slot in Base.astro — the shared-layout
 touch was blessed with the acceptance). Matrix 2036 passed / 26 skipped /
 2 failed, both failures inherited from the d32 specs' WebKit marker race —
-see the follow-up note above. PR open, awaiting his merge. **[SUPERSEDED — the "inherited known failure" framing no longer holds. Zero tolerance on flakes is now law; see docs/TEST-STRATEGY.md §Determinism laws (ruling: Caveshen, 2026-08-10). The race was genuinely cured in d34 by an atomic single-`evaluate` read (commit 79e462c). Proven --repeat-each=10 green on iphone-15pro and ipad.]**
+see the follow-up note above. Merged 2026-08-09 (PR #18). **[SUPERSEDED — the "inherited known failure" framing no longer holds. Zero tolerance on flakes is now law; see docs/TEST-STRATEGY.md §Determinism laws (ruling: Caveshen, 2026-08-10). The race was genuinely cured in d34 by an atomic single-`evaluate` read (commit 79e462c). Proven --repeat-each=10 green on iphone-15pro and ipad.]**
 
 ## d34. Test-suite health — CI browser alignment and e2e relevance audit
 
-### 💡 RAISED 2026-08-09 — Caveshen's concern, captured; no brief, no go, sequenced after d33 (PR #18) merges
+### ✅ MERGED 2026-08-10 — PR #19 (`7f85dea`), deploy green
 
 **The concern (Caveshen's):** the e2e suite may need a once-over for
 relevance — the view-transition work has forced repeated race-condition
@@ -5874,10 +5874,10 @@ strategy is drafted here from that audit — it must also RULE on facet 1
 (CI browser alignment), since alignment changes what the audit's findings
 mean; (3) Caveshen approves the strategy; (4) execution against it.
 
-**Status: 🔧 ENGINEERING-COMPLETE 2026-08-10 — phases 0–7 built and
-reviewer-approved on `chore/test-strategy`; ×8 matrix clean (2008 / 0
-failed), unit 97/97. Not released — no push, no PR; awaiting
-Caveshen's release.**
+**Status: ✅ MERGED 2026-08-10 — PR #19 (`7f85dea`); full CI test job
+green (≈20.4m), main deploy green. Note: the ~5 min matrix figure is
+LOCAL; the same suite takes ~20 min of CI wall-clock on the 2-core
+runner — never quote one as the other.**
 
 ### Strategy pointer and audit baseline
 
@@ -5970,16 +5970,12 @@ cases / 0 failed; ×8 matrix wall-clock 5m01s.
 
 ### Deferred follow-ups
 
-- **`assertPortraitNoAnim` reduced-motion latent vacuity (geom.js):** the
-  `assertPortraitNoAnim` helper shares the same latent vacuity the
-  supported-branch fix closed: a completed slide-in and a suppressed one
-  both end at tx=0. Sound only because reduced-motion suppression is
-  static. Fix = the same `page.clock` pin (threads the clock through two
-  more specs), or accept. Low severity. Needs a ruling.
 - **P6 promotion deferred:** trace-based timings, event counts, and the
   INP synthetic proxy are deferred until baselines prove themselves and
   the suite turns blocking.
-- **Open design question (pre-existing, for the planner, post-d34):** is
-  the unsupported-branch portrait-slide-in assertion still meaningful now
-  that WebKit runs cross-document view transitions?
+- **Firefox fallback arm (ruled: Caveshen, 2026-08-10 — keep as-is):**
+  the unsupported-branch `else` arm in sheet-arrival.spec.js stays while
+  desktop-firefox is the only project exercising it. The day Firefox
+  ships cross-document view transitions: check the morph in real Firefox
+  AND delete the then-dead arm — one visit, two chores.
 

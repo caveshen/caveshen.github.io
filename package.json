@@ -12,7 +12,7 @@
     "astro": "astro",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "test:perf": "playwright test --project=perf"
+    "test:perf": "playwright test --config playwright.perf.config.js"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",

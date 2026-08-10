@@ -9,7 +9,7 @@ import { dirname, join } from 'path';
 const __dir = dirname(fileURLToPath(import.meta.url));
 const BASELINES = JSON.parse(readFileSync(join(__dir, 'perf-baselines.json'), 'utf8'));
 
-// ponytail: generous tolerances — CLS is absolute (near-zero values make percentage meaningless).
+// Generous tolerances — CLS is absolute (near-zero values make percentage meaningless).
 const TOLERANCES = {
   lcp:              0.25,  // 25% of baseline
   cls:              0.10,  // absolute CLS units
@@ -63,7 +63,7 @@ async function measurePage(page, context, url, testInfo) {
   for (const [key, actual] of Object.entries(captured)) {
     const base = baseline[key];
     if (base == null) {
-      lines.push(`  ${key}: ${fmt(key, actual)}  (no baseline — record with npm run test:perf:record)`);
+      lines.push(`  ${key}: ${fmt(key, actual)}  (no baseline — add this value to e2e/perf-baselines.json manually)`);
       continue;
     }
     const delta     = actual - base;

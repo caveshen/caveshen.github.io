@@ -58,7 +58,6 @@ jobs:
 
       - name: Performance suite (report-only)
         # The suite never asserts budgets — it captures metrics and warns on regression.
-        # A later ticket converts warnings to hard failures once baselines prove themselves.
         run: npm run test:perf
 
   build:

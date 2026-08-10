@@ -24,8 +24,8 @@ const SAMPLE_MS = { idle: 3000, dialogue: 3000, morph: 2000 };
 
 // ---------------------------------------------------------------------------
 // FPS sampling
-// Dropped-frame threshold: 25 ms = 1.5 × 16.67 ms budget at 60 Hz.
-// ponytail: threshold assumes 60 Hz; see inferred refresh rate in the report.
+// Drop threshold: 1.5 × median rAF interval, derived per-phase from the
+// measured refresh rate. Fallback: 25 ms if no frames were captured.
 // ---------------------------------------------------------------------------
 
 async function measureFps(page, durationMs) {
@@ -42,14 +42,17 @@ async function measureFps(page, durationMs) {
         const fps = iv.map(d => 1000 / d);
         const mean = fps.length ? fps.reduce((a, b) => a + b) / fps.length : 0;
         const min  = fps.length ? Math.min(...fps) : 0;
-        const dropped = iv.filter(d => d > 25).length;
         const worst   = iv.length ? Math.max(...iv) : 0;
         const sorted  = [...iv].sort((a, b) => a - b);
         const median  = sorted[Math.floor(sorted.length / 2)] ?? 0;
+        // ponytail: derive drop threshold from measured refresh rate, not a fixed 60 Hz constant.
+        const dropThreshold = median > 0 ? median * 1.5 : 25;
+        const dropped = iv.filter(d => d > dropThreshold).length;
         resolve({
           mean: +mean.toFixed(1), min: +min.toFixed(1),
           dropped, frames: ts.length,
           worstInterval: +worst.toFixed(1),
+          dropThreshold: +dropThreshold.toFixed(1),
           // Infer display refresh from median rAF interval (most representative).
           estimatedHz: median > 0 ? Math.round(1000 / median) : 0,
         });
@@ -98,7 +101,7 @@ function fmtPhase(label, fps, loaf) {
     `    frames sampled : ${fps.frames}`,
     `    mean FPS       : ${fps.mean}`,
     `    min FPS        : ${fps.min}`,
-    `    dropped frames : ${fps.dropped}  (interval > 25 ms)`,
+    `    dropped frames : ${fps.dropped}  (interval > ${fps.dropThreshold} ms, ~${fps.estimatedHz} Hz)`,
     `    worst interval : ${fps.worstInterval} ms`,
     `    LoAF           : ${fmtLoAF(loaf)}`,
   ].join('\n');
@@ -199,19 +202,16 @@ async function hiddenComputeChecklist(page) {
   await page.waitForLoadState('domcontentloaded');
   await page.waitForTimeout(400);
 
-  // -- Attempt to flip document.hidden via CDP --
-  // Page.setWebLifecycleState is the Chrome DevTools Protocol command that
-  // fires the visibilitychange event and sets document.visibilityState to 'hidden'.
-  // In a headed, on-screen tab it may have no effect — we check and report honestly.
-  const cdp = await page.context().newCDPSession(page);
-  let cdpWorked = false;
-  try {
-    await cdp.send('Page.setWebLifecycleState', { state: 'hidden' });
-    cdpWorked = await page.evaluate(() => document.hidden);
-  } catch (_) {}
+  // -- Make the page hidden by focusing a second tab --
+  // Page.setWebLifecycleState only accepts 'frozen'/'active', not 'hidden' —
+  // using it here threw and was silently swallowed, so the check never ran.
+  // Opening a second tab and bringing it to front fires a real visibilitychange.
+  const page2 = await page.context().newPage();
+  await page2.bringToFront();
+  const isHidden = await page.evaluate(() => document.hidden);
 
-  if (cdpWorked) {
-    // Does rAF fire while hidden? Browsers are permitted to throttle it to 0.
+  if (isHidden) {
+    // Does rAF fire while hidden? Browsers are permitted to throttle it.
     const rafCount = await page.evaluate(() => new Promise(resolve => {
       let n = 0;
       function tick() { n++; if (n < 5) requestAnimationFrame(tick); }
@@ -236,62 +236,50 @@ async function hiddenComputeChecklist(page) {
         ? `YES — ${counts.running} of ${counts.total} still running (wasteful)`
         : `NO — ${counts.total} animation(s), all paused or finished`,
     });
-
-    try { await cdp.send('Page.setWebLifecycleState', { state: 'active' }); } catch (_) {}
   } else {
     items.push({
-      check: 'document.hidden via CDP (Page.setWebLifecycleState → hidden)',
-      result: 'COULD NOT SET — headed Edge tab did not respond to this CDP command. ' +
-              'This is expected when the window is visible and focused on screen. ' +
-              'Hidden-tab rAF and animation checks skipped.',
+      check: 'document.hidden via second-tab focus',
+      result: 'COULD NOT SET — page did not report hidden after bringing a second tab to front. ' +
+              'Browser or OS may have kept the first tab active. Hidden-tab checks skipped.',
     });
   }
 
-  // -- Offscreen / occluded check (always runs, no CDP needed) --
-  // Scroll the viewport far below the .badger-up element's natural position,
-  // then check whether its CSS animations keep running.
-  // CSS animations are not visibility-aware by specification, so they typically
-  // continue; this confirms whether the browser pauses them as an optimisation.
-  //
-  // Note: repositioning via position:fixed can fail when an animated ancestor
-  // has a CSS transform (which promotes position:fixed to position:absolute
-  // relative to that ancestor). Scroll approach is more reliable.
-  const runBefore = await page.evaluate(() => {
-    const el = document.querySelector('.badger-up');
-    return el ? el.getAnimations().filter(a => a.playState === 'running').length : -1;
+  await page2.close();
+
+  // -- Non-visible scene variants check --
+  // The DOM holds multiple .scene copies; only the active one has a non-zero bounding box.
+  // Check whether non-visible variants (zero-box) still run animations — genuine hidden compute.
+  // The scrollTo-to-occlusion probe is not applicable to this layout: the scene sits under
+  // overflow:hidden inside a transformed .camera, so nothing scrolls out of the viewport.
+  const sceneCheck = await page.evaluate(() => {
+    const scenes = [...document.querySelectorAll('.scene')];
+    const invisible = scenes.filter(s => {
+      const r = s.getBoundingClientRect();
+      return r.width === 0 && r.height === 0;
+    });
+    if (scenes.length < 2) return { skipped: true, reason: 'fewer than 2 .scene elements found' };
+    if (invisible.length === 0) return { skipped: true, reason: 'no zero-box .scene variants found' };
+    const running = invisible.flatMap(s => [...s.getAnimations({ subtree: true })])
+                             .filter(a => a.playState === 'running').length;
+    const total   = invisible.flatMap(s => [...s.getAnimations({ subtree: true })]).length;
+    return { skipped: false, totalScenes: scenes.length, invisible: invisible.length, running, total };
   });
 
-  if (runBefore === -1) {
-    items.push({ check: '.badger-up offscreen check', result: 'SKIPPED — element not found on /' });
-  } else {
-    // Scroll the page far down so .badger-up (near the top) leaves the viewport.
-    await page.evaluate(() => window.scrollTo({ top: 9999, behavior: 'instant' }));
-    await page.waitForTimeout(80);
-    const offscreen = await page.evaluate(() => {
-      const el = document.querySelector('.badger-up');
-      if (!el) return null;
-      const rect = el.getBoundingClientRect();
-      const isOff = rect.bottom < 0 || rect.top > window.innerHeight;
-      const running = el.getAnimations().filter(a => a.playState === 'running').length;
-      window.scrollTo({ top: 0, behavior: 'instant' }); // restore
-      return { isOff, running };
+  if (sceneCheck.skipped) {
+    items.push({
+      check: 'Non-visible .scene variants — running animations',
+      result: `NOT APPLICABLE — ${sceneCheck.reason}. Scroll-occlusion probe is structurally ` +
+              `meaningless on this layout (fullscreen overflow:hidden; nothing scrolls offscreen).`,
     });
-    if (offscreen) {
-      items.push({
-        check: '.badger-up animations while element is scrolled offscreen (scrollTo 9999px)',
-        result: !offscreen.isOff
-          ? `INCONCLUSIVE — page did not scroll far enough to push element offscreen ` +
-            `(body likely has overflow:hidden). Animation count: ${runBefore} before, ${offscreen.running} after scroll attempt.`
-          : (offscreen.running > 0
-              ? `YES — ${offscreen.running} animation(s) still running while offscreen ` +
-                `(CSS animations are not visibility-aware; browser did not pause them)`
-              : `NO — animations paused while offscreen (browser optimisation active)`),
-        note: `${runBefore} running before scroll, ${offscreen.running} running during scroll`,
-      });
-    }
+  } else {
+    items.push({
+      check: `Non-visible .scene variants (${sceneCheck.invisible} of ${sceneCheck.totalScenes} have zero bounding box)`,
+      result: sceneCheck.running > 0
+        ? `YES — ${sceneCheck.running} of ${sceneCheck.total} animation(s) running on non-visible scenes (wasteful hidden compute)`
+        : `NO — ${sceneCheck.total} animation(s) on non-visible scenes, none running`,
+    });
   }
 
-  await cdp.detach();
   console.log('done');
   return items;
 }
@@ -306,15 +294,18 @@ const page    = await context.newPage();
 
 console.log('GPU/FPS harness starting…\n');
 
-const phases = [
-  await phaseIdle(page),
-  await phaseDialogue(page),
-  await phaseSceneToSheet(page),
-  await phaseSheetToScene(page),
-];
-const hiddenItems = await hiddenComputeChecklist(page);
-
-await browser.close();
+let phases, hiddenItems;
+try {
+  phases = [
+    await phaseIdle(page),
+    await phaseDialogue(page),
+    await phaseSceneToSheet(page),
+    await phaseSheetToScene(page),
+  ];
+  hiddenItems = await hiddenComputeChecklist(page);
+} finally {
+  await browser.close();
+}
 
 // ---------------------------------------------------------------------------
 // Print report
@@ -328,24 +319,11 @@ console.log('  GPU / FPS PERFORMANCE REPORT');
 console.log(`  ${ts}`);
 console.log(hr);
 console.log('\nFrame rate per phase');
-console.log('  Dropped frame = interval > 25 ms (1.5 × 16.67 ms budget, assumes 60 Hz).');
+console.log('  Dropped frame = interval > 1.5 × median rAF interval (threshold derived per-phase from measured refresh rate).');
 console.log('  Run-to-run variation is expected — for human judgement, not a pass/fail gate.\n');
 
-let inferredHz = 0;
 for (const p of phases) {
-  if (!inferredHz && p.fps.estimatedHz > 0) inferredHz = p.fps.estimatedHz;
   console.log(fmtPhase(p.label, p.fps, p.loaf));
-  console.log('');
-}
-
-if (inferredHz > 0) {
-  console.log(`  Inferred display refresh rate : ~${inferredHz} Hz (from median rAF interval)`);
-  if (inferredHz > 60) {
-    const budget  = (1000 / inferredHz).toFixed(1);
-    const thresh  = (1000 / inferredHz * 1.5).toFixed(1);
-    console.log(`  NOTE: display > 60 Hz — 25 ms dropped threshold will flag valid frames.`);
-    console.log(`        At ${inferredHz} Hz, budget ≈ ${budget} ms; real dropped threshold ≈ ${thresh} ms.`);
-  }
   console.log('');
 }
 
@@ -363,5 +341,5 @@ console.log('\nHarness notes');
 console.log('  Morph phases (3 & 4) sample arrival animations after DOMContentLoaded.');
 console.log('  The compositor-driven view-transition crossfade fires before DCL and is');
 console.log('  not rAF-measurable from script; it runs at the OS compositor level.');
-console.log('  If CDP visibility override failed, the offscreen check still ran.');
+console.log('  Hidden check opens a second tab to fire a real visibilitychange on the first page.');
 console.log(hr + '\n');

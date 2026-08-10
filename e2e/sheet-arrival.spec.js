@@ -111,7 +111,18 @@ test('direct goto /sheet: no arrived-by-morph marker; portrait plays portrait-sl
 test('reduced motion: click-through is instant with no arrived-by-morph and final layout state intact', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.setViewportSize({ width: 1920, height: 1080 });
+
+  // page.clock.install({ time: 0 }) freezes the CSS animation timeline at virtual t=0.
+  // At t=0, portrait-slide-in (fill-mode:both, 200ms delay) holds its from-keyframe:
+  // translateX(-40%). A correctly gated animation reads tx=0; a broken one reads tx≈-40%
+  // and fails the |tx|<1 assertion inside assertPortraitNoAnim.
+  await page.clock.install({ time: 0 });
+
   await navigateToSheet(page);
+
+  // runFor(100) flushes pending timers and microtasks after navigation.
+  // It does not advance the CSS animation timeline — the from-keyframe offset persists.
+  await page.clock.runFor(100);
 
   // No transition ran so no marker should be set.
   const hasMarker = await arrivedByMorph(page);

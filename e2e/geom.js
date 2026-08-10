@@ -79,15 +79,18 @@ export async function waitBgSettle(page) {
   }));
 }
 
-// Asserts the portrait is at its settled seat: no X offset (proves no slide-in) and Y=-50% centring intact.
-// portrait-slide-in animates only X, so tx≈0 is the direct user-facing contract (not animationName).
+// Asserts the portrait is suppressed at virtual t=0: tx≈0 (slide-in not running) and Y=-50% centring intact.
+// Precondition: page.clock.install({ time: 0 }) must be called before navigation at the call site.
+// At t=0, portrait-slide-in (fill-mode:both, 200ms delay) holds its from-keyframe: translateX(-40%).
+// A correctly gated animation reads tx=0; an unsuppressed one reads tx≈-40% and fails the assertion.
 export async function assertPortraitNoAnim(locator) {
   const geom = await locator.evaluate((el) => {
     const m = new DOMMatrix(getComputedStyle(el).transform);
     return { tx: m.m41, ty: m.m42, halfH: el.getBoundingClientRect().height / 2 };
   });
-  // X=0: fill-mode:both keeps the from-keyframe during the 200ms delay, so any unsuppressed slide-in lands here.
+  // clock.install freezes the CSS animation timeline at t=0. An unsuppressed portrait-slide-in
+  // holds its from-keyframe (tx≈-40%) and fails here; a gated animation reads tx=0 and passes.
   expect(Math.abs(geom.tx)).toBeLessThan(1);
-  // translateY(-50%) is load-bearing (vertical centring) — must survive animation suppression.
+  // translateY(-50%) is load-bearing — vertical centring must survive animation suppression.
   expect(geom.ty).toBeCloseTo(-geom.halfH, 1);
 }

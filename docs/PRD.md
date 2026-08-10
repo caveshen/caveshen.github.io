@@ -59,7 +59,7 @@ the document body under their original `§` headings as history.
 | d13 | `Avatar.astro` uses `is:global` needlessly | §30 D-12 | ✅ built 2026-08-02 — scoped in `646754b`; verify: `grep -n "is:global" src/components/Avatar.astro` is empty |
 | d14 | `not-found.spec.js` coupled to placeholder copy | §30 D-13 | ✅ closed by construction — verify: `grep -rn "toContainText('404')" e2e/` is empty |
 | d15 | Admin page | §31 (remainder) | 🎨 IN DESIGN, no go-ahead |
-| d16 | Card avatar art refinement | §33b | 🎨 IN DESIGN, brief outstanding |
+| d16 | Dialogue box re-envisioning — the avatar and nameplate leave the card (was: card avatar art refinement) | §33b | 🎨 BRIEFED 2026-08-10 — awaiting Caveshen's go (§33b brief) |
 | d17 | One character per route — Badger on `/`, hooded figure on `/404`; 1:1 **in interaction, not just scenery**; the toggle dies | §27 (remainder) | ✅ signed off 2026-08-10 (Caveshen) — built 2026-08-02 `26a6ddb` |
 | d18 | Visual validation in e2e | §16 | ✅ merged — must-haves PR #9 (2026-08-04), nice-to-haves PR #12, N4 face/card fix PR #14 (2026-08-06) |
 | d19 | Dialogue rework | §22 | ⏸ parked |
@@ -78,6 +78,7 @@ the document body under their original `§` headings as history.
 | d32 | Scene→sheet transition — the Badger travels from the scene to his portrait seat | *new* | ✅ MERGED 2026-08-09 (PR #17, `dc9de23`) |
 | d33 | Sheet→scene return — the Badger travels back from his portrait seat | *new* | ✅ MERGED 2026-08-09 (PR #18, `6ea67bf`) |
 | d34 | Test-suite health — full test strategy (unit + integration) and execution | *new* | ✅ MERGED 2026-08-10 (PR #19, `7f85dea`), deploy green — e2e 2072→2008 / 0 failed, unit 97/97; strategy canonical in docs/TEST-STRATEGY.md (§d34) |
+| d35 | The Badger head — standalone fantastical-medieval art (favicon, social, sheet) | *new* | 💡 raised 2026-08-10 — needs a brief (§d35) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -2807,8 +2808,46 @@ second within the hour). `index.astro` net −22 lines, rendering byte-identical
 Merged with landing v2 (PR #1). One follow-up logged as **d13** (was §30 D-12,
 `is:global` where scoped would do).
 
-🎨 **33b art refinement remains IN DESIGN** — awaiting Caveshen's brief. No
-generated art; SVG sculpting only.
+🎨 **33b RESCOPED 2026-08-10 (Caveshen's ruling) — the box, not the
+avatar. Brief below; awaiting his go to build.** The head-art appetite
+moved to its own item, §d35.
+
+#### 33b brief — dialogue box re-envisioning (rulings: Caveshen, 2026-08-10)
+
+**The reframing that removed the avatar.** The card never voices the
+player. Every dialogue node carries `speech` (the character's line),
+`options` (the player's buttons), and an optional `stage` direction. One speaker per
+page — the Badger on `/`, the hooded figure on `/404` — and that speaker
+is rendered live in the scene. The nameplate and the mini-portrait
+therefore encode nothing. RPG convention agrees: when the speaker is on
+screen, the box is text-only; portraits serve off-screen speakers.
+
+**Scope:**
+- The nameplate and the mini-avatar leave the card. `Avatar.astro` and
+  its one call site (`Stage.astro:61`) are deleted in the same change.
+  d2's extraction stays signed off; this supersedes it deliberately.
+- The box is re-envisioned as a scene-consistent RPG text plaque with a
+  fantastical, medieval lean. One component serves both routes; the
+  hooded figure's card gets the same plaque.
+- Hand-built SVG/CSS only, inside the §2 Sample C visual lock. No
+  generated art; no raster assets.
+
+**Constraints (ruled):**
+- Identity never toggles; lighting may. The plaque is environment, so
+  the theme pass shades it like the rest of the scene. AMENDMENT to the
+  2026-07-19 constraint ("the toggle remains time-of-day and lighting,
+  never the character"): characters may now be shaded by the scene's
+  lighting treatment too — but their identity colours stay absolute.
+  (Caveshen, 2026-08-10.)
+- Behaviour survives verbatim: streaming text and the selection idiom
+  (d31), the stage-direction italic vs speech roman distinction,
+  reduced-motion opt-outs, keyboard focus, WCAG AA contrast in both
+  themes.
+- Copy stays Caveshen's; every PLACEHOLDER stands.
+
+**Process:** design workshop at build time with the frontend-design
+skill — mock first, Caveshen's eye on local dev, then tickets and
+success criteria at /to-spec. Draft-before-deploy binds as always.
 
 ---
 
@@ -5977,4 +6016,28 @@ cases / 0 failed; ×8 matrix wall-clock 5m01s.
   desktop-firefox is the only project exercising it. The day Firefox
   ships cross-document view transitions: check the morph in real Firefox
   AND delete the then-dead arm — one visit, two chores.
+
+---
+
+## d35. The Badger head — standalone character art
+
+### 💡 RAISED 2026-08-10 — out of the d16 workshop; needs a brief
+
+d16's reframing removed the avatar from the dialogue card. The appetite
+for a drawn Badger head survives on its own merits: a fantastical,
+medieval-leaning head to represent the character where the full scene
+cannot go. Candidate consumers: the favicon, social preview imagery
+(d20 pairs with this), and the character sheet.
+
+Facts a brief must not re-derive:
+
+- Commissioned Badger raster art exists with full rights
+  (`public/badger-up.png` / `badger-down.png`, §27); the scene Badger is
+  hand-built SVG (`Badger.astro`).
+- Standing rule: no generated art, no tracing of references. The head is
+  sculpted SVG, derived work on the commissioned raster (owned
+  outright), or new art Caveshen supplies — his call at brief time.
+
+Not a d16 dependency — the box work proceeds without it. Not briefed;
+scope open.
 

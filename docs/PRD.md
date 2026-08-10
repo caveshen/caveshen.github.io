@@ -45,7 +45,7 @@ the document body under their original `§` headings as history.
 | d | Item | Was | Status |
 |---|---|---|---|
 | d1 | The interactive 404 | §30 D-4 | ✅ signed off 2026-08-10 (Caveshen) — built & reviewer-approved 2026-07-27 |
-| d2 | Card avatar extraction | §33a | ✅ built & reviewer-approved 2026-07-27, awaiting sign-off |
+| d2 | Card avatar extraction | §33a | ✅ signed off 2026-08-10 (Caveshen) — built & reviewer-approved 2026-07-27 |
 | d3 | 404 backdrop re-anchor (moon lost above ~2.1 AR) | §30 D-15 | ✅ built & accepted 2026-07-27 — viewBox 1200→1900 |
 | d4 | 404 day clouds | §30 D-11 | ✅ built 2026-07-27 — two `.day-only` rects, offset to d3's camera |
 | d5 | Card geometry test (pins the centred/on-screen criterion) | §30 D-14 | ✅ built 2026-07-27 — 3 tests × 8 projects, red-green proven |
@@ -2801,10 +2801,10 @@ a brief.
 
 ### Status
 
-✅ **33a extraction BUILT & REVIEWER-APPROVED 2026-07-27.** `Avatar.astro`, no
-props (one caller at the time; the 404 became the second within the hour).
-`index.astro` net −22 lines, rendering byte-identical. Pending Caveshen's visual
-review; **not committed**. One follow-up logged as **d13** (was §30 D-12,
+✅ **33a extraction SIGNED OFF 2026-08-10 (Caveshen).** Built & reviewer-approved
+2026-07-27: `Avatar.astro`, no props (one caller at the time; the 404 became the
+second within the hour). `index.astro` net −22 lines, rendering byte-identical.
+Merged with landing v2 (PR #1). One follow-up logged as **d13** (was §30 D-12,
 `is:global` where scoped would do).
 
 🎨 **33b art refinement remains IN DESIGN** — awaiting Caveshen's brief. No

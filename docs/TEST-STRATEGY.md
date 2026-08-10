@@ -129,19 +129,22 @@ hidden-compute checklist — animations still running while the page is
 hidden or the element is offscreen/occluded. Output is a human-readable
 report for Caveshen's judgement; no assertions, no gate.
 
-### Recorded deviation — P7 offscreen/occluded limb (Phase 7)
+### Recorded deviation — P7 offscreen/occluded check (Phase 7)
 
 The "Locally (ad hoc)" charter names checking animations while "the page
 is hidden or the element is offscreen/occluded". On this fullscreen
 `overflow:hidden`, non-scrolling layout, true offscreen or occluded
-elements are structurally impossible. A real hidden
-`document.visibilityState` cannot be forced in headed Playwright/Edge
-automation: the `bringToFront` second-tab technique does not flip it, and
-`Emulation.setVisibilityState` was removed years ago. The harness instead
-measures animations on the non-visible `display:none` `.scene` variants
-(real hidden-compute) and reports the hidden-tab limb honestly as
-undrivable. The wording "offscreen/occluded" does not map literally to
-this site.
+elements are structurally impossible.
+
+The harness attempts a real hidden state by opening a second tab and
+bringing it to front. In headed Edge on this machine, that did not flip
+`document.visibilityState` to hidden. The harness fell back and reported
+the hidden-tab check as undrivable here. This is an observed outcome on
+this machine; it is not a universal impossibility.
+
+The harness instead measures animations on the non-visible `display:none`
+`.scene` variants — real hidden-compute. The wording "offscreen/occluded"
+does not map literally to this site.
 
 ### Recorded deviation — perf suite CI reliability caveat (Phase 6)
 

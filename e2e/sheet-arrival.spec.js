@@ -23,7 +23,18 @@ const arrivedByMorph = (page) =>
 // Supported engine: arrived-by-morph is set and portrait slide-in is suppressed; unsupported engine: no marker.
 test('click-through: supported engine sets arrived-by-morph and suppresses portrait slide-in; unsupported does not', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
+
+  // page.clock.install({ time: 0 }) freezes the animation timeline at virtual t=0. At t=0,
+  // portrait-slide-in (fill-mode:both, 200ms delay) holds its from-keyframe: translateX(-40%).
+  // animation:none reads tx=0 at every instant. A broken suppression reads tx≈-40% and fails
+  // the |tx|<1 assertion; a working one passes.
+  await page.clock.install({ time: 0 });
+
   await navigateToSheet(page);
+
+  // runFor(100) flushes pending timers/microtasks after navigation; it does not advance the
+  // CSS animation timeline — the from-keyframe offset persists regardless of virtual time elapsed.
+  await page.clock.runFor(100);
 
   // Single evaluate snapshot — marker and every animation read in one JS call; eliminates
   // the inter-read race window where WebKit's pagereveal handler fires between the marker read and

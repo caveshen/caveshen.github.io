@@ -79,6 +79,7 @@ the document body under their original `§` headings as history.
 | d33 | Sheet→scene return — the Badger travels back from his portrait seat | *new* | ✅ MERGED 2026-08-09 (PR #18, `6ea67bf`) |
 | d34 | Test-suite health — full test strategy (unit + integration) and execution | *new* | ✅ MERGED 2026-08-10 (PR #19, `7f85dea`), deploy green — e2e 2072→2008 / 0 failed, unit 97/97; strategy canonical in docs/TEST-STRATEGY.md (§d34) |
 | d35 | The Badger head — standalone fantastical-medieval art (favicon, social, sheet) | *new* | 💡 raised 2026-08-10 — needs a brief (§d35) |
+| d36 | Approach affordance — the web-style button becomes a diegetic glow above the character | *new* | 💡 raised 2026-08-11 — Caveshen's sketch in §d36; not scheduled |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -6096,4 +6097,33 @@ Facts a brief must not re-derive:
 
 Not a d16 dependency — the box work proceeds without it. Not briefed;
 scope open.
+
+## d36. Approach affordance — the web button becomes a diegetic glow
+
+### 💡 RAISED 2026-08-11 — Caveshen's sketch; needs a workshop
+
+Caveshen has grown tired of the "Approach the badger" web-style
+button. RPGs do not use web buttons — they mark interactable
+characters with an indicator above them. His sketch: a little glowing
+circle above the character; it glows brighter on hover; on hover,
+floaty text ("approach the badger?") fades in; a click triggers the
+dialogue exactly as the button does now.
+
+Facts a workshop must not re-derive:
+
+- Applies to both routes — the 404's hooded figure has the same
+  approach interaction (shared `Stage` component, d25).
+- The current button is the founding member of the glass material
+  family that d16 extended to the plaque. If the button dies, the
+  material survives in the plaque, the theme toggle, and the footer.
+- The prompt-bob scar (constraint comment in `Stage.astro`): no
+  clickable element's bounding box may animate — Playwright
+  actionability needs click targets to hold still. The glow must live
+  in opacity, shadow, or filter, never in geometry.
+- The button is keyboard-focusable and the dialogue's entry point for
+  assistive tech. The replacement keeps keyboard reach and an
+  accessible name; accessibility is never simplified away.
+- The no-JS fallback path must keep working as it does today.
+
+Not scheduled. No dependency on d16's remaining tickets.
 

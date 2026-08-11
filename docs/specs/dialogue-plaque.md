@@ -61,20 +61,25 @@ reduced-motion behaviour — survives unchanged.
   (`rgba(253, 251, 245, 0.65)`) with an ink-at-22% border; 4px corner
   radius; `backdrop-filter: blur(3px)`; no box-shadow. These are the
   exact values already used by the approach prompt and its siblings.
-- **Glass density amendment (ruled by Caveshen, 2026-08-11).** The
-  base alphas above are the shared material's resting values, not the
-  plaque's. On the ticket-01 preview, Caveshen judged the night glass
-  too thin — text was swallowed by the scene. The plaque's night alpha
-  is 0.75 (the approach prompt's hover density). The computed AA
-  worst case then showed day dim and option text failing at 0.65; day
-  moved to 0.88. Finally, day stage directions could not reach 4.5:1
-  even at 0.88, and Caveshen ruled the resolution: **the day glass
-  densifies to the minimum alpha that clears AA for every text
-  category (~0.965–0.97)**, accepting the loss of day translucency
-  rather than touching any text colour. The dial stays the glass
-  alpha, and the glass stays technically translucent (alpha < 1) so
-  the plaque remains part of the glass family and its e2e assertions.
-  Night keeps 0.75 — every night category passes there with margin.
+- **Glass density amendment (ruled by Caveshen, 2026-08-11; final
+  form same date).** The base alphas above are the shared material's
+  resting values, not the plaque's. On the ticket-01 preview, Caveshen
+  judged the night glass too thin — text was swallowed by the scene.
+  The plaque's night alpha is 0.75 (the approach prompt's hover
+  density); every night category passes AA there with margin. Day
+  took three goes: 0.65 failed AA for dim and option text; 0.97 (the
+  minimum that cleared AA for everything, stage directions included)
+  read as too opaque on preview; Caveshen ruled the final value —
+  **day alpha 0.81, the midpoint of the two previewed versions**.
+- **Text-token exception (ruled by Caveshen, 2026-08-11).** At 0.81
+  the glass dial cannot clear AA for day stage, dim, and option text.
+  These three are system text, not character identity, so they —
+  and only they — darken by the minimum needed to reach 4.5:1
+  against the worst-case composited backdrop at 0.81, keeping their
+  hue. Character identity colours never change; night tokens never
+  change; speech text passes untouched. Darkening also helps, never
+  hurts, these tokens' other consumed surface (the light day page
+  background), but its existing AA checks must stay green.
 - The etched inner frame (from the accepted mock, which encodes this
   more precisely than prose): a 1px hairline 8px inside the border,
   drawn as a negative-offset `outline` (legal because the card is

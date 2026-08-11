@@ -114,11 +114,13 @@ describe('WCAG AA contrast (≥ 4.5:1) on --bg', () => {
 // --ground-near. Blur is not modelled — it averages, so the un-blurred extreme
 // is already the bound.
 // The alphas below must match .card in Stage.astro, and must stay strictly
-// below 1 — the e2e suite asserts the glass is translucent.
+// below 1 — the e2e suite asserts the glass is translucent. Day alpha (0.81)
+// is a design-picked value that can't clear AA alone — day --stage/--dim/
+// --option (tokens.css) are darkened, same hue, to close the gap instead.
 const GLASS_NIGHT_RGB = [10, 8, 22];   // .card night background, Stage.astro
 const GLASS_NIGHT_ALPHA = 0.75;
 const GLASS_DAY_RGB = [253, 251, 245]; // .card day background, Stage.astro
-const GLASS_DAY_ALPHA = 0.97;
+const GLASS_DAY_ALPHA = 0.81;
 const SCENE_NIGHT_WORST = hexToRgb('2c3850'); // --rail (night)
 const SCENE_DAY_WORST   = hexToRgb('1f2c28'); // --ground-near (day)
 

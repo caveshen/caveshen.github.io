@@ -72,11 +72,11 @@
   --sea:         #86b8d0;
   --celestial:   #f2b544;
   --text:        #253038;
-  --stage:       #5d7470;
-  --option:      #3f5f88;
+  --stage:       #4c5f5c; /* darkened from #5d7470, same hue, for AA at 0.81 day glass */
+  --option:      #3e5d85; /* darkened from #3f5f88, same hue, for AA at 0.81 day glass */
 
   --card-edge:        rgba(37, 48, 56, 0.12);
-  --dim:              #4a5f7a; /* day: WCAG AA ≥4.5:1 on --bg */
+  --dim:              #485d77; /* darkened from #4a5f7a, same hue, for AA at 0.81 day glass */
   --option-border:    rgba(63, 95, 136, 0.35);
   --btn-hover-bg:     #f2b544;
   --btn-hover-border: #f2b544;

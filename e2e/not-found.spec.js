@@ -1,6 +1,6 @@
 // not-found.spec.js — the interactive 404: a door that isn't in the script.
 import { test, expect } from '@playwright/test';
-import { rectsIntersect, visibleRect, sceneRects } from './geom.js';
+import { rectsIntersect, visibleRect, sceneRects, assertNoIdentityMarkup, assertPlaqueGlass } from './geom.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/404');
@@ -17,7 +17,22 @@ test('card not visible on load with JS', async ({ page }) => {
 test('approaching the hooded figure shows the dialogue card', async ({ page }) => {
   await approach(page);
   await expect(page.locator('.card')).toBeVisible();
-  await expect(page.locator('.name')).toHaveText('Caveshen');
+});
+
+test('no avatar or nameplate markup renders', async ({ page }) => {
+  await approach(page);
+  await assertNoIdentityMarkup(page);
+});
+
+test('plaque surface and frame render, night and day', async ({ page }) => {
+  await approach(page);
+  const nightBg = await assertPlaqueGlass(page);
+  await page.locator('#toggle').click();
+  // Retry instead of a fixed sleep — background-color transitions over 0.4s.
+  await expect(async () => {
+    const dayBg = await assertPlaqueGlass(page);
+    expect(dayBg).not.toBe(nightBg); // theme pass re-shades the glass
+  }).toPass();
 });
 
 // toBeVisible() only checks a non-empty box — an element parked off-screen still passes

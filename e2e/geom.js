@@ -64,6 +64,38 @@ export async function assertPortraitGeometry(page, portrait) {
   expect(Math.abs(gap - gridGap)).toBeLessThan(2);
 }
 
+// Explicit absence check for the identity markup the glass plaque replaced
+// (avatar art + nameplate) — deletion of the markup is not itself a green e2e signal.
+export async function assertNoIdentityMarkup(page) {
+  await expect(page.locator('.card-head')).toHaveCount(0);
+  await expect(page.locator('.avatar')).toHaveCount(0);
+  await expect(page.locator('.name')).toHaveCount(0);
+}
+
+// Asserts the plaque's glass surface (translucent, blurred) and etched inner frame
+// (hairline outline + eight corner-bracket gradient layers) render. Returns the
+// resolved background-color so a caller can prove night and day differ.
+export async function assertPlaqueGlass(page) {
+  const style = await page.locator('.card').evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return {
+      backdropFilter:  cs.backdropFilter || cs.webkitBackdropFilter || '',
+      backgroundColor: cs.backgroundColor,
+      outlineStyle:    cs.outlineStyle,
+      outlineOffset:   cs.outlineOffset,
+      backgroundImage: cs.backgroundImage,
+    };
+  });
+  expect(style.backdropFilter).toContain('blur');
+  expect(style.outlineStyle).not.toBe('none');
+  expect(parseFloat(style.outlineOffset)).toBeLessThan(0); // negative-offset hairline
+  // Four corner brackets, two gradient arms each.
+  expect((style.backgroundImage.match(/linear-gradient/g) ?? []).length).toBe(8);
+  const alpha = parseFloat(style.backgroundColor.match(/,\s*([\d.]+)\)$/)?.[1] ?? '1');
+  expect(alpha).toBeLessThan(1); // translucent — the scene must show through
+  return style.backgroundColor;
+}
+
 // Resolves when the .bg-layer transform transition settles after a mouse move,
 // or immediately when drift will not fire (coarse pointer or reduced motion).
 // Call BEFORE the mouse move so the transitionend listener is registered first.

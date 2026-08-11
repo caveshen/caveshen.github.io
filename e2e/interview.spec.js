@@ -90,15 +90,6 @@ test('focused buttons have visible outline', async ({ page }) => {
   expect(outlineStyle).not.toBe('none');
 });
 
-test('blink animation absent under prefers-reduced-motion', async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.reload();
-  const animName = await page.locator('.avatar .eyes').evaluate(el =>
-    window.getComputedStyle(el).animationName
-  );
-  expect(animName).toBe('none');
-});
-
 test('dialogue content updates immediately under reduced-motion (no fade delay)', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.reload();

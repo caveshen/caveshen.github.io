@@ -27,10 +27,7 @@
   --btn-hover-bg:     rgba(255, 215, 94, 0.10);
   --btn-hover-border: #ffd75e;
   --btn-hover-text:   #ffd75e;
-  --chip-bg:          #ffd75e;
   --chip-text:        #0f1826;
-  --avatar-ring:      #8fb4d8;
-  --hair:             #0f1826;
 
   /* Sheet panel surface: AMOLED ink-wash — dark blue sinking into black */
   --panel-grad:       linear-gradient(180deg, #121a2e 0%, #0a0e1a 100%);
@@ -88,10 +85,7 @@
   --btn-hover-bg:     #f2b544;
   --btn-hover-border: #f2b544;
   --btn-hover-text:   #253038;
-  --chip-bg:          #f2b544;
   --chip-text:        #253038;
-  --avatar-ring:      #86b8d0;
-  --hair:             #253038;
 
   /* Sheet panel surface: parchment wash — cream warming at the base */
   --panel-grad:       linear-gradient(180deg, #fdfbf5 0%, #f4eee0 100%);

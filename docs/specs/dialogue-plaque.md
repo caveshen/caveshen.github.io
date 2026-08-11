@@ -61,6 +61,20 @@ reduced-motion behaviour — survives unchanged.
   (`rgba(253, 251, 245, 0.65)`) with an ink-at-22% border; 4px corner
   radius; `backdrop-filter: blur(3px)`; no box-shadow. These are the
   exact values already used by the approach prompt and its siblings.
+- **Glass density amendment (ruled by Caveshen, 2026-08-11).** The
+  base alphas above are the shared material's resting values, not the
+  plaque's. On the ticket-01 preview, Caveshen judged the night glass
+  too thin — text was swallowed by the scene. The plaque's night alpha
+  is 0.75 (the approach prompt's hover density). The computed AA
+  worst case then showed day dim and option text failing at 0.65; day
+  moved to 0.88. Finally, day stage directions could not reach 4.5:1
+  even at 0.88, and Caveshen ruled the resolution: **the day glass
+  densifies to the minimum alpha that clears AA for every text
+  category (~0.965–0.97)**, accepting the loss of day translucency
+  rather than touching any text colour. The dial stays the glass
+  alpha, and the glass stays technically translucent (alpha < 1) so
+  the plaque remains part of the glass family and its e2e assertions.
+  Night keeps 0.75 — every night category passes there with margin.
 - The etched inner frame (from the accepted mock, which encodes this
   more precisely than prose): a 1px hairline 8px inside the border,
   drawn as a negative-offset `outline` (legal because the card is
@@ -112,7 +126,10 @@ reduced-motion behaviour — survives unchanged.
   the scene is static SVG, so worst-case backdrops are computable, and
   the suite has zero flake tolerance. If AA fails, the dial is the
   glass alpha (the approach prompt's hover densities, 0.75 night /
-  0.88 day, are the next stop), not the text colours.
+  0.88 day, are the next stop), not the text colours. Where those
+  stops still fail, the ruling above applies: the alpha rises to the
+  minimum value that clears AA, capped strictly below 1. All eight
+  theme × text-category checks gate the suite — no documented gaps.
 - Prior art: the existing `dialogue`, `interview`, and `theme` e2e
   specs; `docs/TEST-STRATEGY.md` is canonical for suite conventions.
   Every new or reworked regression assertion follows the repo rule:

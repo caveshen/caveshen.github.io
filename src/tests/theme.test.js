@@ -113,10 +113,14 @@ describe('WCAG AA contrast (≥ 4.5:1) on --bg', () => {
 // behind it). Night: the band's brightest fill, --rail. Day: its darkest,
 // --ground-near. Blur is not modelled — it averages, so the un-blurred extreme
 // is already the bound.
+// Day alpha (0.97, spec's "glass density amendment") is the minimum that
+// clears 4.5:1 for every day category, day stage direction included — the
+// approach prompt's 0.88 hover density fell short. Capped below 1: the glass
+// stays technically translucent for ticket 01's e2e assertions.
 const GLASS_NIGHT_RGB = [10, 8, 22];   // .card night background, Stage.astro
 const GLASS_NIGHT_ALPHA = 0.75;
 const GLASS_DAY_RGB = [253, 251, 245]; // .card day background, Stage.astro
-const GLASS_DAY_ALPHA = 0.88;
+const GLASS_DAY_ALPHA = 0.97;
 const SCENE_NIGHT_WORST = hexToRgb('2c3850'); // --rail (night)
 const SCENE_DAY_WORST   = hexToRgb('1f2c28'); // --ground-near (day)
 
@@ -130,12 +134,9 @@ describe('WCAG AA contrast (≥ 4.5:1) on the plaque, worst-case composited back
     ['night dim/system',      nightTokens['--dim'],    plaqueBgNight],
     ['night option',          nightTokens['--option'], plaqueBgNight],
     ['day speech',            dayTokens['--text'],     plaqueBgDay],
+    ['day stage direction',   dayTokens['--stage'],    plaqueBgDay],
     ['day dim/system',        dayTokens['--dim'],      plaqueBgDay],
     ['day option',            dayTokens['--option'],   plaqueBgDay],
-    // day stage direction (--stage) is excluded here: against this worst case
-    // it holds ~3.85:1 even at the 0.88 alpha ceiling — short of 4.5:1, and
-    // neither dial (alpha further up, or the text colour) is this ticket's to
-    // turn. Escalated, not gated; see the ticket 02 report.
   ])('%s', (_name, fg, bg) => {
     expect(fg, 'token value missing').toBeTruthy();
     expect(contrast(fg, bg)).toBeGreaterThanOrEqual(4.5);

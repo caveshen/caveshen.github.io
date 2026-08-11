@@ -108,10 +108,33 @@ test('clicking the plane mid-flight crashes it, ending below the waterline, then
       a.pause();
     });
   });
+  // crashPlane() starts two fresh, un-paused animations the instant it runs:
+  // plane-crash on the plane (rotation-only for its first 60%) and
+  // banner-flutter on the newly-detached banner (translateY-driven throughout).
+  // Left running, the real gap between click dispatch and the "post" sample
+  // below — Playwright's actionability check plus a CDP round trip, which
+  // grows under matrix CPU contention — lets those two differently-shaped
+  // curves drift apart by different amounts, breaking the lockstep assertion
+  // below even though crashPlane() baked both rects correctly. Freeze them at
+  // currentTime 0 the instant they start: this listener is registered after
+  // crashPlane()'s own, so it runs synchronously in the same click dispatch —
+  // zero wall-clock exposure, unlike reading the DOM back later.
+  await page.evaluate(() => {
+    document.querySelector('.plane-hit').addEventListener('click', () => {
+      document.querySelectorAll('.banner-plane, .banner-detached').forEach((el) => {
+        el.getAnimations({ subtree: true }).forEach((a) => { a.currentTime = 0; a.pause(); });
+      });
+    });
+  });
+
   const pre = await sampleRects();
   await page.locator('.plane-hit').click();
   const post = await sampleRects();
-  await plane.evaluate((el) => el.getAnimations({ subtree: true }).forEach((a) => a.play()));
+  await page.evaluate(() => {
+    document.querySelectorAll('.banner-plane, .banner-detached').forEach((el) => {
+      el.getAnimations({ subtree: true }).forEach((a) => a.play());
+    });
+  });
   // hitDeltaX/Y feed the lockstep comparison below — not asserted directly.
   const hitDeltaX = post.hit.x - pre.hit.x;
   const hitDeltaY = post.hit.y - pre.hit.y;

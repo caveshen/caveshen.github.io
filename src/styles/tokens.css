@@ -6,7 +6,6 @@
   --mountain-far:#2e4066;
   --sea:         #1b2c3c;
   --celestial:   #ffd75e;
-  --card:        #121a2e;
   --text:        #e9e2cf;
   --stage:       #7d95a0;
   --option:      #8fb4d8;
@@ -18,8 +17,7 @@
 
   /* Extended tokens — shared via tokens.css; some consumed only by / */
   --card-edge:        #26324c;
-  --card-shadow:      0 16px 40px rgba(0, 0, 0, 0.45);
-  --dim:              #9aabc6; /* night: WCAG AA ≥4.5:1 on both --card and --bg */
+  --dim:              #9aabc6; /* night: WCAG AA ≥4.5:1 on --bg */
   --option-border:    rgba(143, 180, 216, 0.35);
   /* d31 Part B (B4): night was transparent on hover while day fills the row —
      a faint amber wash so hover reads as "this row is selected" in both
@@ -73,14 +71,12 @@
   --mountain-far:#8ba3bd;
   --sea:         #86b8d0;
   --celestial:   #f2b544;
-  --card:        #fdfbf5;
   --text:        #253038;
   --stage:       #5d7470;
   --option:      #3f5f88;
 
   --card-edge:        rgba(37, 48, 56, 0.12);
-  --card-shadow:      0 12px 32px rgba(37, 48, 56, 0.18);
-  --dim:              #4a5f7a; /* day: WCAG AA ≥4.5:1 on both --card and --bg */
+  --dim:              #4a5f7a; /* day: WCAG AA ≥4.5:1 on --bg */
   --option-border:    rgba(63, 95, 136, 0.35);
   --btn-hover-bg:     #f2b544;
   --btn-hover-border: #f2b544;

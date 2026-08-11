@@ -113,10 +113,8 @@ describe('WCAG AA contrast (≥ 4.5:1) on --bg', () => {
 // behind it). Night: the band's brightest fill, --rail. Day: its darkest,
 // --ground-near. Blur is not modelled — it averages, so the un-blurred extreme
 // is already the bound.
-// Day alpha (0.97, spec's "glass density amendment") is the minimum that
-// clears 4.5:1 for every day category, day stage direction included — the
-// approach prompt's 0.88 hover density fell short. Capped below 1: the glass
-// stays technically translucent for ticket 01's e2e assertions.
+// The alphas below must match .card in Stage.astro, and must stay strictly
+// below 1 — the e2e suite asserts the glass is translucent.
 const GLASS_NIGHT_RGB = [10, 8, 22];   // .card night background, Stage.astro
 const GLASS_NIGHT_ALPHA = 0.75;
 const GLASS_DAY_RGB = [253, 251, 245]; // .card day background, Stage.astro

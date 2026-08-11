@@ -96,6 +96,58 @@ export async function assertPlaqueGlass(page) {
   return style.backgroundColor;
 }
 
+// Seeks the card's etched-frame custom-property transitions (--frame/--frame-faint,
+// Stage.astro) to a point in [0,1] of their active duration (0 = just-armed start
+// value, 1 = settled), pausing every .card animation there — opacity/transform
+// freeze at a fixed point too, so a diff between two samples is attributable to
+// the frame's own colour change alone. WAAPI currentTime seeks a CSS transition
+// directly, so real time never races. waitForFunction guards the first call
+// against reading before the transition has actually started.
+export async function seekFrameTransition(page, fraction) {
+  await page.waitForFunction(() =>
+    document.querySelector('.card').getAnimations()
+      .some((a) => a.transitionProperty === '--frame'));
+  return page.evaluate((fraction) => {
+    const card = document.querySelector('.card');
+    card.getAnimations().forEach((a) => {
+      if (a.transitionProperty === '--frame' || a.transitionProperty === '--frame-faint') {
+        const timing = a.effect.getComputedTiming();
+        a.currentTime = (timing.delay ?? 0) + (timing.duration ?? 0) * fraction;
+      }
+      a.pause();
+    });
+    const cs   = getComputedStyle(card);
+    const rect = (r) => r && { x: r.x, y: r.y, width: r.width, height: r.height };
+    const btn  = card.querySelector('.choices button');
+    // Engines disagree on the RGB channels a colour interpolation reports for
+    // "transparent" (some report 0,0,0, some premultiply toward the other
+    // endpoint's RGB) — alpha alone is the portable "not drawn yet" signal.
+    const outlineAlpha = parseFloat(cs.outlineColor.match(/,\s*([\d.]+)\)$/)?.[1] ?? '1');
+    return {
+      outlineColor:      cs.outlineColor,
+      outlineAlpha,
+      backgroundImage:   cs.backgroundImage,
+      outlineWidth:      cs.outlineWidth,
+      outlineOffset:     cs.outlineOffset,
+      backgroundSize:    cs.backgroundSize,
+      backgroundPosition: cs.backgroundPosition,
+      cardRect: rect(card.getBoundingClientRect()),
+      btnRect:  btn && rect(btn.getBoundingClientRect()),
+    };
+  }, fraction);
+}
+
+// Compares two {x,y,width,height} rects with a small px tolerance — real
+// engines can settle sub-pixel layout (dynamic-viewport-unit rounding, a
+// focus-triggered scroll) between two samples with no size-affecting CSS
+// change of their own between them.
+export function expectRectClose(actual, expected, eps = 3) {
+  for (const key of ['x', 'y', 'width', 'height']) {
+    expect(Math.abs(actual[key] - expected[key]), `${key}: ${actual[key]} vs ${expected[key]}`)
+      .toBeLessThan(eps);
+  }
+}
+
 // Resolves when the .bg-layer transform transition settles after a mouse move,
 // or immediately when drift will not fire (coarse pointer or reduced motion).
 // Call BEFORE the mouse move so the transitionend listener is registered first.

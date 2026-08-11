@@ -479,6 +479,19 @@ const root = tree.root;
     .end-dialogue { transition: none; }
   }
 
+  /* Typed so the entrance can transition them like any other colour — an
+     untyped custom property snaps instead of interpolating. */
+  @property --frame {
+    syntax: '<color>';
+    inherits: false;
+    initial-value: transparent;
+  }
+  @property --frame-faint {
+    syntax: '<color>';
+    inherits: false;
+    initial-value: transparent;
+  }
+
   /* Dialogue card: an in-scene overlay, not a block below the scene */
   .card {
     position: absolute;
@@ -533,10 +546,13 @@ const root = tree.root;
       14px 2px, 2px 14px,
       14px 2px, 2px 14px;
     background-repeat: no-repeat;
-    /* Opacity/transform tail on the transition list — 170ms delay + 380ms
-       duration lands at 550ms, matching the camera zoom's own 550ms. */
+    /* Opacity/transform/frame tail on the transition list — 170ms delay + 380ms
+       duration lands at 550ms, matching the camera zoom's own 550ms. --frame and
+       --frame-faint ride the same window so the etched frame draws in alongside
+       the fade instead of simply being present. */
     transition: background 0.4s ease, border-color 0.4s ease,
-      opacity 380ms ease 170ms, transform 380ms ease 170ms;
+      opacity 380ms ease 170ms, transform 380ms ease 170ms,
+      --frame 380ms ease 170ms, --frame-faint 380ms ease 170ms;
   }
   :root[data-time="day"] .card {
     --frame:       rgba(37, 48, 56, 0.5);
@@ -551,6 +567,16 @@ const root = tree.root;
   .card.card-entering {
     opacity: 0;
     transform: translateX(-50%) translateY(6px);
+    /* Frame starting point: transparent, so the hairline and corner brackets
+       draw in as this class is removed, riding the transition list above. */
+    --frame:       transparent;
+    --frame-faint: transparent;
+  }
+  /* :root[data-time="day"] .card (0,3,0) otherwise outranks .card.card-entering
+     (0,2,0) and would skip the transparent starting point under day theme. */
+  :root[data-time="day"] .card.card-entering {
+    --frame:       transparent;
+    --frame-faint: transparent;
   }
   .stage {
     font-size: 0.92rem;

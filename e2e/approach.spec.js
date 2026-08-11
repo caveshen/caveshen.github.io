@@ -1,6 +1,6 @@
 // The approach — e2e tests
 import { test, expect } from '@playwright/test';
-import { visibleRect } from './geom.js';
+import { visibleRect, seekFrameTransition, expectRectClose } from './geom.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -145,6 +145,81 @@ test('reduced motion: card fade is disabled, card is immediately full opacity', 
   expect(duration).toBe('0s');
   await page.locator('#approach-prompt').click();
   await expect(page.locator('.card')).toHaveCSS('opacity', '1');
+});
+
+test('approaching draws the etched frame in over the entrance window', async ({ page }) => {
+  await page.locator('#approach-prompt').click();
+  const start = await seekFrameTransition(page, 0);
+  const mid   = await seekFrameTransition(page, 0.5);
+  const end   = await seekFrameTransition(page, 1);
+  expect(start.outlineAlpha).toBeLessThan(0.01); // armed transparent by .card-entering
+  expect(mid.outlineColor).not.toBe(start.outlineColor);
+  expect(mid.outlineColor).not.toBe(end.outlineColor);
+});
+
+test('the frame also draws in under day theme, not just night', async ({ page }) => {
+  await page.locator('#toggle').click();
+  await page.locator('#approach-prompt').click();
+  const start = await seekFrameTransition(page, 0);
+  expect(start.outlineAlpha).toBeLessThan(0.01);
+});
+
+test('resting frame colour is identical whether the entrance animates or not', async ({ page }) => {
+  await page.locator('#approach-prompt').click();
+  // Real-time settle, not WAAPI pause/seek — some engines don't reliably
+  // repaint a background-image driven by a paused custom-property transition.
+  // Opacity shares the frame's own 550ms window, so its settle is the frame's too.
+  await expect(page.locator('.card')).toHaveCSS('opacity', '1');
+  const readCard = () => page.locator('.card').evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return { outlineColor: cs.outlineColor, backgroundImage: cs.backgroundImage };
+  });
+  const animated = await readCard();
+
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.reload();
+  await page.locator('#approach-prompt').click();
+  const reduced = await readCard();
+
+  expect(animated.outlineColor).toBe(reduced.outlineColor);
+  expect(animated.backgroundImage).toBe(reduced.backgroundImage);
+});
+
+test('reduced motion: the frame has no animation, its resting colour applies immediately', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.reload();
+  await page.locator('#approach-prompt').click();
+  const anims = await page.locator('.card').evaluate((el) =>
+    el.getAnimations().filter((a) =>
+      a.transitionProperty === '--frame' || a.transitionProperty === '--frame-faint'
+    ).length
+  );
+  expect(anims).toBe(0);
+  const outlineColor = await page.locator('.card').evaluate((el) => getComputedStyle(el).outlineColor);
+  expect(outlineColor).not.toBe('rgba(0, 0, 0, 0)');
+});
+
+test('the frame reveal changes colour only — outline/bracket geometry and clickable boxes hold still', async ({ page }) => {
+  await page.locator('#approach-prompt').click();
+  const start = await seekFrameTransition(page, 0);
+  const end   = await seekFrameTransition(page, 1);
+  expect(end.outlineColor).not.toBe(start.outlineColor); // sanity: the frame did draw in
+  expect(end.outlineWidth).toBe(start.outlineWidth);
+  expect(end.outlineOffset).toBe(start.outlineOffset);
+  expect(end.backgroundSize).toBe(start.backgroundSize);
+  expect(end.backgroundPosition).toBe(start.backgroundPosition);
+  expectRectClose(end.cardRect, start.cardRect);
+  expectRectClose(end.btnRect, start.btnRect);
+});
+
+test('the corner brackets also draw in, not just the hairline', async ({ page }) => {
+  // Real-time settle, not WAAPI pause/seek — some engines don't reliably
+  // repaint a background-image driven by a paused custom-property transition.
+  const before = await page.locator('.card').evaluate((el) => getComputedStyle(el).backgroundImage);
+  await page.locator('#approach-prompt').click();
+  await expect(page.locator('.card')).toHaveCSS('opacity', '1'); // settled: the frame shares this window
+  const after = await page.locator('.card').evaluate((el) => getComputedStyle(el).backgroundImage);
+  expect(after).not.toBe(before);
 });
 
 for (const route of ROUTES) {

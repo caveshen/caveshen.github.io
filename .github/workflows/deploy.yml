@@ -2,10 +2,12 @@ name: Deploy to GitHub Pages
 
 on:
   # Branch pushes run a light check; PRs run the full tri-engine matrix.
-  # Build and deploy are gated to main below.
+  # Build and deploy are gated to main below. The build reads no markdown,
+  # so md-only pushes skip CI. Not docs/** — it holds code the tests import.
   push:
     branches: ['**']
     tags-ignore: ['**']
+    paths-ignore: ['**.md']
 
   pull_request:
     branches: [main]

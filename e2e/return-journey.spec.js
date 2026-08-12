@@ -1,15 +1,30 @@
 // return-journey.spec.js — /sheet → / return via cross-document view transition.
 import { test, expect } from '@playwright/test';
 
+// Waits for the current page's pagereveal-set settle signal (window.__vtFinished)
+// to resolve before continuing. On a VT-arrived page this waits out the transition's
+// actual finish instant instead of guessing at a wall-clock delay — the browser's
+// native view-transition overlay can still intercept clicks/visibility checks for a
+// moment after the DOM itself looks ready. On a plain load (or an engine with no VT
+// support) pagereveal sets __vtFinished to null immediately, so this is a no-op.
+// pagereveal can fire after domcontentloaded, so __vtFinished may not exist yet —
+// bounded at 5s; a page that never fires pagereveal falls through at no extra cost.
+async function waitForTransitionSettle(page) {
+  await page.waitForFunction(() => window.__vtFinished !== undefined, null, { timeout: 5000 }).catch(() => {});
+  await page.evaluate(() => window.__vtFinished ?? Promise.resolve());
+}
+
 // Navigate from / to /sheet via the dialogue system option.
 async function navigateToSheet(page) {
   await page.goto('/');
+  await waitForTransitionSettle(page);
   await page.locator('#approach-prompt').click();
   await page.locator('#choices button.system').click();
   await page.waitForURL('/sheet');
   // Cross-document VT can leave WebKit in a transient state where subsequent
   // interactions fail immediately after waitForURL resolves.
   await page.waitForLoadState('domcontentloaded');
+  await waitForTransitionSettle(page);
   await expect(page.locator('.back-link')).toBeVisible();
 }
 

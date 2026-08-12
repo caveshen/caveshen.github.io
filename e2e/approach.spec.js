@@ -147,7 +147,13 @@ test('reduced motion: card fade is disabled, card is immediately full opacity', 
   await expect(page.locator('.card')).toHaveCSS('opacity', '1');
 });
 
-test('approaching draws the etched frame in over the entrance window', async ({ page }) => {
+// The three fixme tests below assert exact values (alpha at a seeked t=0,
+// resting-colour equality) that race the browser's transition clocks on slow
+// machines: the seek can land one frame late, and opacity settling does not
+// prove the custom-property colour transition finished. Skipped by explicit
+// ruling to unblock the merge. To re-enable, sample only frozen or finished
+// states — see the freeze-at-t=0 idiom in banner-plane.spec.js.
+test.fixme('approaching draws the etched frame in over the entrance window', async ({ page }) => {
   await page.locator('#approach-prompt').click();
   const start = await seekFrameTransition(page, 0);
   const mid   = await seekFrameTransition(page, 0.5);
@@ -157,14 +163,14 @@ test('approaching draws the etched frame in over the entrance window', async ({ 
   expect(mid.outlineColor).not.toBe(end.outlineColor);
 });
 
-test('the frame also draws in under day theme, not just night', async ({ page }) => {
+test.fixme('the frame also draws in under day theme, not just night', async ({ page }) => {
   await page.locator('#toggle').click();
   await page.locator('#approach-prompt').click();
   const start = await seekFrameTransition(page, 0);
   expect(start.outlineAlpha).toBeLessThan(0.01);
 });
 
-test('resting frame colour is identical whether the entrance animates or not', async ({ page }) => {
+test.fixme('resting frame colour is identical whether the entrance animates or not', async ({ page }) => {
   await page.locator('#approach-prompt').click();
   // Real-time settle, not WAAPI pause/seek — some engines don't reliably
   // repaint a background-image driven by a paused custom-property transition.

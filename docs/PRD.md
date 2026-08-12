@@ -79,7 +79,7 @@ the document body under their original `§` headings as history.
 | d33 | Sheet→scene return — the Badger travels back from his portrait seat | *new* | ✅ MERGED 2026-08-09 (PR #18, `6ea67bf`) |
 | d34 | Test-suite health — full test strategy (unit + integration) and execution | *new* | ✅ MERGED 2026-08-10 (PR #19, `7f85dea`), deploy green — e2e 2072→2008 / 0 failed, unit 97/97; strategy canonical in docs/TEST-STRATEGY.md (§d34) |
 | d35 | The Badger head — standalone fantastical-medieval art (favicon, social, sheet) | *new* | 💡 raised 2026-08-10 — needs a brief (§d35) |
-| d36 | Approach affordance — the web-style button becomes a diegetic glow above the character | *new* | 💡 raised 2026-08-11 — Caveshen's sketch in §d36; not scheduled |
+| d36 | Approach affordance — the web-style button becomes a diegetic glow above the character | *new* | 📋 SPECCED 2026-08-12 — workshop rulings accepted, spec `docs/specs/approach-glow.md`, ready for tickets; glossary terms in `CONTEXT.md` |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened

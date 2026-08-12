@@ -7,7 +7,6 @@
 // <script> that calls initStage(tree).
 import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
 import Scene from './Scene.astro';
-import Avatar from './Avatar.astro';
 
 interface Props {
   tree: { root: { stage?: string; speech: string } };
@@ -57,10 +56,6 @@ const root = tree.root;
      noscript overrides [hidden] with display:block for the no-JS path. -->
 <noscript><style>.card[hidden] { display: block; }</style></noscript>
 <main class="card" hidden>
-  <div class="card-head">
-    <Avatar />
-    <span class="name">Caveshen</span>
-  </div>
   <!-- Static root content for no-JS path; engine overwrites on init -->
   <p class="stage" id="stage">{root.stage}</p>
   <div aria-live="polite">
@@ -484,6 +479,19 @@ const root = tree.root;
     .end-dialogue { transition: none; }
   }
 
+  /* Typed so the entrance can transition them like any other colour — an
+     untyped custom property snaps instead of interpolating. */
+  @property --frame {
+    syntax: '<color>';
+    inherits: false;
+    initial-value: transparent;
+  }
+  @property --frame-faint {
+    syntax: '<color>';
+    inherits: false;
+    initial-value: transparent;
+  }
+
   /* Dialogue card: an in-scene overlay, not a block below the scene */
   .card {
     position: absolute;
@@ -509,37 +517,66 @@ const root = tree.root;
     overflow-y: auto;
     pointer-events: auto; /* re-enable: stage-frame has pointer-events:none */
     padding: 1.75rem 2rem 2rem;
-    background: var(--card);
-    border: 1px solid var(--card-edge);
-    border-radius: 18px;
-    box-shadow: var(--card-shadow);
-    /* Opacity/transform tail on the transition list — 170ms delay + 380ms
-       duration lands at 550ms, matching the camera zoom's own 550ms. */
+    /* Same glass material as .approach-prompt/.fullscreen-toggle/.page-foot,
+       plus an etched inner frame: hairline via negative-offset outline (.card
+       is never focusable, so outline is free) and corner brackets as
+       background layers — default attachment keeps them pinned while
+       overflow-y content scrolls beneath. */
+    --frame:       rgba(233, 226, 207, 0.5);
+    --frame-faint: rgba(233, 226, 207, 0.18);
+    background: rgba(10, 8, 22, 0.75);
+    border: 2px solid rgba(233, 226, 207, 0.22);
+    border-radius: 4px;
+    backdrop-filter: blur(3px);
+    outline: 1px solid var(--frame-faint);
+    outline-offset: -8px;
+    background-image:
+      linear-gradient(var(--frame), var(--frame)), linear-gradient(var(--frame), var(--frame)),
+      linear-gradient(var(--frame), var(--frame)), linear-gradient(var(--frame), var(--frame)),
+      linear-gradient(var(--frame), var(--frame)), linear-gradient(var(--frame), var(--frame)),
+      linear-gradient(var(--frame), var(--frame)), linear-gradient(var(--frame), var(--frame));
+    background-position:
+      left 8px top 8px,    left 8px top 8px,
+      right 8px top 8px,   right 8px top 8px,
+      left 8px bottom 8px, left 8px bottom 8px,
+      right 8px bottom 8px, right 8px bottom 8px;
+    background-size:
+      14px 2px, 2px 14px,
+      14px 2px, 2px 14px,
+      14px 2px, 2px 14px,
+      14px 2px, 2px 14px;
+    background-repeat: no-repeat;
+    /* Opacity/transform/frame tail on the transition list — 170ms delay + 380ms
+       duration lands at 550ms, matching the camera zoom's own 550ms. --frame and
+       --frame-faint ride the same window so the etched frame draws in alongside
+       the fade instead of simply being present. */
     transition: background 0.4s ease, border-color 0.4s ease,
-      opacity 380ms ease 170ms, transform 380ms ease 170ms;
+      opacity 380ms ease 170ms, transform 380ms ease 170ms,
+      --frame 380ms ease 170ms, --frame-faint 380ms ease 170ms;
+  }
+  :root[data-time="day"] .card {
+    --frame:       rgba(37, 48, 56, 0.5);
+    --frame-faint: rgba(37, 48, 56, 0.18);
+    /* background-color, not the shorthand — the shorthand would wipe the
+       corner-bracket background layers above. */
+    background-color: rgba(253, 251, 245, 0.81);
+    border-color: rgba(37, 48, 56, 0.22);
   }
   /* JS-only starting state (added by approach()'s init, re-armed by exit()) —
      never static on .card itself, or the no-JS path would render it invisible. */
   .card.card-entering {
     opacity: 0;
     transform: translateX(-50%) translateY(6px);
+    /* Frame starting point: transparent, so the hairline and corner brackets
+       draw in as this class is removed, riding the transition list above. */
+    --frame:       transparent;
+    --frame-faint: transparent;
   }
-  .card-head {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-  .name {
-    font-family: var(--mono);
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    background: var(--chip-bg);
-    color: var(--chip-text);
-    padding: 0.32rem 0.8rem;
-    border-radius: 999px;
+  /* :root[data-time="day"] .card (0,3,0) otherwise outranks .card.card-entering
+     (0,2,0) and would skip the transparent starting point under day theme. */
+  :root[data-time="day"] .card.card-entering {
+    --frame:       transparent;
+    --frame-faint: transparent;
   }
   .stage {
     font-size: 0.92rem;

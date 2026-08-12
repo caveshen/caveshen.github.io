@@ -70,36 +70,75 @@ function linearize(c) {
   const s = c / 255;
   return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
 }
-function luminance(hex) {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
+function hexToRgb(hex) {
+  const h = hex.replace('#', '');
+  return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
+}
+function luminance(rgb) {
+  const [r, g, b] = rgb;
   return 0.2126 * linearize(r) + 0.7152 * linearize(g) + 0.0722 * linearize(b);
 }
-function contrast(fg, bg) {
-  const l1 = luminance(fg), l2 = luminance(bg);
+function contrast(fgHex, bgRgb) {
+  const l1 = luminance(hexToRgb(fgHex)), l2 = luminance(bgRgb);
   const [hi, lo] = l1 > l2 ? [l1, l2] : [l2, l1];
   return (hi + 0.05) / (lo + 0.05);
 }
+// Standard "fg painted at alpha over an opaque bg" alpha compositing.
+function compositeOver(fgRgb, alpha, bgRgb) {
+  return fgRgb.map((c, i) => alpha * c + (1 - alpha) * bgRgb[i]);
+}
 
 // Values come from the parsed tokens — a token change is automatically re-checked.
-describe('WCAG AA contrast (≥ 4.5:1)', () => {
+// --bg (page background, still consumed by Base.astro/sheet.astro) is a real
+// rendered surface, unlike the removed --card — these stay as direct checks.
+describe('WCAG AA contrast (≥ 4.5:1) on --bg', () => {
   it.each([
-    ['night text',       nightTokens['--text'],   nightTokens['--card']],
-    ['night option/card',nightTokens['--option'], nightTokens['--card']],
-    ['night option/bg',  nightTokens['--option'], nightTokens['--bg']],
-    ['night stage',      nightTokens['--stage'],  nightTokens['--card']],
-    ['night dim/card',   nightTokens['--dim'],    nightTokens['--card']],
+    ['night option/bg', nightTokens['--option'], nightTokens['--bg']],
     ['night dim/bg',     nightTokens['--dim'],    nightTokens['--bg']],
-    ['day text',         dayTokens['--text'],     dayTokens['--card']],
-    ['day option/card',  dayTokens['--option'],   dayTokens['--card']],
     ['day option/bg',    dayTokens['--option'],   dayTokens['--bg']],
-    ['day stage',        dayTokens['--stage'],    dayTokens['--card']],
-    ['day dim/card',     dayTokens['--dim'],      dayTokens['--card']],
     ['day dim/bg',       dayTokens['--dim'],      dayTokens['--bg']],
   ])('%s: %s on %s', (_name, fg, bg) => {
     expect(fg, 'token value missing').toBeTruthy();
     expect(bg, 'token value missing').toBeTruthy();
+    expect(contrast(fg, hexToRgb(bg))).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
+// ── WCAG AA contrast on the glass plaque ───────────────────────────────────────
+// The plaque (.card, Stage.astro) is translucent, so effective contrast depends
+// on the scene behind it, not a flat token. Worst case: the glass composited
+// over the most extreme colour in the ground/sea/rail band — the region the
+// plaque overlaps once the camera zooms in on the character (the plaque sits
+// below the zoomed face; sky/moon/city sit above the head and never reach
+// behind it). Night: the band's brightest fill, --rail. Day: its darkest,
+// --ground-near. Blur is not modelled — it averages, so the un-blurred extreme
+// is already the bound.
+// The alphas below must match .card in Stage.astro, and must stay strictly
+// below 1 — the e2e suite asserts the glass is translucent. Day alpha (0.81)
+// is a design-picked value that can't clear AA alone — day --stage/--dim/
+// --option (tokens.css) are darkened, same hue, to close the gap instead.
+const GLASS_NIGHT_RGB = [10, 8, 22];   // .card night background, Stage.astro
+const GLASS_NIGHT_ALPHA = 0.75;
+const GLASS_DAY_RGB = [253, 251, 245]; // .card day background, Stage.astro
+const GLASS_DAY_ALPHA = 0.81;
+const SCENE_NIGHT_WORST = hexToRgb('2c3850'); // --rail (night)
+const SCENE_DAY_WORST   = hexToRgb('1f2c28'); // --ground-near (day)
+
+const plaqueBgNight = compositeOver(GLASS_NIGHT_RGB, GLASS_NIGHT_ALPHA, SCENE_NIGHT_WORST);
+const plaqueBgDay   = compositeOver(GLASS_DAY_RGB, GLASS_DAY_ALPHA, SCENE_DAY_WORST);
+
+describe('WCAG AA contrast (≥ 4.5:1) on the plaque, worst-case composited backdrop', () => {
+  it.each([
+    ['night speech',          nightTokens['--text'],   plaqueBgNight],
+    ['night stage direction', nightTokens['--stage'],  plaqueBgNight],
+    ['night dim/system',      nightTokens['--dim'],    plaqueBgNight],
+    ['night option',          nightTokens['--option'], plaqueBgNight],
+    ['day speech',            dayTokens['--text'],     plaqueBgDay],
+    ['day stage direction',   dayTokens['--stage'],    plaqueBgDay],
+    ['day dim/system',        dayTokens['--dim'],      plaqueBgDay],
+    ['day option',            dayTokens['--option'],   plaqueBgDay],
+  ])('%s', (_name, fg, bg) => {
+    expect(fg, 'token value missing').toBeTruthy();
     expect(contrast(fg, bg)).toBeGreaterThanOrEqual(4.5);
   });
 });

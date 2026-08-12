@@ -61,6 +61,25 @@ reduced-motion behaviour — survives unchanged.
   (`rgba(253, 251, 245, 0.65)`) with an ink-at-22% border; 4px corner
   radius; `backdrop-filter: blur(3px)`; no box-shadow. These are the
   exact values already used by the approach prompt and its siblings.
+- **Glass density amendment (ruled by Caveshen, 2026-08-11; final
+  form same date).** The base alphas above are the shared material's
+  resting values, not the plaque's. On the ticket-01 preview, Caveshen
+  judged the night glass too thin — text was swallowed by the scene.
+  The plaque's night alpha is 0.75 (the approach prompt's hover
+  density); every night category passes AA there with margin. Day
+  took three goes: 0.65 failed AA for dim and option text; 0.97 (the
+  minimum that cleared AA for everything, stage directions included)
+  read as too opaque on preview; Caveshen ruled the final value —
+  **day alpha 0.81, the midpoint of the two previewed versions**.
+- **Text-token exception (ruled by Caveshen, 2026-08-11).** At 0.81
+  the glass dial cannot clear AA for day stage, dim, and option text.
+  These three are system text, not character identity, so they —
+  and only they — darken by the minimum needed to reach 4.5:1
+  against the worst-case composited backdrop at 0.81, keeping their
+  hue. Character identity colours never change; night tokens never
+  change; speech text passes untouched. Darkening also helps, never
+  hurts, these tokens' other consumed surface (the light day page
+  background), but its existing AA checks must stay green.
 - The etched inner frame (from the accepted mock, which encodes this
   more precisely than prose): a 1px hairline 8px inside the border,
   drawn as a negative-offset `outline` (legal because the card is
@@ -112,7 +131,10 @@ reduced-motion behaviour — survives unchanged.
   the scene is static SVG, so worst-case backdrops are computable, and
   the suite has zero flake tolerance. If AA fails, the dial is the
   glass alpha (the approach prompt's hover densities, 0.75 night /
-  0.88 day, are the next stop), not the text colours.
+  0.88 day, are the next stop), not the text colours. Where those
+  stops still fail, the ruling above applies: the alpha rises to the
+  minimum value that clears AA, capped strictly below 1. All eight
+  theme × text-category checks gate the suite — no documented gaps.
 - Prior art: the existing `dialogue`, `interview`, and `theme` e2e
   specs; `docs/TEST-STRATEGY.md` is canonical for suite conventions.
   Every new or reworked regression assertion follows the repo rule:

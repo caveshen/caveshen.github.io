@@ -1,5 +1,6 @@
 // dialogue.spec.js — streaming dialogue text: cadence, skip, and the a11y contract.
 import { test, expect } from '@playwright/test';
+import { assertNoIdentityMarkup, assertPlaqueGlass } from './geom.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -39,7 +40,9 @@ test('a click on the card mid-stream completes the line instantly and does not a
   await startStream(page);
   await expect(page.locator('.speech-stream')).toBeVisible();
   const speechBefore = await page.locator('#speech').textContent();
-  await page.locator('.card-head').click(); // anywhere on the card, not a choice
+  // Top-left padding corner: empty plaque background, never a stage/speech/choice
+  // element — the .stage node itself is hidden on nodes with no stage direction.
+  await page.locator('.card').click({ position: { x: 10, y: 10 } });
   await expect(page.locator('.speech-stream')).toHaveCount(0); // completed
   await expect(page.locator('#speech')).toHaveText(speechBefore ?? '');
   // Still the "experience" node — its single option goes back to root, not /sheet.
@@ -91,4 +94,20 @@ test('reduced motion: the full line renders immediately, no stream node ever app
   await expect(page.locator('.speech-stream')).toHaveCount(0);
   const speech = (await page.locator('#speech').textContent())?.trim();
   expect(speech.length).toBeGreaterThan(0);
+});
+
+test('no avatar or nameplate markup renders', async ({ page }) => {
+  await approach(page);
+  await assertNoIdentityMarkup(page);
+});
+
+test('plaque surface and frame render, night and day', async ({ page }) => {
+  await approach(page);
+  const nightBg = await assertPlaqueGlass(page);
+  await page.locator('#toggle').click();
+  // Retry instead of a fixed sleep — background-color transitions over 0.4s.
+  await expect(async () => {
+    const dayBg = await assertPlaqueGlass(page);
+    expect(dayBg).not.toBe(nightBg); // theme pass re-shades the glass
+  }).toPass();
 });

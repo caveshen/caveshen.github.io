@@ -20,6 +20,11 @@ const CHARACTER_LABEL = 'the Badger';
     /* Arrival hand-off for the /sheet → / return morph. Builds the overlay
        target before first paint so the browser can morph the portrait home. */
     window.addEventListener('pagereveal', function(e) {
+      // Exposes the transition's settle signal so tests can await the actual finish
+      // instant (real work below is width-gated, but the native VT overlay can
+      // still be live at any width) instead of guessing at a wall-clock delay.
+      // null on plain loads, so an awaiting caller sees `null ?? Promise.resolve()`.
+      window.__vtFinished = e.viewTransition ? e.viewTransition.finished : null;
       if (!e.viewTransition || window.innerWidth < 1650) return;
       // Three scene variants exist — find the laid-out one (non-zero rect).
       var figure = Array.prototype.find.call(

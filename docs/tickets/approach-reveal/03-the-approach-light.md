@@ -11,20 +11,20 @@ seconds after each dialogue close.
 
 **Blocked by:** 01 — The prompt reveals on hover. Independent of 02.
 
-**Status:** ready-for-agent
+**Status:** done (b84ea42)
 
-- [ ] The light gathers around the character about 5s after page
+- [x] The light gathers around the character about 5s after page
       load, as a steady edge-light: filter only, never geometry,
       never pulsing.
-- [ ] It stands down when the visitor engages: hover, focus, or
+- [x] It stands down when the visitor engages: hover, focus, or
       click.
-- [ ] It gathers again about 5s after each dialogue close.
-- [ ] Under reduced motion it appears and departs instantly — but
+- [x] It gathers again about 5s after each dialogue close.
+- [x] Under reduced motion it appears and departs instantly — but
       still appears.
-- [ ] It reads correctly in both themes, and the 404 page behaves
+- [x] It reads correctly in both themes, and the 404 page behaves
       identically.
-- [ ] Every animated assertion samples a frozen or finished state,
+- [x] Every animated assertion samples a frozen or finished state,
       never a live clock through a proxy wait.
-- [ ] Regression assertions prove they can fail: defect injected,
+- [x] Regression assertions prove they can fail: defect injected,
       caught, injection removed.
-- [ ] Full suite green in one matrix run. Zero flakes.
+- [x] Full suite green in one matrix run. Zero flakes.

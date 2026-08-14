@@ -23,12 +23,13 @@ edge-light — gathers around the character. It marks the character
 as approachable without adding an object to the scene.
 
 When the visitor hovers the character, the **approach prompt**
-drifts into view: shadowy, floating text, not a boxed button. When
-the pointer leaves, the prompt lingers for a moment, then fades. A
-click or tap on the character pins the prompt in place. Activating
-the prompt starts the dialogue exactly as the old button did. Once
-the visitor engages, the light stands down — its invitation is
-accepted.
+drifts into view just above the character's head: shadowy, floating
+text, not a boxed button. When the pointer leaves, the prompt
+lingers for a moment, then fades. Activating the prompt starts the
+dialogue exactly as the old button did — and a click or tap on the
+character starts it too, as a second vector. Once the visitor
+engages, the light stands down; it gathers again whenever the scene
+has been idle for a few seconds.
 
 ## User Stories
 
@@ -42,9 +43,9 @@ accepted.
 8. As a visitor on the 404 page, I want the prompt to say "Approach the hooded figure?", so that the lost-page mood carries into the invitation.
 9. As a visitor, I want the prompt to linger after my pointer leaves, so that I have time to act on it.
 10. As a visitor, I want hovering the prompt itself to keep it visible, so that travelling from character to prompt never loses it.
-11. As a visitor, I want a click or tap on the character to pin the prompt, so that I can summon it deliberately and it stays.
-12. As a visitor, I want a second click on the character to do nothing, so that eagerness is never punished with a toggle-off.
-13. As a touch visitor, I want a first tap to reveal the prompt and a second tap on the prompt to approach, so that I never launch the dialogue by accident.
+11. As a visitor, I want a click or tap on the character to start the dialogue directly, so that the character is a door and not only a doorbell.
+12. As a visitor, I want the light to gather again after the scene has been idle a few seconds, so that the invitation always returns when I hesitate.
+13. As a touch visitor, I want a single tap on the character to approach, so that the same rule holds on every device.
 14. As a touch visitor, I want the prompt's hit area no smaller than 44px, so that the soft visual does not cost me accuracy.
 15. As a keyboard user, I want the prompt in the tab order where the button was, so that my route to the dialogue does not change.
 16. As a keyboard user, I want focus to reveal the prompt, so that focus and hover are the same conversation.
@@ -71,22 +72,28 @@ accepted.
   invisible hit area keeps the 44px touch floor.
 - The character gains a generous invisible hit surface — the figure's
   bounds plus comfortable padding — with the pointer cursor. The
-  character itself is never focusable and never the activation
-  target: it summons the prompt; only the prompt starts the dialogue.
+  character is never focusable, but a click or tap on it starts the
+  dialogue directly (preview ruling 2026-08-14; this replaced the
+  earlier pin behaviour — the pin punished the visitor by leaving
+  the prompt stranded on screen). The prompt remains the keyboard
+  and screen-reader vector.
 - Summoning rules: hover over character or prompt reveals and holds
   the prompt. When hover leaves both, the prompt lingers one second,
-  then fades. Click or tap on the character reveals and pins; only
-  activating the prompt ends a pin; a second click on the character
-  is a no-op. Pin semantics are provisional — Caveshen workshops
-  them on live preview.
+  then fades.
+- The prompt anchors just above the character's head, close to it
+  (preview ruling 2026-08-14: the first gap read as too high). The
+  gap is a tuning value.
 - The reveal fade starts at 500ms. The linger starts at one second.
   Both are tuning values.
 - The approach light is a steady edge-light on the character,
-  achieved with a filter, never with geometry. It arms about five
-  seconds after page load and about five seconds after each dialogue
-  close. It stands down when the visitor engages (hover, focus, or
-  click). It never pulses — a continuous filter animation wastes GPU
-  cycles for nothing.
+  achieved with a filter, never with geometry. It gathers whenever
+  the scene has been idle for about five seconds — after load,
+  after dialogue close, and after any engagement ends (preview
+  ruling 2026-08-14: always return on idle, not only after load
+  and close). Idle means: no hover over character or prompt, the
+  prompt unfocused, no dialogue open. It stands down when the
+  visitor engages (hover, focus, or click). It never pulses — a
+  continuous filter animation wastes GPU cycles for nothing.
 - On dialogue exit everything resets: prompt hidden, light re-armed
   on its timer. The prompt is re-focused about one second after
   exit, so keyboard continuity survives without text crossing the
@@ -122,9 +129,10 @@ accepted.
   Space activation, focus restoration on both exit paths, staying
   inside the stage frame across the viewport matrix, and the
   beside-fallback at the forced tiny viewport.
-- New e2e subjects: the light's arm delay and stand-down, the
-  hover reveal, the linger, the pin, the touch two-step, the
-  delayed refocus after exit, and reduced-motion variants of each.
+- New e2e subjects: the light's idle-arm delay and stand-down, the
+  hover reveal, the linger, the direct approach from a character
+  click, the delayed refocus after exit, and reduced-motion
+  variants of each.
 - Every regression assertion proves it can fail: inject the defect,
   watch the test catch it, remove the injection.
 - One matrix run per ticket. A flake pauses the work and gets
@@ -134,8 +142,6 @@ accepted.
 
 ## Out of Scope
 
-- The character's body as an activation target — it summons, never
-  starts the dialogue.
 - The Badger head art (d35) and any change to dialogue content or
   the engine.
 - Any change to the exit affordance or the plaque.

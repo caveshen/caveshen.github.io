@@ -43,14 +43,16 @@ const root = tree.root;
 </div>
 
 <!--
-  Approach prompt: a real <button> styled as a videogame NPC interaction prompt.
-  Hidden by default (revealed by JS on init); JS also hides it after approach.
-  Position is approximate right-foreground; JS places it near the measured figure.
+  Approach prompt: floating shadowed text, not a boxed control — a real
+  <button> so it keeps a keyboard tab stop and native Enter/Space activation.
+  The `hidden` attribute stays the no-JS gate (this script unhides it at init,
+  same as before); once unhidden, .approach-prompt's own opacity:0/pointer-
+  events:none is the rest state — stage.js reveals it on hover/focus (see
+  positionPrompt() and the reveal/linger wiring near the bottom of this file's
+  paired stage.js). Position is approximate right-foreground; JS places it
+  near the measured figure.
 -->
-<button class="approach-prompt" id="approach-prompt" hidden>
-  <!-- B6's idle bob animates this inner span, not the button — see .prompt-label below. -->
-  <span class="prompt-label">{promptLabel}</span>
-</button>
+<button class="approach-prompt" id="approach-prompt" hidden>{promptLabel}</button>
 
 <!-- Card ships hidden so it is never painted before JS runs.
      noscript overrides [hidden] with display:block for the no-JS path. -->
@@ -145,7 +147,14 @@ const root = tree.root;
 
   .approach-prompt {
     position: absolute;
-    pointer-events: auto; /* re-enable: stage-frame has pointer-events:none */
+    /* Rest state: invisible and inert, not the `hidden` attribute — the
+       button must stay in layout so positionPrompt() can measure and place
+       it. stage.js's reveal/linger wiring flips both to (1, auto) on hover
+       or focus and back on linger-timeout or dialogue exit; it always
+       cancels the previous WAAPI fade before starting a new one, so
+       overlapping reveals never composite wrongly. */
+    opacity: 0;
+    pointer-events: none;
     /* JS overrides left/top after measuring the visible figure; CSS is fallback */
     right: 10%;
     bottom: 38%;
@@ -153,71 +162,43 @@ const root = tree.root;
     font-size: 0.75rem;
     letter-spacing: 0.08em;
     color: var(--text);
-    background: rgba(10, 8, 22, 0.55);
-    border: 2px solid rgba(233, 226, 207, 0.22);
-    border-radius: 4px;
-    /* Vertical padding bumped from 0.35rem: this is the one control a phone
-       visitor must hit first, and it sat well under the 44px touch-target
-       floor. Left padding reserves a 1.25ch gutter for the caret (::before
-       below), same idiom as .choices button — nothing shifts when it fades in. */
-    padding: 0.85rem 0.75rem 0.85rem calc(0.75rem + 1.25ch);
+    background: none;
+    border: none;
+    /* No box, border, or glass — floating text, not a control. Generous
+       padding (not a caret gutter) keeps the 44px touch floor. */
+    padding: 0.85rem 1rem;
     cursor: pointer;
-    backdrop-filter: blur(3px);
-    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease,
-      translate 0.1s ease;
+    /* The shadow carries the AA contrast duty the old glass chip used to
+       carry (see the composited contrast cells in src/tests/theme.test.js).
+       Night: a dark halo behind the light night --text; day: a pale halo
+       behind the dark day --text — the same day/night pairing as the glass
+       fill this replaces. */
+    text-shadow: 0 1px 3px rgba(10, 8, 22, 0.9), 0 0 8px rgba(10, 8, 22, 0.75);
   }
-  /* B6: the one control asking to be interacted with gets a slow idle bob —
-     animated on the inner label, not the button. Playwright's click
-     actionability requires the CLICKED element's own bounding box to hold
-     still across two frames; an infinite animation on .approach-prompt
-     itself made every existing click on it time out. The label bobs inside a
-     geometrically static button instead — same visual "this moves", no
-     conflict with positionPrompt()'s own use of the button's `transform`. */
-  .prompt-label {
-    display: inline-block;
-    animation: prompt-bob 2.4s ease-in-out infinite;
-  }
-  @keyframes prompt-bob {
-    0%, 100% { translate: 0 0; }
-    50%      { translate: 0 -2px; }
-  }
-  .approach-prompt::before {
-    content: '▸' / ''; /* alt-text form: excludes the caret from the accessible name */
-    position: absolute;
-    left: 0.75rem;
-    top: 50%;
-    translate: 0 -50%;
-    opacity: 0;
-    color: var(--btn-hover-text);
-  }
-  .approach-prompt:hover,
-  .approach-prompt:focus-visible {
-    color: var(--btn-hover-text);
-    border-color: var(--btn-hover-border);
-    background: rgba(10, 8, 22, 0.75);
-  }
-  .approach-prompt:hover::before,
-  .approach-prompt:focus-visible::before {
-    opacity: 1;
+  :root[data-time="day"] .approach-prompt {
+    text-shadow: 0 1px 3px rgba(253, 251, 245, 0.9), 0 0 8px rgba(253, 251, 245, 0.75);
   }
   .approach-prompt:focus-visible {
     outline: 2px solid var(--btn-hover-border);
-    outline-offset: 2px;
+    outline-offset: 4px;
   }
-  .approach-prompt:active {
-    translate: 0 1px;
-  }
-  :root[data-time="day"] .approach-prompt {
-    background: rgba(253, 251, 245, 0.65);
-    border-color: rgba(37, 48, 56, 0.22);
-  }
-  :root[data-time="day"] .approach-prompt:hover,
-  :root[data-time="day"] .approach-prompt:focus-visible {
-    background: rgba(253, 251, 245, 0.88);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .approach-prompt { transition: none; }
-    .prompt-label { animation: none; }
+  /* The reveal/linger fade itself is WAAPI (stage.js), not a CSS transition —
+     a CSS transition would race the linger timer. Nothing here to gate under
+     reduced motion; stage.js's own reducedMotion() check zeroes the WAAPI
+     duration live instead (belt-and-braces already covers the camera/wind/
+     scene transitions that ARE CSS-driven, elsewhere in this file). */
+
+  /* Character hit surface: a transparent rect inside each .js-character
+     (Badger.astro/HoodedFigure.astro), sized generously around the figure.
+     fill:transparent alone would NOT hit-test (SVG's default pointer-events
+     is visiblePainted) — pointer-events:all makes the padded area hoverable
+     even though nothing is painted there. Never focusable, never a click
+     target for the dialogue — it only summons the approach prompt
+     (stage.js); only the prompt itself calls approach(). */
+  .js-character-hit {
+    fill: transparent;
+    pointer-events: all;
+    cursor: pointer;
   }
 
   .fullscreen-toggle {
@@ -517,7 +498,8 @@ const root = tree.root;
     overflow-y: auto;
     pointer-events: auto; /* re-enable: stage-frame has pointer-events:none */
     padding: 1.75rem 2rem 2rem;
-    /* Same glass material as .approach-prompt/.fullscreen-toggle/.page-foot,
+    /* Same glass material as .fullscreen-toggle/.page-foot (.approach-prompt
+       dropped its own glass for floating shadowed text — see that rule),
        plus an etched inner frame: hairline via negative-offset outline (.card
        is never focusable, so outline is free) and corner brackets as
        background layers — default attachment keeps them pinned while
@@ -705,7 +687,7 @@ const root = tree.root;
   /* Full-bleed stage means the footer can't sit in normal flow below it
      (would force a scrollbar), so it floats top-left, mirroring the theme
      toggle's top-right corner. Same glass-chip treatment as
-     .approach-prompt/.fullscreen-toggle. Paints above the frame by paint
+     .fullscreen-toggle. Paints above the frame by paint
      order already (declared after it in the DOM); z-index:1 is belt-and-
      braces only. max-width keeps clear of the toggle's corner at the
      narrowest tested viewport (390px). */

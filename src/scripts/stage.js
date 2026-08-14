@@ -74,12 +74,17 @@ export function initStage(tree) {
 
   // Clears above the head with a gap, centred on the figure, clamped inside the stage frame.
   // PROMPT_HEAD_GAP_PX is a tuning value.
-  const PROMPT_HEAD_GAP_PX = 1;
+  const PROMPT_HEAD_GAP_PX = 30;
   function positionPrompt() {
     const figEl = visibleOne('.js-character');
     if (!figEl) return;
     const sf  = stageFrame.getBoundingClientRect();
     const fig = figEl.getBoundingClientRect();
+    // The character raster carries transparent headroom, so the group's rect
+    // top floats above the drawn head. The face-void rect tracks the visible
+    // head; anchor the prompt's vertical to it (fall back to the group rect).
+    const faceEl = figEl.querySelector('.face-void');
+    const headTop = (faceEl ? faceEl.getBoundingClientRect() : fig).top;
 
     // Centre horizontally first — the button's available width (and so its
     // measured height, below) depends on this left offset.
@@ -92,7 +97,7 @@ export function initStage(tree) {
     // The button is already unhidden by now, so its real (measured) height is
     // available rather than a guess.
     const btnHeight = approachBtn.getBoundingClientRect().height;
-    let top = (fig.top - sf.top) - PROMPT_HEAD_GAP_PX - btnHeight;
+    let top = (headTop - sf.top) - PROMPT_HEAD_GAP_PX - btnHeight;
     if (top < 8) {
       // Not enough headroom above the head to clear it inside the frame —
       // sit beside the figure instead of pushing the prompt down onto it.

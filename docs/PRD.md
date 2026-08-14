@@ -80,6 +80,7 @@ the document body under their original `§` headings as history.
 | d34 | Test-suite health — full test strategy (unit + integration) and execution | *new* | ✅ MERGED 2026-08-10 (PR #19, `7f85dea`), deploy green — e2e 2072→2008 / 0 failed, unit 97/97; strategy canonical in docs/TEST-STRATEGY.md (§d34) |
 | d35 | The Badger head — standalone fantastical-medieval art (favicon, social, sheet) | *new* | 💡 raised 2026-08-10 — needs a brief (§d35) |
 | d36 | Approach affordance — hovering the character reveals the approach prompt; an approach light marks the character | *new* | 🔄 PIVOTED 2026-08-14 — first attempt (floating glow) rejected at preview, never merged; second spec `docs/specs/approach-reveal.md`; building |
+| d37 | Theme and typeface direction — settle the site's colour-way and its display font together | *new* | 💡 raised 2026-08-15 — needs a workshop (§d37) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -6131,4 +6132,34 @@ Facts any future workshop must not re-derive:
 - The no-JS fallback path must keep working as it does today.
 
 Not scheduled. No dependency on d16's remaining tickets.
+
+## d37. Theme and typeface direction
+
+### 💡 RAISED 2026-08-15 — Caveshen's sketch; needs a workshop
+
+Two decisions that decide each other, taken together:
+
+- **Colour-way.** Caveshen's suggestion: a retrowave night — cyan
+  and magenta (light blue and purple) — and a classic day of blues
+  with browns and oranges.
+- **Display font.** The approach prompt's serif playbill treatment
+  (d36) is accepted-for-now, not final. Caveshen is not fully sold
+  on a serif as the site's RPG-flavoured voice and wants a Mass
+  Effect / Cyberpunk direction tried against it. The font choice
+  and the colour-way inform each other, so they get settled in one
+  workshop.
+
+Facts a workshop must not re-derive:
+
+- The prompt ships light-on-dark in both themes (d36 preview
+  ruling: the day-tinted variant read as swallowed by the bright
+  sky). Any new colour-way inherits that decision or re-argues it
+  with evidence.
+- The composited contrast cells gate AA for text over the scene in
+  both themes; a new palette must pass the same cells, not weaken
+  them.
+- The site's type roles today: serif (dialogue and the prompt),
+  mono (system and sheet data).
+
+Not scheduled. No dependency on d36's remaining work.
 

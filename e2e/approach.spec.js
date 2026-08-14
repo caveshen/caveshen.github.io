@@ -265,6 +265,34 @@ for (const route of ROUTES) {
   });
 }
 
+// Focus manners: the first choice always receives focus on approach, but the
+// visible highlight must track HOW focus arrived — a keyboard arrival keeps
+// the ring (continuity); a pointer arrival must not look pre-selected. The
+// highlight styling gates on :focus-visible, which browsers only match for
+// programmatic focus() when it follows a keyboard interaction, not a pointer one.
+test('keyboard arrival at the prompt shows the focus highlight on the first choice', async ({ page }) => {
+  await page.keyboard.press('Tab'); // theme toggle
+  await page.keyboard.press('Tab'); // approach prompt
+  await page.keyboard.press('Enter');
+  const firstChoice = page.locator('#choices button').first();
+  await expect(firstChoice).toBeFocused();
+  const outlineStyle = await firstChoice.evaluate((el) => getComputedStyle(el).outlineStyle);
+  expect(outlineStyle).not.toBe('none');
+});
+
+// A real page.mouse.click (not locator.focus(), which never carries pointer
+// provenance) — the click lands on the character, not the choice button, so
+// this also proves the highlight tracks input modality, not the click target.
+test('a mouse click on the character (direct approach) shows no pre-selected highlight on the first choice', async ({ page }) => {
+  const hit = page.locator('.js-character-hit:visible').first();
+  const box = await hit.boundingBox();
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  const firstChoice = page.locator('#choices button').first();
+  await expect(firstChoice).toBeFocused();
+  const outlineStyle = await firstChoice.evaluate((el) => getComputedStyle(el).outlineStyle);
+  expect(outlineStyle).toBe('none');
+});
+
 for (const route of ROUTES) {
   test(`end-dialogue button hides the card; the prompt reappears and refocuses ~1s later — ${route}`, async ({ page }) => {
     await page.clock.install();

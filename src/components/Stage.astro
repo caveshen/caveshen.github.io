@@ -158,9 +158,15 @@ const root = tree.root;
     /* JS overrides left/top after measuring the visible figure; CSS is fallback */
     right: 10%;
     bottom: 38%;
-    font-family: var(--mono);
-    font-size: 0.75rem;
-    letter-spacing: 0.08em;
+    /* Playbill costume (preview ruling 2026-08-15): the site's serif, small
+       caps, generous tracking, slightly larger and heavier than the first
+       (monospace) pass — set like a line from a theatre programme, its own
+       register, not the stage voice. Values below are tuning values. */
+    font-family: var(--serif);
+    font-variant-caps: small-caps;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
     color: var(--text);
     background: none;
     border: none;
@@ -172,13 +178,15 @@ const root = tree.root;
     cursor: pointer;
     /* The shadow carries the AA contrast duty the old glass control used to
        carry (see the composited contrast cells in src/tests/theme.test.js).
-       Night: a dark shadow behind the light night --text; day: a pale shadow
-       behind the dark day --text — the same day/night pairing as the glass
-       fill this replaces. */
-    text-shadow: 0 1px 3px rgba(10, 8, 22, 0.9), 0 0 8px rgba(10, 8, 22, 0.75);
+       Two layers, tuning values: a tight dark anchor (small blur, high alpha)
+       for legibility, plus a soft wide bloom (large blur, lower alpha) that
+       lifts the text off the scene. Night: a dark shadow behind the light
+       night --text; day: a pale shadow behind the dark day --text — the same
+       day/night pairing as the glass fill this replaces. */
+    text-shadow: 0 1px 2px rgba(10, 8, 22, 0.92), 0 0 10px rgba(10, 8, 22, 0.6);
   }
   :root[data-time="day"] .approach-prompt {
-    text-shadow: 0 1px 3px rgba(253, 251, 245, 0.9), 0 0 8px rgba(253, 251, 245, 0.75);
+    text-shadow: 0 1px 2px rgba(253, 251, 245, 0.92), 0 0 10px rgba(253, 251, 245, 0.6);
   }
   .approach-prompt:focus-visible {
     outline: 2px solid var(--btn-hover-border);
@@ -629,18 +637,31 @@ const root = tree.root;
     opacity: 0;
     color: var(--btn-hover-text);
   }
+  /* :root.kb-focus (stage.js), not :focus-visible: the first choice is
+     script-focused when a dialogue opens (approach() in stage.js), redirecting
+     focus from whatever was clicked/tapped to a different element — every
+     engine matches :focus-visible for that redirect regardless of input
+     modality, so the highlight would wrongly show for a mouse/tap arrival too.
+     kb-focus tracks real keyboard use instead (see stage.js). */
   .choices button:hover,
-  .choices button:focus-visible {
+  :root.kb-focus .choices button:focus {
     color: var(--btn-hover-text);
     border-color: var(--btn-hover-border);
     background: var(--btn-hover-bg);
     transform: translateY(-1px);
   }
   .choices button:hover::before,
-  .choices button:focus-visible::before {
+  :root.kb-focus .choices button:focus::before {
     opacity: 1;
   }
+  /* The browser's own UA stylesheet still draws its native default ring on
+     :focus-visible (which, unlike our own rules above, DOES match the
+     redirect case) — reset it unconditionally, then the kb-focus rule below
+     re-adds ours only for a real keyboard arrival. */
   .choices button:focus-visible {
+    outline: none;
+  }
+  :root.kb-focus .choices button:focus {
     outline: 2px solid var(--btn-hover-border);
     outline-offset: 2px;
   }
@@ -665,7 +686,7 @@ const root = tree.root;
      language) but get neither the hover fill nor the press lift — border and
      text highlight only. */
   .choices button.system:hover,
-  .choices button.system:focus-visible,
+  :root.kb-focus .choices button.system:focus,
   .end-dialogue:hover,
   .end-dialogue:focus-visible {
     color: var(--stage);

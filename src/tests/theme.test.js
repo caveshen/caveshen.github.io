@@ -152,11 +152,11 @@ describe('WCAG AA contrast (≥ 4.5:1) on the plaque, worst-case composited back
 // head, which is mostly sky, so the sky is the worst-case backdrop here —
 // gated explicitly since a light-on-light (or dark-on-dark) mismatch would
 // show up there first. The rgba/alpha values below must match .approach-
-// prompt's text-shadow in Stage.astro; only the stronger (0.9-alpha) shadow
+// prompt's text-shadow in Stage.astro; only the stronger (0.92-alpha) shadow
 // layer is modelled — the fainter blur layer only adds contrast, never removes it.
 const PROMPT_SHADOW_NIGHT_RGB = [10, 8, 22];    // dark shadow behind the light night --text
 const PROMPT_SHADOW_DAY_RGB   = [253, 251, 245]; // pale shadow behind the dark day --text
-const PROMPT_SHADOW_ALPHA = 0.9;
+const PROMPT_SHADOW_ALPHA = 0.92;
 const SKY_NIGHT = hexToRgb(nightTokens['--sky']);
 const SKY_DAY   = hexToRgb(dayTokens['--sky']);
 

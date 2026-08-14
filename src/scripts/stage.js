@@ -46,6 +46,17 @@ export function initStage(tree) {
   const endDlgBtn   = document.getElementById('end-dialogue');
   const bgLayers    = document.querySelectorAll('.bg-layer'); // parallax counter-transform target, one per scene variant
 
+  // Focus manners: the choices highlight (Stage.astro's `:root.kb-focus`
+  // gate) shows only for keyboard arrivals. Native :focus-visible does NOT
+  // suppress the ring when script redirects focus to a different element
+  // than the one a pointer event targeted — approach() below focuses the
+  // first choice after a click/tap on the character or the prompt, which is
+  // exactly that redirect, and every engine shows the ring for it regardless
+  // of input modality. Tracked explicitly instead. Capture phase so it
+  // always runs, even if a handler further down stops propagation.
+  document.addEventListener('keydown', () => document.documentElement.classList.add('kb-focus'), true);
+  document.addEventListener('pointerdown', () => document.documentElement.classList.remove('kb-focus'), true);
+
   const render = initEngine(
     tree,
     { speechEl, stageEl: directionEl, choicesEl, cardEl: card },
@@ -63,7 +74,7 @@ export function initStage(tree) {
 
   // Clears above the head with a gap, centred on the figure, clamped inside the stage frame.
   // PROMPT_HEAD_GAP_PX is a tuning value.
-  const PROMPT_HEAD_GAP_PX = 6;
+  const PROMPT_HEAD_GAP_PX = 1;
   function positionPrompt() {
     const figEl = visibleOne('.js-character');
     if (!figEl) return;

@@ -137,6 +137,46 @@ export async function seekFrameTransition(page, fraction) {
   }, fraction);
 }
 
+// Frozen-state sampling: pauses an element's own animation(s) at the settled
+// (finished) value and reads the resulting opacity, rather than racing real
+// time — the house idiom for animated-value assertions (WAAPI seek, never a
+// proxy wait). Shared by the approach-prompt's reveal/linger fade tests.
+export async function settledOpacity(locator) {
+  return locator.evaluate((el) => {
+    el.getAnimations().forEach((a) => {
+      const timing = a.effect.getComputedTiming();
+      a.currentTime = (timing.delay ?? 0) + (timing.duration ?? 0);
+      a.pause();
+    });
+    return parseFloat(getComputedStyle(el).opacity);
+  });
+}
+
+// Seeks locator's own animation (or, with pseudo given, its pseudo-element's
+// animation) to an explicit currentTime and pauses there — frozen-state
+// sampling for a chosen point mid-fade, rather than the finished value
+// settledOpacity above reads. { subtree: true } is required to see an
+// element's own pseudo-element animations at all — pseudoElement then picks
+// out the right one from the (possibly multi-target) subtree list.
+export async function sampleAnimationAt(locator, timeMs, pseudo = null) {
+  return locator.evaluate((el, { timeMs, pseudo }) => {
+    el.getAnimations({ subtree: true })
+      .filter((a) => a.effect.pseudoElement === pseudo)
+      .forEach((a) => { a.currentTime = timeMs; a.pause(); });
+    const cs = getComputedStyle(el, pseudo);
+    return { opacity: parseFloat(cs.opacity), filter: cs.filter };
+  }, { timeMs, pseudo });
+}
+
+// Reveals the approach prompt by hovering the visible character's hit
+// surface, then clicks it. The prompt starts pointer-events:none (approach-
+// reveal), so a direct click without this hover first is never actionable —
+// shared by every spec that needs to get past the prompt to the dialogue.
+export async function approachPrompt(page) {
+  await page.locator('.js-character-hit:visible').first().hover();
+  await page.locator('#approach-prompt').click();
+}
+
 // Compares two {x,y,width,height} rects with a small px tolerance — real
 // engines can settle sub-pixel layout (dynamic-viewport-unit rounding, a
 // focus-triggered scroll) between two samples with no size-affecting CSS

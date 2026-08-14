@@ -12,20 +12,20 @@ workshops them on live preview.
 
 **Blocked by:** 01 — The prompt reveals on hover.
 
-**Status:** ready-for-agent
+**Status:** done (20e676d)
 
-- [ ] A click or tap on the character reveals and pins the prompt;
+- [x] A click or tap on the character reveals and pins the prompt;
       it does not fade while pinned.
-- [ ] A second click on the character is a no-op — never a
+- [x] A second click on the character is a no-op — never a
       toggle-off.
-- [ ] Clicking the character never starts the dialogue; only
+- [x] Clicking the character never starts the dialogue; only
       activating the prompt does, and that ends the pin.
-- [ ] After dialogue exit the cycle resets fully: no pin survives.
-- [ ] On touch, a first tap reveals and a second tap on the prompt
+- [x] After dialogue exit the cycle resets fully: no pin survives.
+- [x] On touch, a first tap reveals and a second tap on the prompt
       approaches; the dialogue never launches from a single tap on
       the character.
-- [ ] Under reduced motion the pinned reveal is instant.
-- [ ] Every animated assertion samples a frozen or finished state.
-- [ ] Regression assertions prove they can fail: defect injected,
+- [x] Under reduced motion the pinned reveal is instant.
+- [x] Every animated assertion samples a frozen or finished state.
+- [x] Regression assertions prove they can fail: defect injected,
       caught, injection removed.
-- [ ] Full suite green in one matrix run. Zero flakes.
+- [x] Full suite green in one matrix run. Zero flakes.

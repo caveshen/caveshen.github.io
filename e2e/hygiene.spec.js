@@ -1,12 +1,13 @@
 // 404 page, hygiene files (robots/sitemap), and OG/meta tag checks.
 import { test, expect } from '@playwright/test';
+import { approachPrompt } from './geom.js';
 
 test('404 page: navigating to unknown route returns a page with a way home', async ({ page }) => {
   await page.goto('/this-does-not-exist', { waitUntil: 'domcontentloaded' });
   // GitHub Pages / Astro serves 404.html directly. The way home is a dialogue system
   // option (via isPath()), not a plain anchor — the anchor only exists in the no-JS
   // noscript fallback (see the JS-disabled test below).
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   await expect(page.locator('.choices button.system')).toBeVisible();
 });
 

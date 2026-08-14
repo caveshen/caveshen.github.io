@@ -1,13 +1,13 @@
 // not-found.spec.js — the interactive 404: a door that isn't in the script.
 import { test, expect } from '@playwright/test';
-import { rectsIntersect, visibleRect, sceneRects, assertNoIdentityMarkup, assertPlaqueGlass } from './geom.js';
+import { rectsIntersect, visibleRect, sceneRects, assertNoIdentityMarkup, assertPlaqueGlass, approachPrompt } from './geom.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/404');
 });
 
 async function approach(page) {
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
 }
 
 test('card not visible on load with JS', async ({ page }) => {

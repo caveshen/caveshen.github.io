@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { rectsIntersect, visibleRect, rectContains } from './geom.js';
+import { rectsIntersect, visibleRect, rectContains, approachPrompt } from './geom.js';
 
 test.beforeEach(async ({ page }) => {
   // Each test gets a fresh browser context (Playwright default), so localStorage is
@@ -93,7 +93,7 @@ test('focused buttons have visible outline', async ({ page }) => {
 test('dialogue content updates immediately under reduced-motion (no fade delay)', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.reload();
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   await page.locator('#choices button').first().click();
   const opacity = await page.locator('#speech').evaluate(el =>
     parseFloat(window.getComputedStyle(el).opacity)
@@ -142,7 +142,7 @@ test('portrait phone (390×844) shows scene-tall, card overlays the scene', asyn
   await expect(page.locator('.scene-wide')).not.toBeVisible();
   const sceneBound = await page.locator('.scene-tall').boundingBox();
   // Card is an in-scene overlay (RPG dialogue box), not a block below the scene.
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   const card = page.locator('.card');
   await expect(card).toBeVisible();
   const cardBound = await card.boundingBox();
@@ -158,7 +158,7 @@ test('portrait tablet (768×1024) shows scene-tall, card overlays the scene', as
   await expect(page.locator('.scene-tall')).toBeVisible();
   await expect(page.locator('.scene-standard')).not.toBeVisible();
   const sceneBound = await page.locator('.scene-tall').boundingBox();
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   const card = page.locator('.card');
   await expect(card).toBeVisible();
   const cardBound = await card.boundingBox();
@@ -372,7 +372,7 @@ for (const vp of [
     const figureBox = await visibleRect(page, '.js-character');
     expect(rectContains(viewport, figureBox)).toBe(true);
 
-    await page.locator('#approach-prompt').click();
+    await approachPrompt(page);
     const cardBox = await page.locator('.card').boundingBox();
     expect(rectContains(viewport, cardBox)).toBe(true);
   });
@@ -426,7 +426,7 @@ for (const vp of [
     // instantly — a settled state with no timing wait needed.
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/');
-    await page.locator('#approach-prompt').click();
+    await approachPrompt(page);
     const cardBox = await page.locator('.card').boundingBox();
     const faceBox = await visibleRect(page, '.face-void');
     expect(rectsIntersect(faceBox, cardBox)).toBe(false);
@@ -440,7 +440,7 @@ for (const vp of [
 // than any real phone browser hands a page. See PRD.md §16 open question 4.
 test('face clears the dialogue card after approach — native viewport', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   const cardBox = await page.locator('.card').boundingBox();
   const faceBox = await visibleRect(page, '.face-void');
   expect(rectsIntersect(faceBox, cardBox)).toBe(false);
@@ -502,7 +502,7 @@ for (const vp of [
     const promptBox = await page.locator('#approach-prompt').boundingBox();
     expect(rectsIntersect(btnBox, promptBox)).toBe(false);
 
-    await page.locator('#approach-prompt').click();
+    await approachPrompt(page);
     const cardBox = await page.locator('.card').boundingBox();
     expect(rectsIntersect(btnBox, cardBox)).toBe(false);
   });
@@ -572,7 +572,7 @@ test('no-JS: fullscreen button is absent', async ({ browser }) => {
 test('prefers-reduced-motion skips the camera transition entirely, entry and exit', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.reload();
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   const entryTransition = await page.locator('.camera').evaluate((el) => getComputedStyle(el).transitionDuration);
   expect(entryTransition).toBe('0s');
   await page.locator('#end-dialogue').click();
@@ -581,7 +581,7 @@ test('prefers-reduced-motion skips the camera transition entirely, entry and exi
 });
 
 test('Escape mid-zoom leaves the camera coherent — no stuck or doubled transform', async ({ page }) => {
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   // Interrupt before the 550ms entry transition settles — 100ms leaves 450ms of slack
   // before it would complete on its own.
   await page.waitForTimeout(100);

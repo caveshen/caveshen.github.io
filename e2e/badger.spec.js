@@ -1,6 +1,6 @@
 // The Badger owns `/` — no selection mechanism, the route is the selector.
 import { test, expect } from '@playwright/test';
-import { sceneRects } from './geom.js';
+import { sceneRects, approachPrompt } from './geom.js';
 
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
@@ -13,7 +13,7 @@ test('default: Badger visible, hooded figure absent', async ({ page }) => {
 });
 
 test('approach applies a non-identity camera transform (not a no-op zoom)', async ({ page }) => {
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   const transform = await page.locator('.camera').evaluate((el) => el.style.transform);
   expect(transform).not.toBe('');
   expect(transform).not.toBe('none');
@@ -27,7 +27,7 @@ test('the approach prompt sits above the Badger', async ({ page }) => {
 });
 
 test('approach frames the Badger face-void', async ({ page }) => {
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   // Non-zero box proves the camera math had a real anchor, not a hidden/zero-size one.
   const faceBox = await page.evaluate(() => {
     const el = [...document.querySelectorAll('.face-void')].find((e) => e.getBoundingClientRect().width > 0);

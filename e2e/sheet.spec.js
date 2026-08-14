@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { approachPrompt } from './geom.js';
 
 test('/sheet renders complete CV content with JS disabled', async ({ browser }) => {
   const ctx = await browser.newContext({ javaScriptEnabled: false });
@@ -41,7 +42,7 @@ test('no-JS: / noscript link navigates to /sheet with real content', async ({ br
 test('recruiter path: / → /sheet in 1 click via system option', async ({ page }) => {
   await page.goto('/');
   // Card is hidden on load — approach the figure to reveal dialogue choices
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   // Dialogue engine renders the system option (JS required; page uses JS by default)
   await expect(page.locator('#choices button.system')).toBeVisible();
   await page.locator('#choices button.system').click();

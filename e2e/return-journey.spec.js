@@ -1,5 +1,6 @@
 // return-journey.spec.js — /sheet → / return via cross-document view transition.
 import { test, expect } from '@playwright/test';
+import { approachPrompt } from './geom.js';
 
 // Waits for the current page's pagereveal-set settle signal (window.__vtFinished)
 // to resolve before continuing. On a VT-arrived page this waits out the transition's
@@ -18,7 +19,7 @@ async function waitForTransitionSettle(page) {
 async function navigateToSheet(page) {
   await page.goto('/');
   await waitForTransitionSettle(page);
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   await page.locator('#choices button.system').click();
   await page.waitForURL('/sheet');
   // Cross-document VT can leave WebKit in a transient state where subsequent
@@ -185,7 +186,7 @@ test('overlay image is decoded at pagereveal time — image-decode flash guard',
   // In un-throttled preview conditions the preload (T ≈ 5 ms) completes well before
   // DOMContentLoaded/pagereveal (T ≈ 50–80 ms on this stack). Without the preload
   // the overlay fetch starts at pagereveal and complete=false at that instant.
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   await page.locator('#choices button.system').click();
   await page.waitForURL('/sheet');
   await page.waitForLoadState('domcontentloaded');

@@ -2,6 +2,7 @@
 // Uses Playwright's clock API to fast-forward the JS setTimeout chain
 // deterministically rather than waiting real wall-clock minutes.
 import { test, expect } from '@playwright/test';
+import { approachPrompt } from './geom.js';
 
 // Forces a landscape viewport — several mobile/tablet projects default to
 // portrait, where the plane is CSS-suppressed (see the dedicated portrait
@@ -25,7 +26,7 @@ test('a scheduled pass appears and animates while zoomed out', async ({ page }) 
 test('approaching before any pass has fired never shows a plane', async ({ page }) => {
   await page.clock.install();
   await page.goto('/');
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   await page.clock.fastForward(10_000);
   await expect(page.locator('.banner-plane')).toHaveCount(0);
 });
@@ -34,7 +35,7 @@ test('an in-flight pass fades out on approach rather than freezing or vanishing'
   await gotoAndFireFirstPass(page);
   const plane = page.locator('.banner-plane');
   await expect(plane).toBeAttached();
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   await expect(plane).toHaveClass(/plane-fade-out/);
   // Checks the declared transition rather than sampling mid-flight — CSS transitions run
   // on the compositor and aren't faked by page.clock, so a wall-clock sleep here would
@@ -66,7 +67,7 @@ test('the plane is pointer-events: none and never blocks the approach prompt', a
   await gotoAndFireFirstPass(page);
   await expect(page.locator('.banner-plane')).toHaveCSS('pointer-events', 'none');
   // Click through where the plane sits, confirming the scene beneath is still interactive.
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   await expect(page.locator('.card')).toBeVisible();
 });
 

@@ -1,13 +1,13 @@
 // dialogue.spec.js — streaming dialogue text: cadence, skip, and the a11y contract.
 import { test, expect } from '@playwright/test';
-import { assertNoIdentityMarkup, assertPlaqueGlass } from './geom.js';
+import { assertNoIdentityMarkup, assertPlaqueGlass, approachPrompt } from './geom.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
 });
 
 async function approach(page) {
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
 }
 
 // root -> experience is the shortest real navigation off the immediate-rendered
@@ -74,6 +74,8 @@ test('Escape mid-stream still exits and returns focus to the prompt', async ({ p
   await expect(page.locator('.speech-stream')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.locator('.card')).not.toBeVisible();
+  // exit() refocuses the prompt ~1s later (the camera-settle delay, see
+  // approach.spec.js) — toBeFocused()'s own retry/poll waits that out.
   await expect(page.locator('#approach-prompt')).toBeFocused();
 });
 

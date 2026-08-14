@@ -1,10 +1,11 @@
 // portrait-handoff — hand-off cleanup and navigation behaviour on /.
 import { test, expect } from '@playwright/test';
+import { approachPrompt } from './geom.js';
 
 // Approaches and clicks the system button to navigate to /sheet.
 // Returns whether the engine supports cross-document View Transitions.
 async function clickThroughToSheet(page) {
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   await expect(page.locator('#choices button.system')).toBeVisible();
   await Promise.all([
     page.waitForURL('/sheet'),

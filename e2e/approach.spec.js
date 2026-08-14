@@ -1,6 +1,9 @@
 // The approach — e2e tests
 import { test, expect } from '@playwright/test';
-import { visibleRect, seekFrameTransition, expectRectClose } from './geom.js';
+import {
+  visibleRect, seekFrameTransition, expectRectClose,
+  settledOpacity, approachPrompt,
+} from './geom.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -9,33 +12,134 @@ test.beforeEach(async ({ page }) => {
 // Same behaviour is shared code, so parity tests run on both routes.
 const ROUTES = ['/', '/404'];
 
+// Timing constants — must match stage.js's own (PROMPT_FADE_MS/PROMPT_LINGER_MS/
+// EXIT_REFOCUS_MS). Kept here as plain numbers (not imported) since stage.js
+// doesn't export them — a drift between the two would show up as a wrong
+// clock.fastForward boundary failing, not a silent pass.
+const PROMPT_FADE_MS = 500;
+const PROMPT_LINGER_MS = 1000;
+const EXIT_REFOCUS_MS = 1000;
+
 test('card not visible on load with JS', async ({ page }) => {
   await expect(page.locator('.card')).not.toBeVisible();
 });
 
-test('approach prompt visible on load and has a non-empty accessible name', async ({ page }) => {
+for (const route of ROUTES) {
+  test(`at rest the scene is clean — the prompt is invisible and inert — ${route}`, async ({ page }) => {
+    await page.goto(route);
+    const prompt = page.locator('#approach-prompt');
+    // toBeVisible() alone would pass here even at opacity:0 (it doesn't check
+    // opacity) — the actual "clean at rest" contract is the computed style.
+    const style = await prompt.evaluate((el) => {
+      const cs = getComputedStyle(el);
+      return { opacity: cs.opacity, pointerEvents: cs.pointerEvents };
+    });
+    expect(style.opacity).toBe('0');
+    expect(style.pointerEvents).toBe('none');
+  });
+}
+
+test('approach prompt has a non-empty accessible name, even hidden at rest', async ({ page }) => {
   const prompt = page.locator('#approach-prompt');
-  await expect(prompt).toBeVisible();
   // Checked via the accessibility tree (not raw textContent) so an
   // aria-label="" regression is caught too, not just missing button text.
   await expect(prompt).toHaveAccessibleName(/\S/);
 });
 
+test('the prompt is floating text — no box, border, or glass chrome', async ({ page }) => {
+  const style = await page.locator('#approach-prompt').evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return {
+      borderStyle: cs.borderTopStyle,
+      background: cs.backgroundColor,
+      backdropFilter: cs.backdropFilter || cs.webkitBackdropFilter || '',
+      textShadow: cs.textShadow,
+    };
+  });
+  expect(style.borderStyle).toBe('none');
+  expect(style.background).toBe('rgba(0, 0, 0, 0)');
+  expect(style.backdropFilter === '' || style.backdropFilter === 'none').toBe(true);
+  expect(style.textShadow).not.toBe('none'); // the shadow carries the AA contrast duty instead
+});
+
+test('the character hit surface has the pointer cursor and never itself starts the dialogue', async ({ page }) => {
+  const hit = page.locator('.js-character-hit:visible').first();
+  const cursor = await hit.evaluate((el) => getComputedStyle(el).cursor);
+  expect(cursor).toBe('pointer');
+  await hit.click();
+  await expect(page.locator('.card')).not.toBeVisible();
+});
+
+test('hovering the character reveals the prompt with a 500ms fade to full opacity', async ({ page }) => {
+  const prompt = page.locator('#approach-prompt');
+  await page.locator('.js-character-hit:visible').first().hover();
+  const duration = await prompt.evaluate((el) => {
+    const anim = el.getAnimations()[0];
+    return anim?.effect.getComputedTiming().duration;
+  });
+  expect(duration).toBe(PROMPT_FADE_MS);
+  expect(await settledOpacity(prompt)).toBe(1);
+});
+
+test('hovering the prompt itself keeps it visible — travelling from the character to it never loses it', async ({ page }) => {
+  const prompt = page.locator('#approach-prompt');
+  await page.locator('.js-character-hit:visible').first().hover();
+  await prompt.hover(); // leaves the character, enters the prompt
+  expect(await settledOpacity(prompt)).toBe(1);
+});
+
+test('linger: leaving both character and prompt holds the prompt for ~1s, then fades it out', async ({ page }) => {
+  await page.clock.install();
+  await page.goto('/');
+  const prompt = page.locator('#approach-prompt');
+
+  await page.locator('.js-character-hit:visible').first().hover();
+  expect(await settledOpacity(prompt)).toBe(1);
+
+  // install() alone still lets Date/timers progress with real time — freeze
+  // it here (a generous future point, computed Node-side so there's no page
+  // round-trip for real time to sneak into) so the boundary checked below
+  // isn't muddied by however long a slower project's steps take in real time.
+  await page.clock.pauseAt(Date.now() + 60_000);
+
+  // Move off both the character and the prompt — the linger timer starts.
+  await page.mouse.move(0, 0);
+
+  // Just short of the linger — the fade-out must not have started yet.
+  await page.clock.fastForward(PROMPT_LINGER_MS - 50);
+  const midOpacity = await prompt.evaluate((el) => parseFloat(getComputedStyle(el).opacity));
+  expect(midOpacity).toBe(1);
+
+  // Cross the linger boundary — hidePrompt() fires and starts the fade-out.
+  await page.clock.fastForward(100);
+  expect(await settledOpacity(prompt)).toBe(0);
+});
+
+test('keyboard focus reveals the prompt the same way as hover, with a visible focus indicator', async ({ page }) => {
+  const prompt = page.locator('#approach-prompt');
+  await page.keyboard.press('Tab'); // theme toggle
+  await page.keyboard.press('Tab'); // approach prompt
+  await expect(prompt).toBeFocused();
+  expect(await settledOpacity(prompt)).toBe(1);
+  const outlineStyle = await prompt.evaluate((el) => getComputedStyle(el).outlineStyle);
+  expect(outlineStyle).not.toBe('none');
+});
+
 test('approaching shows the card', async ({ page }) => {
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   await expect(page.locator('.card')).toBeVisible();
 });
 
 for (const route of ROUTES) {
   test(`approaching hides the prompt — ${route}`, async ({ page }) => {
     await page.goto(route);
-    await page.locator('#approach-prompt').click();
+    await approachPrompt(page);
     await expect(page.locator('#approach-prompt')).not.toBeVisible();
   });
 }
 
 test('approaching applies a non-identity camera transform', async ({ page }) => {
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   // el.style.transform is the JS-set target value; getComputedStyle mid-transition
   // returns the interpolated value at t≈0 (still identity), which would make this flaky.
   const transform = await page.locator('.camera').evaluate((el) => el.style.transform);
@@ -71,45 +175,99 @@ for (const route of ROUTES) {
 for (const route of ROUTES) {
   test(`focus lands on first dialogue option after approaching — ${route}`, async ({ page }) => {
     await page.goto(route);
-    await page.locator('#approach-prompt').click();
+    await approachPrompt(page);
     await expect(page.locator('#choices button').first()).toBeFocused();
   });
 }
 
 for (const route of ROUTES) {
-  test(`end-dialogue button hides card and restores prompt — ${route}`, async ({ page }) => {
+  test(`end-dialogue button hides the card; the prompt reappears and refocuses ~1s later — ${route}`, async ({ page }) => {
+    await page.clock.install();
+    // install() alone still lets Date/timers progress with real time — freeze
+    // it here (a generous future point, computed Node-side so there's no page
+    // round-trip for real time to sneak into) so the boundary checked below
+    // isn't muddied by however long a slower project's steps take in real time.
+    await page.clock.pauseAt(Date.now() + 60_000);
     await page.goto(route);
-    await page.locator('#approach-prompt').click();
+    await approachPrompt(page);
     await page.locator('#end-dialogue').click();
     await expect(page.locator('.card')).not.toBeVisible();
-    await expect(page.locator('#approach-prompt')).toBeVisible();
-    await expect(page.locator('#approach-prompt')).toBeFocused();
+
+    const prompt = page.locator('#approach-prompt');
+    // Immediately after exit: back in layout, but not yet focused or revealed —
+    // nothing crosses the character while the camera settles.
+    await expect(prompt).not.toBeFocused();
+    expect(await prompt.evaluate((el) => getComputedStyle(el).opacity)).toBe('0');
+
+    // Hovering the character mid-settle must not summon the prompt — the
+    // camera-settle window suppresses reveals regardless of how the hover
+    // happened (a real pointer move, or the dialogue card vanishing out from
+    // under an already-stationary pointer).
+    await page.locator('.js-character-hit:visible').first().hover();
+    expect(await prompt.evaluate((el) => getComputedStyle(el).opacity)).toBe('0');
+
+    // Just short of the delay — still not focused.
+    await page.clock.fastForward(EXIT_REFOCUS_MS - 50);
+    await expect(prompt).not.toBeFocused();
+
+    // Crossing the delay — the delayed focus() fires, revealing the prompt
+    // via the same path as hover.
+    await page.clock.fastForward(100);
+    await expect(prompt).toBeFocused();
+    expect(await settledOpacity(prompt)).toBe(1);
   });
 
   test(`end-dialogue button resets camera to identity — ${route}`, async ({ page }) => {
     await page.goto(route);
-    await page.locator('#approach-prompt').click();
+    await approachPrompt(page);
     await page.locator('#end-dialogue').click();
     // Check the inline style directly — exit() sets camera.style.transform = 'none'
     const transform = await page.locator('.camera').evaluate((el) => el.style.transform);
     expect(transform).toBe('none');
   });
 
-  test(`Escape exits dialogue and hides card — ${route}`, async ({ page }) => {
+  test(`Escape exits dialogue and hides the card — ${route}`, async ({ page }) => {
     await page.goto(route);
-    await page.locator('#approach-prompt').click();
+    await approachPrompt(page);
     await page.keyboard.press('Escape');
     await expect(page.locator('.card')).not.toBeVisible();
-    await expect(page.locator('#approach-prompt')).toBeVisible();
   });
 
-  test(`Escape returns focus to approach prompt — ${route}`, async ({ page }) => {
+  test(`Escape: the prompt refocuses ~1s later, same as end-dialogue — ${route}`, async ({ page }) => {
+    await page.clock.install();
     await page.goto(route);
-    await page.locator('#approach-prompt').click();
+    await approachPrompt(page);
     await page.keyboard.press('Escape');
-    await expect(page.locator('#approach-prompt')).toBeFocused();
+    const prompt = page.locator('#approach-prompt');
+    await expect(prompt).not.toBeFocused();
+    await page.clock.fastForward(EXIT_REFOCUS_MS + 500);
+    await expect(prompt).toBeFocused();
   });
 }
+
+test('reduced motion: exit refocuses the prompt immediately, no settle delay', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.reload();
+  await approachPrompt(page);
+  await page.locator('#end-dialogue').click();
+  const prompt = page.locator('#approach-prompt');
+  await expect(prompt).toBeFocused();
+  expect(await prompt.evaluate((el) => parseFloat(getComputedStyle(el).opacity))).toBe(1);
+});
+
+test('reduced motion: hover reveal and linger fade-out are both instant', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.reload();
+  const prompt = page.locator('#approach-prompt');
+
+  await page.locator('.js-character-hit:visible').first().hover();
+  const duration = await prompt.evaluate((el) => el.getAnimations()[0]?.effect.getComputedTiming().duration);
+  expect(duration).toBe(0);
+  expect(await prompt.evaluate((el) => parseFloat(getComputedStyle(el).opacity))).toBe(1);
+
+  await page.mouse.move(0, 0);
+  expect(await settledOpacity(prompt)).toBe(0);
+});
 
 test('camera transition-duration is 0s under prefers-reduced-motion', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -132,7 +290,7 @@ test('card has an opacity transition wired up (fades rather than pops)', async (
 });
 
 test('approaching fades the card in to full opacity', async ({ page }) => {
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   await expect(page.locator('.card')).toHaveCSS('opacity', '1');
 });
 
@@ -143,7 +301,7 @@ test('reduced motion: card fade is disabled, card is immediately full opacity', 
     window.getComputedStyle(el).transitionDuration
   );
   expect(duration).toBe('0s');
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   await expect(page.locator('.card')).toHaveCSS('opacity', '1');
 });
 
@@ -154,7 +312,7 @@ test('reduced motion: card fade is disabled, card is immediately full opacity', 
 // ruling to unblock the merge. To re-enable, sample only frozen or finished
 // states — see the freeze-at-t=0 idiom in banner-plane.spec.js.
 test.fixme('approaching draws the etched frame in over the entrance window', async ({ page }) => {
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   const start = await seekFrameTransition(page, 0);
   const mid   = await seekFrameTransition(page, 0.5);
   const end   = await seekFrameTransition(page, 1);
@@ -165,13 +323,13 @@ test.fixme('approaching draws the etched frame in over the entrance window', asy
 
 test.fixme('the frame also draws in under day theme, not just night', async ({ page }) => {
   await page.locator('#toggle').click();
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   const start = await seekFrameTransition(page, 0);
   expect(start.outlineAlpha).toBeLessThan(0.01);
 });
 
 test.fixme('resting frame colour is identical whether the entrance animates or not', async ({ page }) => {
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   // Real-time settle, not WAAPI pause/seek — some engines don't reliably
   // repaint a background-image driven by a paused custom-property transition.
   // Opacity shares the frame's own 550ms window, so its settle is the frame's too.
@@ -184,7 +342,7 @@ test.fixme('resting frame colour is identical whether the entrance animates or n
 
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.reload();
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   const reduced = await readCard();
 
   expect(animated.outlineColor).toBe(reduced.outlineColor);
@@ -194,7 +352,7 @@ test.fixme('resting frame colour is identical whether the entrance animates or n
 test('reduced motion: the frame has no animation, its resting colour applies immediately', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.reload();
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   const anims = await page.locator('.card').evaluate((el) =>
     el.getAnimations().filter((a) =>
       a.transitionProperty === '--frame' || a.transitionProperty === '--frame-faint'
@@ -206,7 +364,7 @@ test('reduced motion: the frame has no animation, its resting colour applies imm
 });
 
 test('the frame reveal changes colour only — outline/bracket geometry and clickable boxes hold still', async ({ page }) => {
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   const start = await seekFrameTransition(page, 0);
   const end   = await seekFrameTransition(page, 1);
   expect(end.outlineColor).not.toBe(start.outlineColor); // sanity: the frame did draw in
@@ -222,7 +380,7 @@ test('the corner brackets also draw in, not just the hairline', async ({ page })
   // Real-time settle, not WAAPI pause/seek — some engines don't reliably
   // repaint a background-image driven by a paused custom-property transition.
   const before = await page.locator('.card').evaluate((el) => getComputedStyle(el).backgroundImage);
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   await expect(page.locator('.card')).toHaveCSS('opacity', '1'); // settled: the frame shares this window
   const after = await page.locator('.card').evaluate((el) => getComputedStyle(el).backgroundImage);
   expect(after).not.toBe(before);
@@ -231,9 +389,9 @@ test('the corner brackets also draw in, not just the hairline', async ({ page })
 for (const route of ROUTES) {
   test(`exiting mid-approach resets the fade so a re-approach fades in cleanly — ${route}`, async ({ page }) => {
     await page.goto(route);
-    await page.locator('#approach-prompt').click();
+    await approachPrompt(page);
     await page.keyboard.press('Escape');
-    await page.locator('#approach-prompt').click();
+    await approachPrompt(page);
     // Sampled right after the second click, before the fade delay elapses — if
     // exit() failed to reset the entering state, opacity would already be at 1 here.
     const opacity = await page.locator('.card').evaluate((el) => window.getComputedStyle(el).opacity);
@@ -277,7 +435,7 @@ test('no-JS: end-dialogue button is not visible', async ({ browser }) => {
 test('the card stays fully on-screen on a short viewport', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 360 });
   await page.goto('/');
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   await expect(async () => {
     const card = await page.locator('.card').boundingBox();
     const viewport = page.viewportSize();
@@ -396,7 +554,7 @@ test('approach dampens background growth relative to the foreground (parallax)',
   await page.goto('/');
   const bgBefore = await visibleRect(page, '.table-mountain');
   const fgBefore = await visibleRect(page, '.js-character');
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   const bgAfter = await visibleRect(page, '.table-mountain');
   const fgAfter = await visibleRect(page, '.js-character');
   const bgGrowth = bgAfter.height / bgBefore.height;

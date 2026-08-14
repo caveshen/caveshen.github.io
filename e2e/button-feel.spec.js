@@ -1,13 +1,14 @@
 // button-feel.spec.js — d31 Part B: the selection idiom (caret, press, box,
-// idle bob, theme-toggle flip) and its reduced-motion gating.
+// theme-toggle flip) and its reduced-motion gating.
 import { test, expect } from '@playwright/test';
+import { approachPrompt } from './geom.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
 });
 
 async function approach(page) {
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
 }
 
 // getComputedStyle on an element's ::before pseudo — used throughout to read
@@ -136,9 +137,12 @@ test('system options and End dialogue get the caret but no hover lift or press',
   }
 });
 
+// #approach-prompt is deliberately absent here — the approach-reveal ticket
+// removed its box/border (floating shadowed text, not a boxed control); the
+// dedicated no-box/no-border assertions live in approach.spec.js instead.
 test('boxes are square-cornered rectangles with a 2px border, not pills', async ({ page }) => {
   await approach(page);
-  const targets = ['#approach-prompt', '.choices button', '#toggle'];
+  const targets = ['.choices button', '#toggle'];
   for (const sel of targets) {
     const el = page.locator(sel).first();
     const { radius, width } = await el.evaluate((e) => {
@@ -148,29 +152,6 @@ test('boxes are square-cornered rectangles with a 2px border, not pills', async 
     expect(radius, sel).toBe('4px');
     expect(width, sel).toBe('2px');
   }
-});
-
-// B6's bob animates .prompt-label, not #approach-prompt itself (see the CSS
-// rule in Stage.astro for why).
-test('idle bob: prompt label animates while idle, off under reduced motion', async ({ page }) => {
-  const animName = await page.locator('.prompt-label').evaluate(
-    (el) => getComputedStyle(el).animationName
-  );
-  expect(animName).not.toBe('none');
-});
-
-test("idle bob doesn't stop the approach prompt itself from being clickable", async ({ page }) => {
-  await approach(page);
-  await expect(page.locator('.card')).toBeVisible();
-});
-
-test('reduced motion: idle bob is off', async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.reload();
-  const animName = await page.locator('.prompt-label').evaluate(
-    (el) => getComputedStyle(el).animationName
-  );
-  expect(animName).toBe('none');
 });
 
 test('theme toggle: click plays the flip', async ({ page }) => {

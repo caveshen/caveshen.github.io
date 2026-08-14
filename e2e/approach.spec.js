@@ -169,9 +169,11 @@ for (const route of ROUTES) {
 
     // The camera has reset to identity, so the pointer (left resting where
     // "end dialogue" was clicked) may now sit over the repositioned
-    // character — move it away first so only focus (removed next) and any
-    // leftover pin can keep the prompt visible.
-    await page.mouse.move(0, 0);
+    // character — hover a fixed, always-present control well clear of the
+    // character's generous hit padding (a screen-space coordinate risks
+    // landing inside it on some viewports) so only focus (removed next) and
+    // any leftover pin can keep the prompt visible.
+    await page.locator('#toggle').hover();
 
     // Move focus off the prompt with a real Tab — a stale pin would keep the
     // prompt visible forever after this; a reset lets it linger, then fade.

@@ -79,7 +79,7 @@ the document body under their original `§` headings as history.
 | d33 | Sheet→scene return — the Badger travels back from his portrait seat | *new* | ✅ MERGED 2026-08-09 (PR #18, `6ea67bf`) |
 | d34 | Test-suite health — full test strategy (unit + integration) and execution | *new* | ✅ MERGED 2026-08-10 (PR #19, `7f85dea`), deploy green — e2e 2072→2008 / 0 failed, unit 97/97; strategy canonical in docs/TEST-STRATEGY.md (§d34) |
 | d35 | The Badger head — standalone fantastical-medieval art (favicon, social, sheet) | *new* | 💡 raised 2026-08-10 — needs a brief (§d35) |
-| d36 | Approach affordance — the web-style button becomes a diegetic glow above the character | *new* | 🎫 TICKETED 2026-08-12 — 3 tickets, breakdown approved by Caveshen, local under `.scratch/approach-glow/issues/` (gitignored; spec `docs/specs/approach-glow.md` is the durable record); building |
+| d36 | Approach affordance — hovering the character reveals the approach prompt; an approach light marks the character | *new* | 🔄 PIVOTED 2026-08-14 — first attempt (floating glow) rejected at preview, never merged; second spec `docs/specs/approach-reveal.md`; building |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -6098,18 +6098,23 @@ Facts a brief must not re-derive:
 Not a d16 dependency — the box work proceeds without it. Not briefed;
 scope open.
 
-## d36. Approach affordance — the web button becomes a diegetic glow
+## d36. Approach affordance — hovering the character reveals the prompt
 
-### 💡 RAISED 2026-08-11 — Caveshen's sketch; needs a workshop
+### 🔄 PIVOTED 2026-08-14 — building the second attempt
 
-Caveshen has grown tired of the "Approach the badger" web-style
-button. RPGs do not use web buttons — they mark interactable
-characters with an indicator above them. His sketch: a little glowing
-circle above the character; it glows brighter on hover; on hover,
-floaty text ("approach the badger?") fades in; a click triggers the
-dialogue exactly as the button does now.
+Caveshen has grown tired of the permanent "Approach the badger"
+web-style button. The first attempt (a floating glow above the
+character, spec'd 2026-08-12) was rejected at his preview
+2026-08-14: a free-floating light reads as an object, not an
+invitation. It never merged; its branch is deleted.
 
-Facts a workshop must not re-derive:
+The second attempt is spec'd in `docs/specs/approach-reveal.md`:
+the character itself is the hover surface; hovering reveals the
+approach prompt as floating text; a soft approach light marks the
+character a few seconds after load. The glossary terms changed with
+the pivot (approach glow/hint → approach light/prompt).
+
+Facts any future workshop must not re-derive:
 
 - Applies to both routes — the 404's hooded figure has the same
   approach interaction (shared `Stage` component, d25).

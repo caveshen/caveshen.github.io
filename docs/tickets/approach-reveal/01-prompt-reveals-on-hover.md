@@ -14,33 +14,33 @@ second later, after the camera settles.
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** done (8d53ab3)
 
-- [ ] At rest no prompt is visible; the scene is clean.
-- [ ] The character has a generous hit surface with the pointer
+- [x] At rest no prompt is visible; the scene is clean.
+- [x] The character has a generous hit surface with the pointer
       cursor. The character is never focusable and never starts the
       dialogue.
-- [ ] Hovering the character or the prompt reveals the prompt with a
+- [x] Hovering the character or the prompt reveals the prompt with a
       fade (starting value 500ms). When hover leaves both, the
       prompt lingers (starting value 1s), then fades out.
-- [ ] The prompt stays in the tab order. Focus reveals it; blur
+- [x] The prompt stays in the tab order. Focus reveals it; blur
       starts the linger; the focus indicator is visible; Enter and
       Space activate it.
-- [ ] The prompt is floating shadowed text: no box, border, or
+- [x] The prompt is floating shadowed text: no box, border, or
       glass. Generous spacing. The hit area keeps the 44px floor.
       The strings are today's, verbatim: "Approach the badger" and
       "Approach the hooded figure?". The accessible name is the
       full text.
-- [ ] The text treatment carries AA contrast in both themes, gated
+- [x] The text treatment carries AA contrast in both themes, gated
       by composited contrast cells over the worst-case backdrop.
-- [ ] On dialogue exit the prompt hides, then receives focus about
+- [x] On dialogue exit the prompt hides, then receives focus about
       one second later. Nothing crosses the character during the
       camera settle.
-- [ ] Under reduced motion the reveal and departure are instant;
+- [x] Under reduced motion the reveal and departure are instant;
       the prompt still appears.
-- [ ] The 404 page behaves identically through the shared component.
-- [ ] Every animated assertion samples a frozen or finished state,
+- [x] The 404 page behaves identically through the shared component.
+- [x] Every animated assertion samples a frozen or finished state,
       never a live clock through a proxy wait.
-- [ ] Regression assertions prove they can fail: defect injected,
+- [x] Regression assertions prove they can fail: defect injected,
       caught, injection removed.
-- [ ] Full suite green in one matrix run. Zero flakes.
+- [x] Full suite green in one matrix run. Zero flakes.

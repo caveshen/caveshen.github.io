@@ -143,6 +143,36 @@ describe('WCAG AA contrast (≥ 4.5:1) on the plaque, worst-case composited back
   });
 });
 
+// ── WCAG AA contrast on the approach prompt's shadowed text ───────────────────
+// The approach prompt (.approach-prompt, Stage.astro) dropped the plaque's
+// glass for floating text with a text-shadow — the shadow now carries the AA
+// contrast duty the glass used to carry. Same composited-arithmetic pattern
+// as the plaque above, but for text+shadow over the open scene rather than
+// glass over the ground/sea/rail band: the prompt sits above the character's
+// head, which is mostly sky, so the sky is the worst-case backdrop here —
+// gated explicitly since a light-on-light (or dark-on-dark) mismatch would
+// show up there first. The rgba/alpha values below must match .approach-
+// prompt's text-shadow in Stage.astro; only the stronger (0.9-alpha) shadow
+// layer is modelled — the fainter blur layer only adds contrast, never removes it.
+const PROMPT_SHADOW_NIGHT_RGB = [10, 8, 22];    // dark halo behind the light night --text
+const PROMPT_SHADOW_DAY_RGB   = [253, 251, 245]; // pale halo behind the dark day --text
+const PROMPT_SHADOW_ALPHA = 0.9;
+const SKY_NIGHT = hexToRgb(nightTokens['--sky']);
+const SKY_DAY   = hexToRgb(dayTokens['--sky']);
+
+const promptBgNight = compositeOver(PROMPT_SHADOW_NIGHT_RGB, PROMPT_SHADOW_ALPHA, SKY_NIGHT);
+const promptBgDay   = compositeOver(PROMPT_SHADOW_DAY_RGB, PROMPT_SHADOW_ALPHA, SKY_DAY);
+
+describe('WCAG AA contrast (≥ 4.5:1) on the approach prompt, worst-case (sky) composited backdrop', () => {
+  it.each([
+    ['night prompt text', nightTokens['--text'], promptBgNight],
+    ['day prompt text',   dayTokens['--text'],   promptBgDay],
+  ])('%s', (_name, fg, bg) => {
+    expect(fg, 'token value missing').toBeTruthy();
+    expect(contrast(fg, bg)).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
 // ── Theme logic ───────────────────────────────────────────────────────────────
 
 describe('resolveTheme', () => {

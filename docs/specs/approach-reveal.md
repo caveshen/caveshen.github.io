@@ -67,9 +67,23 @@ has been idle for a few seconds.
   fallback. It is always in the tab order. It is visually hidden
   until hover, focus, or a pin reveals it.
 - The prompt has no box, border, or glass chrome. It is text with a
-  soft shadow treatment. The shadow carries the AA contrast duty the
+  shadow treatment. The shadow carries the AA contrast duty the
   old button's glass used to carry. Generous spacing around the text; the
   invisible hit area keeps the 44px touch floor.
+- The prompt's costume is the playbill treatment (preview ruling
+  2026-08-15: the first pass, small monospace, read as scrawny and
+  loose in the scene): the site's serif in small caps with generous
+  tracking, slightly larger and heavier than the first pass, set
+  like a line from a theatre programme. The shadow is two layers —
+  a tight dark anchor for legibility and a soft wide bloom that
+  lifts the text off the scene. The prompt is deliberately not the
+  stage voice: the invitation is its own register. All values are
+  tuning values.
+- The dialogue's first choice receives focus when a dialogue opens,
+  so keyboard users can proceed at once. The focus highlight shows
+  only for keyboard arrivals; a pointer entry shows no pre-selected
+  choice (preview ruling 2026-08-15: the highlight leaked to mouse
+  clicks and read as an unintended pre-selection).
 - The character gains a generous invisible hit surface — the figure's
   bounds plus comfortable padding — with the pointer cursor. The
   character is never focusable, but a click or tap on it starts the
@@ -80,8 +94,9 @@ has been idle for a few seconds.
 - Summoning rules: hover over character or prompt reveals and holds
   the prompt. When hover leaves both, the prompt lingers one second,
   then fades.
-- The prompt anchors just above the character's head, close to it
-  (preview ruling 2026-08-14: the first gap read as too high). The
+- The prompt anchors just above the character's head, nearly
+  touching it (preview rulings 2026-08-14 and 2026-08-15: 14px and
+  then 6px both read as too high; the accepted value is 1px). The
   gap is a tuning value.
 - The reveal fade starts at 500ms. The linger starts at one second.
   Both are tuning values.

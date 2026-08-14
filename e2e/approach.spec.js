@@ -131,8 +131,7 @@ test('linger: leaving both character and prompt holds the prompt for ~1s, then f
 
 // Deliberately real time, no page.clock — proves the linger's own setTimeout
 // actually fires against the wall clock, not only against a virtual one. No
-// click anywhere in this test: a pure hover-then-leave, the exact gesture
-// Caveshen reported staying stuck on preview.
+// click anywhere in this test: a pure hover-then-leave.
 test('pure hover-away fades the prompt in real time — a stepped pointer path off both elements, no click', async ({ page }) => {
   const prompt = page.locator('#approach-prompt');
   await page.locator('.js-character-hit:visible').first().hover();
@@ -448,10 +447,7 @@ test('engaging before the light arms cancels the gather — it never arrives lat
   expect((await sampleAnimationAt(character, LIGHT_FADE_MS)).filter).not.toContain(LIGHT_COLOUR);
 });
 
-// The root-cause fix this ticket makes: previously the light only re-armed
-// after load and after dialogue close — a hover that ended any other way
-// left it dark forever. Now any engagement ending restarts the 5s idle
-// countdown, with no dialogue involved at all.
+// Engagement ending restarts the 5s idle countdown even with no dialogue involved.
 test('the approach light gathers again once a hover ends, with no dialogue ever opening', async ({ page }) => {
   await page.clock.install();
   await page.clock.pauseAt(Date.now() + 60_000);

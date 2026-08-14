@@ -62,8 +62,7 @@ export function initStage(tree) {
   approachBtn.hidden = false;
 
   // Clears above the head with a gap, centred on the figure, clamped inside the stage frame.
-  // PROMPT_HEAD_GAP_PX is a tuning value (preview ruling 2026-08-14: the
-  // original 14px read as too high above the head — close, not floating).
+  // PROMPT_HEAD_GAP_PX is a tuning value.
   const PROMPT_HEAD_GAP_PX = 6;
   function positionPrompt() {
     const figEl = visibleOne('.js-character');
@@ -122,8 +121,8 @@ export function initStage(tree) {
   // Approach light: a steady edge-light on the character, done with a
   // drop-shadow filter, never geometry (see PRD/spec — a free-floating glow
   // was rejected; this one lives directly on .js-character). Gathers after
-  // LIGHT_ARM_MS of scene idleness, always (preview ruling 2026-08-14) — not
-  // only after load and dialogue close. refreshIdleTimer() below is the
+  // LIGHT_ARM_MS of scene idleness, always — not only after load and
+  // dialogue close. refreshIdleTimer() below is the
   // single call site: it stands the light down while engaged (hover over
   // character or prompt, prompt focused, or dialogue open) and (re)arms the
   // gather timer the moment the scene returns to idle, so any engagement
@@ -240,9 +239,8 @@ export function initStage(tree) {
   // Every scene variant carries its own copy of the character (three total,
   // two display:none) — attach to all; only the visible one ever receives
   // real pointer events. A click or tap on the hit surface starts the
-  // dialogue directly, the same as activating the prompt (preview ruling
-  // 2026-08-14 — replaces the earlier pin); the character stays unfocusable,
-  // so the prompt remains the keyboard/screen-reader vector.
+  // dialogue directly, the same as activating the prompt; the character
+  // stays unfocusable, so the prompt remains the keyboard/screen-reader vector.
   document.querySelectorAll('.js-character-hit').forEach((hitEl) => {
     hitEl.addEventListener('pointerenter', () => { overCharacter = true; updatePromptVisibility(); });
     hitEl.addEventListener('pointerleave', () => { overCharacter = false; updatePromptVisibility(); });

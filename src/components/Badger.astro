@@ -28,6 +28,14 @@ const { x, y, scale = 1 } = Astro.props;
   <!-- invisible marker over the face — drives approach/zoom framing, same as .face-void -->
   <rect class="face-void" x="-42" y="34" width="84" height="66" fill="transparent" />
 
+  <!-- Generous invisible hit surface — figure bounds (x:-100..100, y:-4..196)
+       plus comfortable padding. Painted last so it sits topmost and owns the
+       whole padded area's hover/click, not just the drawn silhouette. Never
+       focusable, never a click target for the dialogue — see .js-character-hit
+       in Stage.astro (pointer-events:all, cursor:pointer) and stage.js (hover
+       summons the approach prompt; it never calls approach() itself). -->
+  <rect class="js-character-hit" x="-120" y="-20" width="240" height="230" fill="transparent" />
+
 </g>
 
 <style is:global>

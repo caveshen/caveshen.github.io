@@ -2,7 +2,7 @@
 import { test, expect } from '@playwright/test';
 import {
   visibleRect, seekFrameTransition, expectRectClose,
-  settledOpacity, approachPrompt,
+  settledOpacity, approachPrompt, sampleAnimationAt,
 } from './geom.js';
 
 test.beforeEach(async ({ page }) => {
@@ -19,6 +19,13 @@ const ROUTES = ['/', '/404'];
 const PROMPT_FADE_MS = 500;
 const PROMPT_LINGER_MS = 1000;
 const EXIT_REFOCUS_MS = 1000;
+// Must match stage.js's own LIGHT_ARM_MS/LIGHT_FADE_MS — see the note above.
+const LIGHT_ARM_MS = 5000;
+const LIGHT_FADE_MS = 500;
+// The light's colour channel — present in the filter string while lit,
+// absent once stood down. Checking the colour, not the exact blur-radius
+// serialization, keeps this test stable across engines.
+const LIGHT_COLOUR = '255, 215, 94';
 
 test('card not visible on load with JS', async ({ page }) => {
   await expect(page.locator('.card')).not.toBeVisible();
@@ -371,6 +378,177 @@ test('reduced motion: hover reveal and linger fade-out are both instant', async 
 
   await page.mouse.move(0, 0);
   expect(await settledOpacity(prompt)).toBe(0);
+});
+
+// The approach light — a steady edge-light on the character, done with a
+// drop-shadow filter (never geometry). Frozen-state sampling throughout:
+// a paused clock schedules the arm/re-arm timers, and sampleAnimationAt
+// seeks the WAAPI filter animation to a chosen point instead of waiting on it.
+for (const route of ROUTES) {
+  test(`the approach light gathers on the character about 5s after load, as a drop-shadow filter — ${route}`, async ({ page }) => {
+    await page.clock.install();
+    await page.clock.pauseAt(Date.now() + 60_000);
+    await page.goto(route);
+    const character = page.locator('.js-character:visible').first();
+
+    // Just short of the arm delay — the light must not have gathered yet.
+    await page.clock.fastForward(LIGHT_ARM_MS - 50);
+    const before = await sampleAnimationAt(character, LIGHT_FADE_MS);
+    expect(before.filter).not.toContain(LIGHT_COLOUR);
+
+    // Cross the arm delay — gatherLight() fires and starts the fade-in.
+    await page.clock.fastForward(100);
+    const after = await sampleAnimationAt(character, LIGHT_FADE_MS);
+    expect(after.filter).toContain('drop-shadow');
+    expect(after.filter).toContain(LIGHT_COLOUR);
+  });
+}
+
+test('the approach light is a steady filter — it never pulses', async ({ page }) => {
+  await page.clock.install();
+  await page.clock.pauseAt(Date.now() + 60_000);
+  await page.goto('/');
+  await page.clock.fastForward(LIGHT_ARM_MS + 100);
+  const character = page.locator('.js-character:visible').first();
+  // Plain getAnimations() (no subtree) — targets .js-character directly, so
+  // this can't pick up the Badger's own infinite sprite-swap animation from
+  // a descendant .badger-image element (that one is legitimately infinite).
+  const iterations = await character.evaluate((el) =>
+    el.getAnimations().map((a) => a.effect.getComputedTiming().iterations)
+  );
+  expect(iterations.length).toBeGreaterThan(0);
+  expect(iterations.every((i) => Number.isFinite(i))).toBe(true);
+});
+
+test('the approach light stands down on hover of the character', async ({ page }) => {
+  await page.clock.install();
+  await page.clock.pauseAt(Date.now() + 60_000);
+  await page.goto('/');
+  await page.clock.fastForward(LIGHT_ARM_MS + 100);
+  const character = page.locator('.js-character:visible').first();
+  expect((await sampleAnimationAt(character, LIGHT_FADE_MS)).filter).toContain(LIGHT_COLOUR);
+
+  await page.locator('.js-character-hit:visible').first().hover();
+  expect((await sampleAnimationAt(character, LIGHT_FADE_MS)).filter).not.toContain(LIGHT_COLOUR);
+});
+
+test('the approach light stands down on focus of the prompt', async ({ page }) => {
+  await page.clock.install();
+  await page.clock.pauseAt(Date.now() + 60_000);
+  await page.goto('/');
+  await page.clock.fastForward(LIGHT_ARM_MS + 100);
+  const character = page.locator('.js-character:visible').first();
+  expect((await sampleAnimationAt(character, LIGHT_FADE_MS)).filter).toContain(LIGHT_COLOUR);
+
+  await page.keyboard.press('Tab'); // theme toggle
+  await page.keyboard.press('Tab'); // approach prompt
+  await expect(page.locator('#approach-prompt')).toBeFocused();
+  expect((await sampleAnimationAt(character, LIGHT_FADE_MS)).filter).not.toContain(LIGHT_COLOUR);
+});
+
+test('the approach light stands down on click of the character', async ({ page }) => {
+  await page.clock.install();
+  await page.clock.pauseAt(Date.now() + 60_000);
+  await page.goto('/');
+  await page.clock.fastForward(LIGHT_ARM_MS + 100);
+  const character = page.locator('.js-character:visible').first();
+  expect((await sampleAnimationAt(character, LIGHT_FADE_MS)).filter).toContain(LIGHT_COLOUR);
+
+  await page.locator('.js-character-hit:visible').first().click();
+  expect((await sampleAnimationAt(character, LIGHT_FADE_MS)).filter).not.toContain(LIGHT_COLOUR);
+});
+
+test('engaging before the light arms cancels the gather — it never arrives late', async ({ page }) => {
+  await page.clock.install();
+  await page.clock.pauseAt(Date.now() + 60_000);
+  await page.goto('/');
+  const character = page.locator('.js-character:visible').first();
+
+  // Engage well before the arm delay elapses.
+  await page.locator('.js-character-hit:visible').first().hover();
+  await page.mouse.move(0, 0); // leave, so only a stray re-arm (a defect) could light it
+
+  // Run the clock well past the original arm delay — a correctly-cancelled
+  // timer means the light still never gathers.
+  await page.clock.fastForward(LIGHT_ARM_MS + 1000);
+  expect((await sampleAnimationAt(character, LIGHT_FADE_MS)).filter).not.toContain(LIGHT_COLOUR);
+});
+
+for (const route of ROUTES) {
+  test(`the approach light gathers again after each dialogue close — ${route}`, async ({ page }) => {
+    await page.clock.install();
+    await page.clock.pauseAt(Date.now() + 60_000);
+    await page.goto(route);
+    const character = page.locator('.js-character:visible').first();
+
+    await approachPrompt(page); // engages — the light stands down
+    await page.locator('#end-dialogue').click();
+    // The camera resets to identity, so the pointer (left resting where
+    // "end dialogue" was clicked) may now sit over the repositioned
+    // character — same defensive move the exit-refocus test makes, so a
+    // stray hover can't stand the re-armed light straight back down.
+    await page.locator('#toggle').hover();
+
+    // Cross the delayed refocus in its own step first — exit()'s refocus()
+    // re-arms the light from inside a timer callback, and a timer freshly
+    // scheduled mid-callback needs its own later fastForward call to be
+    // picked up (folding it into one giant jump misses it).
+    await page.clock.fastForward(EXIT_REFOCUS_MS + 50);
+
+    // Just short of the re-arm's own delay — still dark.
+    await page.clock.fastForward(LIGHT_ARM_MS - 100);
+    expect((await sampleAnimationAt(character, LIGHT_FADE_MS)).filter).not.toContain(LIGHT_COLOUR);
+
+    // Cross it — the light gathers again.
+    await page.clock.fastForward(150);
+    expect((await sampleAnimationAt(character, LIGHT_FADE_MS)).filter).toContain(LIGHT_COLOUR);
+  });
+}
+
+test('reduced motion: the light still gathers and stands down, with no fade duration', async ({ page }) => {
+  await page.clock.install();
+  await page.clock.pauseAt(Date.now() + 60_000);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  const character = page.locator('.js-character:visible').first();
+
+  await page.clock.fastForward(LIGHT_ARM_MS + 100);
+  // Plain getAnimations() (no subtree) — the light's own animation targets
+  // .js-character directly, so this can't pick up a Badger sprite-swap
+  // animation from a descendant .badger-image element.
+  const duration = await character.evaluate((el) =>
+    el.getAnimations()[0]?.effect.getComputedTiming().duration
+  );
+  expect(duration).toBe(0);
+  const lit = await character.evaluate((el) => getComputedStyle(el).filter);
+  expect(lit).toContain(LIGHT_COLOUR);
+
+  await page.locator('.js-character-hit:visible').first().hover();
+  const stoodDown = await character.evaluate((el) => getComputedStyle(el).filter);
+  expect(stoodDown).not.toContain(LIGHT_COLOUR);
+});
+
+test('the approach light reads in both themes', async ({ page }) => {
+  await page.clock.install();
+  await page.clock.pauseAt(Date.now() + 60_000);
+  await page.goto('/');
+  await page.locator('#toggle').click(); // day theme
+  await page.clock.fastForward(LIGHT_ARM_MS + 100);
+  const character = page.locator('.js-character:visible').first();
+  expect((await sampleAnimationAt(character, LIGHT_FADE_MS)).filter).toContain(LIGHT_COLOUR);
+});
+
+// The light is a filter, never geometry — its bounding box must hold still
+// while it gathers, same "click targets never animate their bounding box"
+// contract the prompt and other stage controls keep.
+test("the light's filter never moves the character's bounding box", async ({ page }) => {
+  await page.clock.install();
+  await page.clock.pauseAt(Date.now() + 60_000);
+  await page.goto('/');
+  const before = await visibleRect(page, '.js-character');
+  await page.clock.fastForward(LIGHT_ARM_MS + 100);
+  const after = await visibleRect(page, '.js-character');
+  expectRectClose(after, before, 1);
 });
 
 test('camera transition-duration is 0s under prefers-reduced-motion', async ({ page }) => {

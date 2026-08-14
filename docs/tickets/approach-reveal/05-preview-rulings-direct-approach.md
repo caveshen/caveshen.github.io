@@ -14,25 +14,29 @@ on screen; the pin may explain it, but prove pure hover-away fades).
 
 **Blocked by:** 04 — Restore the touch floor.
 
-**Status:** ready-for-agent
+**Status:** done — built `8099d20`, reviewer approved with comment
+nits, nits fixed `c25bb81`. Matrix 2249/47/0. The hover-away linger
+was proven already correct in real time; the stuck prompt was the
+pin. The idle re-arm fix resolved a genuine defect (the light went
+dark forever after any hover that ended without a dialogue).
 
-- [ ] A click or tap anywhere on the character's hit surface starts
+- [x] A click or tap anywhere on the character's hit surface starts
       the dialogue, exactly as activating the prompt does. The pin
       behaviour is removed, with its tests.
-- [ ] The prompt anchors just above the character's head, close to
+- [x] The prompt anchors just above the character's head, close to
       it. The gap is a clearly named tuning value.
-- [ ] Pure hover-away is proven in a test: reveal by hover, move
+- [x] Pure hover-away is proven in a test: reveal by hover, move
       the pointer off both character and prompt, and the prompt
       fades after the linger. If real-time behaviour is broken, fix
       the root cause.
-- [ ] The light gathers after ~5s of scene idleness in every case:
+- [x] The light gathers after ~5s of scene idleness in every case:
       after load, after dialogue close, and after any engagement
       ends. Idle means no hover over character or prompt, the
       prompt unfocused, no dialogue open.
-- [ ] The light still stands down on engagement, and reduced-motion
+- [x] The light still stands down on engagement, and reduced-motion
       semantics are unchanged: instant transitions, everything
       still appears.
-- [ ] Every animated assertion samples a frozen or finished state.
-- [ ] Regression assertions prove they can fail: defect injected,
+- [x] Every animated assertion samples a frozen or finished state.
+- [x] Regression assertions prove they can fail: defect injected,
       caught, injection removed.
-- [ ] Full suite green in one matrix run. Zero flakes.
+- [x] Full suite green in one matrix run. Zero flakes.

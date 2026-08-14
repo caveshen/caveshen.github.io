@@ -67,7 +67,7 @@ accepted.
   until hover, focus, or a pin reveals it.
 - The prompt has no box, border, or glass chrome. It is text with a
   soft shadow treatment. The shadow carries the AA contrast duty the
-  chip's glass used to carry. Generous spacing around the text; the
+  old button's glass used to carry. Generous spacing around the text; the
   invisible hit area keeps the 44px touch floor.
 - The character gains a generous invisible hit surface — the figure's
   bounds plus comfortable padding — with the pointer cursor. The

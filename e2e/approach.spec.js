@@ -69,6 +69,15 @@ test('the prompt is floating text — no box, border, or glass chrome', async ({
   expect(style.textShadow).not.toBe('none'); // the shadow carries the AA contrast duty instead
 });
 
+test('the revealed prompt has a hit area at least 44px tall and 44px wide', async ({ page }) => {
+  const prompt = page.locator('#approach-prompt');
+  await page.locator('.js-character-hit:visible').first().hover();
+  expect(await settledOpacity(prompt)).toBe(1);
+  const box = await prompt.boundingBox();
+  expect(box.height).toBeGreaterThanOrEqual(44);
+  expect(box.width).toBeGreaterThanOrEqual(44);
+});
+
 test('the character hit surface has the pointer cursor and never itself starts the dialogue', async ({ page }) => {
   const hit = page.locator('.js-character-hit:visible').first();
   const cursor = await hit.evaluate((el) => getComputedStyle(el).cursor);

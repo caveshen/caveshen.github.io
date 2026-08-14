@@ -117,6 +117,55 @@ export function initStage(tree) {
   const PROMPT_LINGER_MS = 1000; // grace period after hover leaves before fading out
   const EXIT_REFOCUS_MS  = 1000; // dialogue-exit refocus delay, matches the camera settle
 
+  // Approach light: a steady edge-light on the character, done with a
+  // drop-shadow filter, never geometry (see PRD/spec — a free-floating glow
+  // was rejected; this one lives directly on .js-character). Arms
+  // LIGHT_ARM_MS after load and again after each dialogue close (armLight());
+  // stands down the moment the visitor engages — every hover/focus/click
+  // reveal already routes through showPrompt() below, so that single call
+  // site covers all three. WAAPI fade in, fade out, no loop — it never
+  // pulses. duration is zeroed under reduced motion so it still appears/
+  // departs, just without the fade; the arm delay itself is untouched
+  // (matches PROMPT_FADE_MS's own reduced-motion handling).
+  const LIGHT_ARM_MS  = 5000; // delay before the light gathers — tuning value
+  const LIGHT_FADE_MS = 500;  // gather/stand-down fade, matches the prompt's own — tuning value
+  const LIGHT_OFF = 'drop-shadow(0 0 0px transparent)';
+  const LIGHT_ON  = 'drop-shadow(0 0 10px rgba(255, 215, 94, 0.65))'; // warm, reads on both themes — tuning value
+
+  let lightTimer = null;
+  let lightAnim = null;
+
+  function armLight() {
+    clearTimeout(lightTimer);
+    lightTimer = setTimeout(gatherLight, LIGHT_ARM_MS);
+  }
+
+  // Animates FROM the character's current computed filter (not a hardcoded
+  // constant) — same reasoning as fadePromptTo's `from` read below: standing
+  // down a light that never gathered must not flash it on first. Cancels any
+  // running fade before starting a new one, same overlap rule as the prompt's.
+  function animateLightTo(target) {
+    const el = visibleOne('.js-character');
+    if (!el) return;
+    const from = getComputedStyle(el).filter;
+    lightAnim?.cancel();
+    lightAnim = el.animate(
+      [{ filter: from === 'none' ? LIGHT_OFF : from }, { filter: target }],
+      { duration: reducedMotion() ? 0 : LIGHT_FADE_MS, fill: 'forwards' }
+    );
+  }
+
+  function gatherLight() {
+    animateLightTo(LIGHT_ON);
+  }
+
+  // Also cancels any pending arm timer — engaging before the light has even
+  // gathered must stop it arriving late, not just fade a light that's already lit.
+  function standDownLight() {
+    clearTimeout(lightTimer);
+    animateLightTo(LIGHT_OFF);
+  }
+
   let promptAnim = null;
   let lingerTimer = null;
   let overCharacter = false;
@@ -147,6 +196,7 @@ export function initStage(tree) {
 
   function showPrompt() {
     clearTimeout(lingerTimer);
+    standDownLight(); // every reveal here is a hover, focus, or click — the light's invitation is accepted
     approachBtn.style.pointerEvents = 'auto';
     fadePromptTo(1, reducedMotion() ? 0 : PROMPT_FADE_MS);
   }
@@ -303,6 +353,11 @@ export function initStage(tree) {
     const refocus = () => {
       settling = false;
       approachBtn.focus();
+      // Re-arm AFTER the refocus's own focus event (showPrompt() ->
+      // standDownLight()) has run — focus() dispatches synchronously, so a
+      // direct call here always lands after that, never gets cancelled
+      // straight back out by it.
+      armLight();
     };
     if (reducedMotion()) {
       refocus();
@@ -457,6 +512,7 @@ export function initStage(tree) {
   }
 
   schedulePlane(PLANE_FIRST_MS);
+  armLight();
 
   // Only reveal the button if the API is actually usable — an unhidden-but-dead
   // button is worse than no button. The stage itself (not <html>) goes

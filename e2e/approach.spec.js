@@ -267,9 +267,10 @@ for (const route of ROUTES) {
 
 // Focus manners: the first choice always receives focus on approach, but the
 // visible highlight must track HOW focus arrived — a keyboard arrival keeps
-// the ring (continuity); a pointer arrival must not look pre-selected. The
-// highlight styling gates on :focus-visible, which browsers only match for
-// programmatic focus() when it follows a keyboard interaction, not a pointer one.
+// the ring (continuity); a pointer arrival must not look pre-selected. Native
+// :focus-visible cannot make that distinction here: every engine matches it
+// for a programmatic focus() redirect regardless of input modality, so the
+// highlight gates on the kb-focus class stage.js sets from real key events.
 test('keyboard arrival at the prompt shows the focus highlight on the first choice', async ({ page }) => {
   await page.keyboard.press('Tab'); // theme toggle
   await page.keyboard.press('Tab'); // approach prompt

@@ -122,6 +122,9 @@ export function initStage(tree) {
   let overCharacter = false;
   let overPrompt = false;
   let promptFocused = false;
+  // Set by a click/tap on the character; held until the prompt is activated
+  // (approach()) or the dialogue exits — never fades or lingers while true.
+  let pinned = false;
   // True from exit() until the delayed refocus fires — a stray hover on the
   // character (e.g. the pointer already resting where the dialogue card sat,
   // now revealed once the card hides) must not summon the prompt during the
@@ -161,7 +164,7 @@ export function initStage(tree) {
   // character to it) keeps it visible the same way.
   function updatePromptVisibility() {
     if (settling) return;
-    if (overCharacter || overPrompt || promptFocused) {
+    if (pinned || overCharacter || overPrompt || promptFocused) {
       showPrompt();
       return;
     }
@@ -171,12 +174,21 @@ export function initStage(tree) {
 
   // Every scene variant carries its own copy of the character (three total,
   // two display:none) — attach to all; only the visible one ever receives
-  // real pointer events. The hit surface only summons the prompt: it has no
-  // click handler and is never focusable, so it can never itself start the
-  // dialogue (approach() below is wired to approachBtn's click only).
+  // real pointer events. The hit surface only summons and pins the prompt;
+  // it is never focusable and its click never starts the dialogue
+  // (approach() below is wired to approachBtn's click only).
   document.querySelectorAll('.js-character-hit').forEach((hitEl) => {
     hitEl.addEventListener('pointerenter', () => { overCharacter = true; updatePromptVisibility(); });
     hitEl.addEventListener('pointerleave', () => { overCharacter = false; updatePromptVisibility(); });
+    // Pins the prompt: reveals it and stops it fading until the prompt is
+    // activated (approach()) or the dialogue exits. A second click while
+    // already pinned is a no-op — never a toggle-off. This is also the
+    // touch two-step's first tap: only the prompt's own click starts approach().
+    hitEl.addEventListener('click', () => {
+      if (pinned || approached) return;
+      pinned = true;
+      updatePromptVisibility();
+    });
   });
   approachBtn.addEventListener('pointerenter', () => { overPrompt = true; updatePromptVisibility(); });
   approachBtn.addEventListener('pointerleave', () => { overPrompt = false; updatePromptVisibility(); });
@@ -195,6 +207,7 @@ export function initStage(tree) {
     clearTimeout(lingerTimer);
     promptAnim?.cancel();
     overCharacter = overPrompt = promptFocused = false;
+    pinned = false; // activating the prompt is what ends a pin
     approachBtn.style.pointerEvents = 'none';
 
     // Only set the inline override outside reduced-motion, so the stylesheet's
@@ -281,6 +294,7 @@ export function initStage(tree) {
     clearTimeout(lingerTimer);
     promptAnim?.cancel();
     overCharacter = overPrompt = promptFocused = false;
+    pinned = false; // no pin survives into the next cycle
     approachBtn.style.pointerEvents = 'none';
     approachBtn.hidden = false;
     camera.style.transform = 'none';

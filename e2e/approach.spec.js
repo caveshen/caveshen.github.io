@@ -115,6 +115,108 @@ test('linger: leaving both character and prompt holds the prompt for ~1s, then f
   expect(await settledOpacity(prompt)).toBe(0);
 });
 
+test('a click on the character reveals and pins the prompt — it stays visible after hover leaves', async ({ page }) => {
+  await page.clock.install();
+  await page.clock.pauseAt(Date.now() + 60_000);
+  await page.goto('/');
+  const prompt = page.locator('#approach-prompt');
+  const hit = page.locator('.js-character-hit:visible').first();
+  await hit.click();
+  expect(await settledOpacity(prompt)).toBe(1);
+
+  // Leave the character (and never enter the prompt), then run the clock
+  // well past the linger window — an unpinned reveal would have faded by
+  // now; a pinned one must still be fully visible.
+  await page.mouse.move(0, 0);
+  await page.clock.fastForward(PROMPT_LINGER_MS + PROMPT_FADE_MS + 100);
+  expect(await settledOpacity(prompt)).toBe(1);
+});
+
+test('a second click on the character is a no-op — the pinned prompt never toggles off', async ({ page }) => {
+  await page.clock.install();
+  await page.clock.pauseAt(Date.now() + 60_000);
+  await page.goto('/');
+  const prompt = page.locator('#approach-prompt');
+  const hit = page.locator('.js-character-hit:visible').first();
+  await hit.click();
+  await hit.click(); // second click, still pinned — must not flip the pin off
+  await page.mouse.move(0, 0);
+  await page.clock.fastForward(PROMPT_LINGER_MS + PROMPT_FADE_MS + 100);
+  expect(await settledOpacity(prompt)).toBe(1);
+});
+
+test('clicking the character never starts the dialogue — only activating the prompt does', async ({ page }) => {
+  const hit = page.locator('.js-character-hit:visible').first();
+  await hit.click();
+  await expect(page.locator('.card')).not.toBeVisible();
+  await page.locator('#approach-prompt').click();
+  await expect(page.locator('.card')).toBeVisible();
+});
+
+for (const route of ROUTES) {
+  test(`after dialogue exit the pin resets — the cycle starts clean again — ${route}`, async ({ page }) => {
+    await page.clock.install();
+    await page.clock.pauseAt(Date.now() + 60_000);
+    await page.goto(route);
+    const hit = page.locator('.js-character-hit:visible').first();
+    const prompt = page.locator('#approach-prompt');
+
+    await hit.click();
+    await prompt.click(); // approach() clears the pin
+    await page.locator('#end-dialogue').click();
+    await page.clock.fastForward(EXIT_REFOCUS_MS + 100);
+    await expect(prompt).toBeFocused(); // the delayed refocus, not a leftover pin
+
+    // The camera has reset to identity, so the pointer (left resting where
+    // "end dialogue" was clicked) may now sit over the repositioned
+    // character — move it away first so only focus (removed next) and any
+    // leftover pin can keep the prompt visible.
+    await page.mouse.move(0, 0);
+
+    // Move focus off the prompt with a real Tab — a stale pin would keep the
+    // prompt visible forever after this; a reset lets it linger, then fade.
+    await page.keyboard.press('Shift+Tab');
+    await expect(prompt).not.toBeFocused();
+    await page.clock.fastForward(PROMPT_LINGER_MS + 100);
+    expect(await settledOpacity(prompt)).toBe(0);
+  });
+}
+
+test('touch two-step: a first tap on the character reveals, a second tap on the prompt approaches', async ({ page }, testInfo) => {
+  // .tap() needs a touch-capable context — gate on the project's static
+  // hasTouch capability, same idiom button-feel.spec.js uses.
+  test.skip(!testInfo.project.use.hasTouch, 'tap() requires a touch-capable project');
+  const hit = page.locator('.js-character-hit:visible').first();
+  const prompt = page.locator('#approach-prompt');
+
+  await hit.tap();
+  expect(await settledOpacity(prompt)).toBe(1);
+  await expect(page.locator('.card')).not.toBeVisible();
+
+  await prompt.tap();
+  await expect(page.locator('.card')).toBeVisible();
+});
+
+test('reduced motion: a click on the character pins the prompt instantly', async ({ page }) => {
+  await page.clock.install();
+  await page.clock.pauseAt(Date.now() + 60_000);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  const prompt = page.locator('#approach-prompt');
+  const hit = page.locator('.js-character-hit:visible').first();
+
+  await hit.click();
+  const duration = await prompt.evaluate((el) => el.getAnimations()[0]?.effect.getComputedTiming().duration);
+  expect(duration).toBe(0);
+  expect(await prompt.evaluate((el) => parseFloat(getComputedStyle(el).opacity))).toBe(1);
+
+  // Leave the character and run the clock past the (instant) linger window —
+  // an unpinned reveal would already have faded; the pin must hold it.
+  await page.mouse.move(0, 0);
+  await page.clock.fastForward(PROMPT_LINGER_MS + 100);
+  expect(await prompt.evaluate((el) => parseFloat(getComputedStyle(el).opacity))).toBe(1);
+});
+
 test('keyboard focus reveals the prompt the same way as hover, with a visible focus indicator', async ({ page }) => {
   const prompt = page.locator('#approach-prompt');
   await page.keyboard.press('Tab'); // theme toggle

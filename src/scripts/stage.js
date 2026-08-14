@@ -62,12 +62,14 @@ export function initStage(tree) {
   approachBtn.hidden = false;
 
   // Clears above the head with a gap, centred on the figure, clamped inside the stage frame.
+  // PROMPT_HEAD_GAP_PX is a tuning value (preview ruling 2026-08-14: the
+  // original 14px read as too high above the head — close, not floating).
+  const PROMPT_HEAD_GAP_PX = 6;
   function positionPrompt() {
     const figEl = visibleOne('.js-character');
     if (!figEl) return;
     const sf  = stageFrame.getBoundingClientRect();
     const fig = figEl.getBoundingClientRect();
-    const GAP = 14; // clearance between the prompt and the head
 
     // Centre horizontally first — the button's available width (and so its
     // measured height, below) depends on this left offset.
@@ -80,7 +82,7 @@ export function initStage(tree) {
     // The button is already unhidden by now, so its real (measured) height is
     // available rather than a guess.
     const btnHeight = approachBtn.getBoundingClientRect().height;
-    let top = (fig.top - sf.top) - GAP - btnHeight;
+    let top = (fig.top - sf.top) - PROMPT_HEAD_GAP_PX - btnHeight;
     if (top < 8) {
       // Not enough headroom above the head to clear it inside the frame —
       // sit beside the figure instead of pushing the prompt down onto it.
@@ -91,7 +93,7 @@ export function initStage(tree) {
       const btnWidth = approachBtn.getBoundingClientRect().width;
       const { left: clampedLeft, top: clampedTop } = clampPromptBeside({
         figTop: fig.top - sf.top, figRight: fig.right - sf.left,
-        sfWidth: sf.width, sfHeight: sf.height, btnWidth, btnHeight, gap: GAP,
+        sfWidth: sf.width, sfHeight: sf.height, btnWidth, btnHeight, gap: PROMPT_HEAD_GAP_PX,
       });
       approachBtn.style.left = `${clampedLeft}px`;
       top = clampedTop;
@@ -119,14 +121,16 @@ export function initStage(tree) {
 
   // Approach light: a steady edge-light on the character, done with a
   // drop-shadow filter, never geometry (see PRD/spec — a free-floating glow
-  // was rejected; this one lives directly on .js-character). Arms
-  // LIGHT_ARM_MS after load and again after each dialogue close (armLight());
-  // stands down the moment the visitor engages — every hover/focus/click
-  // reveal already routes through showPrompt() below, so that single call
-  // site covers all three. WAAPI fade in, fade out, no loop — it never
-  // pulses. duration is zeroed under reduced motion so it still appears/
-  // departs, just without the fade; the arm delay itself is untouched
-  // (matches PROMPT_FADE_MS's own reduced-motion handling).
+  // was rejected; this one lives directly on .js-character). Gathers after
+  // LIGHT_ARM_MS of scene idleness, always (preview ruling 2026-08-14) — not
+  // only after load and dialogue close. refreshIdleTimer() below is the
+  // single call site: it stands the light down while engaged (hover over
+  // character or prompt, prompt focused, or dialogue open) and (re)arms the
+  // gather timer the moment the scene returns to idle, so any engagement
+  // ending restarts the 5s countdown fresh. WAAPI fade in, fade out, no loop
+  // — it never pulses. duration is zeroed under reduced motion so it still
+  // appears/departs, just without the fade; the arm delay itself is
+  // untouched (matches PROMPT_FADE_MS's own reduced-motion handling).
   const LIGHT_ARM_MS  = 5000; // delay before the light gathers — tuning value
   const LIGHT_FADE_MS = 500;  // gather/stand-down fade, matches the prompt's own — tuning value
   const LIGHT_OFF = 'drop-shadow(0 0 0px transparent)';
@@ -171,15 +175,24 @@ export function initStage(tree) {
   let overCharacter = false;
   let overPrompt = false;
   let promptFocused = false;
-  // Set by a click/tap on the character; held until the prompt is activated
-  // (approach()) or the dialogue exits — never fades or lingers while true.
-  let pinned = false;
   // True from exit() until the delayed refocus fires — a stray hover on the
   // character (e.g. the pointer already resting where the dialogue card sat,
   // now revealed once the card hides) must not summon the prompt during the
   // camera settle: "nothing crosses the character" is the contract, not just
   // "nothing pops on its own."
   let settling = false;
+
+  // Idle means: no hover over character or prompt, prompt unfocused, no
+  // dialogue open, and not mid-settle. Called on every engagement-state
+  // change (hover/focus toggles, approach, exit); stands the light down
+  // while engaged, (re)arms the gather timer the instant idle begins.
+  function refreshIdleTimer() {
+    if (overCharacter || overPrompt || promptFocused || approached || settling) {
+      standDownLight();
+    } else {
+      armLight();
+    }
+  }
 
   // Cancels any running fade and starts a new one from the CURRENT rendered
   // opacity (read before cancelling) — overlapping WAAPI fades on the same
@@ -196,7 +209,6 @@ export function initStage(tree) {
 
   function showPrompt() {
     clearTimeout(lingerTimer);
-    standDownLight(); // every reveal here is a hover, focus, or click — the light's invitation is accepted
     approachBtn.style.pointerEvents = 'auto';
     fadePromptTo(1, reducedMotion() ? 0 : PROMPT_FADE_MS);
   }
@@ -211,34 +223,32 @@ export function initStage(tree) {
   // Shows immediately whenever any hover/focus source is active; once every
   // source has left, lingers before fading out — never fades while hovered
   // or focused, and hovering the prompt itself (travelling from the
-  // character to it) keeps it visible the same way.
+  // character to it) keeps it visible the same way. refreshIdleTimer() rides
+  // along on every call — the same hover/focus sources that reveal the
+  // prompt also stand the light down, and losing them restarts the idle count.
   function updatePromptVisibility() {
     if (settling) return;
-    if (pinned || overCharacter || overPrompt || promptFocused) {
+    if (overCharacter || overPrompt || promptFocused) {
       showPrompt();
-      return;
+    } else {
+      clearTimeout(lingerTimer);
+      lingerTimer = setTimeout(hidePrompt, reducedMotion() ? 0 : PROMPT_LINGER_MS);
     }
-    clearTimeout(lingerTimer);
-    lingerTimer = setTimeout(hidePrompt, reducedMotion() ? 0 : PROMPT_LINGER_MS);
+    refreshIdleTimer();
   }
 
   // Every scene variant carries its own copy of the character (three total,
   // two display:none) — attach to all; only the visible one ever receives
-  // real pointer events. The hit surface only summons and pins the prompt;
-  // it is never focusable and its click never starts the dialogue
-  // (approach() below is wired to approachBtn's click only).
+  // real pointer events. A click or tap on the hit surface starts the
+  // dialogue directly, the same as activating the prompt (preview ruling
+  // 2026-08-14 — replaces the earlier pin); the character stays unfocusable,
+  // so the prompt remains the keyboard/screen-reader vector.
   document.querySelectorAll('.js-character-hit').forEach((hitEl) => {
     hitEl.addEventListener('pointerenter', () => { overCharacter = true; updatePromptVisibility(); });
     hitEl.addEventListener('pointerleave', () => { overCharacter = false; updatePromptVisibility(); });
-    // Pins the prompt: reveals it and stops it fading until the prompt is
-    // activated (approach()) or the dialogue exits. A second click while
-    // already pinned is a no-op — never a toggle-off. This is also the
-    // touch two-step's first tap: only the prompt's own click starts approach().
-    hitEl.addEventListener('click', () => {
-      if (pinned || approached) return;
-      pinned = true;
-      updatePromptVisibility();
-    });
+    // A click or tap starts the dialogue directly — the same path activating
+    // the prompt uses (approach() below no-ops if already approached).
+    hitEl.addEventListener('click', approach);
   });
   approachBtn.addEventListener('pointerenter', () => { overPrompt = true; updatePromptVisibility(); });
   approachBtn.addEventListener('pointerleave', () => { overPrompt = false; updatePromptVisibility(); });
@@ -257,8 +267,8 @@ export function initStage(tree) {
     clearTimeout(lingerTimer);
     promptAnim?.cancel();
     overCharacter = overPrompt = promptFocused = false;
-    pinned = false; // activating the prompt is what ends a pin
     approachBtn.style.pointerEvents = 'none';
+    refreshIdleTimer(); // approached is now true — stands the light down even on a direct character click
 
     // Only set the inline override outside reduced-motion, so the stylesheet's
     // `transition: none` applies unopposed there (an inline style would
@@ -344,20 +354,19 @@ export function initStage(tree) {
     clearTimeout(lingerTimer);
     promptAnim?.cancel();
     overCharacter = overPrompt = promptFocused = false;
-    pinned = false; // no pin survives into the next cycle
     approachBtn.style.pointerEvents = 'none';
     approachBtn.hidden = false;
     camera.style.transform = 'none';
     camera.style.removeProperty('--cam-scale');
+    refreshIdleTimer(); // still settling — the light stays off through the camera settle
 
     const refocus = () => {
       settling = false;
+      // Dispatches focus synchronously, which reveals the prompt and (via
+      // refreshIdleTimer()) keeps the light stood down — the prompt is
+      // focused, so the scene isn't idle yet. The light only gathers once
+      // the visitor moves focus away and the scene is truly at rest.
       approachBtn.focus();
-      // Re-arm AFTER the refocus's own focus event (showPrompt() ->
-      // standDownLight()) has run — focus() dispatches synchronously, so a
-      // direct call here always lands after that, never gets cancelled
-      // straight back out by it.
-      armLight();
     };
     if (reducedMotion()) {
       refocus();

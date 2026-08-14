@@ -194,9 +194,10 @@ const root = tree.root;
      (Badger.astro/HoodedFigure.astro), sized generously around the figure.
      fill:transparent alone would NOT hit-test (SVG's default pointer-events
      is visiblePainted) — pointer-events:all makes the padded area hoverable
-     even though nothing is painted there. Never focusable, never a click
-     target for the dialogue — it only summons the approach prompt
-     (stage.js); only the prompt itself calls approach(). */
+     even though nothing is painted there. Never focusable — hover summons
+     the approach prompt, and a click or tap starts the dialogue directly,
+     the same path activating the prompt uses (stage.js). The prompt remains
+     the keyboard/screen-reader vector; no ARIA goes on the character. */
   .js-character-hit {
     fill: transparent;
     pointer-events: all;

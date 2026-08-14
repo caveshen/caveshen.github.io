@@ -78,12 +78,10 @@ test('the revealed prompt has a hit area at least 44px tall and 44px wide', asyn
   expect(box.width).toBeGreaterThanOrEqual(44);
 });
 
-test('the character hit surface has the pointer cursor and never itself starts the dialogue', async ({ page }) => {
+test('the character hit surface has the pointer cursor', async ({ page }) => {
   const hit = page.locator('.js-character-hit:visible').first();
   const cursor = await hit.evaluate((el) => getComputedStyle(el).cursor);
   expect(cursor).toBe('pointer');
-  await hit.click();
-  await expect(page.locator('.card')).not.toBeVisible();
 });
 
 test('hovering the character reveals the prompt with a 500ms fade to full opacity', async ({ page }) => {
@@ -131,68 +129,54 @@ test('linger: leaving both character and prompt holds the prompt for ~1s, then f
   expect(await settledOpacity(prompt)).toBe(0);
 });
 
-test('a click on the character reveals and pins the prompt — it stays visible after hover leaves', async ({ page }) => {
-  await page.clock.install();
-  await page.clock.pauseAt(Date.now() + 60_000);
-  await page.goto('/');
+// Deliberately real time, no page.clock — proves the linger's own setTimeout
+// actually fires against the wall clock, not only against a virtual one. No
+// click anywhere in this test: a pure hover-then-leave, the exact gesture
+// Caveshen reported staying stuck on preview.
+test('pure hover-away fades the prompt in real time — a stepped pointer path off both elements, no click', async ({ page }) => {
   const prompt = page.locator('#approach-prompt');
-  const hit = page.locator('.js-character-hit:visible').first();
-  await hit.click();
+  await page.locator('.js-character-hit:visible').first().hover();
   expect(await settledOpacity(prompt)).toBe(1);
 
-  // Leave the character (and never enter the prompt), then run the clock
-  // well past the linger window — an unpinned reveal would have faded by
-  // now; a pinned one must still be fully visible.
-  await page.mouse.move(0, 0);
-  await page.clock.fastForward(PROMPT_LINGER_MS + PROMPT_FADE_MS + 100);
-  expect(await settledOpacity(prompt)).toBe(1);
+  // A real, stepped pointer path (not a teleport) off both the character and
+  // the prompt, dispatching genuine intermediate pointermove events.
+  await page.mouse.move(4, 4, { steps: 12 });
+
+  await expect(async () => {
+    expect(await settledOpacity(prompt)).toBe(0);
+  }).toPass({ timeout: PROMPT_LINGER_MS + PROMPT_FADE_MS + 3000 });
 });
 
-test('a second click on the character is a no-op — the pinned prompt never toggles off', async ({ page }) => {
-  await page.clock.install();
-  await page.clock.pauseAt(Date.now() + 60_000);
-  await page.goto('/');
-  const prompt = page.locator('#approach-prompt');
+test('a click on the character starts the dialogue directly, the same as activating the prompt', async ({ page }) => {
   const hit = page.locator('.js-character-hit:visible').first();
   await hit.click();
-  await hit.click(); // second click, still pinned — must not flip the pin off
-  await page.mouse.move(0, 0);
-  await page.clock.fastForward(PROMPT_LINGER_MS + PROMPT_FADE_MS + 100);
-  expect(await settledOpacity(prompt)).toBe(1);
-});
-
-test('clicking the character never starts the dialogue — only activating the prompt does', async ({ page }) => {
-  const hit = page.locator('.js-character-hit:visible').first();
-  await hit.click();
-  await expect(page.locator('.card')).not.toBeVisible();
-  await page.locator('#approach-prompt').click();
   await expect(page.locator('.card')).toBeVisible();
 });
 
 for (const route of ROUTES) {
-  test(`after dialogue exit the pin resets — the cycle starts clean again — ${route}`, async ({ page }) => {
+  test(`after dialogue exit the scene starts clean again, with no leftover reveal state — ${route}`, async ({ page }) => {
     await page.clock.install();
     await page.clock.pauseAt(Date.now() + 60_000);
     await page.goto(route);
     const hit = page.locator('.js-character-hit:visible').first();
     const prompt = page.locator('#approach-prompt');
 
-    await hit.click();
-    await prompt.click(); // approach() clears the pin
+    await hit.click(); // direct approach — the character's own vector
     await page.locator('#end-dialogue').click();
     await page.clock.fastForward(EXIT_REFOCUS_MS + 100);
-    await expect(prompt).toBeFocused(); // the delayed refocus, not a leftover pin
+    await expect(prompt).toBeFocused(); // the delayed refocus
 
     // The camera has reset to identity, so the pointer (left resting where
     // "end dialogue" was clicked) may now sit over the repositioned
     // character — hover a fixed, always-present control well clear of the
     // character's generous hit padding (a screen-space coordinate risks
-    // landing inside it on some viewports) so only focus (removed next) and
-    // any leftover pin can keep the prompt visible.
+    // landing inside it on some viewports) so only focus (removed next) can
+    // keep the prompt visible.
     await page.locator('#toggle').hover();
 
-    // Move focus off the prompt with a real Tab — a stale pin would keep the
-    // prompt visible forever after this; a reset lets it linger, then fade.
+    // Move focus off the prompt with a real Tab — a leftover reveal state
+    // would keep the prompt visible forever after this; a clean reset lets
+    // it linger, then fade.
     await page.keyboard.press('Shift+Tab');
     await expect(prompt).not.toBeFocused();
     await page.clock.fastForward(PROMPT_LINGER_MS + 100);
@@ -200,39 +184,21 @@ for (const route of ROUTES) {
   });
 }
 
-test('touch two-step: a first tap on the character reveals, a second tap on the prompt approaches', async ({ page }, testInfo) => {
+test('a single tap on the character approaches directly — no two-step, same as every other device', async ({ page }, testInfo) => {
   // .tap() needs a touch-capable context — gate on the project's static
   // hasTouch capability, same idiom button-feel.spec.js uses.
   test.skip(!testInfo.project.use.hasTouch, 'tap() requires a touch-capable project');
   const hit = page.locator('.js-character-hit:visible').first();
-  const prompt = page.locator('#approach-prompt');
-
   await hit.tap();
-  expect(await settledOpacity(prompt)).toBe(1);
-  await expect(page.locator('.card')).not.toBeVisible();
-
-  await prompt.tap();
   await expect(page.locator('.card')).toBeVisible();
 });
 
-test('reduced motion: a click on the character pins the prompt instantly', async ({ page }) => {
-  await page.clock.install();
-  await page.clock.pauseAt(Date.now() + 60_000);
+test('reduced motion: a click on the character approaches instantly, no zoom transition', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/');
-  const prompt = page.locator('#approach-prompt');
+  await page.reload();
   const hit = page.locator('.js-character-hit:visible').first();
-
   await hit.click();
-  const duration = await prompt.evaluate((el) => el.getAnimations()[0]?.effect.getComputedTiming().duration);
-  expect(duration).toBe(0);
-  expect(await prompt.evaluate((el) => parseFloat(getComputedStyle(el).opacity))).toBe(1);
-
-  // Leave the character and run the clock past the (instant) linger window —
-  // an unpinned reveal would already have faded; the pin must hold it.
-  await page.mouse.move(0, 0);
-  await page.clock.fastForward(PROMPT_LINGER_MS + 100);
-  expect(await prompt.evaluate((el) => parseFloat(getComputedStyle(el).opacity))).toBe(1);
+  await expect(page.locator('.card')).toBeVisible();
 });
 
 test('keyboard focus reveals the prompt the same way as hover, with a visible focus indicator', async ({ page }) => {
@@ -455,7 +421,7 @@ test('the approach light stands down on focus of the prompt', async ({ page }) =
   expect((await sampleAnimationAt(character, LIGHT_FADE_MS)).filter).not.toContain(LIGHT_COLOUR);
 });
 
-test('the approach light stands down on click of the character', async ({ page }) => {
+test('the approach light stands down on click of the character, which also starts the dialogue', async ({ page }) => {
   await page.clock.install();
   await page.clock.pauseAt(Date.now() + 60_000);
   await page.goto('/');
@@ -467,24 +433,50 @@ test('the approach light stands down on click of the character', async ({ page }
   expect((await sampleAnimationAt(character, LIGHT_FADE_MS)).filter).not.toContain(LIGHT_COLOUR);
 });
 
-test('engaging before the light arms cancels the gather — it never arrives late', async ({ page }) => {
+test('engaging before the light arms cancels the gather — it never arrives late while still engaged', async ({ page }) => {
   await page.clock.install();
   await page.clock.pauseAt(Date.now() + 60_000);
   await page.goto('/');
   const character = page.locator('.js-character:visible').first();
 
-  // Engage well before the arm delay elapses.
+  // Engage before the arm delay elapses, and stay engaged throughout.
   await page.locator('.js-character-hit:visible').first().hover();
-  await page.mouse.move(0, 0); // leave, so only a stray re-arm (a defect) could light it
 
-  // Run the clock well past the original arm delay — a correctly-cancelled
-  // timer means the light still never gathers.
+  // Run the clock well past the original arm delay while still engaged — a
+  // correctly-cancelled timer means the light still never gathers.
   await page.clock.fastForward(LIGHT_ARM_MS + 1000);
   expect((await sampleAnimationAt(character, LIGHT_FADE_MS)).filter).not.toContain(LIGHT_COLOUR);
 });
 
+// The root-cause fix this ticket makes: previously the light only re-armed
+// after load and after dialogue close — a hover that ended any other way
+// left it dark forever. Now any engagement ending restarts the 5s idle
+// countdown, with no dialogue involved at all.
+test('the approach light gathers again once a hover ends, with no dialogue ever opening', async ({ page }) => {
+  await page.clock.install();
+  await page.clock.pauseAt(Date.now() + 60_000);
+  await page.goto('/');
+  const character = page.locator('.js-character:visible').first();
+
+  await page.clock.fastForward(LIGHT_ARM_MS + 100);
+  expect((await sampleAnimationAt(character, LIGHT_FADE_MS)).filter).toContain(LIGHT_COLOUR);
+
+  await page.locator('.js-character-hit:visible').first().hover(); // stands the light down
+  expect((await sampleAnimationAt(character, LIGHT_FADE_MS)).filter).not.toContain(LIGHT_COLOUR);
+
+  await page.mouse.move(0, 0); // hover ends — idle begins again, the 5s countdown restarts
+
+  // Just short of the restarted delay — still dark.
+  await page.clock.fastForward(LIGHT_ARM_MS - 100);
+  expect((await sampleAnimationAt(character, LIGHT_FADE_MS)).filter).not.toContain(LIGHT_COLOUR);
+
+  // Cross it — the light gathers again.
+  await page.clock.fastForward(150);
+  expect((await sampleAnimationAt(character, LIGHT_FADE_MS)).filter).toContain(LIGHT_COLOUR);
+});
+
 for (const route of ROUTES) {
-  test(`the approach light gathers again after each dialogue close — ${route}`, async ({ page }) => {
+  test(`the approach light gathers again after dialogue close, once the refocused prompt is left too — ${route}`, async ({ page }) => {
     await page.clock.install();
     await page.clock.pauseAt(Date.now() + 60_000);
     await page.goto(route);
@@ -495,20 +487,25 @@ for (const route of ROUTES) {
     // The camera resets to identity, so the pointer (left resting where
     // "end dialogue" was clicked) may now sit over the repositioned
     // character — same defensive move the exit-refocus test makes, so a
-    // stray hover can't stand the re-armed light straight back down.
+    // stray hover can't stand a re-armed light straight back down.
     await page.locator('#toggle').hover();
 
-    // Cross the delayed refocus in its own step first — exit()'s refocus()
-    // re-arms the light from inside a timer callback, and a timer freshly
-    // scheduled mid-callback needs its own later fastForward call to be
-    // picked up (folding it into one giant jump misses it).
     await page.clock.fastForward(EXIT_REFOCUS_MS + 50);
+    await expect(page.locator('#approach-prompt')).toBeFocused();
 
-    // Just short of the re-arm's own delay — still dark.
+    // The delayed refocus itself is still an engagement (prompt focused) —
+    // not idle yet, so the light must not gather however long this runs.
+    await page.clock.fastForward(LIGHT_ARM_MS + 500);
+    expect((await sampleAnimationAt(character, LIGHT_FADE_MS)).filter).not.toContain(LIGHT_COLOUR);
+
+    // Only once the visitor moves focus off the prompt does the scene
+    // become idle and the 5s countdown start.
+    await page.keyboard.press('Shift+Tab');
+    await expect(page.locator('#approach-prompt')).not.toBeFocused();
+
     await page.clock.fastForward(LIGHT_ARM_MS - 100);
     expect((await sampleAnimationAt(character, LIGHT_FADE_MS)).filter).not.toContain(LIGHT_COLOUR);
 
-    // Cross it — the light gathers again.
     await page.clock.fastForward(150);
     expect((await sampleAnimationAt(character, LIGHT_FADE_MS)).filter).toContain(LIGHT_COLOUR);
   });

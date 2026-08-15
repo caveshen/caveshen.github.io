@@ -71,6 +71,34 @@ test('caret does not shift the label when it appears — gutter is reserved, not
   expect(afterX).toBeCloseTo(beforeX, 0);
 });
 
+// Seeks the button's own hover-lift/press-drop CSS transitions to their
+// finished value and pauses them there, then reads the settled bounding
+// box — the seek-to-finished idiom geom.js's settledOpacity/
+// seekFrameTransition use for other elements in this suite, in place of a
+// wall-clock guess racing the same 0.12s transitions. waitForFunction-style
+// polling guards against reading before hover/press has actually started a
+// transition; cancelling the paused transitions afterwards keeps
+// getAnimations() clean for the next call, so it can't mistake this call's
+// now-finished entries for a fresh one.
+async function settledRect(locator) {
+  await locator.evaluate((el) => new Promise((resolve) => {
+    (function poll() {
+      el.getAnimations().length > 0 ? resolve() : requestAnimationFrame(poll);
+    })();
+  }));
+  return locator.evaluate((el) => {
+    el.getAnimations().forEach((a) => {
+      const timing = a.effect.getComputedTiming();
+      a.currentTime = (timing.delay ?? 0) + (timing.duration ?? 0);
+      a.pause();
+    });
+    const r = el.getBoundingClientRect();
+    const rect = { x: r.x, y: r.y, width: r.width, height: r.height };
+    el.getAnimations().forEach((a) => a.cancel());
+    return rect;
+  });
+}
+
 test('press state: :active resets the hover lift and presses further down', async ({ page }, testInfo) => {
   // Hover-then-press has no contract on a touch project — this test was
   // simply ungated and passed locally on Windows WebKit but failed on Linux
@@ -91,11 +119,9 @@ test('press state: :active resets the hover lift and presses further down', asyn
   await expect(page.locator('.card')).not.toHaveClass(/is-streaming/, { timeout: 5000 });
   const choice = page.locator('.choices button').first();
   await choice.hover();
-  await page.waitForTimeout(150); // let the 0.12s hover-lift transition settle
-  const hovered = await choice.boundingBox();
+  const hovered = await settledRect(choice);
   await page.mouse.down();
-  await page.waitForTimeout(150); // let the 0.12s transform/translate transition settle
-  const pressed = await choice.boundingBox();
+  const pressed = await settledRect(choice);
   await page.mouse.up();
   // :active resets the hover-lift transform and presses via the independent
   // `translate` property instead — hover -> press is a real ~2px travel,

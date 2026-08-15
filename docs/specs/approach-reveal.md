@@ -74,11 +74,17 @@ has been idle for a few seconds.
   2026-08-15: the first pass, small monospace, read as scrawny and
   loose in the scene): the site's serif in small caps with generous
   tracking, slightly larger and heavier than the first pass, set
-  like a line from a theatre programme. The shadow is two layers —
-  a tight dark anchor for legibility and a soft wide bloom that
-  lifts the text off the scene. The prompt is deliberately not the
-  stage voice: the invitation is its own register. All values are
-  tuning values.
+  like a line from a theatre programme. The shadow is three layers —
+  a tight dark anchor for legibility, a soft wide bloom that lifts
+  the text off the scene, and a faint wider glow in the text's own
+  colour that helps the line read against a bright sky (preview
+  ruling 2026-08-15). The prompt is deliberately not the stage
+  voice: the invitation is its own register. All values are tuning
+  values.
+- The prompt is light-on-dark in both themes (preview ruling
+  2026-08-15): day mode dropped its dark-text, pale-shadow variant,
+  which read as swallowed by the bright day sky. Day now wears the
+  same light text and dark shadow as night.
 - The dialogue's first choice receives focus when a dialogue opens,
   so keyboard users can proceed at once. The focus highlight shows
   only for keyboard arrivals; a pointer entry shows no pre-selected
@@ -94,10 +100,13 @@ has been idle for a few seconds.
 - Summoning rules: hover over character or prompt reveals and holds
   the prompt. When hover leaves both, the prompt lingers one second,
   then fades.
-- The prompt anchors just above the character's head, nearly
-  touching it (preview rulings 2026-08-14 and 2026-08-15: 14px and
-  then 6px both read as too high; the accepted value is 1px). The
-  gap is a tuning value.
+- The prompt anchors to the top of the character's face box, not
+  the raster bounding box — the raster carries transparent headroom
+  above the drawn head, so anchoring to it floated the prompt too
+  high (preview ruling 2026-08-15). The gap above the face box is
+  30px (preview rulings 2026-08-14 and 2026-08-15: 14px, then 6px,
+  then 1px all read as too high or too close; the accepted value is
+  30px). The gap is a tuning value.
 - The reveal fade starts at 500ms. The linger starts at one second.
   Both are tuning values.
 - The approach light is a steady edge-light on the character,

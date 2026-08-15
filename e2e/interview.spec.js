@@ -249,6 +249,11 @@ test('no horizontal overflow at ultra-wide (2560×1080)', async ({ page }) => {
   expect(overflow).toBe(false);
 });
 
+// .js-character's own bounding box is not the visible reference any more — it
+// unions in the invisible click-hit padding and the raster's transparent
+// headroom above the drawn head, both well clear of any drawn pixel. The face
+// box is what positionPrompt() actually clears (see stage.js), so it is also
+// the right "does this overlap the character" reference here.
 for (const vp of [
   { name: 'wide (2560×1080)',     width: 2560, height: 1080 },
   { name: 'standard (1920×1080)', width: 1920, height: 1080 },
@@ -258,9 +263,9 @@ for (const vp of [
     await page.setViewportSize({ width: vp.width, height: vp.height });
     await page.goto('/');
     const promptBox = await page.locator('#approach-prompt').boundingBox();
-    const figureBox = await visibleRect(page, '.js-character');
+    const faceBox   = await visibleRect(page, '.face-void');
     const frameBox  = await page.locator('.stage-frame').boundingBox();
-    expect(rectsIntersect(promptBox, figureBox)).toBe(false);
+    expect(rectsIntersect(promptBox, faceBox)).toBe(false);
     // The clamp must not push the prompt out of the scene.
     expect(rectContains(frameBox, promptBox)).toBe(true);
   });
@@ -269,9 +274,9 @@ for (const vp of [
 // N4: same assertion, no forced viewport — matrix breadth at each project's native size.
 test('approach prompt does not overlap the figure — native viewport', async ({ page }) => {
   const promptBox = await page.locator('#approach-prompt').boundingBox();
-  const figureBox = await visibleRect(page, '.js-character');
+  const faceBox   = await visibleRect(page, '.face-void');
   const frameBox  = await page.locator('.stage-frame').boundingBox();
-  expect(rectsIntersect(promptBox, figureBox)).toBe(false);
+  expect(rectsIntersect(promptBox, faceBox)).toBe(false);
   expect(rectContains(frameBox, promptBox)).toBe(true);
 });
 

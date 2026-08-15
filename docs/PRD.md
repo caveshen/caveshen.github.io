@@ -79,7 +79,7 @@ the document body under their original `§` headings as history.
 | d33 | Sheet→scene return — the Badger travels back from his portrait seat | *new* | ✅ MERGED 2026-08-09 (PR #18, `6ea67bf`) |
 | d34 | Test-suite health — full test strategy (unit + integration) and execution | *new* | ✅ MERGED 2026-08-10 (PR #19, `7f85dea`), deploy green — e2e 2072→2008 / 0 failed, unit 97/97; strategy canonical in docs/TEST-STRATEGY.md (§d34) |
 | d35 | The Badger head — standalone fantastical-medieval art (favicon, social, sheet) | *new* | 💡 raised 2026-08-10 — needs a brief (§d35) |
-| d36 | Approach affordance — hovering the character reveals the approach prompt; an approach light marks the character | *new* | 🔄 PIVOTED 2026-08-14 — first attempt (floating glow) rejected at preview, never merged; second spec `docs/specs/approach-reveal.md`; building |
+| d36 | Approach affordance — hovering the character reveals the approach prompt; an approach light marks the character | *new* | ✅ DONE 2026-08-15 — spec `docs/specs/approach-reveal.md` actioned in full; delivered on `feat/approach-reveal`, awaiting PR |
 | d37 | Theme and typeface direction — settle the site's colour-way and its display font together | *new* | 💡 raised 2026-08-15 — needs a workshop (§d37) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
@@ -6101,7 +6101,12 @@ scope open.
 
 ## d36. Approach affordance — hovering the character reveals the prompt
 
-### 🔄 PIVOTED 2026-08-14 — building the second attempt
+### ✅ DONE 2026-08-15 — second attempt delivered
+
+The spec was actioned in full on `feat/approach-reveal`: eight
+tickets, each reviewer-gated, final validation confirmed against
+the spec, perf flat. The accepted tuning values and rulings live
+in the spec; the rest lives in the code and its tests.
 
 Caveshen has grown tired of the permanent "Approach the badger"
 web-style button. The first attempt (a floating glow above the
@@ -6130,8 +6135,6 @@ Facts any future workshop must not re-derive:
   assistive tech. The replacement keeps keyboard reach and an
   accessible name; accessibility is never simplified away.
 - The no-JS fallback path must keep working as it does today.
-
-Not scheduled. No dependency on d16's remaining tickets.
 
 ## d37. Theme and typeface direction
 

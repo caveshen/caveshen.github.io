@@ -65,7 +65,7 @@ has been idle for a few seconds.
 - The approach prompt remains a real button element with the
   existing anchoring, resize handling, and beside-the-character
   fallback. It is always in the tab order. It is visually hidden
-  until hover, focus, or a pin reveals it.
+  until hover or focus reveals it.
 - The prompt has no box, border, or glass chrome. It is text with a
   shadow treatment. The shadow carries the AA contrast duty the
   old button's glass used to carry. Generous spacing around the text; the

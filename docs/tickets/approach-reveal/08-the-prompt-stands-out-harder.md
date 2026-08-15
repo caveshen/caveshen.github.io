@@ -23,8 +23,9 @@ then the accepted values land with reconciled contrast cells.
       cells reflect them and still gate at AA, not weakened.
 - [x] Both themes hold the accepted legibility; the 404 inherits
       it through the shared component. The prompt styles live in
-      one shared global block; the route loop asserts the rendered
-      shadow on both routes.
+      one shared global block, so the routes cannot diverge; the
+      rendered-shadow assertion runs on the home route, and the
+      route loop covers the prompt's behaviour on both routes.
 - [x] Regression assertions prove they can fail where assertions
       change. Gap reverted to 30 failed the gap test; anchor
       softened to 0.5 failed the day contrast cell at 3.634.

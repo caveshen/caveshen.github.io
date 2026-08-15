@@ -155,12 +155,12 @@ describe('WCAG AA contrast (≥ 4.5:1) on the plaque, worst-case composited back
 // show up there first. The prompt is light-on-dark in both themes now (day
 // dropped its pale-shadow, dark-text variant, which read as swallowed by the
 // bright sky) — the rgb/alpha values below must match .approach-prompt's
-// text-shadow anchor layer in Stage.astro; only the strongest (0.92-alpha)
+// text-shadow anchor layer in Stage.astro; only the strongest (full-alpha)
 // layer is modelled, the fainter bloom and glow layers only add contrast,
 // never remove it. Day's foreground is a literal hex, not dayTokens['--text']
 // (dark) — Stage.astro's day override states the light colour literally too.
 const PROMPT_SHADOW_RGB   = [10, 8, 22]; // dark anchor shadow, both themes
-const PROMPT_SHADOW_ALPHA = 0.92;
+const PROMPT_SHADOW_ALPHA = 1.0;
 const PROMPT_TEXT_DAY     = '#e9e2cf'; // must match Stage.astro's day .approach-prompt color
 const SKY_NIGHT = hexToRgb(nightTokens['--sky']);
 const SKY_DAY   = hexToRgb(dayTokens['--sky']);

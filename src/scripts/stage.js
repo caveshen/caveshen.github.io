@@ -74,7 +74,7 @@ export function initStage(tree) {
 
   // Clears above the head with a gap, centred on the figure, clamped inside the stage frame.
   // PROMPT_HEAD_GAP_PX is a tuning value.
-  const PROMPT_HEAD_GAP_PX = 30;
+  const PROMPT_HEAD_GAP_PX = 35;
   function positionPrompt() {
     const figEl = visibleOne('.js-character');
     if (!figEl) return;

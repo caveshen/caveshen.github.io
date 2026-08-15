@@ -78,9 +78,13 @@ has been idle for a few seconds.
   a tight dark anchor for legibility, a soft wide bloom that lifts
   the text off the scene, and a faint wider glow in the text's own
   colour that helps the line read against a bright sky (preview
-  ruling 2026-08-15). The prompt is deliberately not the stage
-  voice: the invitation is its own register. All values are tuning
-  values.
+  ruling 2026-08-15). Day mode still read as swallowed by the scene
+  on a later live tasting; the strongest of four shadow treatments
+  was accepted (preview ruling 2026-08-15): the anchor layer
+  hardened to full opacity at a tighter 3px blur, and the bloom
+  layer widened to a 14px blur at 0.85 opacity. The glow layer is
+  unchanged. The prompt is deliberately not the stage voice: the
+  invitation is its own register. All values are tuning values.
 - The prompt is light-on-dark in both themes (preview ruling
   2026-08-15): day mode dropped its dark-text, pale-shadow variant,
   which read as swallowed by the bright day sky. Day now wears the
@@ -104,9 +108,11 @@ has been idle for a few seconds.
   the raster bounding box — the raster carries transparent headroom
   above the drawn head, so anchoring to it floated the prompt too
   high (preview ruling 2026-08-15). The gap above the face box is
-  30px (preview rulings 2026-08-14 and 2026-08-15: 14px, then 6px,
-  then 1px all read as too high or too close; the accepted value is
-  30px). The gap is a tuning value.
+  35px (preview rulings 2026-08-14 and 2026-08-15: 14px, then 6px,
+  then 1px all read as too high or too close, then 30px; a later
+  live tasting (preview ruling 2026-08-15) moved the gap from 30px
+  to 35px for a touch more air above the character). The gap is a
+  tuning value.
 - The reveal fade starts at 500ms. The linger starts at one second.
   Both are tuning values.
 - The approach light is a steady edge-light on the character,

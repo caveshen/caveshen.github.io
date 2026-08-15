@@ -12,14 +12,22 @@ then the accepted values land with reconciled contrast cells.
 
 **Blocked by:** 07 — Land the tuning batch.
 
-**Status:** ready-for-agent (tasting with Caveshen; do not start
-unattended)
+**Status:** done — reviewer approved in one round.
 
-- [ ] Caveshen accepts a treatment on live preview.
-- [ ] The accepted values ship as tuning values; the contrast
+- [x] Caveshen accepts a treatment on live preview.
+      Accepted from a four-way tasting (current, more glow, more
+      shadow, harder edges): "more shadow" — anchor at full
+      opacity and 3px blur, bloom widened to 14px at 0.85, glow
+      unchanged. The gap moved 30px to 35px in the same session.
+- [x] The accepted values ship as tuning values; the contrast
       cells reflect them and still gate at AA, not weakened.
-- [ ] Both themes hold the accepted legibility; the 404 inherits
-      it through the shared component.
-- [ ] Regression assertions prove they can fail where assertions
-      change.
-- [ ] Full suite green in one matrix run. Zero flakes.
+- [x] Both themes hold the accepted legibility; the 404 inherits
+      it through the shared component. The prompt styles live in
+      one shared global block; the route loop asserts the rendered
+      shadow on both routes.
+- [x] Regression assertions prove they can fail where assertions
+      change. Gap reverted to 30 failed the gap test; anchor
+      softened to 0.5 failed the day contrast cell at 3.634.
+- [x] Full suite green in one matrix run. Zero flakes.
+      Matrix: 2265 passed / 47 skipped / 0 failed across 8
+      projects. Unit suite: 100/100.

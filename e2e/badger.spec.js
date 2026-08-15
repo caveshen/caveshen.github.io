@@ -24,11 +24,11 @@ test('approach applies a non-identity camera transform (not a no-op zoom)', asyn
 // the raster box (.badger-figure) cannot prove the anchor: the raster's own
 // top sits well above the face box, so a prompt anchored to the raster would
 // still read as "above" it. Only a face-box-relative gap check catches that.
-test('the approach prompt clears the face box with a 30px gap', async ({ page }) => {
+test('the approach prompt clears the face box with a 35px gap', async ({ page }) => {
   const promptBox = await page.locator('#approach-prompt').boundingBox();
   const faceBox   = await visibleRect(page, '.face-void');
   const gap = faceBox.y - (promptBox.y + promptBox.height);
-  expect(Math.abs(gap - 30)).toBeLessThan(2);
+  expect(Math.abs(gap - 35)).toBeLessThan(2);
 });
 
 test('approach frames the Badger face-void', async ({ page }) => {

@@ -156,10 +156,11 @@ describe('WCAG AA contrast (≥ 4.5:1) on the plaque, worst-case composited back
 // dropped its pale-shadow, dark-text variant, which read as swallowed by the
 // bright sky) — the rgb/alpha values below must match .approach-prompt's
 // text-shadow anchor layer in Stage.astro; only the strongest (full-alpha)
-// layer is modelled, the fainter bloom and glow layers only add contrast,
-// never remove it. Day's foreground is a literal hex, not dayTokens['--text']
-// (dark) — Stage.astro's day override states the light colour literally too.
-const PROMPT_SHADOW_RGB   = [10, 8, 22]; // dark anchor shadow, both themes
+// layer is modelled, the gold bloom and dark-pocket layers only add
+// contrast, never remove it. Day's foreground is a literal hex, not
+// dayTokens['--text'] (dark) — Stage.astro's day override states the light
+// colour literally too.
+const PROMPT_SHADOW_RGB   = [7, 6, 14]; // dark anchor shadow, both themes
 const PROMPT_SHADOW_ALPHA = 1.0;
 const PROMPT_TEXT_DAY     = '#e9e2cf'; // must match Stage.astro's day .approach-prompt color
 const SKY_NIGHT = hexToRgb(nightTokens['--sky']);
@@ -180,18 +181,18 @@ describe('WCAG AA contrast (≥ 4.5:1) on the approach prompt, worst-case (sky) 
 
 // ── Approach prompt text-shadow layer count ────────────────────────────────────
 // The night rule (the first .approach-prompt block; the day override is a
-// separate, later selector) carries three text-shadow layers: a tight dark
-// anchor, a soft wide bloom, and a faint wider glow — the glow is a tuning
-// value added after preview. Counting rgba(/rgb( occurrences in the raw
-// declaration catches a layer being dropped without depending on exact
-// blur/offset numbers.
+// separate, later selector) carries six text-shadow layers: a dark anchor,
+// a three-stop gold bloom in the approach light's own colour, and a dark
+// pocket (a dense inner layer plus an outer skirt). Counting rgba(/rgb(
+// occurrences in the raw declaration catches a layer being dropped without
+// depending on exact blur/offset numbers.
 describe('approach prompt text-shadow', () => {
-  it('the night rule carries three shadow layers (anchor, bloom, glow)', () => {
+  it('the night rule carries six shadow layers (anchor, gold bloom x3, dark pocket x2)', () => {
     const rule = stageAstro.match(/\.approach-prompt\s*\{([^}]+)\}/)?.[1] ?? '';
     const shadow = rule.match(/text-shadow:\s*([^;]+);/)?.[1] ?? '';
     expect(shadow, 'text-shadow declaration missing').toBeTruthy();
     const layers = shadow.match(/rgba?\(/g) ?? [];
-    expect(layers.length).toBe(3);
+    expect(layers.length).toBe(6);
   });
 });
 

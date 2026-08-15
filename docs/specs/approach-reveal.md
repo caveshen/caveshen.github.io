@@ -85,6 +85,15 @@ has been idle for a few seconds.
   layer widened to a 14px blur at 0.85 opacity. The glow layer is
   unchanged. The prompt is deliberately not the stage voice: the
   invitation is its own register. All values are tuning values.
+- A final live tuning session (preview ruling 2026-08-15) reworked
+  the shadow to six layers. The prompt now carries the approach
+  light's own gold: on reveal the light fades from the character,
+  and the prompt's text glows in the same gold, a three-stop bloom,
+  so the light reads as moving from the character to the prompt.
+  The dark layers deepened to a charcoal pocket (a dark anchor on
+  top, then a dense dark layer plus a wider dark skirt beneath the
+  gold) — the earlier grey wash read too weak behind the gold. All
+  values remain tuning values.
 - The prompt is light-on-dark in both themes (preview ruling
   2026-08-15): day mode dropped its dark-text, pale-shadow variant,
   which read as swallowed by the bright day sky. Day now wears the
@@ -108,11 +117,12 @@ has been idle for a few seconds.
   the raster bounding box — the raster carries transparent headroom
   above the drawn head, so anchoring to it floated the prompt too
   high (preview ruling 2026-08-15). The gap above the face box is
-  35px (preview rulings 2026-08-14 and 2026-08-15: 14px, then 6px,
-  then 1px all read as too high or too close, then 30px; a later
-  live tasting (preview ruling 2026-08-15) moved the gap from 30px
-  to 35px for a touch more air above the character). The gap is a
-  tuning value.
+  50px (preview rulings 2026-08-14 and 2026-08-15: 14px, then 6px,
+  then 1px all read as too high or too close, then 30px, then 35px
+  for a touch more air above the character; a final live tuning
+  session, preview ruling 2026-08-15, moved the gap from 35px to
+  50px, the accepted value, superseding 35px). The gap is a tuning
+  value.
 - The reveal fade starts at 500ms. The linger starts at one second.
   Both are tuning values.
 - The approach light is a steady edge-light on the character,

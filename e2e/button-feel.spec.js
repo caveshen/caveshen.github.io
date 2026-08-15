@@ -1,13 +1,14 @@
 // button-feel.spec.js — d31 Part B: the selection idiom (caret, press, box,
-// idle bob, theme-toggle flip) and its reduced-motion gating.
+// theme-toggle flip) and its reduced-motion gating.
 import { test, expect } from '@playwright/test';
+import { approachPrompt } from './geom.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
 });
 
 async function approach(page) {
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
 }
 
 // getComputedStyle on an element's ::before pseudo — used throughout to read
@@ -70,6 +71,34 @@ test('caret does not shift the label when it appears — gutter is reserved, not
   expect(afterX).toBeCloseTo(beforeX, 0);
 });
 
+// Seeks the button's own hover-lift/press-drop CSS transitions to their
+// finished value and pauses them there, then reads the settled bounding
+// box — the seek-to-finished idiom geom.js's settledOpacity/
+// seekFrameTransition use for other elements in this suite, in place of a
+// wall-clock guess racing the same 0.12s transitions. waitForFunction-style
+// polling guards against reading before hover/press has actually started a
+// transition; cancelling the paused transitions afterwards keeps
+// getAnimations() clean for the next call, so it can't mistake this call's
+// now-finished entries for a fresh one.
+async function settledRect(locator) {
+  await locator.evaluate((el) => new Promise((resolve) => {
+    (function poll() {
+      el.getAnimations().length > 0 ? resolve() : requestAnimationFrame(poll);
+    })();
+  }));
+  return locator.evaluate((el) => {
+    el.getAnimations().forEach((a) => {
+      const timing = a.effect.getComputedTiming();
+      a.currentTime = (timing.delay ?? 0) + (timing.duration ?? 0);
+      a.pause();
+    });
+    const r = el.getBoundingClientRect();
+    const rect = { x: r.x, y: r.y, width: r.width, height: r.height };
+    el.getAnimations().forEach((a) => a.cancel());
+    return rect;
+  });
+}
+
 test('press state: :active resets the hover lift and presses further down', async ({ page }, testInfo) => {
   // Hover-then-press has no contract on a touch project — this test was
   // simply ungated and passed locally on Windows WebKit but failed on Linux
@@ -90,11 +119,9 @@ test('press state: :active resets the hover lift and presses further down', asyn
   await expect(page.locator('.card')).not.toHaveClass(/is-streaming/, { timeout: 5000 });
   const choice = page.locator('.choices button').first();
   await choice.hover();
-  await page.waitForTimeout(150); // let the 0.12s hover-lift transition settle
-  const hovered = await choice.boundingBox();
+  const hovered = await settledRect(choice);
   await page.mouse.down();
-  await page.waitForTimeout(150); // let the 0.12s transform/translate transition settle
-  const pressed = await choice.boundingBox();
+  const pressed = await settledRect(choice);
   await page.mouse.up();
   // :active resets the hover-lift transform and presses via the independent
   // `translate` property instead — hover -> press is a real ~2px travel,
@@ -136,9 +163,12 @@ test('system options and End dialogue get the caret but no hover lift or press',
   }
 });
 
+// #approach-prompt is deliberately absent here — the approach-reveal ticket
+// removed its box/border (floating shadowed text, not a boxed control); the
+// dedicated no-box/no-border assertions live in approach.spec.js instead.
 test('boxes are square-cornered rectangles with a 2px border, not pills', async ({ page }) => {
   await approach(page);
-  const targets = ['#approach-prompt', '.choices button', '#toggle'];
+  const targets = ['.choices button', '#toggle'];
   for (const sel of targets) {
     const el = page.locator(sel).first();
     const { radius, width } = await el.evaluate((e) => {
@@ -148,29 +178,6 @@ test('boxes are square-cornered rectangles with a 2px border, not pills', async 
     expect(radius, sel).toBe('4px');
     expect(width, sel).toBe('2px');
   }
-});
-
-// B6's bob animates .prompt-label, not #approach-prompt itself (see the CSS
-// rule in Stage.astro for why).
-test('idle bob: prompt label animates while idle, off under reduced motion', async ({ page }) => {
-  const animName = await page.locator('.prompt-label').evaluate(
-    (el) => getComputedStyle(el).animationName
-  );
-  expect(animName).not.toBe('none');
-});
-
-test("idle bob doesn't stop the approach prompt itself from being clickable", async ({ page }) => {
-  await approach(page);
-  await expect(page.locator('.card')).toBeVisible();
-});
-
-test('reduced motion: idle bob is off', async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.reload();
-  const animName = await page.locator('.prompt-label').evaluate(
-    (el) => getComputedStyle(el).animationName
-  );
-  expect(animName).toBe('none');
 });
 
 test('theme toggle: click plays the flip', async ({ page }) => {

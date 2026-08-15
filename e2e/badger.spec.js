@@ -1,6 +1,6 @@
 // The Badger owns `/` — no selection mechanism, the route is the selector.
 import { test, expect } from '@playwright/test';
-import { sceneRects } from './geom.js';
+import { sceneRects, approachPrompt, visibleRect } from './geom.js';
 
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
@@ -13,21 +13,26 @@ test('default: Badger visible, hooded figure absent', async ({ page }) => {
 });
 
 test('approach applies a non-identity camera transform (not a no-op zoom)', async ({ page }) => {
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   const transform = await page.locator('.camera').evaluate((el) => el.style.transform);
   expect(transform).not.toBe('');
   expect(transform).not.toBe('none');
 });
 
-test('the approach prompt sits above the Badger', async ({ page }) => {
+// The prompt anchors to the face box top, not the raster group's own top — the
+// raster carries transparent headroom above the drawn head, so a check against
+// the raster box (.badger-figure) cannot prove the anchor: the raster's own
+// top sits well above the face box, so a prompt anchored to the raster would
+// still read as "above" it. Only a face-box-relative gap check catches that.
+test('the approach prompt clears the face box with a 50px gap', async ({ page }) => {
   const promptBox = await page.locator('#approach-prompt').boundingBox();
-  const badgerBox = await page.locator('.scene-standard .badger-figure').boundingBox();
-  // "Above": prompt's bottom edge clears the top of the character.
-  expect(promptBox.y + promptBox.height).toBeLessThanOrEqual(badgerBox.y + 5);
+  const faceBox   = await visibleRect(page, '.face-void');
+  const gap = faceBox.y - (promptBox.y + promptBox.height);
+  expect(Math.abs(gap - 50)).toBeLessThan(2);
 });
 
 test('approach frames the Badger face-void', async ({ page }) => {
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   // Non-zero box proves the camera math had a real anchor, not a hidden/zero-size one.
   const faceBox = await page.evaluate(() => {
     const el = [...document.querySelectorAll('.face-void')].find((e) => e.getBoundingClientRect().width > 0);

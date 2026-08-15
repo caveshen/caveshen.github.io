@@ -7,6 +7,7 @@ import { resolveTheme } from '../scripts/dialogue.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const tokensCSS  = readFileSync(join(__dirname, '../styles/tokens.css'), 'utf8');
 const indexAstro = readFileSync(join(__dirname, '../pages/index.astro'), 'utf8');
+const stageAstro = readFileSync(join(__dirname, '../components/Stage.astro'), 'utf8');
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
 
@@ -140,6 +141,58 @@ describe('WCAG AA contrast (≥ 4.5:1) on the plaque, worst-case composited back
   ])('%s', (_name, fg, bg) => {
     expect(fg, 'token value missing').toBeTruthy();
     expect(contrast(fg, bg)).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
+// ── WCAG AA contrast on the approach prompt's shadowed text ───────────────────
+// The approach prompt (.approach-prompt, Stage.astro) dropped the plaque's
+// glass for floating text with a text-shadow — the shadow now carries the AA
+// contrast duty the glass used to carry. Same composited-arithmetic pattern
+// as the plaque above, but for text+shadow over the open scene rather than
+// glass over the ground/sea/rail band: the prompt sits above the character's
+// head, which is mostly sky, so the sky is the worst-case backdrop here —
+// gated explicitly since a light-on-light (or dark-on-dark) mismatch would
+// show up there first. The prompt is light-on-dark in both themes now (day
+// dropped its pale-shadow, dark-text variant, which read as swallowed by the
+// bright sky) — the rgb/alpha values below must match .approach-prompt's
+// text-shadow anchor layer in Stage.astro; only the strongest (full-alpha)
+// layer is modelled, the gold bloom and dark-pocket layers only add
+// contrast, never remove it. Day's foreground is a literal hex, not
+// dayTokens['--text'] (dark) — Stage.astro's day override states the light
+// colour literally too.
+const PROMPT_SHADOW_RGB   = [7, 6, 14]; // dark anchor shadow, both themes
+const PROMPT_SHADOW_ALPHA = 1.0;
+const PROMPT_TEXT_DAY     = '#e9e2cf'; // must match Stage.astro's day .approach-prompt color
+const SKY_NIGHT = hexToRgb(nightTokens['--sky']);
+const SKY_DAY   = hexToRgb(dayTokens['--sky']);
+
+const promptBgNight = compositeOver(PROMPT_SHADOW_RGB, PROMPT_SHADOW_ALPHA, SKY_NIGHT);
+const promptBgDay   = compositeOver(PROMPT_SHADOW_RGB, PROMPT_SHADOW_ALPHA, SKY_DAY);
+
+describe('WCAG AA contrast (≥ 4.5:1) on the approach prompt, worst-case (sky) composited backdrop', () => {
+  it.each([
+    ['night prompt text', nightTokens['--text'], promptBgNight],
+    ['day prompt text',   PROMPT_TEXT_DAY,       promptBgDay],
+  ])('%s', (_name, fg, bg) => {
+    expect(fg, 'token value missing').toBeTruthy();
+    expect(contrast(fg, bg)).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
+// ── Approach prompt text-shadow layer count ────────────────────────────────────
+// The night rule (the first .approach-prompt block; the day override is a
+// separate, later selector) carries six text-shadow layers: a dark anchor,
+// a three-stop gold bloom in the approach light's own colour, and a dark
+// pocket (a dense inner layer plus an outer skirt). Counting rgba(/rgb(
+// occurrences in the raw declaration catches a layer being dropped without
+// depending on exact blur/offset numbers.
+describe('approach prompt text-shadow', () => {
+  it('the night rule carries six shadow layers (anchor, gold bloom x3, dark pocket x2)', () => {
+    const rule = stageAstro.match(/\.approach-prompt\s*\{([^}]+)\}/)?.[1] ?? '';
+    const shadow = rule.match(/text-shadow:\s*([^;]+);/)?.[1] ?? '';
+    expect(shadow, 'text-shadow declaration missing').toBeTruthy();
+    const layers = shadow.match(/rgba?\(/g) ?? [];
+    expect(layers.length).toBe(6);
   });
 });
 

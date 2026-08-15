@@ -5,15 +5,15 @@ visitor approaches a character and holds a dialogue with them.
 
 ## Language
 
-**Approach glow**:
-The diegetic light above a character that marks them as interactable.
-Its glow invites the approach; activating it starts the dialogue.
-_Avoid_: orb, wisp, approach button, approach prompt
+**Approach light**:
+The soft edge-light that gathers around a character who can be
+approached. It invites, then stands down once the visitor engages.
+_Avoid_: rim glow, outline, halo, orb, approach glow
 
-**Approach hint**:
-The short stage-voice question ("approach the badger?") that appears
-near the approach glow when a visitor considers it.
-_Avoid_: floaty text, tooltip, label
+**Approach prompt**:
+The stage question that drifts into view when a visitor considers a
+character. Activating it starts the dialogue.
+_Avoid_: approach button, chip, tooltip, floaty text, approach hint
 
 **Glass**:
 The site's shared translucent material. Surfaces made of it show the

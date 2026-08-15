@@ -1,5 +1,6 @@
 // return-journey.spec.js — /sheet → / return via cross-document view transition.
 import { test, expect } from '@playwright/test';
+import { approachPrompt } from './geom.js';
 
 // Waits for the current page's pagereveal-set settle signal (window.__vtFinished)
 // to resolve before continuing. On a VT-arrived page this waits out the transition's
@@ -18,7 +19,7 @@ async function waitForTransitionSettle(page) {
 async function navigateToSheet(page) {
   await page.goto('/');
   await waitForTransitionSettle(page);
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   await page.locator('#choices button.system').click();
   await page.waitForURL('/sheet');
   // Cross-document VT can leave WebKit in a transient state where subsequent
@@ -72,6 +73,11 @@ test('back link returns to / with idle running, no overlay, no arrived-by-morph'
 // the second forward hand-off runs on a page the first return already touched,
 // and the second return runs against whatever the forward hand-off left behind.
 test('double round trip: back link end state holds after each of two returns', async ({ page }) => {
+  // Two full navigate-and-return cycles is roughly double the sibling
+  // single-round-trip test's work (two page loads, two cross-document view
+  // transitions, two back-link returns) — the default 30s per-test budget
+  // that covers the single trip does not leave headroom for the second.
+  test.setTimeout(60_000);
   const errors = [];
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
   page.on('pageerror', (err) => errors.push(err.message));
@@ -185,7 +191,7 @@ test('overlay image is decoded at pagereveal time — image-decode flash guard',
   // In un-throttled preview conditions the preload (T ≈ 5 ms) completes well before
   // DOMContentLoaded/pagereveal (T ≈ 50–80 ms on this stack). Without the preload
   // the overlay fetch starts at pagereveal and complete=false at that instant.
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   await page.locator('#choices button.system').click();
   await page.waitForURL('/sheet');
   await page.waitForLoadState('domcontentloaded');

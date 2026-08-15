@@ -1,11 +1,11 @@
 // sheet-arrival.spec.js — /sheet arrival via cross-document view transition.
 import { test, expect } from '@playwright/test';
-import { assertPortraitGeometry, assertPortraitNoAnim } from './geom.js';
+import { assertPortraitGeometry, assertPortraitNoAnim, approachPrompt } from './geom.js';
 
 // Navigate from / to /sheet via the dialogue system option.
 async function navigateToSheet(page) {
   await page.goto('/');
-  await page.locator('#approach-prompt').click();
+  await approachPrompt(page);
   await page.locator('#choices button.system').click();
   await page.waitForURL('/sheet');
   // Explicit load-state wait: cross-document VT can leave WebKit in a transient

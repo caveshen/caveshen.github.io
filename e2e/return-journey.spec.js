@@ -73,6 +73,11 @@ test('back link returns to / with idle running, no overlay, no arrived-by-morph'
 // the second forward hand-off runs on a page the first return already touched,
 // and the second return runs against whatever the forward hand-off left behind.
 test('double round trip: back link end state holds after each of two returns', async ({ page }) => {
+  // Two full navigate-and-return cycles is roughly double the sibling
+  // single-round-trip test's work (two page loads, two cross-document view
+  // transitions, two back-link returns) — the default 30s per-test budget
+  // that covers the single trip does not leave headroom for the second.
+  test.setTimeout(60_000);
   const errors = [];
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
   page.on('pageerror', (err) => errors.push(err.message));

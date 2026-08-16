@@ -137,6 +137,50 @@ export async function seekFrameTransition(page, fraction) {
   }, fraction);
 }
 
+// Arms a listener that freezes the card's --frame/--frame-faint transitions
+// the instant they're created — the freeze-at-birth idiom banner-plane.spec.js
+// uses for its crash animations. Call this BEFORE the action that starts the
+// transition (approachPrompt()). A transition that's already been running in
+// real time can have a later seek-and-pause land one frame late on a slow
+// machine — fine for a same/different comparison, not for an exact near-zero
+// threshold. One frozen at birth has never run a frame, so
+// sampleFrameTransition() below always seeks a stationary animation.
+export async function armFrameFreeze(page) {
+  await page.evaluate(() => {
+    document.querySelector('.card').addEventListener('transitionrun', (e) => {
+      e.target.getAnimations().forEach((a) => {
+        if (a.transitionProperty === '--frame' || a.transitionProperty === '--frame-faint') {
+          a.currentTime = 0;
+          a.pause();
+        }
+      });
+    });
+  });
+}
+
+// Reads the card's frame outline colour at a fraction of the transition's
+// active duration. Requires armFrameFreeze() to have run first, so the
+// transition is already paused and this only ever seeks a stationary animation.
+export async function sampleFrameTransition(page, fraction) {
+  await page.waitForFunction(() =>
+    document.querySelector('.card').getAnimations()
+      .some((a) => a.transitionProperty === '--frame'));
+  return page.evaluate((fraction) => {
+    const card = document.querySelector('.card');
+    card.getAnimations().forEach((a) => {
+      if (a.transitionProperty === '--frame' || a.transitionProperty === '--frame-faint') {
+        const timing = a.effect.getComputedTiming();
+        a.currentTime = (timing.delay ?? 0) + (timing.duration ?? 0) * fraction;
+      }
+    });
+    const cs = getComputedStyle(card);
+    // Engines disagree on the RGB channels a colour interpolation reports for
+    // "transparent" — alpha alone is the portable "not drawn yet" signal.
+    const outlineAlpha = parseFloat(cs.outlineColor.match(/,\s*([\d.]+)\)$/)?.[1] ?? '1');
+    return { outlineColor: cs.outlineColor, outlineAlpha };
+  }, fraction);
+}
+
 // Frozen-state sampling: pauses an element's own animation(s) at the settled
 // (finished) value and reads the resulting opacity, rather than racing real
 // time — the house idiom for animated-value assertions (WAAPI seek, never a
@@ -186,6 +230,21 @@ export function expectRectClose(actual, expected, eps = 3) {
     expect(Math.abs(actual[key] - expected[key]), `${key}: ${actual[key]} vs ${expected[key]}`)
       .toBeLessThan(eps);
   }
+}
+
+// Resolves once the card's --frame and --frame-faint colour transitions have
+// both genuinely finished (a real transitionend for each), instead of
+// inferring it from the unrelated opacity transition finishing. Same
+// register-before-trigger idiom as waitBgSettle below — call this BEFORE
+// approachPrompt() so the listener is attached before the transition starts.
+export async function waitFrameSettled(page) {
+  return page.evaluate(() => new Promise((resolve) => {
+    const remaining = new Set(['--frame', '--frame-faint']);
+    document.querySelector('.card').addEventListener('transitionend', (e) => {
+      remaining.delete(e.propertyName);
+      if (remaining.size === 0) resolve();
+    });
+  }));
 }
 
 // Resolves when the .bg-layer transform transition settles after a mouse move,

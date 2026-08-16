@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test';
 import {
   visibleRect, seekFrameTransition, expectRectClose,
   settledOpacity, approachPrompt, sampleAnimationAt,
+  armFrameFreeze, sampleFrameTransition, waitFrameSettled,
 } from './geom.js';
 
 test.beforeEach(async ({ page }) => {
@@ -618,43 +619,58 @@ test('reduced motion: card fade is disabled, card is immediately full opacity', 
   await expect(page.locator('.card')).toHaveCSS('opacity', '1');
 });
 
-// The three fixme tests below assert exact values (alpha at a seeked t=0,
-// resting-colour equality) that race the browser's transition clocks on slow
-// machines: the seek can land one frame late, and opacity settling does not
-// prove the custom-property colour transition finished. Skipped by explicit
-// ruling to unblock the merge. To re-enable, sample only frozen or finished
-// states — see the freeze-at-t=0 idiom in banner-plane.spec.js.
-test.fixme('approaching draws the etched frame in over the entrance window', async ({ page }) => {
+// The three tests below sample the etched frame's --frame/--frame-faint
+// custom-property transitions. A transition already running when you seek
+// and pause it can have that seek land one frame late on a slow machine —
+// harmless for a same/different comparison, but enough to break an exact
+// near-zero threshold. armFrameFreeze() sidesteps this by freezing the
+// transition the instant it's created (the freeze-at-birth idiom
+// banner-plane.spec.js uses), before it has run a single frame, so every
+// later seek lands on a stationary animation. The third test still settles
+// in real time rather than via WAAPI pause — some engines don't reliably
+// repaint a background-image driven by a paused custom-property transition —
+// but it proves the frame's own transition finished directly, instead of
+// inferring that from the unrelated opacity transition finishing.
+test('approaching draws the etched frame in over the entrance window', async ({ page }) => {
+  await armFrameFreeze(page);
   await approachPrompt(page);
-  const start = await seekFrameTransition(page, 0);
-  const mid   = await seekFrameTransition(page, 0.5);
-  const end   = await seekFrameTransition(page, 1);
+  const start = await sampleFrameTransition(page, 0);
+  const mid   = await sampleFrameTransition(page, 0.5);
+  const end   = await sampleFrameTransition(page, 1);
   expect(start.outlineAlpha).toBeLessThan(0.01); // armed transparent by .card-entering
   expect(mid.outlineColor).not.toBe(start.outlineColor);
   expect(mid.outlineColor).not.toBe(end.outlineColor);
 });
 
-test.fixme('the frame also draws in under day theme, not just night', async ({ page }) => {
+test('the frame also draws in under day theme, not just night', async ({ page }) => {
   await page.locator('#toggle').click();
+  await armFrameFreeze(page);
   await approachPrompt(page);
-  const start = await seekFrameTransition(page, 0);
+  const start = await sampleFrameTransition(page, 0);
   expect(start.outlineAlpha).toBeLessThan(0.01);
 });
 
-test.fixme('resting frame colour is identical whether the entrance animates or not', async ({ page }) => {
-  await approachPrompt(page);
+test('resting frame colour is identical whether the entrance animates or not', async ({ page }) => {
   // Real-time settle, not WAAPI pause/seek — some engines don't reliably
   // repaint a background-image driven by a paused custom-property transition.
-  // Opacity shares the frame's own 550ms window, so its settle is the frame's too.
-  await expect(page.locator('.card')).toHaveCSS('opacity', '1');
+  // Waits on the frame's own transitionend, not on opacity finishing — opacity
+  // finishing proves only the fade is done, not the colour transition.
+  const settled = waitFrameSettled(page);
   const readCard = () => page.locator('.card').evaluate((el) => {
     const cs = getComputedStyle(el);
     return { outlineColor: cs.outlineColor, backgroundImage: cs.backgroundImage };
   });
+  await approachPrompt(page);
+  await settled;
   const animated = await readCard();
 
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.reload();
+  // The cursor is still parked over the pre-reload .js-character-hit's screen
+  // position. The reload's fresh layout puts an element back at that exact
+  // spot, so without a real move first, the browser sees no hover transition
+  // to fire a fresh mouseenter for approachPrompt()'s hover() below.
+  await page.mouse.move(0, 0);
   await approachPrompt(page);
   const reduced = await readCard();
 

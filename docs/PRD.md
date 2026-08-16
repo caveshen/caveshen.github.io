@@ -59,7 +59,7 @@ the document body under their original `§` headings as history.
 | d13 | `Avatar.astro` uses `is:global` needlessly | §30 D-12 | ✅ built 2026-08-02 — scoped in `646754b`; verify: `grep -n "is:global" src/components/Avatar.astro` is empty |
 | d14 | `not-found.spec.js` coupled to placeholder copy | §30 D-13 | ✅ closed by construction — verify: `grep -rn "toContainText('404')" e2e/` is empty |
 | d15 | Admin page | §31 (remainder) | 🎨 IN DESIGN, no go-ahead |
-| d16 | Dialogue box re-envisioning — the avatar and nameplate leave the card (was: card avatar art refinement) | §33b | ✅ merged 2026-08-12 (PR #21, `b1978f4`) — glass plaque + AA proof + frame-draw entrance; spec `docs/specs/dialogue-plaque.md`. Note: 3 frame-entrance e2e checks are `test.fixme` (raced slow CI runners; skipped by his explicit one-off ruling) — re-enable with frozen-state sampling, see the comment in `e2e/approach.spec.js` |
+| d16 | Dialogue box re-envisioning — the avatar and nameplate leave the card (was: card avatar art refinement) | §33b | ✅ merged 2026-08-12 (PR #21, `b1978f4`) — glass plaque + AA proof + frame-draw entrance; spec `docs/specs/dialogue-plaque.md`. The 3 frame-entrance e2e checks once parked at `test.fixme` were re-enabled with frozen-state sampling via PR #25 — no open work remains |
 | d17 | One character per route — Badger on `/`, hooded figure on `/404`; 1:1 **in interaction, not just scenery**; the toggle dies | §27 (remainder) | ✅ signed off 2026-08-10 (Caveshen) — built 2026-08-02 `26a6ddb` |
 | d18 | Visual validation in e2e | §16 | ✅ merged — must-haves PR #9 (2026-08-04), nice-to-haves PR #12, N4 face/card fix PR #14 (2026-08-06) |
 | d19 | Dialogue rework | §22 | ⏸ parked |

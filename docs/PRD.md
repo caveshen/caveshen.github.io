@@ -63,7 +63,7 @@ the document body under their original `§` headings as history.
 | d17 | One character per route — Badger on `/`, hooded figure on `/404`; 1:1 **in interaction, not just scenery**; the toggle dies | §27 (remainder) | ✅ signed off 2026-08-10 (Caveshen) — built 2026-08-02 `26a6ddb` |
 | d18 | Visual validation in e2e | §16 | ✅ merged — must-haves PR #9 (2026-08-04), nice-to-haves PR #12, N4 face/card fix PR #14 (2026-08-06) |
 | d19 | Dialogue rework | §22 | ⏸ parked |
-| d20 | Social preview imagery | §32 | ⏸ unscheduled |
+| d20 | Social preview imagery | §32 | ↪ folded into d35 (briefed 2026-08-17) — delivers with the Badger head |
 | d21 | All copy | §23 checklist item 1 | Caveshen's alone; every `PLACEHOLDER` stands |
 | d22 | Standardise test filenames — descriptive, not tracker IDs | *new* | ✅ built 2026-07-27 — 8 renames, counts unmoved |
 | d23 | Hosted site — `caveshen.com` + Cloudflare | *new* | ✅ hosting live 2026-08-05 — zone active, HTTPS posture set; cutover (records + site link) deferred |
@@ -78,7 +78,7 @@ the document body under their original `§` headings as history.
 | d32 | Scene→sheet transition — the Badger travels from the scene to his portrait seat | *new* | ✅ MERGED 2026-08-09 (PR #17, `dc9de23`) |
 | d33 | Sheet→scene return — the Badger travels back from his portrait seat | *new* | ✅ MERGED 2026-08-09 (PR #18, `6ea67bf`) |
 | d34 | Test-suite health — full test strategy (unit + integration) and execution | *new* | ✅ MERGED 2026-08-10 (PR #19, `7f85dea`), deploy green — e2e 2072→2008 / 0 failed, unit 97/97; strategy canonical in docs/TEST-STRATEGY.md (§d34) |
-| d35 | The Badger head — standalone fantastical-medieval art (favicon, social, sheet) | *new* | 💡 raised 2026-08-10 — needs a brief (§d35) |
+| d35 | The Badger head — standalone fantastical-medieval art (favicon, social, sheet) | *new* | 📋 briefed 2026-08-17 (§d35) — sculpted-SVG bust, scene idiom, current tokens; favicon + social + sheet; d20 folds in; ready for spec |
 | d36 | Approach affordance — hovering the character reveals the approach prompt; an approach light marks the character | *new* | ✅ DONE 2026-08-15 — spec `docs/specs/approach-reveal.md` actioned in full; delivered via PR #23 |
 | d37 | Theme and typeface direction — settle the site's colour-way and its display font together | *new* | 💡 raised 2026-08-15 — needs a workshop (§d37) |
 
@@ -2725,7 +2725,10 @@ or compose from the real components at an OG-specific layout.
 
 ### Status
 
-⏸ **NOTED, not scheduled.** Current images accepted as-is in the meantime.
+↪ **FOLDED INTO d35** (briefed 2026-08-17) — the Badger head anchors the
+social imagery; the derived-vs-composed tension above binds the d35 spec.
+The favicon exclusion above is superseded by the same brief. Current
+images accepted as-is in the meantime.
 
 ---
 
@@ -6096,8 +6099,38 @@ Facts a brief must not re-derive:
   sculpted SVG, derived work on the commissioned raster (owned
   outright), or new art Caveshen supplies — his call at brief time.
 
-Not a d16 dependency — the box work proceeds without it. Not briefed;
-scope open.
+Not a d16 dependency — the box work proceeds without it.
+
+### 📋 BRIEFED 2026-08-17 — decisions taken with Caveshen
+
+**The head.** A straight portrait bust: head and shoulders, three-quarter
+or front view. Bare — no hood, helm, or costume. The badger's natural
+mask and stripes carry the character; fantastical flavour comes from
+styling, not props.
+
+**Medium and style.** Sculpted SVG in the scene's idiom: flat fills
+applied via CSS token classes, minimal strokes — one visual family with
+`Badger.astro` and the skyline. No second rendering idiom.
+
+**Palette.** Current tokens (`src/styles/tokens.css`). If d37 recolours
+the site, a token-driven SVG inherits the change for free; only raster
+outputs need a re-render.
+
+**Consumers — all three candidates confirmed, and d20 folds in:**
+
+1. **Favicon.** The head replaces the warm-disc brand mark
+   (`favicon.svg` / `favicon.ico`). This **supersedes** §30's recorded
+   decision that the disc is deliberately divergent, and §32's line
+   putting the favicon out of scope — Caveshen's call 2026-08-17. The
+   head must read at 16 px.
+2. **Social preview (d20, §32).** The head anchors `og-image.png` and
+   `apple-touch-icon.png`. §32's tension still binds: anything composed
+   carries a mechanism or test that keeps it honest against scene
+   drift. Choosing that mechanism is spec work, not brief work.
+3. **Character sheet.** The head appears on `/sheet`.
+
+**Left to the spec:** the OG honesty mechanism; exact deliverable
+formats and sizes; how `/sheet` places the head.
 
 ## d36. Approach affordance — hovering the character reveals the prompt
 

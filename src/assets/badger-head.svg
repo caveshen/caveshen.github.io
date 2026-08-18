@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220">
+  <!-- Badger head, three-quarter portrait bust. Hand-sculpted flat fills,
+       classes only (no fill/stroke presentation attributes carry var()).
+       Silhouette (shoulders, ears, head) stays pale so it holds against the
+       site's dark scenes; the dark mask stripes are accents drawn on top. -->
+
+  <!-- shoulders -->
+  <path class="f-moon" d="M16 220 L52 150 Q104 120 156 150 L188 220 Z" />
+
+  <!-- ears — drawn under the head oval so only their outer tips show -->
+  <ellipse class="f-moon" cx="52" cy="40" rx="15" ry="19" transform="rotate(-12 52 40)" />
+  <ellipse class="f-moon" cx="150" cy="34" rx="19" ry="25" transform="rotate(14 150 34)" />
+
+  <!-- head -->
+  <ellipse class="f-moon" cx="104" cy="96" rx="56" ry="58" />
+
+  <!-- mask stripes, ear to nose — near side (turned toward camera) longer, far side shorter -->
+  <ellipse class="f-head-dark" cx="118" cy="82" rx="13" ry="38" transform="rotate(35 118 82)" />
+  <ellipse class="f-head-dark" cx="90" cy="78" rx="9" ry="24" transform="rotate(-30 90 78)" />
+
+  <!-- nose, where both stripes converge -->
+  <ellipse class="f-head-dark" cx="104" cy="118" rx="9" ry="7" />
+</svg>

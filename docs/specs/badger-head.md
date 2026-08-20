@@ -4,6 +4,10 @@ PRD item d35; d20 (PRD §32) folds in. Brief accepted by Caveshen
 2026-08-17; the brief's decisions are settled and are restated here,
 not re-argued. Status: **ready for tickets.**
 
+Amended 2026-08-19: ticket 01 failed the art gate three times and was
+parked. It now carries a binding construction ruling — see the
+ticket-01 amendment below. Round 4 follows that plan exactly.
+
 Settled by the brief: a straight portrait bust — head and shoulders,
 bare, no hood, helm, or costume; the badger's natural mask and stripes
 carry the character. Sculpted SVG in the scene's idiom: flat fills via
@@ -13,10 +17,14 @@ already recorded), the social preview (d20), and `/sheet`.
 
 ## Open questions (defaults given; none block the build)
 
-1. **View angle.** The brief allows three-quarter or front view.
-   Recommended default: **three-quarter** — the mask stripes read as
-   drawn character rather than a symmetric logo. Caveshen rules at the
-   ticket-01 preview.
+1. **View angle.** ✅ RULED 2026-08-19 (design ruling, after three
+   rejected sculpts): **full frontal**, symmetric about the centre
+   line. The brief's three-quarter default is overruled. Reasons: the
+   badger's mask is a symmetric pattern and reads instantly from the
+   front; symmetry lets the worker draw one half and mirror the
+   numbers; frontal survives 16px best. Round 3 moved to near-frontal
+   and its anatomy was the first to be correct — this ruling ratifies
+   the direction and completes it.
 2. **Favicon backdrop.** Recommended default: **keep the rounded
    night-ink square** behind the head, as the warm disc had — the pale
    head needs a ground on light tab strips. Alternative: transparent
@@ -251,18 +259,209 @@ Sculpt `src/assets/badger-head.svg`; add `BadgerHead.astro`; add any
 needed `f-head-*` classes to tokens.css (current palette values only,
 `:root` only).
 
+**Round 4 follows the ticket-01 amendment below. The amendment
+replaces the freehand step; the other steps stand.**
+
 - Step: write the `badger-head` unit spec first (classes resolve, no
   `var()` presentation attributes, no rasters, no day overrides) →
-  verify: red before the source exists, green after.
-- Step: sculpt the head, three-quarter view (Open question 1) →
-  verify: unit spec green; `npm test` green.
+  verify: red before the source exists, green after. *(Done in rounds
+  1–3; keep it green.)*
+- Step: rebuild the head to the amendment's construction plan →
+  verify: unit spec green; `npm test` green; the amendment's worker
+  self-checks all pass.
 - Step: screenshot the head standalone at 512, 64, 32, and 16 px →
   verify: eyeball — reads as a badger bust at 512, still reads at 16.
-- Step: offer Caveshen the preview → verify: his acceptance recorded;
-  view-angle ruling captured in this spec.
+- Step: offer Caveshen the preview → verify: his acceptance recorded.
 
-Done when: unit spec green, screenshots eyeballed, Caveshen accepts
-the head.
+Done when: unit spec green, self-checks pass, screenshots eyeballed,
+Caveshen accepts the head.
+
+#### Ticket-01 amendment — construction ruling (2026-08-19)
+
+Three sculpts failed Caveshen's gate. He parked the ticket and asked
+for a design ruling. This amendment is that ruling. It is binding for
+round 4 and after.
+
+##### Diagnosis — why three freehand sculpts failed
+
+Root cause: **no measurements.** Each round drew a badger from
+memory. But the badger's identity does not live in a general idea of
+a badger. It lives in the proportions of its mask: two dark bands,
+each near one third of the face width; a wide head; a short snout.
+Each round got these numbers wrong in a different direction, so each
+round read as a different wrong animal (bear, panda, plague doctor).
+
+Three contributing faults, one per round:
+
+1. **The dark marks were add-ons, not zones.** Round 1 drew one
+   patch. Round 2 drew two floating ellipses. Round 3 drew thin
+   strokes and then painted a pale blaze shape over their seam, which
+   sliced the bands into straps. The real pattern is not an add-on
+   on a pale head. It divides the whole face into five vertical
+   zones: cheek, band, blaze, band, cheek.
+2. **The dark features were too thin to exist.** Round 3's band
+   strokes are 7–15 viewBox units wide. On this 200-unit canvas, a
+   true band is near 30 units. At 16px, a 7-unit stroke is half a
+   pixel — invisible. A 30-unit filled zone is 2.4px — legible.
+   Round 3's nose pad exists in the source but does not read in the
+   render; a feature that does not read at its true proportion is
+   absent for gate purposes.
+3. **The head shape drifted long and narrow.** Round 3's head is
+   about 1.6 times taller than wide, with a snout half the head's
+   length — a plague-doctor mask. A real European badger head, seen
+   from the front, is about as wide as it is tall, and the snout is
+   short.
+
+Rule for round 4: **every dark mark is a filled path that covers a
+measured zone. No dark strokes. No pale overlay shapes on top of
+dark shapes.** The blaze is not a shape — it is the pale head showing
+through the gap between the two bands.
+
+##### View angle — ruling
+
+Full frontal, symmetric about x=100. Draw the right half's
+coordinates; mirror them for the left. (Open question 1 above records
+this ruling; the brief's three-quarter default is overruled.)
+
+##### Start clean
+
+Round 4 **rewrites `src/assets/badger-head.svg` from this plan**. Do
+not modify round 3's paths — its geometry is stroke-based and
+off-proportion throughout. Keep the file path, the
+`viewBox="0 0 200 220"`, and the class idiom. `BadgerHead.astro` is
+untouched.
+
+##### tokens.css — revert the stroke rule
+
+Round 3 added `stroke: var(--head-dark);` to `.f-head-dark` because
+it drew the bands as strokes. This plan uses no strokes, so the rule
+is an orphan. Restore the rule to `fill` only:
+`.f-head-dark { fill: var(--head-dark); }`.
+
+##### Proportion system
+
+All numbers are viewBox units on the 200×220 canvas. Centre line
+x=100. Tolerance on any single anchor: ±4 units. The ratio checks in
+the self-check section are binding and have no tolerance beyond their
+stated ranges.
+
+Landmarks:
+
+| Feature | Value |
+|---|---|
+| Ear tops | y = 20 |
+| Crown (top of the head dome) | y = 28 |
+| Eye line | y = 90 |
+| Widest point of the head (cheek level) | y ≈ 95, x = 44 to 156 |
+| Nose pad centre | (100, 141) |
+| Muzzle tip (bottom of the pale head) | y = 152 |
+| Head meets shoulders | y ≈ 158 |
+| Shoulder mound | y ≈ 158 down to 220 |
+
+Head silhouette taper (half-widths from x=100):
+
+| y | half-width |
+|---|---|
+| 95 | 56 |
+| 120 | 30 |
+| 140 | 18 |
+| 148 | 12 |
+
+Head width : height = 112 : 124 ≈ 0.90. The head must land between
+0.85 and 1.0 (ears excluded from both measures).
+
+Five zones across the face at the eye line (y=90; the face spans
+x=46 to 154 there, 108 units wide):
+
+| Zone | Span (x) | Width | Fraction of face |
+|---|---|---|---|
+| Left cheek (pale) | 46–59 | 13 | 0.12 |
+| Left band (dark) | 59–89 | 30 | 0.28 |
+| Blaze (pale) | 89–111 | 22 | 0.20 |
+| Right band (dark) | 111–141 | 30 | 0.28 |
+| Right cheek (pale) | 141–154 | 13 | 0.12 |
+
+##### Shape inventory (paint order)
+
+Each shape is named for a real anatomical feature. All are filled
+paths — no strokes anywhere in the file.
+
+1. `shoulders` — class **`f-crater`**. A shallow mound, y≈158 to
+   220. The real animal's body is grizzled grey while its face is
+   white; the darker cream separates body from head and makes the
+   face the brightest mass.
+2. `head` — class **`f-moon`**. One silhouette path: a dome crown
+   (top y=28) over wide cheeks (widest at y≈95), tapering per the
+   half-width table to a short rounded muzzle tip at y=152.
+3. `ear-left`, `ear-right` — class **`f-moon`**. Rounded nubs at the
+   top outer corners, centres ≈(58, 32) and (142, 32), radius ≈16,
+   rising to y=20. They may be merged into the head path or drawn as
+   separate paths under it.
+4. `band-left`, `band-right` — class **`f-head-dark`**. The mask
+   stripes, mirrored. Each band is one filled curved wedge:
+   - Front tip beside the muzzle at ≈(112, 122) (mirror: (88, 122)),
+     ≈9 units wide there. The band does **not** touch the nose pad —
+     the real stripes start behind the nose, with pale muzzle
+     between.
+   - Through the eye line it fills its zone from the table
+     (right: x 111–141).
+   - It ends at the ear base (y≈45, ≈26 units wide) by merging into
+     the dark inner ear.
+5. `ear-inner-left`, `ear-inner-right` — class **`f-head-dark`**.
+   Dark rounded shapes inset ≥4 units inside each pale ear nub. Real
+   badger ears are dark with pale rims; the pale rim is both literal
+   and the containment margin. Each inner ear may be one path with
+   its band.
+6. `nose` — class **`f-head-dark`**. A rounded pad, ≈18 wide × 12
+   tall, centre (100, 141). Keep ≥4 units of pale below and beside
+   it; the pale margin reads as the muzzle rim.
+7. `eye-left`, `eye-right` — class **`f-moon`**. Small pale glint
+   ellipses on top of the bands, centres (74, 90) and (126, 90),
+   ≈rx 3.5 × ry 3. Real badger eyes sit inside the dark bands; in
+   the flat idiom they show as pale glints. They vanish at 16px —
+   that is correct, not a defect.
+
+##### Containment — dark on dark, structural
+
+`--head-dark` (#0f1826) equals the night background. Any dark
+geometry outside the pale silhouette vanishes into the backdrop.
+Containment is a rule of the construction, not a hope:
+
+- Every `f-head-dark` path keeps all of its geometry inside the pale
+  silhouette with a minimum pale margin: bands ≥6 units from the
+  head edge; inner ears ≥4 units inside their ear nubs; nose ≥4
+  units from the muzzle tip and sides.
+- At the ear, the band merges into the inner ear, and the ear's pale
+  rim is the margin there.
+- These margins are also literal anatomy: white ear rims and a pale
+  muzzle rim are real badger features.
+
+##### Worker self-checks — run all before reporting
+
+Screenshots per the repo recipe (`.mjs` at repo root,
+`playwright-core`, `channel: 'msedge'`, output to gitignored
+`screenshots/`, delete the script after). Render at 512, 64, 32,
+and 16 px.
+
+1. **Proportions, measured on the 512 render** (night background):
+   head width ÷ head height between 0.85 and 1.0 (ears excluded);
+   at the eye line each dark band is 26–32% of the local face width
+   and the blaze is 16–24%; the nose pad is visible as a separate
+   dark mark with pale around it.
+2. **Containment proof:** render the head once more at 512 on a
+   magenta background (#ff00ff). The pale silhouette must look the
+   same as on the night render. If any dark shape touches or crosses
+   the pale edge, it shows against magenta — fix the geometry.
+3. **16px read:** the icon shows a pale head shape with two dark
+   marks converging downward and a dark nose dot. If the bands are
+   not visible at 16px, they are too thin — fix the source, never
+   the screenshot.
+4. **Idiom checks:** no `stroke` attribute anywhere in the source;
+   every fill via an `f-*` class; no `var()` in any presentation
+   attribute; `.f-head-dark` in tokens.css carries `fill` only; the
+   `badger-head` unit spec and `npm test` are green.
+
+Only after all four pass: offer Caveshen the preview.
 
 ### 02 — the favicon set
 
@@ -359,6 +558,10 @@ tampered output, and the suite is green on a fresh render.
    carried title line; no PII in any output.
 10. Vitest and the full Playwright matrix are green; every new
     regression assertion has been seen failing for the right reason.
+11. *(Added 2026-08-19)* The round-4 head meets every ratio in the
+    ticket-01 amendment's self-check 1, passes the magenta
+    containment proof, and contains no stroke and no pale overlay
+    shape over a dark shape.
 
 ## Out of Scope
 

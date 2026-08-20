@@ -25,10 +25,10 @@ already recorded), the social preview (d20), and `/sheet`.
    numbers; frontal survives 16px best. Round 3 moved to near-frontal
    and its anatomy was the first to be correct — this ruling ratifies
    the direction and completes it.
-2. **Favicon backdrop.** Recommended default: **keep the rounded
-   night-ink square** behind the head, as the warm disc had — the pale
-   head needs a ground on light tab strips. Alternative: transparent
-   background. Caveshen rules at the ticket-02 preview.
+2. **Favicon backdrop.** RULED 2026-08-20 at the ticket-02 preview:
+   **night-ink square** behind the head, per the recommended default —
+   the pale head needs a ground on light tab strips. The transparent
+   alternative is rejected.
 3. **OG time-of-day.** Recommended default: **night** — the site's
    default theme, and the register the retired moon mark set. A day
    variant is extra render surface with no consumer.

@@ -40,18 +40,34 @@ describe('public hygiene files', () => {
   });
 });
 
-// ── Favicon SVG is night-scene derived ────────────────────────────────────────
+// ── Favicon SVG carries the baked badger head ───────────────────────────────
 
 describe('favicon.svg', () => {
-  it('contains the celestial night colour (#ffd75e)', () => {
-    const content = readFileSync(join(root, 'public/favicon.svg'), 'utf8');
-    // The celestial token is #ffd75e — the moon in the night scene
-    expect(content.toLowerCase()).toContain('ffd75e');
+  const tokensCSS = readFileSync(join(root, 'src/styles/tokens.css'), 'utf8');
+  const rootBlock = tokensCSS.match(/:root\s*\{[\s\S]*?\n\}/)[0];
+  const hexOf = (varName) =>
+    rootBlock.match(new RegExp(`${varName}:\\s*(#[0-9a-fA-F]{3,8})`))[1].toLowerCase().slice(1);
+  const content = readFileSync(join(root, 'public/favicon.svg'), 'utf8').toLowerCase();
+
+  it('contains the head pale colour (--moon, from tokens.css)', () => {
+    expect(content).toContain(hexOf('--moon'));
   });
 
-  it('contains the night background colour (#0f1826)', () => {
-    const content = readFileSync(join(root, 'public/favicon.svg'), 'utf8');
-    expect(content.toLowerCase()).toContain('0f1826');
+  it('contains the head dark colour in at least two distinct fills (--head-dark, not just the backdrop)', () => {
+    // --head-dark equals --bg, so a single hit could be only the backdrop rect.
+    // The bands/nose/inner-ears must bake to it too, or this passes on a broken bake.
+    const hex = hexOf('--head-dark');
+    const fills = [...content.matchAll(new RegExp(`fill="#${hex}"`, 'g'))];
+    expect(fills.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('does not contain the retired warm-disc colour (#ffd75e)', () => {
+    expect(content).not.toContain('ffd75e');
+  });
+
+  it('has no var() in any presentation attribute (browsers fetch it standalone)', () => {
+    const offenders = [...content.matchAll(/\b(fill|stroke)="[^"]*var\([^"]*"/g)];
+    expect(offenders.map((m) => m[0])).toEqual([]);
   });
 });
 

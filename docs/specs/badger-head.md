@@ -90,7 +90,7 @@ touched.
 4. As the site owner, I want the social image composed from the live components, so that it can never show a scene the site does not have.
 5. As the site owner, I want the test suite to fail when any derived image goes stale, so that scene changes can never silently drift from the images again.
 6. As an iOS visitor saving the site, I want the home-screen icon to carry the head, so that all the marks agree.
-7. As a visitor to the character sheet, I want a portrait of the character in the sheet's header, so that the sheet reads as a character sheet at every viewport width.
+7. As a visitor to the character sheet, I want a portrait in the sheet's header, so that the sheet reads as a character sheet at every viewport width. (Amended by the 2026-08-22 ruling: the portrait is the player, not the character — Caveshen's treated photo.)
 8. As a visitor flipping the theme, I want the head to hold its identity colours, so that the character never changes colour with the weather.
 9. As a future maintainer recolouring the site, I want the head's colours driven from the token file, so that a palette change reaches the head without redrawing it.
 10. As a reduced-motion or no-JS visitor, I want the head fully static and CSS-only, so that the new art costs nothing in motion or script.
@@ -111,9 +111,9 @@ touched.
   reviewer checks this.
 - `src/components/BadgerHead.astro` is the single consumer interface:
   it inlines the SVG source (raw import) and takes no props beyond an
-  optional class. Sizing is the caller's business via CSS. One page
-  consumer (`/sheet`) plus the derive script justify the component
-  (`/og` dropped out under the pure-scene ruling).
+  optional class. Sizing is the caller's business via CSS. The
+  derive script is the remaining consumer (`/og` dropped out under
+  the pure-scene ruling; `/sheet` under the photo-portrait ruling).
 
 ### Palette and theme
 
@@ -198,14 +198,23 @@ existing derive script, extended — same file, history preserved):
 
 ### `/sheet` placement
 
-- The head becomes the sheet's portrait: a new framed panel inside
-  the nameplate, following the existing panel convention (border,
-  `panel-caption` below; caption text is `PLACEHOLDER`). It is
-  decorative — `aria-hidden="true"`, like the rail portrait.
-- It is visible at **every** matrix viewport. Exact geometry (column
-  order in `.nameplate-inner`, size, stacking under 640px) is tuned
-  at preview; the contract is: visible, unclipped, overlapping
-  nothing.
+RULED 2026-08-22 at the ticket-04 gate, superseding this section's
+first plan: **the panel carries a treated photo portrait of
+Caveshen, not the badger head.** He supplied his own photograph and
+sealed the treatment (night duotone: cream-multiply and ink-lighten
+over grayscale, head-and-shoulders crop, alpha-fade vignette).
+`docs/make-portrait.mjs` records the recipe; its input is the
+private photo in the gitignored `.scratch/`, and only the treated
+256×256 `public/sheet-portrait.png` is committed and shipped — the
+raw photo never enters git. The panel `img` carries
+`alt="Caveshen Rajman"` and is not `aria-hidden` — it is content.
+The repo rule "reference images are never traced, shipped, or
+committed" does not bind here by owner's exception: the image is
+Caveshen's own likeness, supplied and sealed by him for this use.
+
+- The panel: 128px square, first column of `.nameplate-inner`,
+  top-aligned with the name box and id grid, no caption. Visible at
+  **every** matrix viewport; `.nameplate-inner` stacks below 700px.
 - **The rail portrait is untouched.** `.sheet-portrait` (≥1650px, the
   full-body raster, `view-transition-name: character-portrait`) keeps
   its raster and its morph. Rationale: it is the moving half of the
@@ -509,8 +518,9 @@ composition accepted by Caveshen.
 
 ### 04 — the sheet portrait panel
 
-Add the head panel to the `/sheet` nameplate (panel convention,
-`PLACEHOLDER` caption, `aria-hidden`). Rail portrait untouched.
+Add the portrait panel to the `/sheet` nameplate (see the ruled
+`/sheet` placement section: Caveshen's treated photo portrait, no
+caption, `alt` text). Rail portrait untouched.
 
 - Step: extend the e2e `sheet` spec — panel visible across the
   matrix, screen-space rect inside the viewport, no intersection
@@ -553,7 +563,8 @@ tampered output, and the suite is green on a fresh render.
 4. The `derived-images` unit test fails when any input file changes
    after the last render, or when any output file is altered by
    hand — proven red once each way.
-5. The head appears on `/sheet` at every matrix viewport; the rail
+5. The portrait panel (Caveshen's treated photo, per the ruled
+   `/sheet` placement) appears at every matrix viewport; the rail
    portrait and its morph are byte-for-byte untouched.
 6. Every fill in the head source is applied via a CSS class; no
    `var()` sits in any SVG presentation attribute.

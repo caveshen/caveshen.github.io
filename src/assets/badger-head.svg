@@ -2,7 +2,7 @@
   <!-- Badger head, full frontal, symmetric about x=100. Flat fills via classes only. -->
 
   <!-- shoulders — a darker cream mound, separates body from the pale face -->
-  <path class="f-crater" d="M20,220 L35,192 Q100,166 165,192 L180,220 Z" />
+  <path class="f-crater" d="M20,220 L35,192 Q60,148 100,156 Q140,148 165,192 L180,220 Z" />
 
   <!-- head — one silhouette: dome crown, wide cheeks, short rounded muzzle.
        Cubic curves through the jaw taper so the corners round off instead

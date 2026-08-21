@@ -66,8 +66,9 @@ raster and icon formats.
 
 The OG image becomes a composed poster that cannot drift, in two
 parts. First, the composition is authored **in the site**: a real
-`/og` route places the real scene backdrop and the real head
-component at 1200×630. The image is a screenshot of that route, so it
+`/og` route places the real scene backdrop at 1200×630 (pure scene —
+see the ruling in the OG route section). The image is a screenshot of
+that route, so it
 is made of the same components the visitor sees — a scene change
 flows into the next render by construction. Second, a freshness gate
 closes the remaining hole (a stale committed PNG): the derive script
@@ -85,7 +86,7 @@ touched.
 
 1. As a visitor, I want the browser tab to show the badger's face, so that the tab names the character and not an abstract disc.
 2. As a visitor with many tabs, I want the favicon readable at 16px, so that the mark survives real tab-strip sizes.
-3. As a visitor sharing the site, I want the social card to show the character over the real scene, so that the link preview is an invitation, not a cropped landscape.
+3. As a visitor sharing the site, I want the social card to show the real scene, so that the link preview is an invitation, not a cropped landscape. (Amended by the 2026-08-20 pure-scene ruling: the card's meta text names the owner; the image carries no figure or text.)
 4. As the site owner, I want the social image composed from the live components, so that it can never show a scene the site does not have.
 5. As the site owner, I want the test suite to fail when any derived image goes stale, so that scene changes can never silently drift from the images again.
 6. As an iOS visitor saving the site, I want the home-screen icon to carry the head, so that all the marks agree.
@@ -110,9 +111,9 @@ touched.
   reviewer checks this.
 - `src/components/BadgerHead.astro` is the single consumer interface:
   it inlines the SVG source (raw import) and takes no props beyond an
-  optional class. Sizing is the caller's business via CSS. Two page
-  consumers (`/sheet`, `/og`) plus the derive script justify the
-  component.
+  optional class. Sizing is the caller's business via CSS. One page
+  consumer (`/sheet`) plus the derive script justify the component
+  (`/og` dropped out under the pure-scene ruling).
 
 ### Palette and theme
 
@@ -158,10 +159,14 @@ existing derive script, extended — same file, history preserved):
 ### The OG route and the honesty mechanism
 
 - `src/pages/og.astro` is a real route: the scene backdrop via the
-  real `Scene` component, the head via `BadgerHead`, and the accepted
-  title line ("CAVESHEN RAJMAN", carried verbatim from the current
-  render script — his accepted copy, not new prose) as route markup.
-  Any new copy on the route is `PLACEHOLDER`.
+  real `Scene` component. RULED 2026-08-20 at the ticket-03 preview:
+  **the image is the pure night scene — no head, no title text**. The
+  card's `og:title` and `og:description` meta already carry the name
+  as text beside the image, so text in the image says it twice. The
+  head-plus-title composition this section first described is
+  superseded; the head's social-preview duty (folded in from d20) is
+  discharged by the favicon and the sheet, not the OG image. Any new
+  copy on the route is `PLACEHOLDER`.
 - `Scene.astro`'s `character` prop becomes optional (renders no
   character when absent). This is §32's "framing authored in the
   scene" middle ground: the OG camera and layout are source files,
@@ -485,7 +490,7 @@ Done when: all three icon files carry the head, hygiene units green,
 ### 03 — the OG route and image
 
 Make `Scene.astro`'s `character` prop optional. Build
-`src/pages/og.astro` (backdrop + head + carried title line; noindex;
+`src/pages/og.astro` (pure scene backdrop, per the ruling; noindex;
 sitemap-excluded; unlinked). Re-point the script's OG block at `/og`,
 delete the injection hacks, add reduced-motion emulation, re-render
 `og-image.png`.
@@ -496,8 +501,8 @@ delete the injection hacks, add reduced-motion emulation, re-render
   green, including untouched existing hygiene OG checks; the sitemap
   omits `/og`.
 - Step: screenshot `og-image.png` and the live `/og` route → verify:
-  eyeball at 1200×630 — head unclipped, title legible, no dead
-  foreground; offer Caveshen the preview (composition tuning).
+  eyeball at 1200×630 — scene intact, no cropped skyline; offer
+  Caveshen the preview (composition tuning).
 
 Done when: `og-image.png` is a screenshot of `/og`, matrix green,
 composition accepted by Caveshen.
@@ -543,8 +548,8 @@ tampered output, and the suite is green on a fresh render.
    all carry the head; the warm disc is gone from `public/`.
 2. The favicon reads at 16px — accepted by Caveshen at preview.
 3. `public/og-image.png` (1200×630) is a screenshot of the built
-   `/og` route, which is composed from the real `Scene` and
-   `BadgerHead` components.
+   `/og` route, which is composed from the real `Scene` component
+   (pure scene, per the ruling).
 4. The `derived-images` unit test fails when any input file changes
    after the last render, or when any output file is altered by
    hand — proven red once each way.

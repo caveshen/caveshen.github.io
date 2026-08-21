@@ -28,6 +28,9 @@ import ThemeToggle from '../components/ThemeToggle.astro';
         <a href="/cv.pdf" class="download-btn">&#11015; Download Character Sheet</a>
       </nav>
       <div class="nameplate-inner">
+        <div class="head-panel">
+          <img class="head-portrait" src="/sheet-portrait.png" alt="Caveshen Rajman" width="128" height="128" />
+        </div>
         <div class="name-box">
           <h1>Caveshen Rajman</h1>
           <!-- his authored LinkedIn headline, not invented copy -->
@@ -242,9 +245,30 @@ import ThemeToggle from '../components/ThemeToggle.astro';
 
   .nameplate-inner {
     display: grid;
-    grid-template-columns: minmax(200px, 1fr) 2fr;
+    grid-template-columns: auto minmax(200px, 1fr) 2fr;
     gap: 0.9rem;
   }
+
+  /* ── head panel — Caveshen's treated portrait photo (public/sheet-portrait.png,
+     see docs/make-portrait.mjs), no caption. Visible at every viewport,
+     unlike the wide-only rail portrait. ── */
+  .head-panel {
+    background: var(--panel-grad);
+    border: 1px solid var(--card-edge);
+    border-radius: 10px;
+    padding: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 128px;
+    aspect-ratio: 1 / 1;
+    /* Row height follows the taller name-box — without this the panel
+       stretches to match it, leaving dead space around the art. Top-align
+       instead, so its border stays flush with the name-box/id-grid top edge. */
+    align-self: start;
+    transition: border-color 0.4s ease;
+  }
+  .head-portrait { display: block; width: 100%; height: auto; }
 
   .name-box {
     background: var(--panel-grad);
@@ -543,7 +567,6 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     .right-col { grid-column: 1 / -1; }
   }
   @media (max-width: 640px) {
-    .nameplate-inner { grid-template-columns: 1fr; }
     .id-grid { grid-template-columns: 1fr 1fr; }
     .xp-bar { grid-column: 1 / -1; }
     .sheet-grid { grid-template-columns: 1fr; }
@@ -551,8 +574,16 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     .ability { flex: 1 1 80px; }
   }
 
+  /* head-panel's auto column pushes the 3-column nameplate row's min-content
+     past its container just above 640px (name-box pinned at its 200px floor,
+     id-grid unable to shrink further) — stack a step later than the shared
+     640px breakpoint to clear that band. */
+  @media (max-width: 700px) {
+    .nameplate-inner { grid-template-columns: 1fr; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .panel, .name-box, .id-grid, .ability,
+    .panel, .name-box, .id-grid, .ability, .head-panel,
     .back-link, .download-btn, .contact-link { transition: none; }
   }
 

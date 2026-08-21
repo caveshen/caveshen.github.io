@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { approachPrompt } from './geom.js';
+import { approachPrompt, rectsIntersect } from './geom.js';
 
 test('/sheet renders complete CV content with JS disabled', async ({ browser }) => {
   const ctx = await browser.newContext({ javaScriptEnabled: false });
@@ -260,6 +260,27 @@ test('name-box epithet is visible', async ({ page }) => {
 test('skills panel has Games Journalism row', async ({ page }) => {
   await page.goto('/sheet');
   await expect(page.getByText('Games Journalism', { exact: true })).toBeVisible();
+});
+
+test('portrait panel is visible in the nameplate, inside the viewport, and overlaps neither the name box nor the id grid', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto('/sheet');
+  const panel = page.locator('.head-panel');
+  await expect(panel).toBeVisible();
+  await expect(panel.locator('img')).toHaveAttribute('alt', 'Caveshen Rajman');
+
+  const panelBox = await panel.boundingBox();
+  const nameBox  = await page.locator('.name-box').boundingBox();
+  const idGrid   = await page.locator('.id-grid').boundingBox();
+  const viewport = page.viewportSize();
+
+  expect(panelBox.x).toBeGreaterThanOrEqual(0);
+  expect(panelBox.y).toBeGreaterThanOrEqual(0);
+  expect(panelBox.x + panelBox.width).toBeLessThanOrEqual(viewport.width);
+  expect(panelBox.y + panelBox.height).toBeLessThanOrEqual(viewport.height);
+
+  expect(rectsIntersect(panelBox, nameBox)).toBe(false);
+  expect(rectsIntersect(panelBox, idGrid)).toBe(false);
 });
 
 test('middle and right columns bottom-align at desktop', async ({ page }) => {

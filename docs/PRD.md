@@ -78,9 +78,10 @@ the document body under their original `§` headings as history.
 | d32 | Scene→sheet transition — the Badger travels from the scene to his portrait seat | *new* | ✅ MERGED 2026-08-09 (PR #17, `dc9de23`) |
 | d33 | Sheet→scene return — the Badger travels back from his portrait seat | *new* | ✅ MERGED 2026-08-09 (PR #18, `6ea67bf`) |
 | d34 | Test-suite health — full test strategy (unit + integration) and execution | *new* | ✅ MERGED 2026-08-10 (PR #19, `7f85dea`), deploy green — e2e 2072→2008 / 0 failed, unit 97/97; strategy canonical in docs/TEST-STRATEGY.md (§d34) |
-| d35 | The Badger head — standalone fantastical-medieval art (favicon, social, sheet) | *new* | 📋 briefed 2026-08-17 (§d35) — sculpted-SVG bust, scene idiom, current tokens; favicon + social + sheet; d20 folds in; ready for spec |
+| d35 | The Badger head — standalone fantastical-medieval art (favicon, social, sheet) | *new* | 🔨 in delivery on `item/badger-head` — spec `docs/specs/badger-head.md`; tickets 01–03 committed (head accepted at gate r4, favicon set, pure-scene OG per ruling); 04 in flight, 05 (freshness gate) remains |
 | d36 | Approach affordance — hovering the character reveals the approach prompt; an approach light marks the character | *new* | ✅ DONE 2026-08-15 — spec `docs/specs/approach-reveal.md` actioned in full; delivered via PR #23 |
 | d37 | Theme and typeface direction — settle the site's colour-way and its display font together | *new* | 💡 raised 2026-08-15 — needs a workshop (§d37) |
+| d38 | Dialogue speaker portrait — warmer variant of the canonical head for the dialogue box | *new* | 💡 queued 2026-08-21 (§d38) — after d35 merges; basis vectors in hand |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -6198,4 +6199,27 @@ Facts a workshop must not re-derive:
   mono (system and sheet data).
 
 Not scheduled. No dependency on d36's remaining work.
+
+## d38. Dialogue speaker portrait
+
+### 💡 QUEUED 2026-08-21 — Caveshen's go; picked up after d35 merges
+
+Give the dialogue box a speaking portrait of the Badger: a rounder,
+warmer variant of the canonical head (d35), so the character who
+talks reads friendlier than the formal mark.
+
+- **Basis:** `screenshots/badger-dialogue.svg` — programmatically
+  created vectors supplied by Caveshen (rule-compliant; not
+  generated raster art). It sits in the gitignored `screenshots/`
+  folder until this item starts; it enters the repo when adapted.
+- **Adaptation notes from the first look (2026-08-21):**
+  - Align the band grammar with the canonical head — the basis
+    file's bands hang from the ears as crescents and stop short of
+    the nose; the site's badger runs nose-through-eye-to-ear. Keep
+    the basis file's rounder skull and expression.
+  - Hard-coded hexes become `f-*` token classes; the baked backdrop
+    rect comes out; ear/band joins respect the dark-on-dark
+    containment margins d35 established.
+- Scope, placement in the dialogue box, and sizes go to a spec when
+  the item is picked up.
 

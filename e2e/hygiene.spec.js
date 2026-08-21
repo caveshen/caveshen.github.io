@@ -129,3 +129,9 @@ test('GET /apple-touch-icon.png returns 200 with image/png content-type', async 
   expect(res.status()).toBe(200);
   expect(res.headers()['content-type']).toContain('image/png');
 });
+
+test('/og carries noindex meta', async ({ page }) => {
+  await page.goto('/og');
+  const robots = await page.locator('meta[name="robots"]').getAttribute('content');
+  expect(robots).toBe('noindex');
+});

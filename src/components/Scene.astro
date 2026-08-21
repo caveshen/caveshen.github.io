@@ -9,7 +9,7 @@ import Moon from './Moon.astro';
 
 interface Props {
   variant: 'standard' | 'wide' | 'tall';
-  character: AstroComponentFactory;
+  character?: AstroComponentFactory;
   characterLabel?: string;
 }
 const { variant, character: Character, characterLabel = '' } = Astro.props;
@@ -194,7 +194,7 @@ const seamXs = Array.from(
     <line x1="0" y1={v.rail.topY} x2={v.width} y2={v.rail.topY} />
     <line x1="0" y1={v.rail.botY} x2={v.width} y2={v.rail.botY} stroke-width="4" opacity="0.8" />
   </g>
-  <Character x={v.fig.x} y={v.fig.y} scale={v.fig.scale} />
+  {Character && <Character x={v.fig.x} y={v.fig.y} scale={v.fig.scale} />}
   </g>
 </svg>
 

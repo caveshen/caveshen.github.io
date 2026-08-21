@@ -1,11 +1,9 @@
 // Renders public/og-image.png (1200×630), public/favicon.svg/.ico (32×32) and
-// public/apple-touch-icon.png (180×180). The OG image is rendered from the real
-// built site (astro build → astro preview, same as e2e/playwright.config.js's
-// webServer) so it can never drift from the scene, unlike a hand-copied inline
-// SVG. The icon blocks bake src/assets/badger-head.svg's token-class fills to
-// hex (read from tokens.css :root) over a night-ink backdrop — the SVG source
-// stays the single drawing, no hand-maintained second copy or colour table.
-// Run from the repo root: node docs/render-og.js
+// public/apple-touch-icon.png (180×180). The OG image is a screenshot of the
+// built site's real /og route (astro build → astro preview), which renders
+// the real Scene component. The icon blocks bake src/assets/badger-head.svg's
+// token-class fills to hex (read from tokens.css :root) over a night-ink
+// backdrop. Run from the repo root: node docs/render-og.js
 import { chromium } from 'playwright-core';
 import { writeFileSync, readFileSync } from 'node:fs';
 import { spawn, spawnSync } from 'node:child_process';
@@ -57,7 +55,7 @@ ${bakedHead}
 writeFileSync(path.join(root, 'public', 'favicon.svg'), faviconSVG);
 console.log('rendered public/favicon.svg');
 
-// ── OG image: 1200×630, real scene, rendered off the built site ────────────
+// ── OG image: 1200×630, screenshot of the built site's real /og route ──────
 {
   spawnSync('npx', ['astro', 'build'], { cwd: root, stdio: 'inherit', shell: true });
 
@@ -65,7 +63,7 @@ console.log('rendered public/favicon.svg');
     cwd: root,
     shell: true,
   });
-  const url = `http://localhost:${PORT}/`;
+  const url = `http://localhost:${PORT}/og`;
   for (let i = 0; ; i++) {
     try { await fetch(url); break; } catch {
       if (i > 50) throw new Error(`astro preview never came up on ${url}`);
@@ -73,27 +71,11 @@ console.log('rendered public/favicon.svg');
     }
   }
 
-  const page = await browser.newPage();
+  // reducedMotion emulation freezes the city-light glimmer (tokens.css gates
+  // it under prefers-reduced-motion: reduce) so repeated renders are byte-identical.
+  const page = await browser.newPage({ reducedMotion: 'reduce' });
   await page.setViewportSize({ width: 1200, height: 630 });
   await page.goto(url);
-  await page.addStyleTag({
-    content: `
-      /* CAMERA.std is the standard variant; at a bare 1200×630 viewport the
-         min-aspect-ratio:15/8 query would otherwise select scene-wide instead. */
-      .scene-standard { display: block !important; }
-      .scene-wide, .scene-tall { display: none !important; }
-      /* Scenery only (Caveshen's ruling): no characters, no UI chrome. */
-      .js-character, .card, #approach-prompt, #toggle, #fullscreen-toggle,
-      .banner-plane, .page-foot { display: none !important; }
-    `,
-  });
-  await page.evaluate(() => {
-    const t = document.createElement('div');
-    t.textContent = 'CAVESHEN RAJMAN';
-    t.style.cssText = 'position:fixed; left:0; top:570px; width:1200px; text-align:center;' +
-      'font-family:Georgia, serif; font-size:22px; color:#e9e2cf; opacity:0.7; letter-spacing:0.1em;';
-    document.body.appendChild(t);
-  });
   await page.screenshot({
     path: path.join(root, 'public', 'og-image.png'),
     clip: { x: 0, y: 0, width: 1200, height: 630 },

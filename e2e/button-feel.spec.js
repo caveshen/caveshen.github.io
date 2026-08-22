@@ -12,9 +12,10 @@ async function approach(page) {
 }
 
 // getComputedStyle on an element's ::before/::after pseudo — used throughout
-// to read generated content without depending on it being real DOM (the
-// numeral and ✦ are aria-hidden by construction: pure CSS content, never in
-// the a11y tree).
+// to read generated content without depending on it being real DOM. The
+// contract: the numerals and ✦ are pure CSS content with alt-text form ''
+// (see Stage.astro's ::after), so they never join a button's accessible NAME;
+// a screen reader may still announce them while reading the choices list.
 async function pseudoStyle(locator, pseudo, prop) {
   return locator.evaluate((el, [p, name]) => getComputedStyle(el, p)[name], [pseudo, prop]);
 }

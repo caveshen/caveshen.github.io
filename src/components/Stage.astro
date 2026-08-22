@@ -167,7 +167,9 @@ const root = tree.root;
     font-size: 0.95rem;
     font-weight: 600;
     letter-spacing: 0.12em;
-    color: var(--text);
+    /* --prompt-ink is light in both themes (d36 ruling: the prompt ships
+       light-on-dark even by day, where --text itself is dark). */
+    color: var(--prompt-ink);
     background: none;
     border: none;
     /* No box, border, or glass — floating text, not a control. Padding is
@@ -183,25 +185,15 @@ const root = tree.root;
        light's own colour (rgba(255, 215, 94), see LIGHT_ON in stage.js) so
        the prompt reads as the light moving to it, and a dark pocket (a
        dense inner layer plus a wider outer skirt) that holds the text
-       readable against the gold. Both themes use dark shadows behind light
-       text; the day override below restates the same values. */
-    text-shadow: 0 1px 3px rgba(7, 6, 14, 1), 0 0 6px rgba(255, 215, 94, 0.9),
-                 0 0 16px rgba(255, 215, 94, 0.65), 0 0 28px rgba(255, 215, 94, 0.4),
-                 0 0 12px rgba(7, 6, 14, 1), 0 0 20px rgba(7, 6, 14, 0.7);
-  }
-  :root[data-time="day"] .approach-prompt {
-    /* Day keeps the night treatment — light text on dark shadows in both
-       themes; the day-tinted variant read as swallowed by the bright sky.
-       The colour is night's text tone, stated literally because day's
-       --text is dark. Tuning values. */
-    color: #e9e2cf;
+        readable against the gold. Both themes use dark shadows behind light
+        text (--prompt-ink carries the day case), so one rule serves both. */
     text-shadow: 0 1px 3px rgba(7, 6, 14, 1), 0 0 6px rgba(255, 215, 94, 0.9),
                  0 0 16px rgba(255, 215, 94, 0.65), 0 0 28px rgba(255, 215, 94, 0.4),
                  0 0 12px rgba(7, 6, 14, 1), 0 0 20px rgba(7, 6, 14, 0.7);
   }
   .approach-prompt:focus-visible {
-    outline: 2px solid var(--btn-hover-border);
-    outline-offset: 4px;
+    outline: 2px solid var(--gold-bright);
+    outline-offset: 2px;
   }
   /* The reveal/linger fade itself is WAAPI (stage.js), not a CSS transition —
      a CSS transition would race the linger timer. Nothing here to gate under
@@ -250,10 +242,12 @@ const root = tree.root;
   .fullscreen-toggle:focus-visible {
     color: var(--btn-hover-text);
     border-color: var(--btn-hover-border);
-    background: rgba(10, 8, 22, 0.75);
+    /* Standard verb (d37 §6): the faint warm wash laid over the resting
+       glass — a bare wash alone would strip the chip's dark ground. */
+    background: linear-gradient(var(--btn-hover-bg), var(--btn-hover-bg)), rgba(10, 8, 22, 0.55);
   }
   .fullscreen-toggle:focus-visible {
-    outline: 2px solid var(--btn-hover-border);
+    outline: 2px solid var(--gold-bright);
     outline-offset: 2px;
   }
   :root[data-time="day"] .fullscreen-toggle {
@@ -262,7 +256,7 @@ const root = tree.root;
   }
   :root[data-time="day"] .fullscreen-toggle:hover,
   :root[data-time="day"] .fullscreen-toggle:focus-visible {
-    background: rgba(253, 251, 245, 0.88);
+    background: linear-gradient(var(--btn-hover-bg), var(--btn-hover-bg)), rgba(253, 251, 245, 0.65);
   }
   @media (prefers-reduced-motion: reduce) {
     .fullscreen-toggle { transition: none; }
@@ -632,13 +626,6 @@ const root = tree.root;
     padding: 0.7rem 2.6rem 0.7rem 3.2rem;
     cursor: pointer;
     transition: background var(--t-micro), color var(--t-micro);
-    --plate-hover-text: #f6efe0;
-  }
-  :root[data-time="day"] .choices button,
-  :root[data-time="day"] .end-dialogue {
-    /* "Text brightens" inverts on pale ground: day ink steps to bronze
-       instead of toward bone. */
-    --plate-hover-text: var(--gold-bright);
   }
   .choices button::before,
   .end-dialogue::before {
@@ -711,6 +698,14 @@ const root = tree.root;
     font-size: 0.85rem;
   }
   .noscript-note a { color: var(--option); }
+  /* Standard verb (d37 §6) — these links carry no box, so the verb's text
+     half is all there is to turn. */
+  .noscript-note a:hover,
+  .noscript-note a:focus-visible { color: var(--btn-hover-text); }
+  .noscript-note a:focus-visible {
+    outline: 2px solid var(--gold-bright);
+    outline-offset: 2px;
+  }
   /* Full-bleed stage means the footer can't sit in normal flow below it
      (would force a scrollbar), so it floats top-left, mirroring the theme
      toggle's top-right corner. Same glass-chip treatment as

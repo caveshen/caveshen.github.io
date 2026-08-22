@@ -31,6 +31,14 @@
   --btn-hover-border: #ffc46b;
   --btn-hover-text:   #ffc46b;
   --chip-text:        #0c1118;
+  /* Primary action (spec §6): ink on the filled gold pill. Day flips to light
+     ink because day's darkened bronze gold is too close to dark ink for AA. */
+  --btn-primary-ink:  #0c1118;
+  /* Dialogue plate ignition text (spec §5): bone brighter than --text. */
+  --plate-hover-text: #f6efe0;
+  /* Approach prompt ships light-on-dark in BOTH themes (d36 ruling); day
+     restates night's text tone because day's --text is dark. */
+  --prompt-ink:       var(--text);
 
   /* House gold (spec §2): rules, marks, fills; bright for hover/focus. */
   --gold:        #d9a94e;
@@ -95,6 +103,13 @@
   --btn-hover-border: #57431a;
   --btn-hover-text:   #57431a;
   --chip-text:        #2b2723;
+  /* Day gold darkens to bronze for AA on pale ground, so the pill's ink flips
+     light — dark ink on bronze lands near 2:1, cream clears 4.5:1. */
+  --btn-primary-ink:  #fdfbf5;
+  /* "Text brightens" inverts on pale ground: day ink steps to bronze instead
+     of toward bone (night's value is already brighter than night --text). */
+  --plate-hover-text: var(--gold-bright);
+  --prompt-ink:       #e9e2cf;
 
   /* Day gold darkens toward bronze for AA on pale grounds, so "bright" (the
      hover/focus step) is the darker bronze here — salience inverts on light. */

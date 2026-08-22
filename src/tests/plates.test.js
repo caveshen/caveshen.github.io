@@ -62,6 +62,14 @@ describe('dialogue plates (theme-direction §5)', () => {
     expect(starShow, 'star fades in').toContain('opacity: 1');
   });
 
+  it('ignition text comes from the shared token — no component literal', () => {
+    expect(stageAstro).not.toContain('#f6efe0');
+    const ignite = styleBlock.match(
+      /\.choices button:hover,[\s\S]*?\{\s*color:[^}]+\}/
+    )?.[0] ?? '';
+    expect(ignite).toContain('var(--plate-hover-text)');
+  });
+
   it('keyboard focus keeps the kb-focus gate with a gold-bright 2px offset ring', () => {
     const ring = styleBlock.match(
       /:root\.kb-focus \.choices button:focus\s*\{([^}]+)\}/

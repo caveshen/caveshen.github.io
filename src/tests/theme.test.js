@@ -167,12 +167,11 @@ describe('WCAG AA contrast (≥ 4.5:1) on the plaque, worst-case composited back
 // bright sky) — the rgb/alpha values below must match .approach-prompt's
 // text-shadow anchor layer in Stage.astro; only the strongest (full-alpha)
 // layer is modelled, the gold bloom and dark-pocket layers only add
-// contrast, never remove it. Day's foreground is a literal hex, not
-// dayTokens['--text'] (dark) — Stage.astro's day override states the light
-// colour literally too.
+// contrast, never remove it. Day's foreground rides the --prompt-ink token
+// (light in both themes), not dayTokens['--text'] (dark).
 const PROMPT_SHADOW_RGB   = [7, 6, 14]; // dark anchor shadow, both themes
 const PROMPT_SHADOW_ALPHA = 1.0;
-const PROMPT_TEXT_DAY     = '#e9e2cf'; // must match Stage.astro's day .approach-prompt color
+const PROMPT_TEXT_DAY     = dayTokens['--prompt-ink']; // tokens.css, consumed by Stage.astro
 const SKY_NIGHT = hexToRgb(nightTokens['--sky']);
 const SKY_DAY   = hexToRgb(dayTokens['--sky']);
 
@@ -186,6 +185,25 @@ describe('WCAG AA contrast (≥ 4.5:1) on the approach prompt, worst-case (sky) 
   ])('%s', (_name, fg, bg) => {
     expect(fg, 'token value missing').toBeTruthy();
     expect(contrast(fg, bg)).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
+// ── WCAG AA contrast on the primary action pill ──────────────────────────────
+// The download button (d37 §6, primary verb) fills with --gold and brightens
+// to --gold-bright on hover; --btn-primary-ink rides on top in both states.
+// Night uses dark ink; day's bronze gold is too close to dark ink (~2:1), so
+// the day token flips light — both states are checked here so a retune of any
+// of the three tokens re-proves the pair.
+describe('WCAG AA contrast (≥ 4.5:1) on the primary action pill', () => {
+  it.each([
+    ['night ink/gold',        nightTokens['--btn-primary-ink'], nightTokens['--gold']],
+    ['night ink/gold-bright', nightTokens['--btn-primary-ink'], nightTokens['--gold-bright']],
+    ['day ink/gold',          dayTokens['--btn-primary-ink'],   dayTokens['--gold']],
+    ['day ink/gold-bright',   dayTokens['--btn-primary-ink'],   dayTokens['--gold-bright']],
+  ])('%s', (_name, fgHex, bgHex) => {
+    expect(fgHex, 'token value missing').toBeTruthy();
+    expect(bgHex, 'token value missing').toBeTruthy();
+    expect(contrast(fgHex, hexToRgb(bgHex))).toBeGreaterThanOrEqual(4.5);
   });
 });
 
@@ -246,6 +264,51 @@ describe('type roles', () => {
         new RegExp(`${escaped}\\s*\\{[^}]*var\\(--display\\)`)
       );
     }
+  });
+});
+
+// ── Interaction grammar (§6): three hover verbs, one ring ─────────────────────
+
+describe('interaction grammar (theme-direction §6)', () => {
+  const sheetAstro  = readFileSync(join(__dirname, '../pages/sheet.astro'), 'utf8');
+  const toggleAstro = readFileSync(join(__dirname, '../components/ThemeToggle.astro'), 'utf8');
+
+  it('the download button is the primary verb: gold pill, ink text, bright lift', () => {
+    const btn = sheetAstro.match(/\.download-btn\s*\{([^}]+)\}/)?.[1] ?? '';
+    expect(btn, 'filled with house gold').toContain('background: var(--gold)');
+    expect(btn, 'pill radius').toContain('border-radius: var(--r-pill)');
+    expect(btn, 'ink text').toContain('color: var(--btn-primary-ink)');
+    const hover = sheetAstro.match(/\.download-btn:hover[\s\S]*?\{([^}]+)\}/)?.[1] ?? '';
+    expect(hover, 'brightens on hover').toContain('background: var(--gold-bright)');
+    expect(hover, 'lifts 1px').toContain('-1px');
+  });
+
+  it('the back-link takes the standard verb — no dashed idiom survives', () => {
+    expect(sheetAstro.match(/\.back-link\s*\{([^}]+)\}/)?.[1]).not.toContain('dashed');
+    const hover = sheetAstro.match(/\.back-link:hover[\s\S]*?\{([^}]+)\}/)?.[1] ?? '';
+    expect(hover).toContain('var(--btn-hover-text)');
+    expect(hover).toContain('var(--btn-hover-border)');
+    expect(hover).toContain('var(--btn-hover-bg)');
+  });
+
+  // One focus treatment site-wide. A selector may appear in several rules
+  // (hover/focus shares one block); at least one rule per site must carry
+  // the house ring.
+  const ringSites = [
+    ['theme toggle',     toggleAstro, '.toggle:focus-visible'],
+    ['approach prompt',  stageAstro,  '.approach-prompt:focus-visible'],
+    ['fullscreen chip',  stageAstro,  '.fullscreen-toggle:focus-visible'],
+    ['sheet back-link',  sheetAstro,  '.back-link:focus-visible'],
+    ['download button',  sheetAstro,  '.download-btn:focus-visible'],
+    ['contact links',    sheetAstro,  '.contact-link:focus-visible'],
+  ];
+  it.each(ringSites)('the %s focus ring is gold-bright, 2px, offset 2px', (_name, src, sel) => {
+    const escaped = sel.replace(/[.*+?${}()|[\]\\]/g, '\\$&');
+    const bodies = [...src.matchAll(new RegExp(`${escaped}\\s*\\{([^}]+)\\}`, 'g'))].map(m => m[1]);
+    expect(bodies.some(b =>
+      b.includes('outline: 2px solid var(--gold-bright)') &&
+      b.includes('outline-offset: 2px')
+    )).toBe(true);
   });
 });
 

@@ -40,34 +40,51 @@ describe('public hygiene files', () => {
   });
 });
 
-// ── Favicon SVG carries the baked badger head ───────────────────────────────
+// ── Favicon: sized rasters only — head at 16px, champion at 32px ───────────
 
-describe('favicon.svg', () => {
-  const tokensCSS = readFileSync(join(root, 'src/styles/tokens.css'), 'utf8');
-  const rootBlock = tokensCSS.match(/:root\s*\{[\s\S]*?\n\}/)[0];
-  const hexOf = (varName) =>
-    rootBlock.match(new RegExp(`${varName}:\\s*(#[0-9a-fA-F]{3,8})`))[1].toLowerCase().slice(1);
-  const content = readFileSync(join(root, 'public/favicon.svg'), 'utf8').toLowerCase();
-
-  it('contains the head pale colour (--moon, from tokens.css)', () => {
-    expect(content).toContain(hexOf('--moon'));
+describe('favicon.svg absence (regression guard: sized rasters only)', () => {
+  it('is not shipped in public/', () => {
+    expect(existsSync(join(root, 'public/favicon.svg'))).toBe(false);
   });
 
-  it('contains the head dark colour in at least two distinct fills (--head-dark, not just the backdrop)', () => {
-    // --head-dark equals --bg, so a single hit could be only the backdrop rect.
-    // The bands/nose/inner-ears must bake to it too, or this passes on a broken bake.
-    const hex = hexOf('--head-dark');
-    const fills = [...content.matchAll(new RegExp(`fill="#${hex}"`, 'g'))];
-    expect(fills.length).toBeGreaterThanOrEqual(2);
+  it('is not linked from Base.astro', () => {
+    const src = readFileSync(join(root, 'src/layouts/Base.astro'), 'utf8');
+    expect(src).not.toContain('favicon.svg');
+  });
+});
+
+describe('favicon-16.png (canonical head, 16px slot)', () => {
+  it('exists', () => {
+    expect(existsSync(join(root, 'public/favicon-16.png'))).toBe(true);
   });
 
-  it('does not contain the retired warm-disc colour (#ffd75e)', () => {
-    expect(content).not.toContain('ffd75e');
+  it('Base.astro links it at sizes="16x16"', () => {
+    const src = readFileSync(join(root, 'src/layouts/Base.astro'), 'utf8');
+    expect(src).toMatch(/<link[^>]*href="\/favicon-16\.png"[^>]*sizes="16x16"|<link[^>]*sizes="16x16"[^>]*href="\/favicon-16\.png"/);
+  });
+});
+
+describe('favicon-32.png (champion, 32px slot)', () => {
+  it('exists', () => {
+    expect(existsSync(join(root, 'public/favicon-32.png'))).toBe(true);
   });
 
-  it('has no var() in any presentation attribute (browsers fetch it standalone)', () => {
-    const offenders = [...content.matchAll(/\b(fill|stroke)="[^"]*var\([^"]*"/g)];
-    expect(offenders.map((m) => m[0])).toEqual([]);
+  it('Base.astro links it at sizes="32x32"', () => {
+    const src = readFileSync(join(root, 'src/layouts/Base.astro'), 'utf8');
+    expect(src).toMatch(/<link[^>]*href="\/favicon-32\.png"[^>]*sizes="32x32"|<link[^>]*sizes="32x32"[^>]*href="\/favicon-32\.png"/);
+  });
+});
+
+describe('favicon.ico (multi-size: 16 head + 32 champion)', () => {
+  const buf = readFileSync(join(root, 'public/favicon.ico'));
+
+  it('declares two images', () => {
+    expect(buf.readUInt16LE(4)).toBe(2);
+  });
+
+  it('carries a 16px entry and a 32px entry', () => {
+    const sizes = [0, 1].map((i) => buf.readUInt8(6 + i * 16));
+    expect(sizes.sort()).toEqual([16, 32]);
   });
 });
 

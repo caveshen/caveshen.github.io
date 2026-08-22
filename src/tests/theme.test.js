@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolveTheme } from '../scripts/dialogue.js';
@@ -37,8 +37,13 @@ const pageStyle      = indexAstro.match(/<style[^>]*>([\s\S]*?)<\/style>/)?.[1] 
 const pageRootBlock  = pageStyle.match(/:root\s*\{([^}]+)\}/)?.[1] ?? '';
 const pageDayBlock   = pageStyle.match(/:root\[data-time="day"\]\s*\{([^}]+)\}/)?.[1] ?? '';
 
-// Font, motion, and character-identity tokens are theme-neutral; no day override needed
-const ALLOWLIST = ['--serif', '--mono', '--theme-transition', '--head-dark'];
+// Font, motion, radius, and character-identity tokens are theme-neutral; no day override needed
+const ALLOWLIST = [
+  '--serif', '--display', '--mono',
+  '--theme-transition', '--t-micro', '--ease-camera',
+  '--r-sharp', '--r-panel', '--r-pill',
+  '--head-dark',
+];
 
 // ── Token parity ──────────────────────────────────────────────────────────────
 
@@ -112,32 +117,37 @@ describe('WCAG AA contrast (≥ 4.5:1) on --bg', () => {
 // plaque overlaps once the camera zooms in on the character (the plaque sits
 // below the zoomed face; sky/moon/city sit above the head and never reach
 // behind it). Night: the band's brightest fill, --rail. Day: its darkest,
-// --ground-near. Blur is not modelled — it averages, so the un-blurred extreme
-// is already the bound.
-// The alphas below must match .card in Stage.astro, and must stay strictly
-// below 1 — the e2e suite asserts the glass is translucent. Day alpha (0.81)
-// is a design-picked value that can't clear AA alone — day --stage/--dim/
-// --option (tokens.css) are darkened, same hue, to close the gap instead.
+// --ground-near. Both parse from the tokens so a scene retune re-checks here.
+// Blur is not modelled — it averages, so the un-blurred extreme is already the
+// bound. The alphas below must match .card in Stage.astro (the glass literals
+// move onto --glass-bg/--glass-border with the plaque redesign), and must stay
+// strictly below 1 — the e2e suite asserts the glass is translucent. Day alpha
+// (0.81) is a design-picked value that can't clear AA alone — day --stage/
+// --dim/--option/--gold roles are darkened to close the gap instead.
 const GLASS_NIGHT_RGB = [10, 8, 22];   // .card night background, Stage.astro
 const GLASS_NIGHT_ALPHA = 0.75;
 const GLASS_DAY_RGB = [253, 251, 245]; // .card day background, Stage.astro
 const GLASS_DAY_ALPHA = 0.81;
-const SCENE_NIGHT_WORST = hexToRgb('2c3850'); // --rail (night)
-const SCENE_DAY_WORST   = hexToRgb('1f2c28'); // --ground-near (day)
+const SCENE_NIGHT_WORST = hexToRgb(nightTokens['--rail']);       // --rail (night)
+const SCENE_DAY_WORST   = hexToRgb(dayTokens['--ground-near']);  // --ground-near (day)
 
 const plaqueBgNight = compositeOver(GLASS_NIGHT_RGB, GLASS_NIGHT_ALPHA, SCENE_NIGHT_WORST);
 const plaqueBgDay   = compositeOver(GLASS_DAY_RGB, GLASS_DAY_ALPHA, SCENE_DAY_WORST);
 
 describe('WCAG AA contrast (≥ 4.5:1) on the plaque, worst-case composited backdrop', () => {
   it.each([
-    ['night speech',          nightTokens['--text'],   plaqueBgNight],
-    ['night stage direction', nightTokens['--stage'],  plaqueBgNight],
-    ['night dim/system',      nightTokens['--dim'],    plaqueBgNight],
-    ['night option',          nightTokens['--option'], plaqueBgNight],
-    ['day speech',            dayTokens['--text'],     plaqueBgDay],
-    ['day stage direction',   dayTokens['--stage'],    plaqueBgDay],
-    ['day dim/system',        dayTokens['--dim'],      plaqueBgDay],
-    ['day option',            dayTokens['--option'],   plaqueBgDay],
+    ['night speech',          nightTokens['--text'],        plaqueBgNight],
+    ['night stage direction', nightTokens['--stage'],       plaqueBgNight],
+    ['night dim/system',      nightTokens['--dim'],         plaqueBgNight],
+    ['night option',          nightTokens['--option'],      plaqueBgNight],
+    ['night gold',            nightTokens['--gold'],        plaqueBgNight],
+    ['night gold-bright',     nightTokens['--gold-bright'], plaqueBgNight],
+    ['day speech',            dayTokens['--text'],          plaqueBgDay],
+    ['day stage direction',   dayTokens['--stage'],         plaqueBgDay],
+    ['day dim/system',        dayTokens['--dim'],           plaqueBgDay],
+    ['day option',            dayTokens['--option'],        plaqueBgDay],
+    ['day gold',              dayTokens['--gold'],          plaqueBgDay],
+    ['day gold-bright',       dayTokens['--gold-bright'],   plaqueBgDay],
   ])('%s', (_name, fg, bg) => {
     expect(fg, 'token value missing').toBeTruthy();
     expect(contrast(fg, bg)).toBeGreaterThanOrEqual(4.5);
@@ -193,6 +203,49 @@ describe('approach prompt text-shadow', () => {
     expect(shadow, 'text-shadow declaration missing').toBeTruthy();
     const layers = shadow.match(/rgba?\(/g) ?? [];
     expect(layers.length).toBe(6);
+  });
+});
+
+// ── Self-hosted fonts & type roles ────────────────────────────────────────
+
+describe('self-hosted fonts', () => {
+  const baseAstro = readFileSync(join(__dirname, '../layouts/Base.astro'), 'utf8');
+
+  it('Base.astro imports @fontsource Cinzel 600/700 and Cormorant Garamond 500/600/italic-500', () => {
+    for (const imp of [
+      '@fontsource/cinzel/600.css',
+      '@fontsource/cinzel/700.css',
+      '@fontsource/cormorant-garamond/500.css',
+      '@fontsource/cormorant-garamond/600.css',
+      '@fontsource/cormorant-garamond/500-italic.css',
+    ]) expect(baseAstro, `${imp} import missing`).toContain(imp);
+  });
+
+  it('no third-party font URL appears anywhere in src/', () => {
+    const fontCdn = /fonts\.(googleapis|gstatic)\.com|use\.typekit\.net|cloud\.typography/i;
+    const walk = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+      e.isDirectory() ? walk(join(dir, e.name)) : [join(dir, e.name)]
+    );
+    for (const file of walk(join(__dirname, '..'))) {
+      expect(readFileSync(file, 'utf8'), `${file} references a font CDN`).not.toMatch(fontCdn);
+    }
+  });
+});
+
+describe('type roles', () => {
+  it('--serif is the Cormorant stack and --display is the Cinzel stack', () => {
+    expect(nightTokens['--serif']).toContain('Cormorant Garamond');
+    expect(nightTokens['--display']).toContain('Cinzel');
+  });
+
+  it('display roles (nameplate, ability scores, quest titles) consume --display', () => {
+    const sheet = readFileSync(join(__dirname, '../pages/sheet.astro'), 'utf8');
+    for (const sel of ['.name-box h1', '.ab-score', '.quest h3']) {
+      const escaped = sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      expect(sheet, `${sel} does not use var(--display)`).toMatch(
+        new RegExp(`${escaped}\\s*\\{[^}]*var\\(--display\\)`)
+      );
+    }
   });
 });
 

@@ -1,70 +1,80 @@
-/* Design tokens. Night is default; day overrides on data-time="day". */
+/* Design tokens: d37 night palette (Dragon Age register); day overrides on data-time="day". */
 :root {
-  --bg:          #0f1826;
-  --sky:         #0f1826;
-  --mountain:    #1c2a44;
-  --mountain-far:#2e4066;
-  --sea:         #1b2c3c;
-  --celestial:   #ffd75e;
-  --text:        #e9e2cf;
-  --stage:       #7d95a0;
+  --bg:          #0c1118;
+  --sky:         #0c1420;
+  --mountain:    #161f27; /* near massif (.f-near); mid step #242f39 lands with the scene rebuild */
+  --mountain-far:#33414d;
+  --sea:         #1f3036;
+  --celestial:   #ffc46b; /* candlelight windows + stars at night; the sun disc by day */
+  --text:        #ece4d4;
+  --stage:       #7f9490;
   --option:      #8fb4d8;
 
-  --serif: Georgia, "Times New Roman", serif;
-  --mono:  "Cascadia Code", ui-monospace, Consolas, monospace;
+  --serif:  "Cormorant Garamond", "Times New Roman", serif;
+  --display: "Cinzel", "Times New Roman", serif;
+  --mono:   "Cascadia Code", ui-monospace, Consolas, monospace;
 
+  --r-sharp: 4px;
+  --r-panel: 10px;
+  --r-pill:  999px;
+
+  --t-micro:    150ms ease;
+  --ease-camera: cubic-bezier(0.16, 1, 0.3, 1);
   --theme-transition: background-color 0.4s ease, color 0.4s ease;
 
   /* Extended tokens — shared via tokens.css; some consumed only by / */
-  --card-edge:        #26324c;
-  --dim:              #9aabc6; /* night: WCAG AA ≥4.5:1 on --bg */
+  --card-edge:        #2b2822;
+  --dim:              #9aa39b;
   --option-border:    rgba(143, 180, 216, 0.35);
-  /* d31 Part B (B4): night was transparent on hover while day fills the row —
-     a faint amber wash so hover reads as "this row is selected" in both
-     themes, without touching the AA-checked foreground colours. */
-  --btn-hover-bg:     rgba(255, 215, 94, 0.10);
-  --btn-hover-border: #ffd75e;
-  --btn-hover-text:   #ffd75e;
-  --chip-text:        #0f1826;
+  /* Hover verb (spec §6): faint warm wash, border and text to gold-bright. */
+  --btn-hover-bg:     rgba(217, 169, 78, 0.10);
+  --btn-hover-border: #ffc46b;
+  --btn-hover-text:   #ffc46b;
+  --chip-text:        #0c1118;
 
-  /* Sheet panel surface: AMOLED ink-wash — dark blue sinking into black */
-  --panel-grad:       linear-gradient(180deg, #121a2e 0%, #0a0e1a 100%);
-  /* Sheet page background: nebular — faint blue glows on near-black (AMOLED) */
-  --sheet-bg:         radial-gradient(900px 520px at 82% -6%, rgba(44, 82, 158, 0.26), transparent 65%),
-                      radial-gradient(760px 480px at 6% 34%, rgba(36, 64, 128, 0.15), transparent 60%),
-                      #07090f;
+  /* House gold (spec §2): rules, marks, fills; bright for hover/focus. */
+  --gold:        #d9a94e;
+  --gold-bright: #ffc46b;
+  --glass-bg:     rgba(14, 16, 22, 0.75);
+  --glass-border: rgba(236, 228, 212, 0.18);
 
-  /* Pale/cratered moon (locked, not the warm disc — a pale sun is
-     wrong so the sun stays --celestial), standing-parapet rail, near-shore ground,
+  /* Sheet panel surface: ink sinking into black */
+  --panel-grad:       linear-gradient(180deg, #1a1a17 0%, #0a0b09 100%);
+  /* Sheet page background: faint gold and lavender glows on ink */
+  --sheet-bg:         radial-gradient(900px 520px at 82% -6%, rgba(217, 169, 78, 0.10), transparent 65%),
+                      radial-gradient(760px 480px at 6% 34%, rgba(143, 180, 216, 0.07), transparent 60%),
+                      #0a0c11;
+
+  /* Bone moon (locked pale disc), standing-parapet rail, near-shore ground,
      ambient wind motes. */
-  --moon:   #e7e3cf;
-  --crater: #cbc6ae;
-  --rail:   #2c3850;
-  --ground: #0e0d16;
+  --moon:   #e8e2d2;
+  --crater: #ccc5b2;
+  --rail:   #0a0e13;
+  --ground: #0b0e12;
   --mote:      #d8c9a0;
   --mote-op:   .30;
 
   /* Sea foam — a lighter tint of --sea, kept distinct from
      the pale/cream --moon so wave marks read as sea, not moon reflection. */
-  --wave: #3c5a6e;
+  --wave: #3d5a60;
 
   /* Badger-head dark (mask stripes, nose) — identity colour, no day entry. */
   --head-dark: #0f1826;
 
   /* Where the sky's own falloff and the far mountains' base converge, so they
      read as one continuous haze rather than two shapes gradiented independently. */
-  --sky-horizon: #172236;
+  --sky-horizon: #1d2b33;
   /* A third, paler distance step past --mountain-far, for the warehouse fringe —
      the furthest-west cluster — so silhouette weight recedes in three steps. */
-  --mountain-fringe: #223050;
-  /* Lit/shade facets, blended ±7% luminance from --mountain-far — the massif's own
+  --mountain-fringe: #46545e;
+  /* Lit/shade facets, blended ±8% luminance from --mountain-far — the massif's own
      base tone, not a new colour. */
-  --mountain-lit:   #405278;
-  --mountain-shade: #1c2e54;
+  --mountain-lit:   #3e4c58;
+  --mountain-shade: #293540;
   /* Building side-face, darkened from --mountain (the f-near/city fill). */
-  --building-shade: #081630;
+  --building-shade: #0d1218;
   /* Ground-plane depth falloff, darker toward the viewer than --ground. */
-  --ground-near: #06050e;
+  --ground-near: #05070a;
 }
 
 :root[data-time="day"] {
@@ -73,18 +83,25 @@
   --mountain:    #5a6f88;
   --mountain-far:#8ba3bd;
   --sea:         #86b8d0;
-  --celestial:   #f2b544;
-  --text:        #253038;
+  --celestial:   #e9b64f;
+  --text:        #2b2723;
   --stage:       #4c5f5c; /* darkened from #5d7470, same hue, for AA at 0.81 day glass */
   --option:      #3e5d85; /* darkened from #3f5f88, same hue, for AA at 0.81 day glass */
 
-  --card-edge:        rgba(37, 48, 56, 0.12);
-  --dim:              #485d77; /* darkened from #4a5f7a, same hue, for AA at 0.81 day glass */
+  --card-edge:        rgba(43, 39, 35, 0.12);
+  --dim:              #5d574b;
   --option-border:    rgba(63, 95, 136, 0.35);
-  --btn-hover-bg:     #f2b544;
-  --btn-hover-border: #f2b544;
-  --btn-hover-text:   #253038;
-  --chip-text:        #253038;
+  --btn-hover-bg:     rgba(217, 169, 78, 0.15);
+  --btn-hover-border: #57431a;
+  --btn-hover-text:   #57431a;
+  --chip-text:        #2b2723;
+
+  /* Day gold darkens toward bronze for AA on pale grounds, so "bright" (the
+     hover/focus step) is the darker bronze here — salience inverts on light. */
+  --gold:        #6f5620;
+  --gold-bright: #57431a;
+  --glass-bg:     rgba(253, 251, 245, 0.81);
+  --glass-border: rgba(43, 39, 35, 0.20);
 
   /* Sheet panel surface: parchment wash — cream warming at the base */
   --panel-grad:       linear-gradient(180deg, #fdfbf5 0%, #f4eee0 100%);
@@ -202,9 +219,8 @@
    approach()). --cam-scale's fallback of 1 makes this identity at rest and
    with JS never run. Anchored at 50%/sea-top (y=480, the same in all three
    variants) so the horizon stays planted rather than sliding as it scales.
-   Transition duration/easing matches .camera's stylesheet default; stage.js
-   mirrors the entry's inline override onto .bg-layer too so the two never
-   shear mid-zoom. */
+   Easing is the house camera curve (--ease-camera); stage.js mirrors the
+   entry's inline override onto .bg-layer too so the two never shear mid-zoom. */
 .bg-layer {
   --parallax-damp: 0.4;
   transform-box: view-box;
@@ -213,7 +229,7 @@
      identity when JS never runs or the pointer never moves. */
   transform: translate(var(--drift-x, 0px), var(--drift-y, 0px))
              scale(calc((1 + (var(--cam-scale, 1) - 1) * var(--parallax-damp)) / var(--cam-scale, 1)));
-  transition: transform 950ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 950ms var(--ease-camera);
 }
 @media (prefers-reduced-motion: reduce) {
   .bg-layer { transition: none; }

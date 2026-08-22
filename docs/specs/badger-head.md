@@ -131,30 +131,39 @@ touched.
 
 ### Deliverables — formats and sizes
 
-All four derived files are emitted by `docs/render-og.js` (the
-existing derive script, extended — same file, history preserved):
+RULED 2026-08-22, superseding this section's first plan (which
+ticket 02 shipped and this ruling reworks): **the icon set splits by
+size.** At 16px the canonical head holds (only it survives that
+size). At 32px and up, a pixel-art badger "champion" takes over —
+processed by `docs/render-og.js` from a private 32×32 source image
+in the gitignored `.scratch/` (flood-fill background removal,
+palette-snap to `--crater`/`--head-dark`/`--moon`, nearest-neighbour
+integer scaling only). Caveshen waived the no-generated-art rule for
+this asset and accepted its provenance; the raw source never enters
+git — only processed artifacts do.
 
-- **`public/favicon.svg`** — the head over the night-ink rounded
-  square (Open question 2), with **baked hex fills**. Browsers fetch
-  a favicon standalone; site CSS never applies, so classes cannot
-  colour it. The script parses the needed custom-property values out
-  of `src/styles/tokens.css` (they are machine-regular `--name: #hex`
-  lines) and substitutes class → `fill` — the SVG source stays the
-  single drawing, and a recolour flows through on re-render. No
-  hand-maintained second copy of the head, and no hand-maintained
-  colour table in the script.
-- **`public/favicon.ico`** — regenerated from the same baked markup
-  at 32×32, using the script's existing PNG-in-ICO container code.
-  Single size, as today.
-- **`public/apple-touch-icon.png`** — 180×180, the head on a
-  full-bleed night-ink square (iOS applies its own corner mask).
+The arrangement is **sized rasters only — no SVG favicon.** Modern
+browsers prefer an SVG favicon at every rendered size and never fall
+back to a sized raster, which would defeat the 16/32 split; with
+sized PNGs they pick correctly. A hygiene test guards against
+`favicon.svg` quietly returning.
+
+All derived files are emitted by `docs/render-og.js`:
+
+- **`public/favicon-16.png`** — the canonical head, baked hex fills
+  over the night-ink square (the class → `fill` bake described in
+  the OG section's idiom: tokens parsed from `tokens.css`, no
+  hand-maintained colour table).
+- **`public/favicon-32.png`** — the champion on its `--crater` tile.
+- **`public/favicon.ico`** — true multi-entry ICO: 16px head + 32px
+  champion, for legacy browsers and taskbar consumers. Its link tag
+  declares `sizes="32x32"` so modern browsers take the sized PNGs.
+- **`public/apple-touch-icon.png`** — 180×180 champion: the 32×32
+  art at 5× on a full-bleed `--crater` ground (crater, not
+  night-ink — the champion carries its own tile colour, and a
+  night-ink surround would leave a visible seam).
 - **`public/og-image.png`** — 1200×630, a screenshot of the built
   `/og` route (below).
-- **16px legibility is a hard requirement** for the favicon. Default:
-  one drawing serves all sizes. Only if the ticket-02 preview proves
-  the full head illegible at 16px may the source carry a simplified
-  small-size group — and that group lives in the same source file, so
-  the freshness gate still covers it.
 
 ### The OG route and the honesty mechanism
 
@@ -554,8 +563,10 @@ tampered output, and the suite is green on a fresh render.
 
 ## Success Criteria — done means
 
-1. `public/favicon.svg`, `favicon.ico`, and `apple-touch-icon.png`
-   all carry the head; the warm disc is gone from `public/`.
+1. The icon set follows the ruled size split: head at 16px
+   (`favicon-16.png`, the ico's 16 slot), champion at 32px and up
+   (`favicon-32.png`, the ico's 32 slot, `apple-touch-icon.png`);
+   no `favicon.svg` exists; the warm disc is gone from `public/`.
 2. The favicon reads at 16px — accepted by Caveshen at preview.
 3. `public/og-image.png` (1200×630) is a screenshot of the built
    `/og` route, which is composed from the real `Scene` component

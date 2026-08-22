@@ -63,7 +63,7 @@ the document body under their original `§` headings as history.
 | d17 | One character per route — Badger on `/`, hooded figure on `/404`; 1:1 **in interaction, not just scenery**; the toggle dies | §27 (remainder) | ✅ signed off 2026-08-10 (Caveshen) — built 2026-08-02 `26a6ddb` |
 | d18 | Visual validation in e2e | §16 | ✅ merged — must-haves PR #9 (2026-08-04), nice-to-haves PR #12, N4 face/card fix PR #14 (2026-08-06) |
 | d19 | Dialogue rework | §22 | ⏸ parked |
-| d20 | Social preview imagery | §32 | ⏸ unscheduled |
+| d20 | Social preview imagery | §32 | ✅ delivered with d35 — real `/og` route (pure scene, per ruling) + freshness gate; §32 closed |
 | d21 | All copy | §23 checklist item 1 | Caveshen's alone; every `PLACEHOLDER` stands |
 | d22 | Standardise test filenames — descriptive, not tracker IDs | *new* | ✅ built 2026-07-27 — 8 renames, counts unmoved |
 | d23 | Hosted site — `caveshen.com` + Cloudflare | *new* | ✅ hosting live 2026-08-05 — zone active, HTTPS posture set; cutover (records + site link) deferred |
@@ -78,9 +78,10 @@ the document body under their original `§` headings as history.
 | d32 | Scene→sheet transition — the Badger travels from the scene to his portrait seat | *new* | ✅ MERGED 2026-08-09 (PR #17, `dc9de23`) |
 | d33 | Sheet→scene return — the Badger travels back from his portrait seat | *new* | ✅ MERGED 2026-08-09 (PR #18, `6ea67bf`) |
 | d34 | Test-suite health — full test strategy (unit + integration) and execution | *new* | ✅ MERGED 2026-08-10 (PR #19, `7f85dea`), deploy green — e2e 2072→2008 / 0 failed, unit 97/97; strategy canonical in docs/TEST-STRATEGY.md (§d34) |
-| d35 | The Badger head — standalone fantastical-medieval art (favicon, social, sheet) | *new* | 💡 raised 2026-08-10 — needs a brief (§d35) |
+| d35 | The Badger head — standalone fantastical-medieval art (favicon, social, sheet) | *new* | ✅ delivered on `item/badger-head`, awaiting PR — all five tickets committed: head accepted at gate r4; size-split icon set (head 16px, pixel champion 32px+); pure-scene `/og`; photo-portrait sheet panel; two-tier freshness gate. Rulings recorded in `docs/specs/badger-head.md` |
 | d36 | Approach affordance — hovering the character reveals the approach prompt; an approach light marks the character | *new* | ✅ DONE 2026-08-15 — spec `docs/specs/approach-reveal.md` actioned in full; delivered via PR #23 |
 | d37 | Theme and typeface direction — settle the site's colour-way and its display font together | *new* | 💡 raised 2026-08-15 — needs a workshop (§d37) |
+| d38 | Dialogue speaker portrait — warmer variant of the canonical head for the dialogue box | *new* | 💡 queued 2026-08-21 (§d38) — after d35 merges; basis vectors in hand |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -2391,13 +2392,11 @@ document.
 
 ### Decisions recorded — no action required
 
-**Icon moon stays the warm disc (RULED 2026-07-26, option b).** `favicon.svg`,
-`apple-touch-icon.png` and `favicon.ico` draw `#ffd75e`/`#e6b944`; the scene's
-moon has been the pale `--moon`/`--crater` since the P4 restage. This divergence
-is **deliberate**: the icon is branding, not scene furniture, and a cream disc on
-dark blue has markedly less punch at 32×32. `src/tests/hygiene.test.js` pins `ffd75e`
-and should stay pinned. `favicon.svg:5`'s `ponytail:` comment already pointed
-this way. **Recorded so it is not "fixed" later by mistake.**
+**~~Icon moon stays the warm disc (RULED 2026-07-26, option b)~~ — SUPERSEDED
+by d35 (2026-08-22).** The warm disc is gone from `public/`: the icon set now
+splits by size (Badger head at 16px, pixel champion at 32px and up; no
+`favicon.svg`). `hygiene.test.js` no longer pins `ffd75e` — it asserts the
+disc's absence. Details and rulings in `docs/specs/badger-head.md`.
 
 **~~`AGENTS.md` and `CLAUDE.md` stay twins (RULED 2026-07-26)~~ — SUPERSEDED
 2026-08-01: `AGENTS.md` is a pointer to `CLAUDE.md`.** The twins ruling reasoned
@@ -2678,6 +2677,16 @@ hostage** to the authoring design.
 
 ## 32. Social preview imagery — creative pass
 
+**Status: ✅ CLOSED 2026-08-22 — delivered by d35.** The mechanism: the OG
+image is a screenshot of a real `/og` route (unlinked, noindex, out of the
+sitemap) that composes the real `Scene` component — creative control lives in
+source, not script-side injection. Caveshen ruled the composition at preview:
+pure night scene, no figure, no text (the card's meta carries the name). A
+hash-manifest freshness gate (`docs/derived-images.json` + the
+`derived-images` unit test) goes red when any input or output drifts — the
+"test that fails when it stops matching" this section asked for. Rulings in
+`docs/specs/badger-head.md`.
+
 Raised by Caveshen 2026-07-26, on seeing the rebuilt OG image (§30 D-2):
 
 > "We should actually workshop those images as well later — I would much rather
@@ -2725,7 +2734,10 @@ or compose from the real components at an OG-specific layout.
 
 ### Status
 
-⏸ **NOTED, not scheduled.** Current images accepted as-is in the meantime.
+↪ **FOLDED INTO d35** (briefed 2026-08-17) — the Badger head anchors the
+social imagery; the derived-vs-composed tension above binds the d35 spec.
+The favicon exclusion above is superseded by the same brief. Current
+images accepted as-is in the meantime.
 
 ---
 
@@ -6096,8 +6108,38 @@ Facts a brief must not re-derive:
   sculpted SVG, derived work on the commissioned raster (owned
   outright), or new art Caveshen supplies — his call at brief time.
 
-Not a d16 dependency — the box work proceeds without it. Not briefed;
-scope open.
+Not a d16 dependency — the box work proceeds without it.
+
+### 📋 BRIEFED 2026-08-17 — decisions taken with Caveshen
+
+**The head.** A straight portrait bust: head and shoulders, three-quarter
+or front view. Bare — no hood, helm, or costume. The badger's natural
+mask and stripes carry the character; fantastical flavour comes from
+styling, not props.
+
+**Medium and style.** Sculpted SVG in the scene's idiom: flat fills
+applied via CSS token classes, minimal strokes — one visual family with
+`Badger.astro` and the skyline. No second rendering idiom.
+
+**Palette.** Current tokens (`src/styles/tokens.css`). If d37 recolours
+the site, a token-driven SVG inherits the change for free; only raster
+outputs need a re-render.
+
+**Consumers — all three candidates confirmed, and d20 folds in:**
+
+1. **Favicon.** The head replaces the warm-disc brand mark
+   (`favicon.svg` / `favicon.ico`). This **supersedes** §30's recorded
+   decision that the disc is deliberately divergent, and §32's line
+   putting the favicon out of scope — Caveshen's call 2026-08-17. The
+   head must read at 16 px.
+2. **Social preview (d20, §32).** The head anchors `og-image.png` and
+   `apple-touch-icon.png`. §32's tension still binds: anything composed
+   carries a mechanism or test that keeps it honest against scene
+   drift. Choosing that mechanism is spec work, not brief work.
+3. **Character sheet.** The head appears on `/sheet`.
+
+**Left to the spec:** the OG honesty mechanism; exact deliverable
+formats and sizes; how `/sheet` places the head.
 
 ## d36. Approach affordance — hovering the character reveals the prompt
 
@@ -6165,4 +6207,27 @@ Facts a workshop must not re-derive:
   mono (system and sheet data).
 
 Not scheduled. No dependency on d36's remaining work.
+
+## d38. Dialogue speaker portrait
+
+### 💡 QUEUED 2026-08-21 — Caveshen's go; picked up after d35 merges
+
+Give the dialogue box a speaking portrait of the Badger: a rounder,
+warmer variant of the canonical head (d35), so the character who
+talks reads friendlier than the formal mark.
+
+- **Basis:** `screenshots/badger-dialogue.svg` — programmatically
+  created vectors supplied by Caveshen (rule-compliant; not
+  generated raster art). It sits in the gitignored `screenshots/`
+  folder until this item starts; it enters the repo when adapted.
+- **Adaptation notes from the first look (2026-08-21):**
+  - Align the band grammar with the canonical head — the basis
+    file's bands hang from the ears as crescents and stop short of
+    the nose; the site's badger runs nose-through-eye-to-ear. Keep
+    the basis file's rounder skull and expression.
+  - Hard-coded hexes become `f-*` token classes; the baked backdrop
+    rect comes out; ear/band joins respect the dark-on-dark
+    containment margins d35 established.
+- Scope, placement in the dialogue box, and sizes go to a spec when
+  the item is picked up.
 

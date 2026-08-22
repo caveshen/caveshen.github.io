@@ -48,6 +48,9 @@
      the pale/cream --moon so wave marks read as sea, not moon reflection. */
   --wave: #3c5a6e;
 
+  /* Badger-head dark (mask stripes, nose) — identity colour, no day entry. */
+  --head-dark: #0f1826;
+
   /* Where the sky's own falloff and the far mountains' base converge, so they
      read as one continuous haze rather than two shapes gradiented independently. */
   --sky-horizon: #172236;
@@ -131,6 +134,8 @@
 .f-moon  { fill: var(--moon); }
 .f-crater{ fill: var(--crater); }
 .f-wave  { fill: var(--wave); }
+
+.f-head-dark { fill: var(--head-dark); }
 
 /* ── Scene layout + day/night visibility ────────────────────────────────
    Shared by every page that renders a `.scene` SVG (currently / and /404):

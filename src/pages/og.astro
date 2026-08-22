@@ -1,0 +1,30 @@
+---
+// og.astro — the OG image source: the night scene at 1200x630 for docs/render-og.js.
+import Base from '../layouts/Base.astro';
+import Scene from '../components/Scene.astro';
+---
+<Base
+  title="Caveshen Rajman"
+  description="PLACEHOLDER — the OG composition source, not a visited page."
+  noindex
+>
+  <div class="og-frame">
+    <Scene variant="standard" />
+  </div>
+</Base>
+
+<style>
+  .og-frame {
+    position: relative;
+    width: 1200px;
+    height: 630px;
+    overflow: hidden;
+  }
+  /* Only one Scene variant renders on this route — force it visible regardless
+     of the min-aspect-ratio query Scene.astro uses to pick a variant among
+     three, since a bare 1200x630 viewport (aspect 1.905) would otherwise
+     match the wide-variant query even though wide is never rendered here. */
+  .og-frame :global(.scene-standard) {
+    display: block !important;
+  }
+</style>

@@ -40,18 +40,51 @@ describe('public hygiene files', () => {
   });
 });
 
-// ── Favicon SVG is night-scene derived ────────────────────────────────────────
+// ── Favicon: sized rasters only — head at 16px, champion at 32px ───────────
 
-describe('favicon.svg', () => {
-  it('contains the celestial night colour (#ffd75e)', () => {
-    const content = readFileSync(join(root, 'public/favicon.svg'), 'utf8');
-    // The celestial token is #ffd75e — the moon in the night scene
-    expect(content.toLowerCase()).toContain('ffd75e');
+describe('favicon.svg absence (regression guard: sized rasters only)', () => {
+  it('is not shipped in public/', () => {
+    expect(existsSync(join(root, 'public/favicon.svg'))).toBe(false);
   });
 
-  it('contains the night background colour (#0f1826)', () => {
-    const content = readFileSync(join(root, 'public/favicon.svg'), 'utf8');
-    expect(content.toLowerCase()).toContain('0f1826');
+  it('is not linked from Base.astro', () => {
+    const src = readFileSync(join(root, 'src/layouts/Base.astro'), 'utf8');
+    expect(src).not.toContain('favicon.svg');
+  });
+});
+
+describe('favicon-16.png (canonical head, 16px slot)', () => {
+  it('exists', () => {
+    expect(existsSync(join(root, 'public/favicon-16.png'))).toBe(true);
+  });
+
+  it('Base.astro links it at sizes="16x16"', () => {
+    const src = readFileSync(join(root, 'src/layouts/Base.astro'), 'utf8');
+    expect(src).toMatch(/<link[^>]*href="\/favicon-16\.png"[^>]*sizes="16x16"|<link[^>]*sizes="16x16"[^>]*href="\/favicon-16\.png"/);
+  });
+});
+
+describe('favicon-32.png (champion, 32px slot)', () => {
+  it('exists', () => {
+    expect(existsSync(join(root, 'public/favicon-32.png'))).toBe(true);
+  });
+
+  it('Base.astro links it at sizes="32x32"', () => {
+    const src = readFileSync(join(root, 'src/layouts/Base.astro'), 'utf8');
+    expect(src).toMatch(/<link[^>]*href="\/favicon-32\.png"[^>]*sizes="32x32"|<link[^>]*sizes="32x32"[^>]*href="\/favicon-32\.png"/);
+  });
+});
+
+describe('favicon.ico (multi-size: 16 head + 32 champion)', () => {
+  const buf = readFileSync(join(root, 'public/favicon.ico'));
+
+  it('declares two images', () => {
+    expect(buf.readUInt16LE(4)).toBe(2);
+  });
+
+  it('carries a 16px entry and a 32px entry', () => {
+    const sizes = [0, 1].map((i) => buf.readUInt8(6 + i * 16));
+    expect(sizes.sort()).toEqual([16, 32]);
   });
 });
 

@@ -37,8 +37,8 @@ const pageStyle      = indexAstro.match(/<style[^>]*>([\s\S]*?)<\/style>/)?.[1] 
 const pageRootBlock  = pageStyle.match(/:root\s*\{([^}]+)\}/)?.[1] ?? '';
 const pageDayBlock   = pageStyle.match(/:root\[data-time="day"\]\s*\{([^}]+)\}/)?.[1] ?? '';
 
-// Font and motion tokens are theme-neutral; no day override needed
-const ALLOWLIST = ['--serif', '--mono', '--theme-transition'];
+// Font, motion, and character-identity tokens are theme-neutral; no day override needed
+const ALLOWLIST = ['--serif', '--mono', '--theme-transition', '--head-dark'];
 
 // ── Token parity ──────────────────────────────────────────────────────────────
 

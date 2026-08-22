@@ -14,6 +14,7 @@ import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { spawn, spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { COMMITTED_INPUTS, OUTPUTS, hashFile, updateManifest } from './derived-inputs.js';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const PORT = 4331;
@@ -243,5 +244,16 @@ svg { display: block; width: 16px; height: 16px; }
   );
   console.log('rendered public/favicon.ico');
 }
+
+// ── freshness gate manifest ─────────────────────────────────────────────────
+updateManifest({
+  inputs: Object.fromEntries(
+    [...COMMITTED_INPUTS, '.scratch/NAG_Badger.jpg'].map((f) => [f, hashFile(f)])
+  ),
+  outputs: Object.fromEntries(
+    OUTPUTS.filter((f) => f !== 'public/sheet-portrait.png').map((f) => [f, hashFile(f)])
+  ),
+});
+console.log('wrote docs/derived-images.json');
 
 await browser.close();

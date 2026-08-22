@@ -8,6 +8,7 @@ import { chromium } from 'playwright-core';
 import { writeFileSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { hashFile, updateManifest } from './derived-inputs.js';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SIZE = 256;
@@ -58,3 +59,9 @@ await page.screenshot({
 await page.close();
 await browser.close();
 console.log('rendered public/sheet-portrait.png');
+
+updateManifest({
+  inputs: { '.scratch/cavie-ref.jpg': hashFile('.scratch/cavie-ref.jpg') },
+  outputs: { 'public/sheet-portrait.png': hashFile('public/sheet-portrait.png') },
+});
+console.log('wrote docs/derived-images.json');

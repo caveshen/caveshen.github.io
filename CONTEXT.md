@@ -5,6 +5,10 @@ visitor approaches a character and holds a dialogue with them.
 
 ## Language
 
+**Badger head**:
+The character's portrait bust, the site's mark.
+_Avoid_: avatar, logo, icon art
+
 **Approach light**:
 The soft edge-light that gathers around a character who can be
 approached. It invites, then stands down once the visitor engages.

@@ -550,6 +550,21 @@ Add `docs/derived-inputs.js` (input/output list + hash function);
 make `docs/render-og.js` write `docs/derived-images.json`; add the
 `derived-images` unit test.
 
+AMENDED 2026-08-22 (the champion and photo-portrait rulings landed
+after this ticket was written): the gate is **two-tier**, because
+two derive inputs are private and live only in the gitignored
+`.scratch/` (`NAG_Badger.jpg`, `cavie-ref.jpg`). Committed inputs
+gate strictly (hash mismatch → red). Outputs gate on tampering
+(hash mismatch → red). Private-input checks skip with a named
+reason when the file is absent — CI and fresh clones never see
+them, and absence must not read as staleness. The input set scans
+`src/components/` and `src/styles/` whole — deliberate
+over-coverage: an unrelated component edit forces a needless
+re-render, but no scene-touching file can ever be missing from the
+list. `docs/make-portrait.mjs` writes its slice into the same
+manifest. Text-input hashes are CRLF-normalized so the committed
+manifest is identical on Windows and CI checkouts.
+
 - Step: write the test first → verify: red (no manifest), green
   after a render.
 - Step: prove the gate → verify: touch one scene component after

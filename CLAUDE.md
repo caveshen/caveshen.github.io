@@ -15,8 +15,11 @@ Note: Do not use it for tracking code changes, rather rely on the git history.
   looks visually inert. Say what there is to see; let him waive it.
 - **One item at a time.** Don't one-shot the backlog — queue items in the PRD and pick
   up a single one on his explicit go.
-- **Caveshen owns all prose.** Site copy, dialogue trees, and CV wording are his. Provide
-  structure, samples, and clearly-marked `PLACEHOLDER` text only.
+- **Prose (amended 2026-08-22).** Caveshen is the site's voice and final
+  editor. Claude drafts site copy freely; it ships once he passes it at
+  preview. Dialogue trees are primarily his — draft nodes only when
+  invited, as proposals, and expect any line to be struck or rewritten
+  without ceremony. Unpassed copy carries a `PLACEHOLDER` marker.
 - **No generated art.** Vectors and programmatic drawing only. Reference images are
   inspiration — never trace, ship, or commit them.
 - **No PII.** `cv.pdf` strips phone and email; contact is LinkedIn + the site itself.

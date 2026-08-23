@@ -30,6 +30,10 @@ import ThemeToggle from '../components/ThemeToggle.astro';
       <div class="nameplate-inner">
         <div class="head-panel">
           <img class="head-portrait" src="/sheet-portrait.png" alt="Caveshen Rajman" width="128" height="128" />
+          <span class="corner tl" aria-hidden="true"></span>
+          <span class="corner tr" aria-hidden="true"></span>
+          <span class="corner bl" aria-hidden="true"></span>
+          <span class="corner br" aria-hidden="true"></span>
         </div>
         <div class="name-box">
           <h1>Caveshen Rajman</h1>
@@ -37,28 +41,28 @@ import ThemeToggle from '../components/ThemeToggle.astro';
           <p class="epithet">Problem solver, coffee enjoyer, 10x human</p>
           <p class="player-caption">Character Name</p>
         </div>
-        <div class="id-grid">
-          <div class="id-field">
-            <!-- PLACEHOLDER: Class & Level — scores are illustrative; Caveshen tunes -->
-            <p class="value">Engineering Manager <em>11</em></p>
-            <p class="label">Class &amp; Level</p>
-          </div>
-          <div class="id-field">
-            <p class="value">Software Engineering</p>
-            <p class="label">Background</p>
-          </div>
-          <div class="id-field">
-            <p class="value">Cape Town, South Africa</p>
-            <p class="label">Home Region</p>
-          </div>
-          <div class="id-field">
-            <p class="value">PLACEHOLDER</p>
-            <p class="label">Alignment</p>
-          </div>
-          <div class="id-field xp-bar">
-            <div class="xp-track"><div class="xp-fill"></div></div>
-            <p class="label">Experience &mdash; 11 years in tech &middot; levelling since 2015</p>
-          </div>
+      </div>
+      <div class="id-grid">
+        <div class="id-field">
+          <!-- PLACEHOLDER: Class & Level — scores are illustrative; Caveshen tunes -->
+          <p class="value">Engineering Manager <em>11</em></p>
+          <p class="label">Class &amp; Level</p>
+        </div>
+        <div class="id-field">
+          <p class="value">Software Engineering</p>
+          <p class="label">Background</p>
+        </div>
+        <div class="id-field">
+          <p class="value">Cape Town, South Africa</p>
+          <p class="label">Home Region</p>
+        </div>
+        <div class="id-field">
+          <p class="value">PLACEHOLDER</p>
+          <p class="label">Alignment</p>
+        </div>
+        <div class="id-field xp-bar">
+          <div class="xp-track"><div class="xp-fill"></div></div>
+          <p class="label">Experience &mdash; 11 years in tech &middot; levelling since 2015</p>
         </div>
       </div>
     </header>
@@ -78,6 +82,7 @@ import ThemeToggle from '../components/ThemeToggle.astro';
       <div class="middle-col">
 
         <section class="panel" aria-labelledby="skills-caption">
+          <h2 class="section-head">Skill Proficiencies</h2>
           <ul class="skill-list">
             <!-- PLACEHOLDER: skills list; Caveshen to replace with real list -->
             <li><span class="dot expert"></span><span class="skill-mod">+6</span><span class="skill-name">Mentoring</span><span class="skill-attr">(People)</span></li>
@@ -101,27 +106,28 @@ import ThemeToggle from '../components/ThemeToggle.astro';
 
         <!-- spell tier assignments are Caveshen's to tune -->
         <section class="panel" aria-labelledby="spellbook-caption">
+          <h2 class="section-head">Spellbook &mdash; Tech Stack</h2>
           <div class="spell-tier">
-            <div class="tier-head"><span class="tier-badge">0</span> Cantrips <span class="slots">&middot; at will</span></div>
+            <div class="tier-head">Specialisations <span class="slots">&middot; core craft</span></div>
             <div class="spell-row">
               <span class="spell">.NET / C#</span><span class="spell">SQL</span><span class="spell">JavaScript</span><span class="spell">Git</span>
             </div>
           </div>
           <div class="spell-tier">
-            <div class="tier-head"><span class="tier-badge">1</span> First Level <span class="slots">&middot; &#9689;&#9689;&#9689;&#9675; slots</span></div>
+            <div class="tier-head">Frameworks <span class="slots">&middot; practised</span></div>
             <div class="spell-row">
               <span class="spell">VueJS</span><span class="spell">React</span><span class="spell">Angular</span><span class="spell">GraphQL</span><span class="spell">Spring</span>
             </div>
           </div>
           <div class="spell-tier">
-            <div class="tier-head"><span class="tier-badge">2</span> Second Level <span class="slots">&middot; &#9689;&#9689;&#9675; slots</span></div>
+            <div class="tier-head">Passives <span class="slots">&middot; always on</span></div>
             <div class="spell-row">
               <span class="spell">Azure</span><span class="spell">AWS</span><span class="spell">Power BI</span>
             </div>
           </div>
           <!-- tier name and joke note are Caveshen's to tune -->
           <div class="spell-tier last-tier">
-            <div class="tier-head"><span class="tier-badge">&#9670;</span> Divination <span class="slots">&middot; the school of finding hidden truths</span></div>
+            <div class="tier-head">Divination <span class="slots">&middot; the school of finding hidden truths</span></div>
             <div class="spell-row">
               <span class="spell">Cypress</span><span class="spell">Selenium</span><span class="spell">K6</span><span class="spell">NUnit</span><span class="spell">XUnit</span><span class="spell">WebDriverIO</span>
             </div>
@@ -134,6 +140,7 @@ import ThemeToggle from '../components/ThemeToggle.astro';
       <div class="right-col">
 
         <section class="panel" aria-labelledby="questlog-caption">
+          <h2 class="section-head">Backstory &mdash; Quest Log</h2>
           <article class="quest">
             <h3>Engineering Manager &mdash; Derivco Cape Town</h3>
             <p class="q-meta">JUNE 2024 &mdash; PRESENT &middot; PLACEHOLDER</p>
@@ -159,6 +166,7 @@ import ThemeToggle from '../components/ThemeToggle.astro';
         </section>
 
         <section class="panel" aria-labelledby="feats-caption">
+          <h2 class="section-head">Features &amp; Traits</h2>
           <ul class="feat-list">
             <li><span class="feat-mark">&#10022;</span><span class="feat-body"><strong>Bachelor of Commerce, Information Systems &amp; Technology</strong> &mdash; University of KwaZulu-Natal, Durban &middot; 2014.</span></li>
             <li><span class="feat-mark">&#10022;</span><span class="feat-body"><strong>Certified Tester, Foundation Level (ISTQB)</strong> &mdash; 2015.</span></li>
@@ -187,39 +195,28 @@ import ThemeToggle from '../components/ThemeToggle.astro';
   /* Sheet-scoped nebular background; / keeps plain --bg */
   body { background: var(--sheet-bg); }
 
-  /* AMOLED night tone-shift: retire the purple on this page only — bluer
-     edges, blue-grey dim, black-blue grounds. Day values are unaffected. */
-  body {
-    --card-edge: #1f2942;
-    --dim: #94a2c6;
-    --bg: #0a0d16;
-    --option: #8fb3e6;
-    --option-border: rgba(143, 179, 230, 0.35);
-  }
-  [data-time="day"] body {
-    --card-edge: rgba(37, 48, 56, 0.12);
-    --dim: #4d6260;
-    --bg: #e9f0ee;
-    /* no purple in light mode either — deep sky blue, AA on cream */
-    --option: #2e5c96;
-    --option-border: rgba(46, 92, 150, 0.35);
-  }
-
   .sheet-wrap {
     max-width: 1080px;
     margin: 0 auto;
     padding: 1.75rem 1.25rem 4rem;
   }
 
-  /* ── panel convention: bordered card, caption BELOW ─────── */
+  /* ── codex convention: hairline-ruled sections, caption BELOW ──
+     No boxed cards — structure comes from gold hairlines and space. */
   .panel {
-    background: var(--panel-grad);
-    border: 1px solid var(--card-edge);
-    border-radius: 10px;
-    padding: 1.4rem 1.45rem 1rem;
     display: flex;
     flex-direction: column;
-    transition: border-color 0.4s ease;
+  }
+  .panel + .panel {
+    border-top: 1px solid var(--hairline);
+    padding-top: 1.2rem;
+  }
+  .section-head {
+    font-family: var(--display);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.9rem;
   }
   .panel-caption {
     font-family: var(--mono);
@@ -244,47 +241,43 @@ import ThemeToggle from '../components/ThemeToggle.astro';
   }
 
   .nameplate-inner {
-    display: grid;
-    grid-template-columns: auto minmax(200px, 1fr) 2fr;
-    gap: 0.9rem;
-  }
-
-  /* ── head panel — Caveshen's treated portrait photo (public/sheet-portrait.png,
-     see docs/make-portrait.mjs), no caption. Visible at every viewport,
-     unlike the wide-only rail portrait. ── */
-  .head-panel {
-    background: var(--panel-grad);
-    border: 1px solid var(--card-edge);
-    border-radius: 10px;
-    padding: 0.85rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 128px;
-    aspect-ratio: 1 / 1;
-    /* Row height follows the taller name-box — without this the panel
-       stretches to match it, leaving dead space around the art. Top-align
-       instead, so its border stays flush with the name-box/id-grid top edge. */
-    align-self: start;
-    transition: border-color 0.4s ease;
+    gap: 2rem;
+    flex-wrap: wrap;
   }
-  .head-portrait { display: block; width: 100%; height: auto; }
+
+  /* ── head portrait — bracketed frame, codex plate ── */
+  .head-panel {
+    position: relative;
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-sharp);
+    padding: 5px;
+    width: 138px;
+    aspect-ratio: 1 / 1;
+    flex: none;
+  }
+  .head-portrait { display: block; width: 100%; height: auto; border-radius: 3px; }
+  .corner { position: absolute; width: 14px; height: 14px; opacity: 0.55; }
+  .corner.tl { top: 5px; left: 5px; border-top: 2px solid var(--gold); border-left: 2px solid var(--gold); }
+  .corner.tr { top: 5px; right: 5px; border-top: 2px solid var(--gold); border-right: 2px solid var(--gold); }
+  .corner.bl { bottom: 5px; left: 5px; border-bottom: 2px solid var(--gold); border-left: 2px solid var(--gold); }
+  .corner.br { bottom: 5px; right: 5px; border-bottom: 2px solid var(--gold); border-right: 2px solid var(--gold); }
 
   .name-box {
-    background: var(--panel-grad);
-    border: 1px solid var(--card-edge);
-    border-radius: 10px;
-    padding: 1.5rem 1.4rem 1.1rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    transition: border-color 0.4s ease;
+    text-align: center;
+    padding: 1.3rem 1.6rem;
+    border-top: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--hairline);
+    flex: 1 1 20rem;
+    max-width: 34rem;
   }
   .name-box h1 {
     font-family: var(--display);
-    font-size: clamp(1.5rem, 3.5vw, 2rem);
-    font-weight: 700;
-    letter-spacing: 0.01em;
+    font-size: clamp(1.8rem, 4vw, 2.4rem);
+    font-weight: 600;
+    letter-spacing: 0.08em;
     line-height: 1.2;
   }
   .epithet {
@@ -304,18 +297,20 @@ import ThemeToggle from '../components/ThemeToggle.astro';
   }
 
   .id-grid {
-    background: var(--panel-grad);
-    border: 1px solid var(--card-edge);
-    border-radius: 10px;
-    padding: 1.25rem 1.4rem;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem 1.4rem;
-    transition: border-color 0.4s ease;
+    margin-top: 1.4rem;
+    display: flex;
+    flex-wrap: wrap;
   }
+  .id-field {
+    flex: 1 1 auto;
+    min-width: 9rem;
+    padding: 0 1.4rem;
+    border-left: 1px solid var(--hairline);
+  }
+  .id-field:first-child { border-left: none; padding-left: 0; }
   .id-field .value {
     font-family: var(--serif);
-    font-size: 0.92rem;
+    font-size: 1rem;
     line-height: 1.3;
   }
   .id-field .value em {
@@ -329,18 +324,16 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     text-transform: uppercase;
     color: var(--stage);
     margin-top: 0.25rem;
-    border-top: 1px solid var(--card-edge);
-    padding-top: 0.25rem;
   }
-  .xp-bar { grid-column: 2 / -1; }
+  .xp-bar { flex-basis: 100%; padding-left: 0 !important; border-left: none !important; }
   .xp-track {
     height: 7px;
     background: var(--bg);
-    border: 1px solid var(--card-edge);
+    border: 1px solid var(--hairline);
     border-radius: 999px;
     overflow: hidden;
   }
-  .xp-fill { --xp: 78%; width: var(--xp); height: 100%; background: var(--celestial); border-radius: 999px; }
+  .xp-fill { --xp: 78%; width: var(--xp); height: 100%; background: var(--gold); border-radius: 999px; }
 
   .sheet-grid {
     --grid-gap: 1.4rem;
@@ -364,7 +357,7 @@ import ThemeToggle from '../components/ThemeToggle.astro';
   .ability {
     background: var(--panel-grad);
     border: 1px solid var(--card-edge);
-    border-radius: 12px;
+    border-radius: var(--r-panel);
     padding: 0.85rem 0.4rem 1.15rem;
     text-align: center;
     position: relative;
@@ -445,31 +438,24 @@ import ThemeToggle from '../components/ThemeToggle.astro';
   .spell-tier.last-tier { margin-bottom: 0; }
   .tier-head {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     gap: 0.5rem;
     font-family: var(--mono);
     font-size: 0.62rem;
     font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--option);
+    color: var(--gold);
     margin-bottom: 0.5rem;
   }
-  .tier-badge {
-    border: 1px solid var(--option-border);
-    border-radius: 5px;
-    padding: 0.04rem 0.32rem;
-    font-size: 0.68rem;
-    color: var(--text);
-  }
-  .slots { color: var(--stage); letter-spacing: 0.04em; text-transform: none; }
+  .slots { color: var(--stage); letter-spacing: 0.04em; text-transform: lowercase; }
   .spell-row { display: flex; flex-wrap: wrap; gap: 0.45rem; }
   .spell {
-    font-family: var(--mono);
-    font-size: 0.72rem;
+    font-family: var(--serif);
+    font-size: 0.95rem;
     border: 1px solid var(--option-border);
     border-radius: 999px;
-    padding: 0.24rem 0.7rem;
+    padding: 0.2rem 0.85rem;
     color: var(--text);
   }
   .quest {
@@ -481,7 +467,7 @@ import ThemeToggle from '../components/ThemeToggle.astro';
   .q-meta {
     font-family: var(--mono);
     font-size: 0.62rem;
-    color: var(--stage);
+    color: var(--gold);
     letter-spacing: 0.05em;
     margin: 0.25rem 0 0.4rem;
   }
@@ -497,7 +483,7 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     gap: 0.5rem;
   }
   .feat-list li { display: flex; gap: 0.6rem; font-size: 0.84rem; line-height: 1.55; }
-  .feat-mark { color: var(--celestial); font-family: var(--mono); flex: none; }
+  .feat-mark { color: var(--gold); font-family: var(--mono); flex: none; }
   .feat-body { color: var(--dim); }
   .feat-body strong { color: var(--text); font-weight: 700; }
 
@@ -573,23 +559,14 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     .right-col { grid-column: 1 / -1; }
   }
   @media (max-width: 640px) {
-    .id-grid { grid-template-columns: 1fr 1fr; }
-    .xp-bar { grid-column: 1 / -1; }
     .sheet-grid { grid-template-columns: 1fr; }
     .abilities-col { flex-direction: row; flex-wrap: wrap; }
     .ability { flex: 1 1 80px; }
-  }
-
-  /* head-panel's auto column pushes the 3-column nameplate row's min-content
-     past its container just above 640px (name-box pinned at its 200px floor,
-     id-grid unable to shrink further) — stack a step later than the shared
-     640px breakpoint to clear that band. */
-  @media (max-width: 700px) {
-    .nameplate-inner { grid-template-columns: 1fr; }
+    .id-field { min-width: 100%; border-left: none; padding-left: 0; }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .panel, .name-box, .id-grid, .ability, .head-panel,
+    .ability,
     .back-link, .download-btn, .contact-link { transition: none; }
   }
 

@@ -46,6 +46,7 @@
   --gold-bright: #ffc46b;
   --glass-bg:     rgba(14, 16, 22, 0.75);
   --glass-border: rgba(236, 228, 212, 0.18);
+  --hairline:     rgba(217, 169, 78, 0.35);
 
   /* Sheet panel surface: ink sinking into black */
   --panel-grad:       linear-gradient(180deg, #1a1a17 0%, #0a0b09 100%);
@@ -131,6 +132,7 @@
   --gold-bright: #57431a;
   --glass-bg:     rgba(253, 251, 245, 0.81);
   --glass-border: rgba(43, 39, 35, 0.20);
+  --hairline:     rgba(111, 86, 32, 0.35);
 
   /* Sheet panel surface: parchment wash — cream warming at the base */
   --panel-grad:       linear-gradient(180deg, #fdfbf5 0%, #f4eee0 100%);

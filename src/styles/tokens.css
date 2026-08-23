@@ -58,6 +58,8 @@
      ambient wind motes. */
   --moon:   #e8e2d2;
   --crater: #ccc5b2;
+  /* unlit side of the moon once tonight's real phase draws its shadow */
+  --moon-shade: #131a23;
   --rail:   #0a0e13;
   --ground: #0b0e12;
   --mote:      #d8c9a0;
@@ -139,6 +141,7 @@
      lighten for the day sky. */
   --moon:   #e7e3cf;
   --crater: #cbc6ae;
+  --moon-shade: #cfe0f0;
   --rail:   #7b93ac;
   --ground: #33403c;
   --mote:      #5f7068;
@@ -186,6 +189,7 @@
 .f-rail  { stroke: var(--rail); }
 .f-moon  { fill: var(--moon); }
 .f-crater{ fill: var(--crater); }
+.f-moon-shade { fill: var(--moon-shade); }
 .f-wave  { fill: var(--wave); }
 /* d37 §3 scene rebuild shapes. Halo rings + sparkles burn gold-bright at low
    opacity; mist veils the ridge junction; cloudbank seats the moon. */

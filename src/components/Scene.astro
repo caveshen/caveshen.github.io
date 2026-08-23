@@ -262,3 +262,41 @@ const seamXs = Array.from(
     .scene-tall { display: block; }
   }
 </style>
+
+<script>
+  import { moonPhase, shadowPath } from '../scripts/moonphase.js';
+
+  // Tonight's real phase over every night moon (d37 section 4). Pure date
+  // arithmetic, no network; no-JS visitors keep the full moon; a near-full
+  // moon draws no overlay at all.
+  const phase = moonPhase(new Date());
+  const d = shadowPath(phase.age, 47.5);
+  if (d) {
+    const NS = 'http://www.w3.org/2000/svg';
+    document.querySelectorAll('.scene').forEach((svg, i) => {
+      const moon = svg.querySelector('circle.f-moon');
+      const defs = svg.querySelector('defs');
+      if (!moon || !defs) return;
+      const cx = Number(moon.getAttribute('cx'));
+      const cy = Number(moon.getAttribute('cy'));
+      const clip = document.createElementNS(NS, 'clipPath');
+      clip.id = `moon-phase-clip-${i}`;
+      const disc = document.createElementNS(NS, 'circle');
+      disc.setAttribute('cx', String(cx));
+      disc.setAttribute('cy', String(cy));
+      disc.setAttribute('r', '47.5');
+      clip.appendChild(disc);
+      defs.appendChild(clip);
+      // the clip is user-space, so it must sit on an untransformed wrapper;
+      // a clip on the translated path itself would land at double coordinates
+      const wrap = document.createElementNS(NS, 'g');
+      wrap.setAttribute('clip-path', `url(#moon-phase-clip-${i})`);
+      const shade = document.createElementNS(NS, 'path');
+      shade.setAttribute('d', d);
+      shade.setAttribute('class', 'f-moon-shade');
+      shade.setAttribute('transform', `translate(${cx} ${cy})`);
+      wrap.appendChild(shade);
+      moon.parentNode.appendChild(wrap);
+    });
+  }
+</script>

@@ -20,6 +20,39 @@ async function pseudoStyle(locator, pseudo, prop) {
   return locator.evaluate((el, [p, name]) => getComputedStyle(el, p)[name], [pseudo, prop]);
 }
 
+// The ignition is a 150ms transition; a read straight after hover/focus races
+// it mid-flight (CI caught a ✦ at opacity 0.924). Poll to the settled state.
+async function plateState(choice) {
+  return choice.evaluate((e) => {
+    const cs = getComputedStyle(e);
+    const before = getComputedStyle(e, '::before');
+    const after = getComputedStyle(e, '::after');
+    return {
+      bg: cs.backgroundColor,
+      ruleWidth: before.width,
+      ruleColor: before.backgroundColor,
+      ruleOpacity: before.opacity,
+      starOpacity: after.opacity,
+    };
+  });
+}
+
+const IGNITED = {
+  bg: 'rgba(217, 169, 78, 0.1)',
+  ruleWidth: '3px',
+  ruleColor: 'rgb(255, 196, 107)',
+  ruleOpacity: '1',
+  starOpacity: '1',
+};
+
+// chromium's getComputedStyle returns the unresolved counter() for ::before
+// content; engines that resolve it give the numeral itself. Both are the
+// contract — the mechanism is pinned in src/tests/plates.test.js too.
+function expectRoman(content, count) {
+  const resolved = `"${'I'.repeat(count)}"`;
+  return content.includes('upper-roman') || content === resolved;
+}
+
 test('plates are quiet at rest: flat fill, dim rule, no star', async ({ page }) => {
   await approach(page);
   const choice = page.locator('.choices button').first();
@@ -37,12 +70,7 @@ test('plate ignites on hover: warm wash, bright wide rule, star fades in', async
   await approach(page);
   const choice = page.locator('.choices button').first();
   await choice.hover();
-  expect(await choice.evaluate((e) => getComputedStyle(e).backgroundColor))
-    .toBe('rgba(217, 169, 78, 0.1)');
-  expect(await pseudoStyle(choice, '::before', 'width')).toBe('3px');
-  expect(await pseudoStyle(choice, '::before', 'backgroundColor')).toBe('rgb(255, 196, 107)');
-  expect(await pseudoStyle(choice, '::before', 'opacity')).toBe('1');
-  expect(await pseudoStyle(choice, '::after', 'opacity')).toBe('1');
+  await expect.poll(() => plateState(choice)).toEqual(IGNITED);
 });
 
 test('keyboard focus ignites the plate and rings gold-bright via kb-focus', async ({ page }) => {
@@ -54,7 +82,7 @@ test('keyboard focus ignites the plate and rings gold-bright via kb-focus', asyn
   await page.keyboard.press('Enter');
   const choice = page.locator('.choices button').first();
   await expect(choice).toBeFocused();
-  expect(await pseudoStyle(choice, '::after', 'opacity')).toBe('1');
+  await expect.poll(() => pseudoStyle(choice, '::after', 'opacity')).toBe('1');
   const { color, width, offset } = await choice.evaluate((e) => {
     const cs = getComputedStyle(e);
     return { color: cs.outlineColor, width: cs.outlineWidth, offset: cs.outlineOffset };
@@ -67,8 +95,8 @@ test('keyboard focus ignites the plate and rings gold-bright via kb-focus', asyn
 test('each option leads with a mono roman numeral index', async ({ page }) => {
   await approach(page);
   const lis = page.locator('.choices li');
-  expect(await pseudoStyle(lis.nth(0), '::before', 'content')).toContain('I');
-  expect(await pseudoStyle(lis.nth(1), '::before', 'content')).toContain('II');
+  expect(expectRoman(await pseudoStyle(lis.nth(0), '::before', 'content'), 1)).toBe(true);
+  expect(expectRoman(await pseudoStyle(lis.nth(1), '::before', 'content'), 2)).toBe(true);
   const family = await pseudoStyle(lis.nth(0), '::before', 'fontFamily');
   expect(family.toLowerCase()).toContain('cascadia');
 });
@@ -112,9 +140,7 @@ test('system options and End dialogue are ordinary plates — one style, same ig
     expect(await el.evaluate((e) => getComputedStyle(e).backgroundColor))
       .toBe('rgba(236, 228, 212, 0.04)');
     await el.hover();
-    expect(await el.evaluate((e) => getComputedStyle(e).backgroundColor))
-      .toBe('rgba(217, 169, 78, 0.1)');
-    expect(await pseudoStyle(el, '::after', 'opacity')).toBe('1');
+    await expect.poll(() => plateState(el)).toEqual(IGNITED);
     // Both buttons navigate/exit on a real click — release away from the
     // element so mouseup doesn't complete one and skip the loop's second half.
     await page.mouse.move(0, 0);

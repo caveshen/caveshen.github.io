@@ -230,15 +230,18 @@ test('two sails cross the bay by day only', async ({ page }) => {
   }
 });
 
-test('one red warning dot rides above the tallest block at night', async ({ page }) => {
-  const dot = (await sceneRects(page, '.f-warn-dot')).find((d) => d.width > 0);
+test('an antenna beacon rides just above its tower roof at night', async ({ page }) => {
+  const dot = (await sceneRects(page, '.f-beacon')).find((d) => d.width > 0);
   expect(dot).toBeTruthy();
-  // A mast light: just clear of the tallest roof, inside its x-span.
-  const near = await sceneRects(page, '.f-near rect');
-  const tallest = near.reduce((a, r) => (r.y < a.y ? r : a));
-  expect(dot.y + dot.height).toBeLessThanOrEqual(tallest.y + 2);
-  expect(dot.x + dot.width / 2).toBeGreaterThanOrEqual(tallest.x);
-  expect(dot.x + dot.width / 2).toBeLessThanOrEqual(tallest.x + tallest.width);
+  // The beacon marks one landmark tower: the block under its own x-span, with
+  // the light just clear of the roofline. "Tallest of the city bowl" is data,
+  // pinned in src/tests/cityscape-beacon.test.js — screen space across three
+  // cameras is the wrong place to litigate it.
+  const cityBlocks = (await sceneRects(page, '.f-near rect')).filter((r) => r.width > 0);
+  const cx = dot.x + dot.width / 2;
+  const tower = cityBlocks.find((r) => cx >= r.x && cx <= r.x + r.width);
+  expect(tower).toBeTruthy();
+  expect(dot.y + dot.height).toBeLessThanOrEqual(tower.y + 2);
   await page.locator('#toggle').click();
-  expect((await sceneRects(page, '.f-warn-dot')).every((d) => d.width === 0)).toBe(true);
+  expect((await sceneRects(page, '.f-beacon')).every((d) => d.width === 0)).toBe(true);
 });

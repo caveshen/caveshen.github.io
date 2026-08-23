@@ -2,7 +2,8 @@
 :root {
   --bg:          #0c1118;
   --sky:         #0c1420;
-  --mountain:    #161f27; /* near massif (.f-near); mid step #242f39 lands with the scene rebuild */
+  --mountain:    #161f27;
+  --mountain-mid:#242f39; /* foothill step between --mountain-far and --mountain */
   --mountain-far:#33414d;
   --sea:         #1f3036;
   --celestial:   #ffc46b; /* candlelight windows + stars at night; the sun disc by day */
@@ -66,6 +67,14 @@
      the pale/cream --moon so wave marks read as sea, not moon reflection. */
   --wave: #3d5a60;
 
+  /* Scene rebuild (d37 §3): moon's cloud bank, ridge mist, day sails on the
+     bay, the antenna light on the tallest tower. Sail/beacon render in one
+     theme only, but parity still demands both entries. */
+  --cloud-bank: #232f38;
+  --mist:       #4a5a66;
+  --sail:       #f2ede1;
+  --beacon:     #c0392b;
+
   /* Badger-head dark (mask stripes, nose) — identity colour, no day entry. */
   --head-dark: #0f1826;
 
@@ -88,8 +97,11 @@
 :root[data-time="day"] {
   --bg:          #e7f0f5;
   --sky:         #cfe0f0;
-  --mountain:    #5a6f88;
-  --mountain-far:#8ba3bd;
+  /* Day mountains are umber/tan steps (spec §2), not slate — the far step
+     warms, mid and near deepen. */
+  --mountain:    #5d4633;
+  --mountain-mid:#8a6d52;
+  --mountain-far:#a98d6f;
   --sea:         #86b8d0;
   --celestial:   #e9b64f;
   --text:        #2b2723;
@@ -134,11 +146,19 @@
   --wave:      #a8d4cf;
 
   --sky-horizon:     #dde9f5;
-  --mountain-fringe: #a6bbd1;
-  --mountain-lit:    #9db5cf;
-  --mountain-shade:  #7991ab;
-  --building-shade:  #465b74;
+  /* Day derived steps re-blended from the umber ladder (±8% luminance from
+     the far step; building-shade darkened from near; fringe one paler step
+     past far). */
+  --mountain-fringe: #c2ab8e;
+  --mountain-lit:    #b89a79;
+  --mountain-shade:  #9b8266;
+  --building-shade:  #463424;
   --ground-near:     #1f2c28;
+
+  --cloud-bank: #fdfbf5;
+  --mist:       #dde9f5;
+  --sail:       #f2ede1;
+  --beacon:     #c0392b;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -155,6 +175,7 @@
 .f-star  { fill: var(--text); }
 .f-cel   { fill: var(--celestial); }
 .f-far   { fill: var(--mountain-far); }
+.f-mid   { fill: var(--mountain-mid); }
 .f-fringe{ fill: var(--mountain-fringe); }
 .f-mtn-lit  { fill: var(--mountain-lit); }
 .f-mtn-shade{ fill: var(--mountain-shade); }
@@ -166,6 +187,14 @@
 .f-moon  { fill: var(--moon); }
 .f-crater{ fill: var(--crater); }
 .f-wave  { fill: var(--wave); }
+/* d37 §3 scene rebuild shapes. Halo rings + sparkles burn gold-bright at low
+   opacity; mist veils the ridge junction; cloudbank seats the moon. */
+.f-halo      { fill: var(--gold-bright); }
+.f-cloudbank { fill: var(--cloud-bank); }
+.f-sparkle   { stroke: var(--gold-bright); stroke-width: 1; stroke-linecap: round; fill: none; }
+.f-mist      { fill: var(--mist); opacity: 0.12; }
+.f-sail      { fill: var(--sail); }
+.f-beacon  { fill: var(--beacon); }
 
 .f-head-dark { fill: var(--head-dark); }
 

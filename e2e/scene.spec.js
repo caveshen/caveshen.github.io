@@ -20,7 +20,7 @@ test('ground reaches the frame bottom edge, full width', async ({ page }) => {
 // cranes, containers, buildings) with real gaps between them by design — a city
 // skyline isn't a solid wall — so they're read as one aggregate footprint per group,
 // which is exact for the min-top/max-bottom checks below.
-const LANDFORM_SELECTORS = ['.f-far', '.f-fringe', '.f-near', '.f-mtn-lit', '.f-mtn-shade'];
+const LANDFORM_SELECTORS = ['.f-far', '.f-mid', '.f-fringe', '.f-near', '.f-mtn-lit', '.f-mtn-shade'];
 
 async function landformRects(page) {
   const groups = await Promise.all(LANDFORM_SELECTORS.map((sel) => sceneRects(page, sel)));
@@ -152,4 +152,93 @@ test('seam lines stay inside the ground', async ({ page }) => {
       line.y + line.height <= ground.y + ground.height + FLOAT_EPSILON
     ).toBe(true);
   }
+});
+
+// ── d37 scene rebuild ─────────────────────────────────────────────────────────
+// The mock-vignette elements (cloud bank, glint column, sparkles, mist, sails,
+// warning dot) plus their night-only/day-only gating. Zero-width rects are the
+// hidden-theme signal: display:none on a night-only/day-only group collapses
+// its descendants' boxes, same mechanism visibleRect/sceneRects rely on.
+
+test('the moon sits inside its cloud bank at night', async ({ page }) => {
+  const [moon] = await sceneRects(page, 'circle.f-moon');
+  const banks = await sceneRects(page, '.f-cloudbank rect');
+  expect(banks.length).toBeGreaterThanOrEqual(2);
+  // Seated: at least one band crosses the disc's lower half...
+  const moonCy = moon.y + moon.height / 2;
+  expect(banks.some((b) => rectsIntersect(b, moon) && b.y > moonCy)).toBe(true);
+  // ...and every band stays horizontally over the disc's x-span.
+  for (const b of banks) {
+    expect(b.x + b.width / 2).toBeGreaterThan(moon.x);
+    expect(b.x + b.width / 2).toBeLessThan(moon.x + moon.width);
+  }
+  await page.locator('#toggle').click();
+  expect((await sceneRects(page, '.f-cloudbank rect')).every((b) => b.width === 0)).toBe(true);
+});
+
+test('the glint column breaks beneath the moon, on the sea only', async ({ page }) => {
+  const [moon] = await sceneRects(page, 'circle.f-moon');
+  const [sea] = await sceneRects(page, '.f-sea');
+  const dashes = await sceneRects(page, '.f-sea ~ .f-moon rect');
+  expect(dashes.length).toBeGreaterThanOrEqual(5);
+  const moonCx = moon.x + moon.width / 2;
+  for (const d of dashes) {
+    expect(d.y).toBeGreaterThanOrEqual(sea.y);
+    expect(d.y + d.height).toBeLessThanOrEqual(sea.y + sea.height);
+    expect(Math.abs(d.x + d.width / 2 - moonCx)).toBeLessThanOrEqual(45);
+  }
+  // Broken: the dashes must not form one solid run — at least one gap.
+  const sorted = [...dashes].sort((a, b) => a.y - b.y);
+  const gaps = sorted.slice(1).map((d, i) => d.y - (sorted[i].y + sorted[i].height));
+  expect(Math.max(...gaps)).toBeGreaterThan(0.5);
+  await page.locator('#toggle').click();
+  expect((await sceneRects(page, '.f-sea ~ .f-moon rect')).every((d) => d.width === 0)).toBe(true);
+});
+
+test('sparkle marks render at night and vanish by day', async ({ page }) => {
+  const sparkles = await sceneRects(page, '.f-sparkle path');
+  expect(sparkles.length).toBeGreaterThanOrEqual(3);
+  expect(sparkles.every((s) => s.width > 0)).toBe(true);
+  await page.locator('#toggle').click();
+  expect((await sceneRects(page, '.f-sparkle path')).every((s) => s.width === 0)).toBe(true);
+});
+
+test('the mist band veils the ridges at night and lifts by day', async ({ page }) => {
+  const mists = await sceneRects(page, '.f-mist rect');
+  expect(mists.length).toBeGreaterThan(0);
+  const rects = await mountainRects(page);
+  const chainLeft = Math.min(...rects.map((r) => r.x));
+  const chainRight = Math.max(...rects.map((r) => r.x + r.width));
+  for (const m of mists) {
+    expect(m.x).toBeLessThan(chainRight);
+    expect(m.x + m.width).toBeGreaterThan(chainLeft);
+  }
+  await page.locator('#toggle').click();
+  expect((await sceneRects(page, '.f-mist rect')).every((m) => m.width === 0)).toBe(true);
+});
+
+test('two sails cross the bay by day only', async ({ page }) => {
+  const [sea] = await sceneRects(page, '.f-sea');
+  expect((await sceneRects(page, '.f-sail polygon')).every((s) => s.width === 0)).toBe(true);
+  await page.locator('#toggle').click();
+  const sails = await sceneRects(page, '.f-sail polygon');
+  expect(sails).toHaveLength(2);
+  for (const s of sails) {
+    expect(rectsIntersect(s, sea)).toBe(true);
+    // A sail is a tall triangle, never a flattened sliver.
+    expect(s.height).toBeGreaterThan(s.width);
+  }
+});
+
+test('one red warning dot rides above the tallest block at night', async ({ page }) => {
+  const dot = (await sceneRects(page, '.f-warn-dot')).find((d) => d.width > 0);
+  expect(dot).toBeTruthy();
+  // A mast light: just clear of the tallest roof, inside its x-span.
+  const near = await sceneRects(page, '.f-near rect');
+  const tallest = near.reduce((a, r) => (r.y < a.y ? r : a));
+  expect(dot.y + dot.height).toBeLessThanOrEqual(tallest.y + 2);
+  expect(dot.x + dot.width / 2).toBeGreaterThanOrEqual(tallest.x);
+  expect(dot.x + dot.width / 2).toBeLessThanOrEqual(tallest.x + tallest.width);
+  await page.locator('#toggle').click();
+  expect((await sceneRects(page, '.f-warn-dot')).every((d) => d.width === 0)).toBe(true);
 });

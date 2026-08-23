@@ -82,6 +82,19 @@ const withSeamMargin = (y: number, h: number) => (y + h === BASELINE_Y ? h + SEA
   <polygon class="f-far" points="695,358 785,201 795,156 803,151 811,156 825,201 915,358" />
   <!-- Signal Hill — keeps the mountain chain linked -->
   <polygon class="f-far" points="850,358 892,306 944,272 1000,260 1056,272 1108,306 1150,358" />
+  <!-- Ridge mist (night): a translucent band across the far slopes' feet, so
+       the mid foothills below rise out of haze — mock vignette B. -->
+  <g class="f-mist night-only">
+    <rect x="-40" y="304" width="1200" height="14" />
+    <rect x="240" y="322" width="760" height="10" opacity="0.7" />
+  </g>
+  <!-- Mid foothills — the value ladder's middle step (.f-mid), a rolling band
+       hugging the chain's base behind the city bowl; painted over the mist so
+       only its crests haze through. Baseline overscan as above. -->
+  <polygon class="f-mid"
+           points="-40,358 30,316 105,332 185,310 265,330 355,314 445,334 535,318 625,336 715,322 805,338 895,326 975,342 1055,330 1135,344 1180,358" />
+  <polygon class="f-mid"
+           points="120,358 210,340 300,350 420,338 560,350 700,340 840,351 980,342 1120,351 1180,358" />
   <!-- warehouse fringe — low pitched-roof sheds, water tower, chimney; tapers off westward -->
   <g class="f-fringe">
     <polygon points="-295,336 -281,320 -267,336" />
@@ -105,4 +118,6 @@ const withSeamMargin = (y: number, h: number) => (y + h === BASELINE_Y ? h + SEA
       <rect x={x} y={y} width="4" height="6" opacity={o} style={windowStyle(o, i)} />
     ))}
   </g>
+  <!-- antenna light on the city bowl's tallest tower (d37 scene rebuild) -->
+  <circle class="f-beacon night-only" cx="448" cy="194" r="2" />
 </g>

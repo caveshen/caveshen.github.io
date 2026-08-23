@@ -80,7 +80,7 @@ the document body under their original `§` headings as history.
 | d34 | Test-suite health — full test strategy (unit + integration) and execution | *new* | ✅ MERGED 2026-08-10 (PR #19, `7f85dea`), deploy green — e2e 2072→2008 / 0 failed, unit 97/97; strategy canonical in docs/TEST-STRATEGY.md (§d34) |
 | d35 | The Badger head — standalone fantastical-medieval art (favicon, social, sheet) | *new* | ✅ delivered on `item/badger-head`, awaiting PR — all five tickets committed: head accepted at gate r4; size-split icon set (head 16px, pixel champion 32px+); pure-scene `/og`; photo-portrait sheet panel; two-tier freshness gate. Rulings recorded in `docs/specs/badger-head.md` |
 | d36 | Approach affordance — hovering the character reveals the approach prompt; an approach light marks the character | *new* | ✅ DONE 2026-08-15 — spec `docs/specs/approach-reveal.md` actioned in full; delivered via PR #23 |
-| d37 | Theme and typeface direction — settle the site's colour-way and its display font together | *new* | 🔨 workshop done 2026-08-22 — "Dragon Age register" accepted (palette, type trio, scene redesign, dialogue plates, codex sheet); spec `docs/specs/theme-direction.md`; tickets 1–3 merged to the branch, 4–7 in delivery |
+| d37 | Theme and typeface direction — settle the site's colour-way and its display font together | *new* | 🔨 BUILT 2026-08-23 on `item/theme-direction` — all seven tickets committed (spec `59be49c`, tokens/plates/grammar/scene/moon/sheet/cleanup); 170 unit green, 264 e2e bodies ×8 at CI; awaiting Caveshen's local preview, then PR |
 | d38 | Dialogue speaker portrait — warmer variant of the canonical head for the dialogue box | *new* | 💡 queued 2026-08-21 (§d38) — after d35 merges; basis vectors in hand |
 | d39 | Dynamic scene subsystem — real lunar phase by night, live Cape Town weather by day | *new* | 💡 parked 2026-08-22 — decided-in-principle, unbuilt; needs Caveshen's ruling on one keyless API request per visitor-hour (§d39) |
 | d40 | Scene rewrite workshop — a from-scratch reimagining of both scenes under the Dragon Age register | *new* | 💡 raised 2026-08-23 — workshop wanted; opening sketches in §d40 |
@@ -6256,6 +6256,30 @@ token sets. Caveshen's rulings:
   d39.
 
 Full specification: `docs/specs/theme-direction.md`.
+
+### 🔨 BUILT 2026-08-23 — seven tickets on `item/theme-direction`
+
+1. `9a06967` tokens & type — Dragon Age palette, radius/motion laws,
+   self-hosted Cinzel + Cormorant (Fontsource), Georgia retired.
+2. `32ec4f3` dialogue plates — uniform plates, gold-rule ignition,
+   roman indices, ✦ caret; dashed system variant dead.
+3. `1d7cfdb` interaction grammar — one gold focus ring site-wide;
+   spike ruled KEEP `.kb-focus` (script redirects match `:focus-visible`
+   regardless of modality); gold primary pill on `/sheet`.
+4. `9282309` scene rebuild — layered night/day, moon cloud bank, glint
+   column, mid foothills, mist, sparkles, day sails, antenna beacon.
+5. `47c3917` moon phase — tonight's real phase, deterministic, no
+   network, no-JS keeps the full moon; userSpace-clip wrapper lesson.
+6. `6344ffe` sheet codex register — hairline sections, title-page
+   nameplate, bracketed portrait, tiers renamed Specialisations /
+   Frameworks / Passives (+ Divination kept), page-private AMOLED
+   overrides deleted, portrait duotone retuned in the pipeline.
+7. cleanup — throwaway scripts removed, stale 2.4194 test titles
+   corrected to the d28-era 2.3622 constant, servers dismantled.
+
+Suite at close: 170 unit green; 264 e2e bodies ×8 projects — first
+matrix run happens at the PR (gaming gate stood over local runs).
+Caveshen eyeballed: scene night/day, sheet night/day.
 
 ## d39. Dynamic scene subsystem
 

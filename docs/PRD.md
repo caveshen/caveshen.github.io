@@ -84,6 +84,7 @@ the document body under their original `§` headings as history.
 | d38 | Dialogue speaker portrait — warmer variant of the canonical head for the dialogue box | *new* | 💡 queued 2026-08-21 (§d38) — after d35 merges; basis vectors in hand |
 | d39 | Dynamic scene subsystem — real lunar phase by night, live Cape Town weather by day | *new* | 💡 parked 2026-08-22 — decided-in-principle, unbuilt; needs Caveshen's ruling on one keyless API request per visitor-hour (§d39) |
 | d40 | Scene rewrite workshop — a from-scratch reimagining of both scenes under the Dragon Age register | *new* | 💡 raised 2026-08-23 — workshop wanted; opening sketches in §d40 |
+| d41 | CI matrix sharding — run the eight projects as parallel jobs; consider smoke-only deploys on main | *new* | 💡 raised 2026-08-24 — the matrix costs ~25-30 min of the ~30 min deploy; build+deploy is 27 seconds (§d41) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -6365,3 +6366,24 @@ talks reads friendlier than the formal mark.
 - Scope, placement in the dialogue box, and sizes go to a spec when
   the item is picked up.
 
+
+## d41. CI matrix sharding
+
+### 💡 RAISED 2026-08-24 — Caveshen's question: why isn't this parallel?
+
+The d37 deploy cycle cost ~30 minutes, of which the build and Pages
+deploy were 27 seconds. The rest is the test matrix: 264 e2e bodies
+x 8 projects = 2,112 executions, run sequentially in one job.
+
+- **Shard the matrix**: run the eight projects as parallel GitHub jobs
+  (`matrix:` on the test job, or `--shard`). Wall time collapses to the
+  slowest project. No test is lost; the 40-minute ceiling stops being
+  load-bearing.
+- **Consider smoke-only deploys on main**: a merged PR already proved
+  the exact SHA against the full matrix; main's pre-deploy re-run is a
+  formality. Main could gate on build + a smoke subset instead. Needs
+  Caveshen's ruling — it lightens verification for direct-to-main
+  pushes (rare, small, by convention docs/trivia only).
+- **Not on the table**: deleting tests to buy speed. WebKit caught two
+  real defects at the d37 PR; engine coverage is the immune system.
+  The cost problem is scheduling, not quantity.

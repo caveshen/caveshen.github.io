@@ -1,10 +1,13 @@
 name: Deploy to GitHub Pages
 
 on:
-  # Branch pushes run a light check; PRs run the full tri-engine matrix.
-  # Build and deploy are gated to main below. The build reads no markdown,
-  # and post tools-split docs/ holds only prose and cv.html (a manual render
-  # input) — neither builds nor tests, so both ignore lists skip them.
+  # Branch pushes run a smoke check (desktop-1920); PRs run the full
+  # tri-engine matrix as one job per project (d41). Main's pre-deploy run is
+  # also smoke-only: a merged PR already proved the exact SHA against the
+  # full matrix, so the re-run gates on the fast subset. Build and deploy
+  # are gated to main below. The build reads no markdown, and post
+  # tools-split docs/ holds only prose and cv.html (a manual render input) —
+  # neither builds nor tests, so both ignore lists skip them.
   push:
     branches: ['**']
     tags-ignore: ['**']
@@ -28,17 +31,20 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
-env:
-  # A push to any branch but main is the light check. PRs and main run everything.
-  LIGHT: ${{ github.event_name == 'push' && github.ref != 'refs/heads/main' }}
-
 jobs:
   test:
     runs-on: ubuntu-latest
-    # Without this a hung WebKit run holds the runner for GitHub's 6-hour default.
-    # 40min: the full matrix ran 25m on a good runner but 30m16s on main's
-    # slower one (2026-08-24) — 30 was too tight to survive runner variance.
-    timeout-minutes: 40
+    # One shard per Playwright project (d41): wall time collapses to the
+    # slowest single project instead of the whole matrix. 25min: the slowest
+    # project plus build/install overhead — tune after observing a few runs;
+    # the old load-bearing 40 was for the unsharded matrix.
+    timeout-minutes: 25
+    # PRs run all eight projects as parallel jobs; pushes (including main's
+    # pre-deploy gate) run the desktop-1920 smoke shard only.
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ github.event_name == 'pull_request' && fromJSON('["iphone-se","iphone-15pro","ipad","pixel-8","desktop-1366","desktop-1920","desktop-2560","desktop-firefox"]') || fromJSON('["desktop-1920"]') }}
     steps:
       - uses: actions/checkout@v7
 
@@ -57,15 +63,23 @@ jobs:
       - name: Unit tests
         run: npm test
 
+      # Chromium-family projects use branded Edge via channel: msedge — Edge is
+      # preinstalled on ubuntu runners, so no download and no system deps step.
+      # Only WebKit and Firefox need Playwright's bundled builds here.
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps ${{ env.LIGHT == 'true' && 'chromium' || 'chromium webkit firefox' }}
+        run: |
+          case "${{ matrix.project }}" in
+            iphone-se|iphone-15pro|ipad) npx playwright install --with-deps webkit ;;
+            desktop-firefox)             npx playwright install --with-deps firefox ;;
+          esac
 
       - name: Integration tests
-        run: npm run test:e2e -- ${{ env.LIGHT == 'true' && '--project=desktop-1920' || '' }}
+        run: npm run test:e2e -- --project=${{ matrix.project }}
 
       - name: Performance suite (report-only)
-        # The suite never asserts budgets — it captures metrics and warns on regression.
-        # continue-on-error: a broken harness must never block a main deploy.
+        # Report-only and pinned to one desktop project. continue-on-error:
+        # a broken harness must never block a main deploy.
+        if: matrix.project == 'desktop-1920'
         continue-on-error: true
         run: npm run test:perf
 

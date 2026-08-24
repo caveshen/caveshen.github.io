@@ -84,7 +84,7 @@ the document body under their original `§` headings as history.
 | d38 | Dialogue speaker portrait — warmer variant of the canonical head for the dialogue box | *new* | 💡 queued 2026-08-21 (§d38) — after d35 merges; basis vectors in hand |
 | d39 | Dynamic scene subsystem — real lunar phase by night, live Cape Town weather by day | *new* | 💡 parked 2026-08-22 — decided-in-principle, unbuilt; needs Caveshen's ruling on one keyless API request per visitor-hour (§d39) |
 | d40 | Scene rewrite workshop — a from-scratch reimagining of both scenes under the Dragon Age register | *new* | 💡 raised 2026-08-23 — workshop wanted; opening sketches in §d40 |
-| d41 | CI matrix sharding — run the eight projects as parallel jobs; consider smoke-only deploys on main | *new* | 💡 raised 2026-08-24 — the matrix costs ~25-30 min of the ~30 min deploy; build+deploy is 27 seconds (§d41) |
+| d41 | CI matrix sharding — run the eight projects as parallel jobs; consider smoke-only deploys on main | *new* | ✅ DECIDED 2026-08-24 — one job per project on PRs; main pre-deploy gate is smoke-only (desktop-1920); delivered on `ci/matrix-sharding` (§d41) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -6387,3 +6387,26 @@ x 8 projects = 2,112 executions, run sequentially in one job.
 - **Not on the table**: deleting tests to buy speed. WebKit caught two
   real defects at the d37 PR; engine coverage is the immune system.
   The cost problem is scheduling, not quantity.
+
+### ✅ DECIDED 2026-08-24 — Caveshen approved both options
+
+1. **One job per project** (a `matrix:` over the eight Playwright projects,
+   not Playwright's `--shard`): engines stay grouped, so each runner
+   downloads only the browser it needs (webkit ×3, firefox ×1; the
+   Chromium-family shards use the preinstalled branded Edge). Unit tests
+   and the placeholder check run inside every shard — duplicating a
+   sub-15-second unit run across eight runners costs nothing and avoids
+   serialising a gate job ahead of the matrix. The perf suite rides the
+   desktop-1920 shard, still `continue-on-error`.
+2. **Smoke-only pre-deploy gate on main**: pushes (including main) run the
+   desktop-1920 shard only; PRs run all eight. A merged PR proved the
+   exact SHA against the full matrix, so main's re-run gates on the fast
+   subset.
+
+The per-shard timeout drops from 40 minutes (load-bearing for the
+unsharded matrix) to 25 — slowest project plus build/install overhead,
+to be tuned after observing a few runs.
+
+**True-up (PR #29):** first sharded run all eight shards green; wall
+time set by the slowest shard (iphone-15pro) at 6m49s, against 30m16s
+for the unsharded matrix — roughly a quarter of the deploy cycle.

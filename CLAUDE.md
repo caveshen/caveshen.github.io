@@ -82,3 +82,11 @@ npm run build       # astro build
   current scene is applied via a CSS class instead (`f-sky`, `f-near`, `f-far`, `f-sea`,
   `f-moon`, `f-crater`, `f-cel`, `f-wave`, `f-ground`, `f-rail`, `f-star`), defined in
   `src/styles/tokens.css`.
+- **WebKit keeps non-zero boxes for SVG inside `display:none`.** Never assert
+  "hidden by theme" via collapsed `getBoundingClientRect()` on scene shapes —
+  WebKit reports the last-laid-out geometry. Assert computed `display` on the
+  nearest `.night-only`/`.day-only` gate instead (see `sceneDisplay` in
+  `e2e/scene.spec.js`). Found 2026-08-23 at the d37 PR matrix.
+- **Script focus ignites plate one on every pointer modality** — `:focus-visible`
+  matches after `approach()`'s programmatic focus even for touch. Tests that
+  need a plate at true rest read the *second* one (`button-feel.spec.js`).

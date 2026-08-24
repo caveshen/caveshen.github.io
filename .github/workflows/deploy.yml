@@ -11,6 +11,8 @@ on:
 
   pull_request:
     branches: [main]
+    # Same rule as push: the build reads no markdown, so md-only PRs skip.
+    paths-ignore: ['**.md']
 
   workflow_dispatch:
 

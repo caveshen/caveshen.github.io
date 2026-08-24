@@ -80,7 +80,7 @@ the document body under their original `§` headings as history.
 | d34 | Test-suite health — full test strategy (unit + integration) and execution | *new* | ✅ MERGED 2026-08-10 (PR #19, `7f85dea`), deploy green — e2e 2072→2008 / 0 failed, unit 97/97; strategy canonical in docs/TEST-STRATEGY.md (§d34) |
 | d35 | The Badger head — standalone fantastical-medieval art (favicon, social, sheet) | *new* | ✅ delivered on `item/badger-head`, awaiting PR — all five tickets committed: head accepted at gate r4; size-split icon set (head 16px, pixel champion 32px+); pure-scene `/og`; photo-portrait sheet panel; two-tier freshness gate. Rulings recorded in `docs/specs/badger-head.md` |
 | d36 | Approach affordance — hovering the character reveals the approach prompt; an approach light marks the character | *new* | ✅ DONE 2026-08-15 — spec `docs/specs/approach-reveal.md` actioned in full; delivered via PR #23 |
-| d37 | Theme and typeface direction — settle the site's colour-way and its display font together | *new* | 🔨 BUILT 2026-08-23 on `item/theme-direction` — all seven tickets committed (spec `59be49c`, tokens/plates/grammar/scene/moon/sheet/cleanup); 170 unit green, 264 e2e bodies ×8 at CI; awaiting Caveshen's local preview, then PR |
+| d37 | Theme and typeface direction — settle the site's colour-way and its display font together | *new* | ✅ MERGED 2026-08-23 (PR #28, squash) — Dragon Age register live; 170 unit green, 264 e2e bodies ×8, full matrix green at the PR |
 | d38 | Dialogue speaker portrait — warmer variant of the canonical head for the dialogue box | *new* | 💡 queued 2026-08-21 (§d38) — after d35 merges; basis vectors in hand |
 | d39 | Dynamic scene subsystem — real lunar phase by night, live Cape Town weather by day | *new* | 💡 parked 2026-08-22 — decided-in-principle, unbuilt; needs Caveshen's ruling on one keyless API request per visitor-hour (§d39) |
 | d40 | Scene rewrite workshop — a from-scratch reimagining of both scenes under the Dragon Age register | *new* | 💡 raised 2026-08-23 — workshop wanted; opening sketches in §d40 |
@@ -6277,9 +6277,22 @@ Full specification: `docs/specs/theme-direction.md`.
 7. cleanup — throwaway scripts removed, stale 2.4194 test titles
    corrected to the d28-era 2.3622 constant, servers dismantled.
 
-Suite at close: 170 unit green; 264 e2e bodies ×8 projects — first
-matrix run happens at the PR (gaming gate stood over local runs).
-Caveshen eyeballed: scene night/day, sheet night/day.
+Suite at close: 170 unit green; 264 e2e bodies ×8 projects. Caveshen
+eyeballed: scene night/day, sheet night/day — accepted 2026-08-23.
+
+The PR's first full matrix run caught 16 failures, all in the new
+tests, repaired in `a40576c` and `6968735`:
+
+- **WebKit does not collapse SVG rects under `display:none`** —
+  getBoundingClientRect keeps non-zero boxes, so theme-gating is now
+  asserted on computed `display` of the nearest night-only/day-only
+  gate, never on collapsed geometry.
+- **Script focus ignites plate one on every modality** (the d37 §6
+  spike finding, proven at last) — the rest-state test reads plate two,
+  where neither hover nor focus lives.
+- The antenna beacon's "tallest tower" claim is world data; it is
+  pinned by source test (`cityscape-beacon.test.js`), not screen-space
+  arithmetic that the harbour cranes kept winning.
 
 ## d39. Dynamic scene subsystem
 

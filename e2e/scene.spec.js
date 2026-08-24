@@ -8,6 +8,20 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/');
 });
 
+// WebKit reports non-zero getBoundingClientRect for SVG inside display:none
+// groups, so "hidden by theme" is asserted on computed display, not geometry.
+// Some targets carry the night-only/day-only class themselves, others inherit
+// the gate from an ancestor group — closest() covers both.
+async function sceneDisplay(page, selector) {
+  return page.evaluate((sel) => {
+    const scene = [...document.querySelectorAll('.scene')].find((e) => e.getBoundingClientRect().width > 0);
+    const el = scene.querySelector(sel);
+    if (!el) return null;
+    const gate = el.closest('.night-only, .day-only');
+    return getComputedStyle(gate ?? el).display;
+  }, selector);
+}
+
 test('ground reaches the frame bottom edge, full width', async ({ page }) => {
   const viewport = page.viewportSize();
   const [ground] = await sceneRects(page, '.f-ground');
@@ -173,7 +187,7 @@ test('the moon sits inside its cloud bank at night', async ({ page }) => {
     expect(b.x + b.width / 2).toBeLessThan(moon.x + moon.width);
   }
   await page.locator('#toggle').click();
-  expect((await sceneRects(page, '.f-cloudbank rect')).every((b) => b.width === 0)).toBe(true);
+  expect(await sceneDisplay(page, '.f-cloudbank')).toBe('none');
 });
 
 test('the glint column breaks beneath the moon, on the sea only', async ({ page }) => {
@@ -192,7 +206,7 @@ test('the glint column breaks beneath the moon, on the sea only', async ({ page 
   const gaps = sorted.slice(1).map((d, i) => d.y - (sorted[i].y + sorted[i].height));
   expect(Math.max(...gaps)).toBeGreaterThan(0.5);
   await page.locator('#toggle').click();
-  expect((await sceneRects(page, '.f-sea ~ .f-moon rect')).every((d) => d.width === 0)).toBe(true);
+  expect(await sceneDisplay(page, '.f-sea ~ .f-moon')).toBe('none');
 });
 
 test('sparkle marks render at night and vanish by day', async ({ page }) => {
@@ -200,7 +214,7 @@ test('sparkle marks render at night and vanish by day', async ({ page }) => {
   expect(sparkles.length).toBeGreaterThanOrEqual(3);
   expect(sparkles.every((s) => s.width > 0)).toBe(true);
   await page.locator('#toggle').click();
-  expect((await sceneRects(page, '.f-sparkle path')).every((s) => s.width === 0)).toBe(true);
+  expect(await sceneDisplay(page, '.f-sparkle')).toBe('none');
 });
 
 test('the mist band veils the ridges at night and lifts by day', async ({ page }) => {
@@ -214,12 +228,12 @@ test('the mist band veils the ridges at night and lifts by day', async ({ page }
     expect(m.x + m.width).toBeGreaterThan(chainLeft);
   }
   await page.locator('#toggle').click();
-  expect((await sceneRects(page, '.f-mist rect')).every((m) => m.width === 0)).toBe(true);
+  expect(await sceneDisplay(page, '.f-mist')).toBe('none');
 });
 
 test('two sails cross the bay by day only', async ({ page }) => {
   const [sea] = await sceneRects(page, '.f-sea');
-  expect((await sceneRects(page, '.f-sail polygon')).every((s) => s.width === 0)).toBe(true);
+  expect(await sceneDisplay(page, '.f-sail')).toBe('none');
   await page.locator('#toggle').click();
   const sails = await sceneRects(page, '.f-sail polygon');
   expect(sails).toHaveLength(2);
@@ -243,5 +257,5 @@ test('an antenna beacon rides just above its tower roof at night', async ({ page
   expect(tower).toBeTruthy();
   expect(dot.y + dot.height).toBeLessThanOrEqual(tower.y + 2);
   await page.locator('#toggle').click();
-  expect((await sceneRects(page, '.f-beacon')).every((d) => d.width === 0)).toBe(true);
+  expect(await sceneDisplay(page, '.f-beacon')).toBe('none');
 });

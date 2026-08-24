@@ -55,7 +55,10 @@ function expectRoman(content, count) {
 
 test('plates are quiet at rest: flat fill, dim rule, no star', async ({ page }) => {
   await approach(page);
-  const choice = page.locator('.choices button').first();
+  // Plate TWO: the first plate is script-focused after approach(), and that
+  // focus ignites it by design (the ticket-3 spike finding) — on every
+  // pointer modality. Rest is read where neither hover nor focus lives.
+  const choice = page.locator('.choices button').nth(1);
   expect(await choice.evaluate((e) => getComputedStyle(e).backgroundColor))
     .toBe('rgba(236, 228, 212, 0.04)');
   expect(await pseudoStyle(choice, '::before', 'width')).toBe('2px');

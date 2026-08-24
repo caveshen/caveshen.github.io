@@ -80,8 +80,10 @@ the document body under their original `§` headings as history.
 | d34 | Test-suite health — full test strategy (unit + integration) and execution | *new* | ✅ MERGED 2026-08-10 (PR #19, `7f85dea`), deploy green — e2e 2072→2008 / 0 failed, unit 97/97; strategy canonical in docs/TEST-STRATEGY.md (§d34) |
 | d35 | The Badger head — standalone fantastical-medieval art (favicon, social, sheet) | *new* | ✅ delivered on `item/badger-head`, awaiting PR — all five tickets committed: head accepted at gate r4; size-split icon set (head 16px, pixel champion 32px+); pure-scene `/og`; photo-portrait sheet panel; two-tier freshness gate. Rulings recorded in `docs/specs/badger-head.md` |
 | d36 | Approach affordance — hovering the character reveals the approach prompt; an approach light marks the character | *new* | ✅ DONE 2026-08-15 — spec `docs/specs/approach-reveal.md` actioned in full; delivered via PR #23 |
-| d37 | Theme and typeface direction — settle the site's colour-way and its display font together | *new* | 💡 raised 2026-08-15 — needs a workshop (§d37) |
+| d37 | Theme and typeface direction — settle the site's colour-way and its display font together | *new* | ✅ MERGED 2026-08-23 (PR #28, squash) — Dragon Age register live; 170 unit green, 264 e2e bodies ×8, full matrix green at the PR |
 | d38 | Dialogue speaker portrait — warmer variant of the canonical head for the dialogue box | *new* | 💡 queued 2026-08-21 (§d38) — after d35 merges; basis vectors in hand |
+| d39 | Dynamic scene subsystem — real lunar phase by night, live Cape Town weather by day | *new* | 💡 parked 2026-08-22 — decided-in-principle, unbuilt; needs Caveshen's ruling on one keyless API request per visitor-hour (§d39) |
+| d40 | Scene rewrite workshop — a from-scratch reimagining of both scenes under the Dragon Age register | *new* | 💡 raised 2026-08-23 — workshop wanted; opening sketches in §d40 |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -114,8 +116,13 @@ Priority of audiences:
 
 - Must **not look AI-generated**. Design is locked to Sample C; deviations go
   through Caveshen.
-- **Caveshen owns all copy** — site text and dialogue trees. Build ships with
-  clearly marked placeholders (`PLACEHOLDER` token in source) until he replaces them.
+- **Copy authorship (amended 2026-08-22, was "Caveshen owns all
+  copy"):** Caveshen remains the site's voice and final editor. Claude may
+  draft site copy directly — sheet panels, scene flavour, micro-copy — and
+  ship it once Caveshen passes it at preview. The dialogue trees stay
+  primarily his: Claude drafts or extends nodes only when invited, as
+  proposals, and every line remains his to strike or rewrite without
+  ceremony. Copy not yet passed keeps the `PLACEHOLDER` token as today.
 - **Semantic HTML first.** Full CV content readable without JavaScript; the
   dialogue is progressive enhancement.
 - **Accessibility floor:** fully keyboard-playable, visible focus, honoured
@@ -315,13 +322,13 @@ JSON, authored/edited directly by Caveshen (proven shape from the samples):
   PII (resolved 2026-07-14): phone **and email stripped**; location stays generic
   ("Cape Town, South Africa"); contact lines = LinkedIn URL + site URL.
   ✅ Approved & shipped 2026-07-16 (a55db94): source `docs/cv.html`, rendered
-  via `node docs/render-cv.js` (headless Edge print-to-PDF); PII verified on
+  via `node tools/render-cv.js` (headless Edge print-to-PDF); PII verified on
   the text layer with pdftotext before commit.
 - Scene + avatar SVGs (from Sample C, refined). Real avatar art optional, later.
 - Favicons/OG image derived from the night scene. ✅ P3 (2026-07-17):
   `public/favicon.svg` (moon mark), `apple-touch-icon.png` (180×180) and
   `og-image.png` (1200×630) rendered from an inline night-scene SVG via
-  `docs/render-og.js`. Re-run that script if the scene changes materially.
+  `tools/render-og.js`. Re-run that script if the scene changes materially.
   - Re-rendered off the real built site since §30 D-2 (2026-07-26); no longer
     drifts.
 
@@ -364,8 +371,8 @@ config, device matrix) lands with P1.
   `/sheet` static page, `cv.pdf` asset, download + contact links. Criteria 1, 4.
 - **P3 — Polish: ✅ 2026-07-17.** 404 page, meta/OG + Twitter tags (per-page
   descriptions), night-scene favicon plus rendered apple-touch-icon & OG PNGs
-  (`docs/render-og.js`, same headless-Edge pipeline as the CV), warn-only
-  PLACEHOLDER CI check (`docs/placeholder-check.js`), and the §12 hygiene files
+  (`tools/render-og.js`, same headless-Edge pipeline as the CV), warn-only
+  PLACEHOLDER CI check (`tools/placeholder-check.js`), and the §12 hygiene files
   (robots.txt, llms.txt, `@astrojs/sitemap`). Lighthouse **100/100/100/100** on
   `/` and `/sheet`. En route it caught a real WCAG AA failure — the `--dim`
   token in both themes — now fixed and guarded by contrast assertions.
@@ -554,8 +561,8 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
   share it. Unit tests (Vitest) need no server at all.
 - Suite size as of e8f524d: 31 unit, 287 e2e (41 tests × 7 projects).
 - Suite size as of P3 (2026-07-17): **47 unit, 427 e2e** (61 tests × 7 projects).
-- P3 added a night-scene favicon/OG render pipeline (`docs/render-og.js`), a
-  warn-only PLACEHOLDER scanner (`docs/placeholder-check.js`, skips
+- P3 added a night-scene favicon/OG render pipeline (`tools/render-og.js`), a
+  warn-only PLACEHOLDER scanner (`tools/placeholder-check.js`, skips
   `node_modules`/`dist`/`.git`/`tests` so it goes quiet once all real copy
   lands), and `@astrojs/sitemap`. The dialogue tree also gained a worked
   two-level branching example under `games` (commit 8cebfc4, still all
@@ -629,6 +636,17 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
 
 ## 14. Amendments log
 
+- **2026-08-22 — COPY AUTHORSHIP AMENDED (Caveshen's ruling).** The
+  founding law gave Caveshen sole ownership of all prose; the site has since
+  grown far more interactive than originally planned, and drafting every
+  line centrally became the bottleneck. New rule: Claude drafts site copy on
+  approval-at-preview; dialogue trees remain primarily Caveshen's, with
+  Claude invited to propose nodes; nothing unapproved ships without the
+  `PLACEHOLDER` token. Full wording in §2. First exercised same day: the
+  v2 mock's intro line ("The mountain keeps its counsel…", authored by a
+  worker agent) awaits his claim or retirement. Note 2026-08-23: this entry
+  and the §2 wording were briefly lost to an over-broad `git restore` during
+  the badger-head discard and re-applied from the session record.
 - **2026-07-21 — RESTAGED SCENE ACCEPTED (mock approved, ready to port).**
   Caveshen accepted the restage after four workshop rounds. This entry is the
   specification the port implements. Reference mock (NOT in the repo, and it
@@ -893,7 +911,7 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
   100/100/100/100; `--dim` WCAG AA fix. Suite now 47 unit / 427 e2e (§13).
   Restart convention confirmed by Caveshen (in-fiction `"to": "root"`).
   Post-review once-over caught a stale scaffold `favicon.ico` (Astro logo) —
-  replaced with a 32×32 moon-mark ICO, generated by `docs/render-og.js`.
+  replaced with a 32×32 moon-mark ICO, generated by `tools/render-og.js`.
 - **2026-07-18:** D&D character-sheet workshop round 1: direction committed
   from the mock (artifact 952df112), full decisions in §4. Notables: level =
   years in tech (blatantly), no multiclassing (dialogue-tree material
@@ -1839,7 +1857,7 @@ every contrast pair against the live token values, so the AA guarantee moves
 with the tokens rather than being asserted once.
 
 **One consequence went unnoticed at the time and is now logged in §7:** the
-palette move orphaned `docs/render-og.js`, which still renders the OG and
+palette move orphaned `tools/render-og.js`, which still renders the OG and
 apple-touch images from the retired violet values. `public/favicon.svg` was
 hand-patched to the new `--bg` (`05ce607`) but its *generator* was not.
 
@@ -2313,11 +2331,11 @@ tri-engine suite 1269 passed / 3 skipped.
 
 ### D-2 — Rebuild `render-og.js` off the real scene — ✅ BUILT & ACCEPTED 2026-07-26
 
-`docs/render-og.js:21-92` inlines a hand-maintained copy of the scene. It has
+`tools/render-og.js:21-92` inlines a hand-maintained copy of the scene. It has
 fallen behind on **every** scene change since it was written — §14 positions
 (Lion's Head 65px, Signal Hill 40px), §20's harbour (absent entirely), §25's
 palette, §26's Devil's Peak. Four for four. Its own header claims "Pattern
-mirrors `docs/render-cv.js`" — it does not: `render-cv.js` does
+mirrors `tools/render-cv.js`" — it does not: `render-cv.js` does
 `page.goto(pathToFileURL(docs/cv.html))`, rendering a real source file. The
 correct pattern has been one file away the whole time.
 
@@ -2682,7 +2700,7 @@ image is a screenshot of a real `/og` route (unlinked, noindex, out of the
 sitemap) that composes the real `Scene` component — creative control lives in
 source, not script-side injection. Caveshen ruled the composition at preview:
 pure night scene, no figure, no text (the card's meta carries the name). A
-hash-manifest freshness gate (`docs/derived-images.json` + the
+hash-manifest freshness gate (`tools/derived-images.json` + the
 `derived-images` unit test) goes red when any input or output drifts — the
 "test that fails when it stops matching" this section asked for. Rulings in
 `docs/specs/badger-head.md`.
@@ -3294,7 +3312,7 @@ Asserting implementation instead of the PRD's stated criteria:
 3. **Nine assertions hard-code the literal string `PLACEHOLDER` as expected
    page content:** `e2e/not-found.spec.js:48,58,59`, `e2e/interview.spec.js:134`,
    `e2e/hygiene.spec.js:18`, `e2e/approach.spec.js:19`, `src/tests/dialogue.test.js:126,137`,
-   `src/tests/hygiene.test.js:74`. The scanner `docs/placeholder-check.js` is
+   `src/tests/hygiene.test.js:74`. The scanner `tools/placeholder-check.js` is
    correct and needs no change; the bite is the inverse — **the day
    Caveshen's real copy lands, these nine go red and block the deploy, and he
    is debugging his own prose.**
@@ -3991,7 +4009,7 @@ prevent:
 
 - a `CNAME` file in the repo, and GitHub Pages' custom-domain setting;
 - anywhere the site hardcodes its own URL — the social-preview meta tags and
-  `docs/render-og.js` are the likely candidates. **Grep before assuming those
+  `tools/render-og.js` are the likely candidates. **Grep before assuming those
   are the only two.**
 
 **Status: ✅ hosting live 2026-08-05 — zone ACTIVE, awaiting cutover.**
@@ -6206,7 +6224,123 @@ Facts a workshop must not re-derive:
 - The site's type roles today: serif (dialogue and the prompt),
   mono (system and sheet data).
 
-Not scheduled. No dependency on d36's remaining work.
+### ✅ WORKSHOPPED 2026-08-22 — direction accepted, spec written
+
+The workshop ran as a throwaway mock comparison (`.scratch/`, never
+committed): identical screens under Current, Retrowave, and Dragon Age
+token sets. Caveshen's rulings:
+
+- **Direction: Dragon Age register** (grounded fantasy; frosted glass
+  legitimised as modern-fantasy material). Retrowave rejected — it
+  conquers the scene instead of reconciling with it.
+- **Type trio:** Cinzel takes display duty (nameplate, headings, ability
+  scores); Cormorant Garamond takes prose, dialogue speech, option
+  labels, body copy; mono stays for data, captions, micro-labels.
+  Fonts self-hosted at build; the mock's Google Fonts link was a
+  workshop convenience only.
+- **Scene redesigned**, night and day, in the flat-vector idiom:
+  layered value ramp, moon seated in a cloud bank with halo, broken
+  sea glint under the moon, mist band, clustered stars, candlelight
+  windows. **Geography corrected by ruling:** the view faces south;
+  the city sits across the water; the ocean lies west where sun and
+  moon both descend.
+- **Dialogue plates:** one uniform option plate (left gold rule that
+  ignites on hover/focus, roman numeral index, ✦ caret). The dashed
+  system-option variant is dead; navigation is an ordinary choice.
+- **Character sheet reworked from 5E trade-dress to codex register**
+  (hairline rules, negative space); spellbook tiers renamed
+  Specialisations / Frameworks / Passives; one filled gold primary
+  button per page; portrait treatment retuned parchment-over-ink.
+- **Moon phase ruled into this item** (deterministic date arithmetic,
+  drawn programmatically over the moon disc). Live weather parked as
+  d39.
+
+Full specification: `docs/specs/theme-direction.md`.
+
+### 🔨 BUILT 2026-08-23 — seven tickets on `item/theme-direction`
+
+1. `9a06967` tokens & type — Dragon Age palette, radius/motion laws,
+   self-hosted Cinzel + Cormorant (Fontsource), Georgia retired.
+2. `32ec4f3` dialogue plates — uniform plates, gold-rule ignition,
+   roman indices, ✦ caret; dashed system variant dead.
+3. `1d7cfdb` interaction grammar — one gold focus ring site-wide;
+   spike ruled KEEP `.kb-focus` (script redirects match `:focus-visible`
+   regardless of modality); gold primary pill on `/sheet`.
+4. `9282309` scene rebuild — layered night/day, moon cloud bank, glint
+   column, mid foothills, mist, sparkles, day sails, antenna beacon.
+5. `47c3917` moon phase — tonight's real phase, deterministic, no
+   network, no-JS keeps the full moon; userSpace-clip wrapper lesson.
+6. `6344ffe` sheet codex register — hairline sections, title-page
+   nameplate, bracketed portrait, tiers renamed Specialisations /
+   Frameworks / Passives (+ Divination kept), page-private AMOLED
+   overrides deleted, portrait duotone retuned in the pipeline.
+7. cleanup — throwaway scripts removed, stale 2.4194 test titles
+   corrected to the d28-era 2.3622 constant, servers dismantled.
+
+Suite at close: 170 unit green; 264 e2e bodies ×8 projects. Caveshen
+eyeballed: scene night/day, sheet night/day — accepted 2026-08-23.
+
+The PR's first full matrix run caught 16 failures, all in the new
+tests, repaired in `a40576c` and `6968735`:
+
+- **WebKit does not collapse SVG rects under `display:none`** —
+  getBoundingClientRect keeps non-zero boxes, so theme-gating is now
+  asserted on computed `display` of the nearest night-only/day-only
+  gate, never on collapsed geometry.
+- **Script focus ignites plate one on every modality** (the d37 §6
+  spike finding, proven at last) — the rest-state test reads plate two,
+  where neither hover nor focus lives.
+- The antenna beacon's "tallest tower" claim is world data; it is
+  pinned by source test (`cityscape-beacon.test.js`), not screen-space
+  arithmetic that the harbour cranes kept winning.
+
+## d39. Dynamic scene subsystem
+
+### 💡 PARKED 2026-08-22 — decided-in-principle, unbuilt
+
+Give the backdrop a life of its own: the night moon shows today's real
+lunar phase, and day mode reflects current Cape Town weather (clear,
+fog, rain).
+
+- **Moon phase belongs to d37's scene work** if it lands first there;
+  it is deterministic (known new-moon epoch plus the 29.53-day synodic
+  month), needs no network, draws programmatically over the existing
+  moon disc, and unit-tests against fixed dates.
+- **Weather needs a runtime decision from Caveshen before any build:**
+  a static site showing live weather means one keyless third-party
+  request per visitor per hour (Open-Meteo is the candidate), fixed
+  Cape Town coordinates regardless of visitor location, cached in
+  `localStorage`, graceful clear-sky fallback on failure or reduced
+  motion, mocked responses in CI so tests stay deterministic.
+- Nothing here blocks d37; pick this up after the theme work merges.
+
+## d40. Scene rewrite workshop
+
+### 💡 RAISED 2026-08-23 — Caveshen's ask; workshop wanted later
+
+If the day/night scenes were rewritten from scratch — keeping the
+Dragon Age register and Cape Town's identity — how would they be built
+otherwise? This item parks that workshop. Opening sketches from the
+orchestrator, to argue with:
+
+- **Scene as data, not markup.** Author layers (sky, celestial, range,
+  city, sea, foreground) as structured declarations; generate the SVG
+  from them. Variants stop being three hand-kept copies; the camera
+  maths and the art stop living in the same file.
+- **One light, obeyed everywhere.** The sun/moon position drives every
+  shadow, facet, glint and window through tokens; nothing shades
+  against a light source it cannot see.
+- **A sky with weather in its future.** Cloud banks authored as
+  thickening layers, so d39's weather becomes an opacity argument, not
+  new geometry.
+- **Illuminated-plate framing.** Vignette edges and rule-of-thirds
+  massing; Devil's Peak read explicitly as the flat massif's subtle
+  crown, Lion's Head the cone, Signal Hill the oval (Caveshen's
+  anatomy, 2026-08-23).
+- **Life within the laws.** Gulls by day, a beacon that breathes at
+  night, motes kept — all static under reduced motion, all vector.
+
+Not scheduled. Runs after d37 merges, as a mock-first workshop.
 
 ## d38. Dialogue speaker portrait
 

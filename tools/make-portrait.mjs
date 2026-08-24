@@ -1,9 +1,9 @@
 // Renders public/sheet-portrait.png (256×256) — a duotone-treated crop of
 // Caveshen's photo for the /sheet nameplate panel. Input is
 // .scratch/cavie-ref.jpg (gitignored, local-only, never committed or
-// shipped); the committed PNG output is the artifact. The treatment (crop,
-// duotone, vignette) is sealed by Caveshen — do not retune without a new
-// ruling. Run from the repo root: node docs/make-portrait.mjs
+// rendered PNG output is the artifact. Treatment retuned 2026-08-23 by
+// ruling (d37 ticket 6): parchment-over-ink duotone with a faint gold bloom.
+// Run from the repo root: node tools/make-portrait.mjs
 import { chromium } from 'playwright-core';
 import { writeFileSync, readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -31,11 +31,12 @@ body { width: ${SIZE}px; height: ${SIZE}px; overflow: hidden; }
   margin-left: -22.5%;
   object-fit: cover;
   object-position: 50% 12%;
-  filter: grayscale(1) contrast(1.12) brightness(1.06);
+  filter: grayscale(1) contrast(1.18) brightness(1.02);
 }
-.duo-multiply, .duo-lighten { position: absolute; inset: 0; }
-.duo-multiply { background: #e7e3cf; mix-blend-mode: multiply; }
-.duo-lighten  { background: #0f1826; mix-blend-mode: lighten; }
+.duo-multiply, .duo-lighten, .warmth { position: absolute; inset: 0; }
+.duo-multiply { background: #e8dcc2; mix-blend-mode: multiply; }
+.duo-lighten  { background: #0c1118; mix-blend-mode: lighten; }
+.warmth { background: radial-gradient(ellipse 60% 55% at 50% 40%, rgba(217,169,78,.10), transparent 70%); }
 .mask {
   position: absolute;
   inset: 0;
@@ -48,6 +49,7 @@ body { width: ${SIZE}px; height: ${SIZE}px; overflow: hidden; }
     <img class="photo" src="${dataUri}">
     <div class="duo-multiply"></div>
     <div class="duo-lighten"></div>
+    <div class="warmth"></div>
   </div>
 </div>
 </body></html>`);
@@ -64,4 +66,4 @@ updateManifest({
   inputs: { '.scratch/cavie-ref.jpg': hashFile('.scratch/cavie-ref.jpg') },
   outputs: { 'public/sheet-portrait.png': hashFile('public/sheet-portrait.png') },
 });
-console.log('wrote docs/derived-images.json');
+console.log('wrote tools/derived-images.json');

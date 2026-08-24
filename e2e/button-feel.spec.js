@@ -1,5 +1,5 @@
-// button-feel.spec.js — d31 Part B: the selection idiom (caret, press, box,
-// theme-toggle flip) and its reduced-motion gating.
+// button-feel.spec.js — d37 §5: the dialogue plate idiom (rest state, ignition,
+// ring, numeral) and its reduced-motion gating, plus the theme-toggle flip.
 import { test, expect } from '@playwright/test';
 import { approachPrompt } from './geom.js';
 
@@ -11,28 +11,72 @@ async function approach(page) {
   await approachPrompt(page);
 }
 
-// getComputedStyle on an element's ::before pseudo — used throughout to read
-// the caret without depending on it being real DOM (it's aria-hidden by
-// construction: pure CSS generated content, never in the a11y tree).
-async function beforeStyle(locator, prop) {
-  return locator.evaluate((el, p) => getComputedStyle(el, '::before')[p], prop);
+// getComputedStyle on an element's ::before/::after pseudo — used throughout
+// to read generated content without depending on it being real DOM. The
+// contract: the numerals and ✦ are pure CSS content with alt-text form ''
+// (see Stage.astro's ::after), so they never join a button's accessible NAME;
+// a screen reader may still announce them while reading the choices list.
+async function pseudoStyle(locator, pseudo, prop) {
+  return locator.evaluate((el, [p, name]) => getComputedStyle(el, p)[name], [pseudo, prop]);
 }
 
-test('caret is reserved but invisible at rest, and appears on hover', async ({ page }) => {
-  // Hover is a desktop-pointer affordance (same gate idle-parallax.spec.js
-  // uses) — touch projects have no hover state, and some even resolve
-  // :focus-visible differently for a touch-triggered programmatic focus, so
-  // "invisible before any interaction" doesn't hold there either.
+// The ignition is a 150ms transition; a read straight after hover/focus races
+// it mid-flight (CI caught a ✦ at opacity 0.924). Poll to the settled state.
+async function plateState(choice) {
+  return choice.evaluate((e) => {
+    const cs = getComputedStyle(e);
+    const before = getComputedStyle(e, '::before');
+    const after = getComputedStyle(e, '::after');
+    return {
+      bg: cs.backgroundColor,
+      ruleWidth: before.width,
+      ruleColor: before.backgroundColor,
+      ruleOpacity: before.opacity,
+      starOpacity: after.opacity,
+    };
+  });
+}
+
+const IGNITED = {
+  bg: 'rgba(217, 169, 78, 0.1)',
+  ruleWidth: '3px',
+  ruleColor: 'rgb(255, 196, 107)',
+  ruleOpacity: '1',
+  starOpacity: '1',
+};
+
+// chromium's getComputedStyle returns the unresolved counter() for ::before
+// content; engines that resolve it give the numeral itself. Both are the
+// contract — the mechanism is pinned in src/tests/plates.test.js too.
+function expectRoman(content, count) {
+  const resolved = `"${'I'.repeat(count)}"`;
+  return content.includes('upper-roman') || content === resolved;
+}
+
+test('plates are quiet at rest: flat fill, dim rule, no star', async ({ page }) => {
+  await approach(page);
+  // Plate TWO: the first plate is script-focused after approach(), and that
+  // focus ignites it by design (the ticket-3 spike finding) — on every
+  // pointer modality. Rest is read where neither hover nor focus lives.
+  const choice = page.locator('.choices button').nth(1);
+  expect(await choice.evaluate((e) => getComputedStyle(e).backgroundColor))
+    .toBe('rgba(236, 228, 212, 0.04)');
+  expect(await pseudoStyle(choice, '::before', 'width')).toBe('2px');
+  expect(await pseudoStyle(choice, '::before', 'backgroundColor')).toBe('rgb(217, 169, 78)');
+  expect(await pseudoStyle(choice, '::before', 'opacity')).toBe('0.35');
+  expect(await pseudoStyle(choice, '::after', 'opacity')).toBe('0');
+});
+
+test('plate ignites on hover: warm wash, bright wide rule, star fades in', async ({ page }) => {
   const pointerFine = await page.evaluate(() => matchMedia('(pointer: fine)').matches);
   test.skip(!pointerFine, 'hover is a desktop-pointer affordance');
   await approach(page);
   const choice = page.locator('.choices button').first();
-  expect(await beforeStyle(choice, 'opacity')).toBe('0');
   await choice.hover();
-  expect(await beforeStyle(choice, 'opacity')).toBe('1');
+  await expect.poll(() => plateState(choice)).toEqual(IGNITED);
 });
 
-test('caret appears on focus-visible via keyboard, matching hover', async ({ page }) => {
+test('keyboard focus ignites the plate and rings gold-bright via kb-focus', async ({ page }) => {
   // A real Tab+Enter keyboard activation, not approach()'s mouse click —
   // dialogue.js's programmatic choice.focus() after a mouse click does not
   // itself satisfy :focus-visible (browsers key it off the input modality).
@@ -41,12 +85,29 @@ test('caret appears on focus-visible via keyboard, matching hover', async ({ pag
   await page.keyboard.press('Enter');
   const choice = page.locator('.choices button').first();
   await expect(choice).toBeFocused();
-  expect(await beforeStyle(choice, 'opacity')).toBe('1');
+  await expect.poll(() => pseudoStyle(choice, '::after', 'opacity')).toBe('1');
+  const { color, width, offset } = await choice.evaluate((e) => {
+    const cs = getComputedStyle(e);
+    return { color: cs.outlineColor, width: cs.outlineWidth, offset: cs.outlineOffset };
+  });
+  expect(color).toBe('rgb(255, 196, 107)');
+  expect(width).toBe('2px');
+  expect(offset).toBe('2px');
 });
 
-// The button's own box is fixed by the card (display:block; width:100%)
-// whether or not a caret shows — measuring it proves nothing. Measure where
-// the label TEXT itself starts instead, via a Range over its text node.
+test('each option leads with a mono roman numeral index', async ({ page }) => {
+  await approach(page);
+  const lis = page.locator('.choices li');
+  expect(expectRoman(await pseudoStyle(lis.nth(0), '::before', 'content'), 1)).toBe(true);
+  expect(expectRoman(await pseudoStyle(lis.nth(1), '::before', 'content'), 2)).toBe(true);
+  const family = await pseudoStyle(lis.nth(0), '::before', 'fontFamily');
+  expect(family.toLowerCase()).toContain('cascadia');
+});
+
+// The plate's own box is fixed by the card (display:block; width:100%) and
+// nothing in the ignition moves layout — the rule widens at the plate edge
+// and the star fades into reserved right padding. Measure where the label
+// TEXT starts, via a Range over its text node, to prove it.
 async function labelTextX(locator) {
   return locator.evaluate((el) => {
     const range = document.createRange();
@@ -55,13 +116,12 @@ async function labelTextX(locator) {
   });
 }
 
-test('caret does not shift the label when it appears — gutter is reserved, not inserted', async ({ page }) => {
+test('ignition does not shift the label — both glyph slots are reserved padding', async ({ page }) => {
   const pointerFine = await page.evaluate(() => matchMedia('(pointer: fine)').matches);
   test.skip(!pointerFine, 'hover is a desktop-pointer affordance');
   await approach(page);
-  // Let the card's entry transform settle (same gate as the press-state test) —
-  // beforeX must be read after the card has centred itself or the position is
-  // the raw left-padding value, not the final layout position.
+  // Let the card's entry transform settle — beforeX must be read after the
+  // card has centred itself or the position is not the final layout position.
   await expect(page.locator('.card')).toHaveCSS('opacity', '1', { timeout: 5000 });
   await expect(page.locator('.card')).not.toHaveClass(/is-streaming/, { timeout: 5000 });
   const choice = page.locator('.choices button').first();
@@ -71,102 +131,29 @@ test('caret does not shift the label when it appears — gutter is reserved, not
   expect(afterX).toBeCloseTo(beforeX, 0);
 });
 
-// Seeks the button's own hover-lift/press-drop CSS transitions to their
-// finished value and pauses them there, then reads the settled bounding
-// box — the seek-to-finished idiom geom.js's settledOpacity/
-// seekFrameTransition use for other elements in this suite, in place of a
-// wall-clock guess racing the same 0.12s transitions. waitForFunction-style
-// polling guards against reading before hover/press has actually started a
-// transition; cancelling the paused transitions afterwards keeps
-// getAnimations() clean for the next call, so it can't mistake this call's
-// now-finished entries for a fresh one.
-async function settledRect(locator) {
-  await locator.evaluate((el) => new Promise((resolve) => {
-    (function poll() {
-      el.getAnimations().length > 0 ? resolve() : requestAnimationFrame(poll);
-    })();
-  }));
-  return locator.evaluate((el) => {
-    el.getAnimations().forEach((a) => {
-      const timing = a.effect.getComputedTiming();
-      a.currentTime = (timing.delay ?? 0) + (timing.duration ?? 0);
-      a.pause();
-    });
-    const r = el.getBoundingClientRect();
-    const rect = { x: r.x, y: r.y, width: r.width, height: r.height };
-    el.getAnimations().forEach((a) => a.cancel());
-    return rect;
-  });
-}
-
-test('press state: :active resets the hover lift and presses further down', async ({ page }, testInfo) => {
-  // Hover-then-press has no contract on a touch project — this test was
-  // simply ungated and passed locally on Windows WebKit but failed on Linux
-  // WebKit's touch emulation (iphone-se, zero press delta). Gate on the
-  // project's static hasTouch capability, chosen because a static config
-  // value can't diverge between hosts the way a runtime read could.
-  test.skip(!!testInfo.project.use.hasTouch, 'hover-then-press has no touch contract');
-  // Screen-space boundingBox, not getComputedStyle('transform') — the
-  // `transform` property does NOT bake in `translate` at the CSS OM level;
-  // the two are independently-animatable properties that both affect the
-  // painted position, and only the render (boundingBox) reflects their sum.
-  await approach(page);
-  // Let the card's own 550ms entry transform settle and wait out A2's stream
-  // skip — mouse.down() below is a real pointerdown on the card, and either
-  // still being in flight reflows/shifts the choices list under the button,
-  // swamping the 2px press offset the assertions below are trying to isolate.
-  await expect(page.locator('.card')).toHaveCSS('opacity', '1', { timeout: 5000 });
-  await expect(page.locator('.card')).not.toHaveClass(/is-streaming/, { timeout: 5000 });
-  const choice = page.locator('.choices button').first();
-  await choice.hover();
-  const hovered = await settledRect(choice);
-  await page.mouse.down();
-  const pressed = await settledRect(choice);
-  await page.mouse.up();
-  // :active resets the hover-lift transform and presses via the independent
-  // `translate` property instead — hover -> press is a real ~2px travel,
-  // not the two partially cancelling out.
-  expect(pressed.y).toBeGreaterThan(hovered.y);
-  expect(pressed.y - hovered.y).toBeGreaterThan(1);
-});
-
-// The build's minifier can fold `transform:none; translate:none` into a
-// literal identity matrix rather than the string 'none' (observed:
-// `transform:translate(0,0)`), so accept either serialization of "no offset".
-function hasNoOffset(transformStr) {
-  if (transformStr === 'none') return true;
-  const m = transformStr.match(/^matrix\(([^)]+)\)$/);
-  if (!m) return false;
-  const [a, b, c, d, e, f] = m[1].split(',').map(Number);
-  return a === 1 && b === 0 && c === 0 && d === 1 && e === 0 && f === 0;
-}
-
-test('system options and End dialogue get the caret but no hover lift or press', async ({ page }) => {
+test('system options and End dialogue are ordinary plates — one style, same ignition', async ({ page }) => {
   await approach(page);
   // root's own choices already include a system option (the /sheet skip) —
-  // no need to navigate anywhere, which also sidesteps A2's mid-stream
-  // click-swallow (a click here would otherwise just complete the line).
+  // no need to navigate anywhere.
   await expect(page.locator('.card')).not.toHaveClass(/is-streaming/, { timeout: 5000 });
   for (const selector of ['.choices button.system', '#end-dialogue']) {
     const el = page.locator(selector).first();
     await expect(el).toBeVisible();
+    expect(await el.evaluate((e) => getComputedStyle(e).borderTopStyle)).toBe('none');
+    expect(await el.evaluate((e) => getComputedStyle(e).backgroundColor))
+      .toBe('rgba(236, 228, 212, 0.04)');
     await el.hover();
-    expect(await beforeStyle(el, 'opacity')).toBe('1'); // same caret language
-    expect(hasNoOffset(await el.evaluate((e) => getComputedStyle(e).transform))).toBe(true);
-    await page.mouse.down();
-    await page.waitForTimeout(150);
-    expect(hasNoOffset(await el.evaluate((e) => getComputedStyle(e).transform))).toBe(true); // no press lift either
+    await expect.poll(() => plateState(el)).toEqual(IGNITED);
     // Both buttons navigate/exit on a real click — release away from the
     // element so mouseup doesn't complete one and skip the loop's second half.
     await page.mouse.move(0, 0);
-    await page.mouse.up();
   }
 });
 
 // #approach-prompt is deliberately absent here — the approach-reveal ticket
 // removed its box/border (floating shadowed text, not a boxed control); the
 // dedicated no-box/no-border assertions live in approach.spec.js instead.
-test('boxes are square-cornered rectangles with a 2px border, not pills', async ({ page }) => {
+test('plates are sharp-cornered and borderless; the toggle keeps its 2px box', async ({ page }) => {
   await approach(page);
   const targets = ['.choices button', '#toggle'];
   for (const sel of targets) {
@@ -176,7 +163,7 @@ test('boxes are square-cornered rectangles with a 2px border, not pills', async 
       return { radius: cs.borderTopLeftRadius, width: cs.borderTopWidth };
     });
     expect(radius, sel).toBe('4px');
-    expect(width, sel).toBe('2px');
+    expect(width, sel).toBe(sel === '.choices button' ? '0px' : '2px');
   }
 });
 

@@ -1,5 +1,5 @@
 // Renders docs/cv.html → public/cv.pdf via headless Edge.
-// Run from the repo root: node docs/render-cv.js
+// Run from the repo root: node tools/render-cv.js
 import { chromium } from 'playwright-core';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';

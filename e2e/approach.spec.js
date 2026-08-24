@@ -792,21 +792,21 @@ async function mountainRatio(page, selector) {
   return box.width / box.height;
 }
 
-test('Table Mountain aspect ratio is 2.4194 in the standard view', async ({ page }) => {
+test('Table Mountain aspect ratio is 2.3622 in the standard view', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto('/');
   const ratio = await mountainRatio(page, '.scene-standard .table-mountain');
   expect(ratio).toBeCloseTo(MOUNTAIN_RATIO, 3);
 });
 
-test('Table Mountain aspect ratio is 2.4194 in the wide view', async ({ page }) => {
+test('Table Mountain aspect ratio is 2.3622 in the wide view', async ({ page }) => {
   await page.setViewportSize({ width: 2560, height: 1080 });
   await page.goto('/');
   const ratio = await mountainRatio(page, '.scene-wide .table-mountain');
   expect(ratio).toBeCloseTo(MOUNTAIN_RATIO, 3);
 });
 
-test('Table Mountain aspect ratio is 2.4194 in the tall view', async ({ page }) => {
+test('Table Mountain aspect ratio is 2.3622 in the tall view', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
   const ratio = await mountainRatio(page, '.scene-tall .table-mountain');

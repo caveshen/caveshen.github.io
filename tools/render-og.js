@@ -8,7 +8,7 @@
 // The head assets bake src/assets/badger-head.svg's token-class fills to hex
 // (read from tokens.css :root) over a night-ink backdrop. The champion
 // assets process .scratch/NAG_Badger.jpg (gitignored, private source) into
-// pixel art. Run from the repo root: node docs/render-og.js
+// pixel art. Run from the repo root: node tools/render-og.js
 import { chromium } from 'playwright-core';
 import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { spawn, spawnSync } from 'node:child_process';
@@ -254,6 +254,6 @@ updateManifest({
     OUTPUTS.filter((f) => f !== 'public/sheet-portrait.png').map((f) => [f, hashFile(f)])
   ),
 });
-console.log('wrote docs/derived-images.json');
+console.log('wrote tools/derived-images.json');
 
 await browser.close();

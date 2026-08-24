@@ -135,7 +135,7 @@ RULED 2026-08-22, superseding this section's first plan (which
 ticket 02 shipped and this ruling reworks): **the icon set splits by
 size.** At 16px the canonical head holds (only it survives that
 size). At 32px and up, a pixel-art badger "champion" takes over —
-processed by `docs/render-og.js` from a private 32×32 source image
+processed by `tools/render-og.js` from a private 32×32 source image
 in the gitignored `.scratch/` (flood-fill background removal,
 palette-snap to `--crater`/`--head-dark`/`--moon`, nearest-neighbour
 integer scaling only). Caveshen waived the no-generated-art rule for
@@ -148,7 +148,7 @@ back to a sized raster, which would defeat the 16/32 split; with
 sized PNGs they pick correctly. A hygiene test guards against
 `favicon.svg` quietly returning.
 
-All derived files are emitted by `docs/render-og.js`:
+All derived files are emitted by `tools/render-og.js`:
 
 - **`public/favicon-16.png`** — the canonical head, baked hex fills
   over the night-ink square (the class → `fill` bake described in
@@ -183,20 +183,20 @@ All derived files are emitted by `docs/render-og.js`:
 - The route is unlinked, passes `noindex` to `Base`, and is excluded
   from the sitemap (the config already excludes the 404 the same
   way). It ships (Open question 4).
-- `docs/render-og.js` re-points its OG block at `/og` and deletes the
+- `tools/render-og.js` re-points its OG block at `/og` and deletes the
   style-injection and title-injection hacks. It emulates reduced
   motion before the screenshot so the city-light glimmer cannot vary
   the pixels between renders. A fresh browser profile has no stored
   theme, so the route renders night by default; the script relies on
   that.
 - **The freshness gate.** A small shared module
-  (`docs/derived-inputs.js`) names the input set — every file under
+  (`tools/derived-inputs.js`) names the input set — every file under
   `src/components/` and `src/styles/`, plus `src/pages/og.astro` and
   `src/assets/badger-head.svg` — and the four output files, with one
   hash function. The derive script writes
-  `docs/derived-images.json`: a SHA-256 per input and per output. A
+  `tools/derived-images.json`: a SHA-256 per input and per output. A
   unit test recomputes every hash and fails on any mismatch, naming
-  the fix in its message: `node docs/render-og.js`. Hashing the whole
+  the fix in its message: `node tools/render-og.js`. Hashing the whole
   component and style directories is deliberate over-coverage: an
   unrelated component edit forces a needless re-render (one command),
   but no scene-touching file can ever be missing from the list. Output
@@ -212,7 +212,7 @@ first plan: **the panel carries a treated photo portrait of
 Caveshen, not the badger head.** He supplied his own photograph and
 sealed the treatment (night duotone: cream-multiply and ink-lighten
 over grayscale, head-and-shoulders crop, alpha-fade vignette).
-`docs/make-portrait.mjs` records the recipe; its input is the
+`tools/make-portrait.mjs` records the recipe; its input is the
 private photo in the gitignored `.scratch/`, and only the treated
 256×256 `public/sheet-portrait.png` is committed and shipped — the
 raw photo never enters git. The panel `img` carries
@@ -488,7 +488,7 @@ Only after all four pass: offer Caveshen the preview.
 
 ### 02 — the favicon set
 
-Extend `docs/render-og.js`: bake the head (class → hex from
+Extend `tools/render-og.js`: bake the head (class → hex from
 tokens.css) into `public/favicon.svg`; regenerate `favicon.ico`
 (32×32, existing ICO container) and `apple-touch-icon.png` (180×180)
 from the baked markup. Rework the `hygiene` favicon unit assertions.
@@ -546,8 +546,8 @@ accepted.
 
 ### 05 — the freshness gate
 
-Add `docs/derived-inputs.js` (input/output list + hash function);
-make `docs/render-og.js` write `docs/derived-images.json`; add the
+Add `tools/derived-inputs.js` (input/output list + hash function);
+make `tools/render-og.js` write `tools/derived-images.json`; add the
 `derived-images` unit test.
 
 AMENDED 2026-08-22 (the champion and photo-portrait rulings landed
@@ -561,14 +561,14 @@ them, and absence must not read as staleness. The input set scans
 `src/components/` and `src/styles/` whole — deliberate
 over-coverage: an unrelated component edit forces a needless
 re-render, but no scene-touching file can ever be missing from the
-list. `docs/make-portrait.mjs` writes its slice into the same
+list. `tools/make-portrait.mjs` writes its slice into the same
 manifest. Text-input hashes are CRLF-normalized so the committed
 manifest is identical on Windows and CI checkouts.
 
 - Step: write the test first → verify: red (no manifest), green
   after a render.
 - Step: prove the gate → verify: touch one scene component after
-  rendering, test fails naming `node docs/render-og.js`; touch
+  rendering, test fails naming `node tools/render-og.js`; touch
   `og-image.png`, test fails; re-render, green.
 - Step: run `npm test` → verify: whole unit run still under the
   15-second budget.

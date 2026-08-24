@@ -1,0 +1,25 @@
+{
+  "inputs": {
+    ".scratch/NAG_Badger.jpg": "66bc234fbaecf2bf7c6a0371114de0f86a76af1d7c3ebb90d2f491717e4fd7a5",
+    ".scratch/cavie-ref.jpg": "e6e26a3c746edb4a3e906a5719dbb2dc2572048bf4c3086701c30442b10db488",
+    "src/assets/badger-head.svg": "72a7e955581a87ea8d4d22832a71b031417be77c7e173f0b0e888125fe425110",
+    "src/components/Badger.astro": "14ad4a98a2726ef9128d65859b42b20598960704ee44356064fd1e8b7139fba8",
+    "src/components/BadgerHead.astro": "0d10abad95a6082546e0619adc8d1cbef79383d30d5536829fc727d317a12933",
+    "src/components/CityScape.astro": "2496fb1ab0eab5a0c9a7a99905d5180c973ca2de5cc055a66fa3cc26be23fb0d",
+    "src/components/HoodedFigure.astro": "d2edf217c992a0f56ec572ec8a40ae33d5516888a53c1b08619ca612c5a60c42",
+    "src/components/Moon.astro": "f8d89b34354978915d894209073f002b5fe36a6afebc624067bad04fa215e84d",
+    "src/components/Scene.astro": "da95bc28eb19a320a5cf7e35ae2425e39852d14f7f9f9a717c2b27537a15f47e",
+    "src/components/Stage.astro": "a18d352ebccf7c76e98c38baae00702b803f32072de6ff30199f144b0d74e5fd",
+    "src/components/ThemeToggle.astro": "554d5a808bf4cf7634b21758d340f4fb280ad2283d9d99a432327cdccf55d45f",
+    "src/pages/og.astro": "96ff704559c7e504a88e8533f7d64ac6639eed36e119468df31aae0405418411",
+    "src/styles/tokens.css": "794c2ae6faf00006f0c4b6a9e69035591791e9d3bcefa8727315674195bc1ccf"
+  },
+  "outputs": {
+    "public/apple-touch-icon.png": "250af72302f672d62ce6a36443499b724ff330dfd56d0393fbe401008b0337e7",
+    "public/favicon-16.png": "931f0ac7a48508e43fd1aed111a9b2c34fbdd2b3c15bf2d6d0b0e00a88b3c581",
+    "public/favicon-32.png": "d9cc47617bf36fed57345f597c45012aecad9847d8fbeffe880164d02892c6f4",
+    "public/favicon.ico": "978149d9999bc957aeab05dbbdd9315d7becf613cb67fa6c4d8a870ae246921e",
+    "public/og-image.png": "8109f094866a8abc8fb6025cc819b9c81e44b4544c8006dec7b5e509972bdc3c",
+    "public/sheet-portrait.png": "ad061d6678cb4a5fd1ec22fc0955e3093f18c807bfeb2e1f8bb3e6e75eba3ff9"
+  }
+}

@@ -1,18 +1,18 @@
-// Freshness gate: docs/derived-images.json hashes match recomputed hashes
+// Freshness gate: tools/derived-images.json hashes match recomputed hashes
 // for every committed input, private input, and output image.
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
-import { root, COMMITTED_INPUTS, PRIVATE_INPUTS, OUTPUTS, hashFile, manifestPath } from '../../docs/derived-inputs.js';
+import { root, COMMITTED_INPUTS, PRIVATE_INPUTS, OUTPUTS, hashFile, manifestPath } from '../../tools/derived-inputs.js';
 
 // sheet-portrait.png is derived by make-portrait.mjs; everything else by
 // render-og.js. Point the failure message at the script that owns the file.
 const commandFor = (file) =>
-  file === 'public/sheet-portrait.png' ? 'node docs/make-portrait.mjs' : 'node docs/render-og.js';
+  file === 'public/sheet-portrait.png' ? 'node tools/make-portrait.mjs' : 'node tools/render-og.js';
 
 describe('derived-images manifest', () => {
   it('exists', () => {
-    expect(existsSync(manifestPath), 'no manifest — run `node docs/render-og.js`').toBe(true);
+    expect(existsSync(manifestPath), 'no manifest — run `node tools/render-og.js`').toBe(true);
   });
 
   const manifest = existsSync(manifestPath)

@@ -6406,3 +6406,7 @@ x 8 projects = 2,112 executions, run sequentially in one job.
 The per-shard timeout drops from 40 minutes (load-bearing for the
 unsharded matrix) to 25 — slowest project plus build/install overhead,
 to be tuned after observing a few runs.
+
+**True-up (PR #29):** first sharded run all eight shards green; wall
+time set by the slowest shard (iphone-15pro) at 6m49s, against 30m16s
+for the unsharded matrix — roughly a quarter of the deploy cycle.

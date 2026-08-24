@@ -36,7 +36,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     # Without this a hung WebKit run holds the runner for GitHub's 6-hour default.
-    timeout-minutes: 30
+    # 40min: the full matrix ran 25m on a good runner but 30m16s on main's
+    # slower one (2026-08-24) — 30 was too tight to survive runner variance.
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v7
 

@@ -141,7 +141,7 @@ describe('badger idle frames', () => {
 
 describe('placeholder-check', () => {
   it('finds PLACEHOLDER in files that contain it', async () => {
-    const { findPlaceholderFiles } = await import('../../docs/placeholder-check.js');
+    const { findPlaceholderFiles } = await import('../../tools/placeholder-check.js');
     const tmp = join(tmpdir(), 'ph-test-' + Date.now());
     mkdirSync(tmp, { recursive: true });
     writeFileSync(join(tmp, 'test.astro'), 'hello PLACEHOLDER world');
@@ -151,7 +151,7 @@ describe('placeholder-check', () => {
   });
 
   it('returns empty array for files without PLACEHOLDER', async () => {
-    const { findPlaceholderFiles } = await import('../../docs/placeholder-check.js');
+    const { findPlaceholderFiles } = await import('../../tools/placeholder-check.js');
     const tmp = join(tmpdir(), 'ph-test2-' + Date.now());
     mkdirSync(tmp, { recursive: true });
     writeFileSync(join(tmp, 'test.astro'), 'hello world, all copy is finalized');
@@ -161,7 +161,7 @@ describe('placeholder-check', () => {
   });
 
   it('returns empty array for empty directory', async () => {
-    const { findPlaceholderFiles } = await import('../../docs/placeholder-check.js');
+    const { findPlaceholderFiles } = await import('../../tools/placeholder-check.js');
     const tmp = join(tmpdir(), 'ph-test3-' + Date.now());
     mkdirSync(tmp, { recursive: true });
     const result = findPlaceholderFiles([tmp]);

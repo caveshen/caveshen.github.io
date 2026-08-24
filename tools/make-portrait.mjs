@@ -3,7 +3,7 @@
 // .scratch/cavie-ref.jpg (gitignored, local-only, never committed or
 // rendered PNG output is the artifact. Treatment retuned 2026-08-23 by
 // ruling (d37 ticket 6): parchment-over-ink duotone with a faint gold bloom.
-// Run from the repo root: node docs/make-portrait.mjs
+// Run from the repo root: node tools/make-portrait.mjs
 import { chromium } from 'playwright-core';
 import { writeFileSync, readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -66,4 +66,4 @@ updateManifest({
   inputs: { '.scratch/cavie-ref.jpg': hashFile('.scratch/cavie-ref.jpg') },
   outputs: { 'public/sheet-portrait.png': hashFile('public/sheet-portrait.png') },
 });
-console.log('wrote docs/derived-images.json');
+console.log('wrote tools/derived-images.json');

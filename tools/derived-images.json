@@ -11,7 +11,7 @@
     "src/components/Scene.astro": "da95bc28eb19a320a5cf7e35ae2425e39852d14f7f9f9a717c2b27537a15f47e",
     "src/components/Stage.astro": "a18d352ebccf7c76e98c38baae00702b803f32072de6ff30199f144b0d74e5fd",
     "src/components/ThemeToggle.astro": "554d5a808bf4cf7634b21758d340f4fb280ad2283d9d99a432327cdccf55d45f",
-    "src/pages/og.astro": "a04a1998913ae479aa8ee9ace9ed40a65e1deff90d74818f49f23f26c1d8ff80",
+    "src/pages/og.astro": "96ff704559c7e504a88e8533f7d64ac6639eed36e119468df31aae0405418411",
     "src/styles/tokens.css": "794c2ae6faf00006f0c4b6a9e69035591791e9d3bcefa8727315674195bc1ccf"
   },
   "outputs": {
@@ -19,7 +19,7 @@
     "public/favicon-16.png": "931f0ac7a48508e43fd1aed111a9b2c34fbdd2b3c15bf2d6d0b0e00a88b3c581",
     "public/favicon-32.png": "d9cc47617bf36fed57345f597c45012aecad9847d8fbeffe880164d02892c6f4",
     "public/favicon.ico": "978149d9999bc957aeab05dbbdd9315d7becf613cb67fa6c4d8a870ae246921e",
-    "public/og-image.png": "3eb5fa2689310447092870e96d06fb01a6d95f5bbdfc2d5c0e7ad374fe426bed",
+    "public/og-image.png": "8109f094866a8abc8fb6025cc819b9c81e44b4544c8006dec7b5e509972bdc3c",
     "public/sheet-portrait.png": "ad061d6678cb4a5fd1ec22fc0955e3093f18c807bfeb2e1f8bb3e6e75eba3ff9"
   }
 }

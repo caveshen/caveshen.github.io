@@ -1,6 +1,6 @@
 // Greps src/ and public/ for PLACEHOLDER tokens.
 // Emits ::warning:: annotations (never exits non-zero — warns, doesn't block).
-// Run from repo root: node docs/placeholder-check.js
+// Run from repo root: node tools/placeholder-check.js
 // Also exported for unit testing.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, extname } from 'node:path';

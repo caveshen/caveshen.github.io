@@ -1,7 +1,7 @@
-// Input/output manifest for the freshness gate (docs/derived-images.json).
+// Input/output manifest for the freshness gate (tools/derived-images.json).
 // Names every committed file whose change invalidates a derived image, the
 // private gitignored source photos, the derived outputs, and a hash
-// function. Shared by docs/render-og.js, docs/make-portrait.mjs, and the
+// function. Shared by tools/render-og.js, tools/make-portrait.mjs, and the
 // derived-images unit test.
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
@@ -55,7 +55,7 @@ export function hashFile(relPath) {
   return createHash('sha256').update(content).digest('hex');
 }
 
-export const manifestPath = path.join(root, 'docs/derived-images.json');
+export const manifestPath = path.join(root, 'tools/derived-images.json');
 
 function sorted(obj) {
   return Object.fromEntries(Object.keys(obj).sort().map((k) => [k, obj[k]]));

@@ -83,8 +83,9 @@ the document body under their original `§` headings as history.
 | d37 | Theme and typeface direction — settle the site's colour-way and its display font together | *new* | ✅ MERGED 2026-08-23 (PR #28, squash) — Dragon Age register live; 170 unit green, 264 e2e bodies ×8, full matrix green at the PR |
 | d38 | Dialogue speaker portrait — warmer variant of the canonical head for the dialogue box | *new* | 💡 queued 2026-08-21 (§d38) — after d35 merges; basis vectors in hand |
 | d39 | Dynamic scene subsystem — real lunar phase by night, live Cape Town weather by day | *new* | 💡 parked 2026-08-22 — decided-in-principle, unbuilt; needs Caveshen's ruling on one keyless API request per visitor-hour (§d39) |
-| d40 | Scene rewrite workshop — a from-scratch reimagining of both scenes under the Dragon Age register | *new* | 💡 raised 2026-08-23 — workshop wanted; opening sketches in §d40 |
+| d40 | Scene rewrite workshop — a from-scratch reimagining of both scenes under the Dragon Age register | *new* | ✅ CONCLUDED 2026-08-25 — the mocks never beat the live scene (read as validation of it); ideas adopted with build order: scroll-reveal first (replaces the d36 glow), four moments, real-time clock, scene-as-data (§d40) |
 | d41 | CI matrix sharding — run the eight projects as parallel jobs; consider smoke-only deploys on main | *new* | ✅ DECIDED 2026-08-24 — one job per project on PRs; main pre-deploy gate is smoke-only (desktop-1920); delivered on `ci/matrix-sharding` (§d41) |
+| d42 | Reference-photo front — hybrid photo background + animated Badger under the d37 language | *new* | 💡 raised 2026-08-25 — spun out of d40; parked until d40's adopted ideas land (§d42) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -637,6 +638,14 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
 
 ## 14. Amendments log
 
+- **2026-08-25 — d40 SCENE WORKSHOP CONCLUDED; IDEAS ADOPTED (Caveshen's
+  picks).** The mock-first workshop (six rounds, gitignored `screenshots/`)
+  never beat the live scene — read as validation of it. Adopted with build
+  order: the Badger scroll-reveal first (replacing the d36 approach glow),
+  then four scene moments (midday/afternoon/evening/night), then a real-time
+  Cape Town scene clock (requires the moments), on a scene-as-data
+  architecture. Ocean, city-language and painterly-rendering reworks
+  rejected. Full record in §d40; photo-hybrid front spun out as §d42.
 - **2026-08-22 — COPY AUTHORSHIP AMENDED (Caveshen's ruling).** The
   founding law gave Caveshen sole ownership of all prose; the site has since
   grown far more interactive than originally planned, and drafting every
@@ -6317,12 +6326,47 @@ fog, rain).
 
 ## d40. Scene rewrite workshop
 
-### 💡 RAISED 2026-08-23 — Caveshen's ask; workshop wanted later
+### ✅ CONCLUDED 2026-08-25 — the visual needle did not move; the ideas did
 
-If the day/night scenes were rewritten from scratch — keeping the
-Dragon Age register and Cape Town's identity — how would they be built
-otherwise? This item parks that workshop. Opening sketches from the
-orchestrator, to argue with:
+The workshop ran 2026-08-25, mock-first: five opening sketches (below) grew
+through six mock rounds into standalone HTML scenes with PNG renders, all kept
+in the gitignored `screenshots/` folder — nothing entered the repo. Four
+reference photos of the real view (`screenshots/cpt/`, owner-supplied) grounded
+the composition work.
+
+**Verdict.** The mocks never beat the live scene. Every round converged back
+toward what the live site already does, which this record reads as validation:
+the live composition survived comparison against the real photographs. The
+workshop's yield is a set of rulings and ideas, adopted below with the
+owner's build order.
+
+**Adopted — build order as ruled 2026-08-25:**
+
+1. **Scroll-reveal of the Badger — first up.** The page loads on the pure
+   scene. After five seconds a scroll CTA fades in. A small scroll nudges the
+   view, applies a mild depth-of-field to the background layers, and brings
+   the Badger into the foreground. `prefers-reduced-motion` skips the wait and
+   the transition. This **replaces the glow effect** — the d36 approach light.
+2. **Four scene moments: midday, afternoon, evening, night.** Successor to the
+   two-theme day/night toggle. Night carries no protruding light behind the
+   mountainside — moon and stars only. Evening carries the orange horizon band
+   glowing behind the massif. Midday and afternoon are clean day states,
+   afternoon the warmer, westering-sun step between midday and evening.
+3. **Real-time scene clock — after the four moments, and requiring them.** The
+   loaded moment follows the actual time in Cape Town. A neighbour of d39's
+   live-weather question, but it stands on its own.
+4. **Scene-as-data architecture — the implementation vehicle.** Layers authored
+   as structured declarations; the SVG generated from them. Adopted as much
+   for effect power as for hygiene: the evening glow band and the night stars
+   become data, not hand-kept markup.
+
+**Rejected and closed:** ocean real-estate reworks (the live water treatment
+stands), city language changes (the flat front-facing silhouettes stand),
+painterly Dragon Age-style rendering (rejected outright — the flat-silhouette
+law holds). The opening-sketch ideas not listed above lapse with this record;
+they may be re-raised if ever wanted.
+
+### Opening sketches (2026-08-23, argued through the workshop)
 
 - **Scene as data, not markup.** Author layers (sky, celestial, range,
   city, sea, foreground) as structured declarations; generate the SVG
@@ -6340,8 +6384,6 @@ orchestrator, to argue with:
   anatomy, 2026-08-23).
 - **Life within the laws.** Gulls by day, a beacon that breathes at
   night, motes kept — all static under reduced motion, all vector.
-
-Not scheduled. Runs after d37 merges, as a mock-first workshop.
 
 ## d38. Dialogue speaker portrait
 
@@ -6410,3 +6452,29 @@ to be tuned after observing a few runs.
 **True-up (PR #29):** first sharded run all eight shards green; wall
 time set by the slowest shard (iphone-15pro) at 6m49s, against 30m16s
 for the unsharded matrix — roughly a quarter of the deploy cycle.
+
+## d42. Reference-photo front — hybrid photo background + animated Badger
+
+### 💡 RAISED 2026-08-25 — Caveshen's ask, spun out of the d40 workshop; parked
+
+Recreate the front of the site from the real reference photos — a hybrid of a
+photographic background and the animated Badger, in place of the current
+abstract scene — while obeying the d37 visual language (tokens, type, theme
+grammar). Basis: the owner's four photos in the gitignored `screenshots/cpt/`
+(the mountain chain from the eastern flats: clear afternoon, winter cloud
+bank, golden hazy evening, night with the city lit).
+
+Open questions for the workshop, when it runs:
+
+- **Which photo becomes the base, and whether moments survive.** A photo is
+  one moment; the d40 four-moment ruling would need a photo per moment or a
+  graded treatment over one.
+- **How a raster background obeys the token theming.** The d37 day/night
+  crossfade has no photograph-native equivalent.
+- **How the responsive camera treats a flat image.** §3/§19's
+  one-world-three-cameras law pans and scales vector layers; a photo cannot
+  parallax the same way.
+- **How the Badger sits against photographic depth.** His flat-idiom figure
+  and the d40 scroll-reveal were designed against a vector scene.
+
+Parked until d40's adopted ideas land.

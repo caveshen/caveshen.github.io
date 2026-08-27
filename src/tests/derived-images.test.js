@@ -5,10 +5,14 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { root, COMMITTED_INPUTS, PRIVATE_INPUTS, OUTPUTS, hashFile, manifestPath } from '../../tools/derived-inputs.js';
 
-// sheet-portrait.png is derived by make-portrait.mjs; everything else by
-// render-og.js. Point the failure message at the script that owns the file.
-const commandFor = (file) =>
-  file === 'public/sheet-portrait.png' ? 'node tools/make-portrait.mjs' : 'node tools/render-og.js';
+// sheet-portrait.png is derived by make-portrait.mjs; the threshold/ variants
+// by build-threshold-photo.mjs; everything else by render-og.js. Point the
+// failure message at the script that owns the file.
+const commandFor = (file) => {
+  if (file === 'public/sheet-portrait.png') return 'node tools/make-portrait.mjs';
+  if (file.startsWith('public/threshold/')) return 'node tools/build-threshold-photo.mjs';
+  return 'node tools/render-og.js';
+};
 
 describe('derived-images manifest', () => {
   it('exists', () => {

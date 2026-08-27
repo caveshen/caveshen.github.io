@@ -31,7 +31,10 @@ export const COMMITTED_INPUTS = [
 export const PRIVATE_INPUTS = [
   '.scratch/NAG_Badger.jpg',
   '.scratch/cavie-ref.jpg',
+  'screenshots/cpt/20251125_200737.jpg',
 ].sort();
+
+const THRESHOLD_WIDTHS = [640, 1024, 1536, 2048];
 
 export const OUTPUTS = [
   'public/apple-touch-icon.png',
@@ -40,6 +43,7 @@ export const OUTPUTS = [
   'public/favicon.ico',
   'public/og-image.png',
   'public/sheet-portrait.png',
+  ...THRESHOLD_WIDTHS.flatMap((w) => [`public/threshold/night-${w}.avif`, `public/threshold/night-${w}.jpg`]),
 ].sort();
 
 // Text inputs are hashed with CRLF normalized to LF: this checkout has

@@ -2,6 +2,7 @@
   "inputs": {
     ".scratch/NAG_Badger.jpg": "66bc234fbaecf2bf7c6a0371114de0f86a76af1d7c3ebb90d2f491717e4fd7a5",
     ".scratch/cavie-ref.jpg": "e6e26a3c746edb4a3e906a5719dbb2dc2572048bf4c3086701c30442b10db488",
+    "screenshots/cpt/20251125_200737.jpg": "a3cde3ec15a6452d7aa62fe9338379421205f8b1330fff70458ef04edbf360d1",
     "src/assets/badger-head.svg": "72a7e955581a87ea8d4d22832a71b031417be77c7e173f0b0e888125fe425110",
     "src/components/Badger.astro": "14ad4a98a2726ef9128d65859b42b20598960704ee44356064fd1e8b7139fba8",
     "src/components/BadgerHead.astro": "0d10abad95a6082546e0619adc8d1cbef79383d30d5536829fc727d317a12933",
@@ -20,6 +21,14 @@
     "public/favicon-32.png": "d9cc47617bf36fed57345f597c45012aecad9847d8fbeffe880164d02892c6f4",
     "public/favicon.ico": "978149d9999bc957aeab05dbbdd9315d7becf613cb67fa6c4d8a870ae246921e",
     "public/og-image.png": "8109f094866a8abc8fb6025cc819b9c81e44b4544c8006dec7b5e509972bdc3c",
-    "public/sheet-portrait.png": "ad061d6678cb4a5fd1ec22fc0955e3093f18c807bfeb2e1f8bb3e6e75eba3ff9"
+    "public/sheet-portrait.png": "ad061d6678cb4a5fd1ec22fc0955e3093f18c807bfeb2e1f8bb3e6e75eba3ff9",
+    "public/threshold/night-1024.avif": "cebc89753ab40fb8c0f451beafbf2151fa3da84b8b8d220abbd0296965108176",
+    "public/threshold/night-1024.jpg": "5003467ca8ca4a18468a7644f7950bf9d7eb9c044947e88937408ab119729c4b",
+    "public/threshold/night-1536.avif": "2510d0cb3f319390326a5ac18b0a1c6ebfc861ec5a72b8ab5da07a8f0e3efd7e",
+    "public/threshold/night-1536.jpg": "752d1c35ea39c6190d2b659a86c26e3849992a630dde33c935929cb1956b0afe",
+    "public/threshold/night-2048.avif": "46e0cd788aa4e9c13499f33340fa882f349eed92e8396cd010e06e01a1e2c56e",
+    "public/threshold/night-2048.jpg": "fcf938a883110e989ea38308791389dfa14d1ac0e3c4e2ed2a6ffb1af3b333c8",
+    "public/threshold/night-640.avif": "a79a0254f029e8f6f7df1cd656ada1fda267fe4c18aa4be767f1741d53e39e43",
+    "public/threshold/night-640.jpg": "75d80ce942b428ca88e6e295dada8450629980b68abbec2823bbe228849c0838"
   }
 }

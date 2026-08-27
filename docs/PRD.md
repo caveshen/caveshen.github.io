@@ -83,9 +83,10 @@ the document body under their original `§` headings as history.
 | d37 | Theme and typeface direction — settle the site's colour-way and its display font together | *new* | ✅ MERGED 2026-08-23 (PR #28, squash) — Dragon Age register live; 170 unit green, 264 e2e bodies ×8, full matrix green at the PR |
 | d38 | Dialogue speaker portrait — warmer variant of the canonical head for the dialogue box | *new* | 💡 queued 2026-08-21 (§d38) — after d35 merges; basis vectors in hand |
 | d39 | Dynamic scene subsystem — real lunar phase by night, live Cape Town weather by day | *new* | 💡 parked 2026-08-22 — decided-in-principle, unbuilt; needs Caveshen's ruling on one keyless API request per visitor-hour (§d39) |
-| d40 | Scene rewrite workshop — a from-scratch reimagining of both scenes under the Dragon Age register | *new* | ✅ CONCLUDED 2026-08-25 — the mocks never beat the live scene (read as validation of it); ideas adopted with build order: scroll-reveal first (replaces the d36 glow), four moments, real-time clock, scene-as-data (§d40) |
+| d40 | Scene rewrite workshop — a from-scratch reimagining of both scenes under the Dragon Age register | *new* | ✅ CONCLUDED 2026-08-25; RETIRED 2026-08-27 — the adopted build order is superseded by d43; unbuilt ideas lapse, re-raisable (§d40) |
 | d41 | CI matrix sharding — run the eight projects as parallel jobs; consider smoke-only deploys on main | *new* | ✅ DECIDED 2026-08-24 — one job per project on PRs; main pre-deploy gate is smoke-only (desktop-1920); delivered on `ci/matrix-sharding` (§d41) |
-| d42 | Reference-photo front — hybrid photo background + animated Badger under the d37 language | *new* | 💡 raised 2026-08-25 — spun out of d40; parked until d40's adopted ideas land (§d42) |
+| d42 | Reference-photo front — hybrid photo background + animated Badger under the d37 language | *new* | ✅ FOLDED 2026-08-27 into d43 — the photo enters as a threshold, not a platform; its open questions are answered in §d43 (§d42) |
+| d43 | Photo-threshold front — night-photo title cover; New Game draws the world in; grain and shimmer stay | *new* | 💡 raised 2026-08-27 — direction accepted at the hybrid mock (`screenshots/view4f-hybrid.html`); awaiting spec and build (§d43) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -638,6 +639,16 @@ browsers cached. Simple pass/fail for now; richer reporting only if ever needed.
 
 ## 14. Amendments log
 
+- **2026-08-27 — d43 RAISED; d40 RETIRED; d42 FOLDED (Caveshen's rulings at
+  the photo-front workshop).** A three-view mock round (game-UI chrome,
+  photo-as-artifact, materiality pass — worker and Fable versions of each,
+  all gitignored in `screenshots/`) converged on a hybrid: the owner's night
+  photograph, duotoned into the tokens, becomes a title cover; "New Game"
+  un-develops it through gold line-art into the vector scene, which then
+  lives under film grain and sea shimmer. Pointer parallax was mocked and
+  rejected. The hero title is the owner's name; "The Interview" stays
+  internal. d40's unbuilt build order is superseded; d42's questions are
+  answered by making the photo a threshold, not a platform. Record in §d43.
 - **2026-08-25 — d40 SCENE WORKSHOP CONCLUDED; IDEAS ADOPTED (Caveshen's
   picks).** The mock-first workshop (six rounds, gitignored `screenshots/`)
   never beat the live scene — read as validation of it. Adopted with build
@@ -6328,6 +6339,12 @@ fog, rain).
 
 ### ✅ CONCLUDED 2026-08-25 — the visual needle did not move; the ideas did
 
+**RETIRED 2026-08-27.** The adopted build order below is superseded by §d43:
+the photo-threshold intro takes the scroll-reveal's slot, and with it the
+d36-glow replacement duty. The other adopted ideas — four moments, the scene
+clock, scene-as-data — lapse with this retirement, per the workshop's own
+convention; any may be re-raised.
+
 The workshop ran 2026-08-25, mock-first: five opening sketches (below) grew
 through six mock rounds into standalone HTML scenes with PNG renders, all kept
 in the gitignored `screenshots/` folder — nothing entered the repo. Four
@@ -6455,6 +6472,16 @@ for the unsharded matrix — roughly a quarter of the deploy cycle.
 
 ## d42. Reference-photo front — hybrid photo background + animated Badger
 
+### ✅ FOLDED INTO §d43, 2026-08-27
+
+The 2026-08-27 workshop answered this item's questions by inverting its
+premise: the photo is not the platform, it is the threshold. It appears once,
+as the title cover, and hands over to the vector scene. In that shape: the
+base photo is the night shot and moments do not apply to it; the raster obeys
+the tokens through an SVG duotone filter; the one-world-three-cameras law is
+untouched because the photo never becomes the scene; and the Badger never
+sits against photographic depth. Original record below.
+
 ### 💡 RAISED 2026-08-25 — Caveshen's ask, spun out of the d40 workshop; parked
 
 Recreate the front of the site from the real reference photos — a hybrid of a
@@ -6478,3 +6505,54 @@ Open questions for the workshop, when it runs:
   and the d40 scroll-reveal were designed against a vector scene.
 
 Parked until d40's adopted ideas land.
+
+## d43. Photo-threshold front — the night photo opens the site; New Game draws the world in
+
+### 💡 RAISED 2026-08-27 — direction accepted at the hybrid mock; awaiting spec and build
+
+The front gains a title beat. The site opens on the owner's night photograph
+of the massif (today `screenshots/cpt/20251125_200737.jpg`; it must enter the
+repo under the recorded exception below), duotoned by SVG filter into the
+night tokens — sky at the dark end, celestial gold at the light end. Over it:
+the owner's name as the hero title in the display face, the character-sheet
+tagline ("Problem solver, coffee enjoyer, 10x human") as the subtitle, and a
+two-option menu — "New Game" as the gold primary, "Character Sheet" as the
+quiet secondary. "The Interview" remains the project's internal name and the
+document title; it no longer appears as a heading anywhere on the page.
+
+"New Game" plays the un-develop. The title fades (~0.4s). The photograph
+drains (~1.3s) and reveals the whole scene as gold line-art. The fills then
+bloom in by depth (~1.1s, staggered sky → world → foreground, the Badger
+last). The arrived scene lives: full-frame film grain, kept subtle, and a
+sea shimmer built as horizontal-only displacement so the horizon cannot
+tear. Pointer parallax was mocked and rejected — too much.
+
+Accepted at the mock (2026-08-27, `screenshots/view4f-hybrid.html`, built
+over the live production markup; renders `view4f-*.png` alongside):
+
+- Night photo only. The cover has no day variant and no theme toggle.
+- Grain, shimmer, and the sketch-materialise intro ship together with the
+  cover as one unit of work — the scene restructures once.
+- "Continue" does not exist. New Game and Character Sheet are the menu.
+- Reduced motion: no cover, no intro, no animated grain or shimmer. The
+  visitor lands on the still vector scene directly.
+- No JS: the cover hides via `noscript`; the existing no-JS path stands.
+
+For the spec to settle:
+
+- **The d36 glow and the approach prompt.** The intro now directs attention
+  to the Badger by itself. The glow is a candidate for removal; the
+  "Approach the badger" text returns to plain white or goes entirely.
+  Caveshen rules at preview.
+- **Photo weight.** The photograph enters the public repo and the first
+  paint. AVIF/srcset conversion is owed; lazy loading and caching through
+  Cloudflare are options for later. Caveshen is open to suggestions.
+- **Law amendment.** "Vectors and programmatic drawing only" gains a
+  recorded exception: owner-captured photographs, treated into the tokens,
+  in bounded roles. AA contrast applies to all text set over the photograph.
+- **d40's lapsed ideas** (four moments, scene clock, scene-as-data) are a
+  separate re-raise if wanted; this item does not depend on any of them.
+
+Supersessions: this item takes the slot of d40's scroll-reveal (including
+its duty to replace the d36 glow) and folds d42, whose open questions it
+answers by making the photo a threshold rather than a platform.

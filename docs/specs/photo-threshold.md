@@ -1,9 +1,11 @@
 # The photo threshold
 
 PRD item d43. Workshop rulings accepted by Caveshen 2026-08-27 at the
-hybrid mock (`screenshots/view4f-hybrid.html`, rev 2). New terms for the
-glossary (CONTEXT.md), added as part of this delivery: threshold cover,
-un-develop, sketch-materialise intro, film grain, sea shimmer.
+hybrid mock (`screenshots/view4f-hybrid.html`, rev 2). Test seams
+confirmed by Caveshen 2026-08-27. Triage: ready-for-agent. New terms
+for the glossary (CONTEXT.md), added as part of this delivery:
+threshold cover, un-develop, sketch-materialise intro, film grain,
+sea shimmer.
 
 ## Problem Statement
 
@@ -113,6 +115,12 @@ preview.
 
 ## Testing Decisions
 
+- Tests assert external behaviour at the existing seams only:
+  Playwright e2e against the built site, and the Vitest unit suite
+  for contrast cells, token parity, and asset-byte checks. No new
+  seams are mandated; if the worker finds a pure helper worth
+  extracting (the un-develop sequencer is the plausible candidate),
+  it may export it for unit tests (seams confirmed 2026-08-27).
 - E2e file named for the subject: `threshold` (never a tracker ID).
   Unit coverage beside it as the seams fall out.
 - Subjects: cover present at fresh load with the duotone filter

@@ -86,7 +86,7 @@ the document body under their original `§` headings as history.
 | d40 | Scene rewrite workshop — a from-scratch reimagining of both scenes under the Dragon Age register | *new* | ✅ CONCLUDED 2026-08-25; RETIRED 2026-08-27 — the adopted build order is superseded by d43; unbuilt ideas lapse, re-raisable (§d40) |
 | d41 | CI matrix sharding — run the eight projects as parallel jobs; consider smoke-only deploys on main | *new* | ✅ DECIDED 2026-08-24 — one job per project on PRs; main pre-deploy gate is smoke-only (desktop-1920); delivered on `ci/matrix-sharding` (§d41) |
 | d42 | Reference-photo front — hybrid photo background + animated Badger under the d37 language | *new* | ✅ FOLDED 2026-08-27 into d43 — the photo enters as a threshold, not a platform; its open questions are answered in §d43 (§d42) |
-| d43 | Photo-threshold front — night-photo title cover; New Game draws the world in; grain and shimmer stay | *new* | 💡 raised 2026-08-27 — direction accepted at the hybrid mock (`screenshots/view4f-hybrid.html`); awaiting spec and build (§d43) |
+| d43 | Photo-threshold front — night-photo title cover; New Game draws the world in; grain and shimmer stay | *new* | 🏗 spec published 2026-08-27 (`docs/specs/photo-threshold.md`, ready-for-agent, seams confirmed) — delivery on `item/photo-threshold` (§d43) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened

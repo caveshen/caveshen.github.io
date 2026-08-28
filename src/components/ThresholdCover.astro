@@ -100,12 +100,24 @@
       if (sceneRoot) sceneRoot.removeAttribute('inert');
     }
 
+    // Both routes to /sheet (the link click and the "2" hotkey) call this one
+    // function, so the session flag is set exactly once, in one place, before
+    // either leaves the page — same suppression New Game gets from dismiss().
+    function visitSheet() {
+      sessionStorage.setItem(FLAG, '1');
+      window.location.href = '/sheet';
+    }
+
     function onKey(e: KeyboardEvent) {
       if (e.key === '1') { e.preventDefault(); dismiss(); }
-      else if (e.key === '2') { e.preventDefault(); window.location.href = '/sheet'; }
+      else if (e.key === '2') { e.preventDefault(); visitSheet(); }
     }
 
     document.getElementById('cover-new-game')!.addEventListener('click', dismiss);
+    document.getElementById('cover-sheet')!.addEventListener('click', (e: MouseEvent) => {
+      e.preventDefault();
+      visitSheet();
+    });
     document.addEventListener('keydown', onKey);
   }
 </script>

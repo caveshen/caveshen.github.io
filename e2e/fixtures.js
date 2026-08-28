@@ -1,5 +1,5 @@
 // fixtures.js — shared `test` for specs that assert scene behaviour, not the
-// threshold cover itself. Every spec written before the cover shipped (d43)
+// threshold cover itself. Every spec written before the cover shipped
 // expects `/` to open directly on the scene; this fixture keeps that true by
 // pre-arming the cover's session flag before each test's first navigation, so
 // the cover (which otherwise renders on every fresh load — see

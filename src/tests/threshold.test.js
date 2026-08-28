@@ -56,12 +56,10 @@ describe('duotone tableValues match tokens.css (--sky dark end, --celestial ligh
 // The duotone's tableValues linearly interpolate between --sky (dark) and
 // --celestial (light) — no output pixel can exceed --celestial, so it is the
 // worst case for the cover's light text, everywhere the vignette doesn't
-// additionally darken it. Name/tagline/menu text carry the same dark anchor
-// text-shadow the approach prompt uses (Stage.astro) — full alpha, so it
-// alone (not the photo) sets the effective backdrop, same modelling
-// theme.test.js uses for the prompt. Values below must match
-// ThresholdCover.astro's .cover-overline/.cover-name/.cover-tagline/
-// .cover-btn-secondary rule.
+// additionally darken it. Name/tagline/menu text carry a dark anchor
+// text-shadow, same modelling theme.test.js uses for the approach prompt.
+// Colour and shadow are read straight off ThresholdCover.astro's own CSS
+// rule below, not hardcoded, so a declared-colour regression turns a cell red.
 function linearize(c) {
   const s = c / 255;
   return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
@@ -78,12 +76,23 @@ function compositeOver(fgRgb, alpha, bgRgb) {
   return fgRgb.map((c, i) => alpha * c + (1 - alpha) * bgRgb[i]);
 }
 
-const SHADOW_RGB = [7, 6, 14]; // dark anchor shadow, same as .approach-prompt
-const SHADOW_ALPHA = 1.0;
-const TEXT_RGB = hexToRgb(nightTokens['--prompt-ink']); // white in both themes
-const WORST_CASE_RGB = hexToRgb(nightTokens['--celestial']); // brightest possible duotone output
+// Resolves a `color: var(--x)` declaration in a rule body to its token hex.
+function ruleColorHex(rule) {
+  const varName = rule.match(/color:\s*var\((--[\w-]+)\)/)?.[1];
+  return varName ? nightTokens[varName] : null;
+}
+// Only the strongest (highest-alpha) text-shadow layer sets the effective
+// backdrop — weaker layers only add contrast, never remove it.
+function ruleStrongestShadow(rule) {
+  const shadow = rule.match(/text-shadow:\s*([^;]+);/)?.[1] ?? '';
+  const layers = [...shadow.matchAll(/rgba?\(([^)]+)\)/g)].map((m) => {
+    const [r, g, b, a = 1] = m[1].split(',').map(Number);
+    return { rgb: [r, g, b], alpha: a };
+  });
+  return layers.sort((a, b) => b.alpha - a.alpha)[0] ?? null;
+}
 
-const effectiveBg = compositeOver(SHADOW_RGB, SHADOW_ALPHA, WORST_CASE_RGB);
+const WORST_CASE_RGB = hexToRgb(nightTokens['--celestial']); // brightest possible duotone output
 
 describe("WCAG AA contrast (≥ 4.5:1) on the cover's text, worst-case (brightest) photo backdrop", () => {
   it.each([
@@ -93,6 +102,30 @@ describe("WCAG AA contrast (≥ 4.5:1) on the cover's text, worst-case (brightes
   ])('%s clears AA', (_label, className) => {
     const rule = coverAstro.match(new RegExp(`\\.${className}[\\s\\S]*?\\{([^}]+)\\}`))?.[1] ?? '';
     expect(rule, `.${className} rule missing`).toBeTruthy();
-    expect(contrast(TEXT_RGB, effectiveBg)).toBeGreaterThanOrEqual(4.5);
+
+    const textHex = ruleColorHex(rule);
+    expect(textHex, `.${className} color var missing or unresolved`).toBeTruthy();
+    const shadow = ruleStrongestShadow(rule);
+    expect(shadow, `.${className} text-shadow missing`).toBeTruthy();
+
+    const effectiveBg = compositeOver(shadow.rgb, shadow.alpha, WORST_CASE_RGB);
+    expect(contrast(hexToRgb(textHex), effectiveBg)).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
+// ── WCAG AA contrast on the New Game primary button ─────────────────────────
+// Solid gold pill, no photo behind it — a direct token-pair check, colour and
+// background read from the rule itself so a token swap re-proves the pair.
+describe("WCAG AA contrast (≥ 4.5:1) on the cover's primary button", () => {
+  it('New Game: ink on gold', () => {
+    const rule = coverAstro.match(/\.cover-btn-primary\s*\{([^}]+)\}/)?.[1] ?? '';
+    expect(rule, '.cover-btn-primary rule missing').toBeTruthy();
+
+    const inkVar = rule.match(/color:\s*var\((--[\w-]+)\)/)?.[1];
+    const bgVar = rule.match(/background:\s*var\((--[\w-]+)\)/)?.[1];
+    expect(inkVar, 'color var missing').toBeTruthy();
+    expect(bgVar, 'background var missing').toBeTruthy();
+
+    expect(contrast(hexToRgb(nightTokens[inkVar]), hexToRgb(nightTokens[bgVar]))).toBeGreaterThanOrEqual(4.5);
   });
 });

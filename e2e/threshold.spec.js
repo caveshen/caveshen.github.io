@@ -1,4 +1,4 @@
-// threshold.spec.js — the threshold cover (d43): the title beat at a fresh
+// threshold.spec.js — the threshold cover: the title beat at a fresh
 // load of /. Deliberately imports straight from '@playwright/test', not
 // fixtures.js — every other spec's fixture pre-dismisses the cover so it can
 // test the scene underneath; this file is the one place that needs the real,
@@ -87,6 +87,16 @@ test('sheet-return never replays the cover once New Game has been chosen', async
   await page.goto('/');
   await page.locator('#cover-new-game').click();
   await page.goto('/sheet');
+  await page.locator('.back-link').click();
+  await expect(page).toHaveURL('/');
+  const display = await page.locator('#threshold-cover').evaluate((el) => getComputedStyle(el).display);
+  expect(display).toBe('none');
+});
+
+test('sheet-return never replays the cover when Character Sheet was chosen first', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#cover-sheet').click();
+  await expect(page).toHaveURL('/sheet');
   await page.locator('.back-link').click();
   await expect(page).toHaveURL('/');
   const display = await page.locator('#threshold-cover').evaluate((el) => getComputedStyle(el).display);

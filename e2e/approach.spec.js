@@ -72,7 +72,7 @@ test('the revealed prompt has a hit area at least 44px tall and 44px wide', asyn
   expect(box.width).toBeGreaterThanOrEqual(44);
 });
 
-test('the revealed prompt is plain white in both themes — the gold hand-off died with the approach light', async ({ page }) => {
+test('the revealed prompt is plain white in both themes', async ({ page }) => {
   const prompt = page.locator('#approach-prompt');
   await page.locator('.js-character-hit:visible').first().hover();
   expect(await prompt.evaluate((el) => getComputedStyle(el).color)).toBe('rgb(255, 255, 255)');

@@ -162,8 +162,7 @@ describe('WCAG AA contrast (≥ 4.5:1) on the plaque, worst-case composited back
 // glass over the ground/sea/rail band: the prompt sits above the character's
 // head, which is mostly sky, so the sky is the worst-case backdrop here —
 // gated explicitly since a light-on-light (or dark-on-dark) mismatch would
-// show up there first. The prompt is plain white in both themes (the
-// approach light retired, and its gold hand-off retired with it) — the
+// show up there first. The prompt is plain white in both themes — the
 // rgb/alpha values below must match .approach-prompt's text-shadow anchor
 // layer in Stage.astro; only the strongest (full-alpha) layer is modelled,
 // the two dark-pocket layers only add contrast, never remove it.
@@ -209,10 +208,9 @@ describe('WCAG AA contrast (≥ 4.5:1) on the primary action pill', () => {
 // ── Approach prompt text-shadow layer count ────────────────────────────────────
 // The night rule (the first .approach-prompt block; the day override is a
 // separate, later selector) carries three dark text-shadow layers: a tight
-// anchor, a dense inner layer, and a wider outer skirt — no gold, the light
-// that used to hand its colour off to the prompt is gone. Counting rgba(/rgb(
-// occurrences in the raw declaration catches a layer being dropped without
-// depending on exact blur/offset numbers.
+// anchor, a dense inner layer, and a wider outer skirt — no gold. Counting
+// rgba(/rgb( occurrences in the raw declaration catches a layer being
+// dropped without depending on exact blur/offset numbers.
 describe('approach prompt text-shadow', () => {
   it('the night rule carries three dark shadow layers (anchor, inner, skirt) and no gold', () => {
     const rule = stageAstro.match(/\.approach-prompt\s*\{([^}]+)\}/)?.[1] ?? '';
@@ -220,7 +218,7 @@ describe('approach prompt text-shadow', () => {
     expect(shadow, 'text-shadow declaration missing').toBeTruthy();
     const layers = shadow.match(/rgba?\(/g) ?? [];
     expect(layers.length).toBe(3);
-    expect(shadow).not.toContain('255, 215, 94'); // the approach light's own colour — retired with it
+    expect(shadow).not.toContain('255, 215, 94'); // no gold in the shadow layers
   });
 });
 

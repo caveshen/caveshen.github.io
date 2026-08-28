@@ -37,8 +37,7 @@
   --btn-primary-ink:  #0c1118;
   /* Dialogue plate ignition text (spec §5): bone brighter than --text. */
   --plate-hover-text: #f6efe0;
-  /* Approach prompt: plain white in both themes — the approach light
-     retired, and its gold hand-off retired with it. */
+  /* Approach prompt: plain white in both themes. */
   --prompt-ink:       #ffffff;
 
   /* House gold (spec §2): rules, marks, fills; bright for hover/focus. */

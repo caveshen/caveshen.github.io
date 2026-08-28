@@ -204,22 +204,6 @@ export async function settledOpacity(locator) {
   });
 }
 
-// Seeks locator's own animation (or, with pseudo given, its pseudo-element's
-// animation) to an explicit currentTime and pauses there — frozen-state
-// sampling for a chosen point mid-fade, rather than the finished value
-// settledOpacity above reads. { subtree: true } is required to see an
-// element's own pseudo-element animations at all — pseudoElement then picks
-// out the right one from the (possibly multi-target) subtree list.
-export async function sampleAnimationAt(locator, timeMs, pseudo = null) {
-  return locator.evaluate((el, { timeMs, pseudo }) => {
-    el.getAnimations({ subtree: true })
-      .filter((a) => a.effect.pseudoElement === pseudo)
-      .forEach((a) => { a.currentTime = timeMs; a.pause(); });
-    const cs = getComputedStyle(el, pseudo);
-    return { opacity: parseFloat(cs.opacity), filter: cs.filter };
-  }, { timeMs, pseudo });
-}
-
 // Reveals the approach prompt by hovering the visible character's hit
 // surface, then clicks it. The prompt starts pointer-events:none (approach-
 // reveal), so a direct click without this hover first is never actionable —

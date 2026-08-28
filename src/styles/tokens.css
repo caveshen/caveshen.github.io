@@ -37,9 +37,9 @@
   --btn-primary-ink:  #0c1118;
   /* Dialogue plate ignition text (spec §5): bone brighter than --text. */
   --plate-hover-text: #f6efe0;
-  /* Approach prompt ships light-on-dark in BOTH themes (d36 ruling); day
-     restates night's text tone because day's --text is dark. */
-  --prompt-ink:       var(--text);
+  /* Approach prompt: plain white in both themes — the approach light
+     retired, and its gold hand-off retired with it. */
+  --prompt-ink:       #ffffff;
 
   /* House gold (spec §2): rules, marks, fills; bright for hover/focus. */
   --gold:        #d9a94e;
@@ -124,7 +124,7 @@
   /* "Text brightens" inverts on pale ground: day ink steps to bronze instead
      of toward bone (night's value is already brighter than night --text). */
   --plate-hover-text: var(--gold-bright);
-  --prompt-ink:       #e9e2cf;
+  --prompt-ink:       #ffffff;
 
   /* Day gold darkens toward bronze for AA on pale grounds, so "bright" (the
      hover/focus step) is the darker bronze here — salience inverts on light. */

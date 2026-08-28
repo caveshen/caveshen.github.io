@@ -259,8 +259,8 @@ const root = tree.root;
     font-size: 0.95rem;
     font-weight: 600;
     letter-spacing: 0.12em;
-    /* --prompt-ink is light in both themes (d36 ruling: the prompt ships
-       light-on-dark even by day, where --text itself is dark). */
+    /* Plain white in both themes — the approach light retired, and its gold
+       hand-off retired with it (see --prompt-ink in tokens.css). */
     color: var(--prompt-ink);
     background: none;
     border: none;
@@ -272,16 +272,12 @@ const root = tree.root;
     cursor: pointer;
     /* The shadow carries the AA contrast duty the old glass control used to
        carry (see the composited contrast cells in src/tests/theme.test.js).
-       Six layers, tuning values: a tight dark anchor (small blur, high
-       alpha) for legibility, a three-stop gold bloom in the approach
-       light's own colour (rgba(255, 215, 94), see LIGHT_ON in stage.js) so
-       the prompt reads as the light moving to it, and a dark pocket (a
-       dense inner layer plus a wider outer skirt) that holds the text
-        readable against the gold. Both themes use dark shadows behind light
-        text (--prompt-ink carries the day case), so one rule serves both. */
-    text-shadow: 0 1px 3px rgba(7, 6, 14, 1), 0 0 6px rgba(255, 215, 94, 0.9),
-                 0 0 16px rgba(255, 215, 94, 0.65), 0 0 28px rgba(255, 215, 94, 0.4),
-                 0 0 12px rgba(7, 6, 14, 1), 0 0 20px rgba(7, 6, 14, 0.7);
+       Three dark layers: a tight anchor (small blur, high alpha) for
+       legibility, a dense inner layer, and a wider outer skirt that lifts
+       the text off a bright sky. Both themes use the same dark shadow
+       behind the same white text, so one rule serves both. */
+    text-shadow: 0 1px 3px rgba(7, 6, 14, 1), 0 0 12px rgba(7, 6, 14, 1),
+                 0 0 20px rgba(7, 6, 14, 0.7);
   }
   .approach-prompt:focus-visible {
     outline: 2px solid var(--gold-bright);

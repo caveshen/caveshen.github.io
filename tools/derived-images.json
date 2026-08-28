@@ -10,17 +10,17 @@
     "src/components/HoodedFigure.astro": "d2edf217c992a0f56ec572ec8a40ae33d5516888a53c1b08619ca612c5a60c42",
     "src/components/Moon.astro": "f8d89b34354978915d894209073f002b5fe36a6afebc624067bad04fa215e84d",
     "src/components/Scene.astro": "da95bc28eb19a320a5cf7e35ae2425e39852d14f7f9f9a717c2b27537a15f47e",
-    "src/components/Stage.astro": "90b7093a21be214acf1adc851bac8b030e83621469fea487bbee949cb0cc7e6a",
+    "src/components/Stage.astro": "b639b8a151f93c390fe6d625125f482b6dbc3789097a6da54c4274bcb2241857",
     "src/components/ThemeToggle.astro": "554d5a808bf4cf7634b21758d340f4fb280ad2283d9d99a432327cdccf55d45f",
     "src/pages/og.astro": "96ff704559c7e504a88e8533f7d64ac6639eed36e119468df31aae0405418411",
-    "src/styles/tokens.css": "794c2ae6faf00006f0c4b6a9e69035591791e9d3bcefa8727315674195bc1ccf"
+    "src/styles/tokens.css": "a1df1ccedc363e5d88498573f1d83480965bac77c842ef1d2839d16ad123ae93"
   },
   "outputs": {
     "public/apple-touch-icon.png": "250af72302f672d62ce6a36443499b724ff330dfd56d0393fbe401008b0337e7",
     "public/favicon-16.png": "931f0ac7a48508e43fd1aed111a9b2c34fbdd2b3c15bf2d6d0b0e00a88b3c581",
     "public/favicon-32.png": "d9cc47617bf36fed57345f597c45012aecad9847d8fbeffe880164d02892c6f4",
     "public/favicon.ico": "978149d9999bc957aeab05dbbdd9315d7becf613cb67fa6c4d8a870ae246921e",
-    "public/og-image.png": "9e65014098c456479f187ca3eb994e0574a4530152828cf6206b22eec22d83c8",
+    "public/og-image.png": "9673ee1aa2f831d434e0d751e901305640f2cfeeb68b0ea081836575988e7c54",
     "public/sheet-portrait.png": "ad061d6678cb4a5fd1ec22fc0955e3093f18c807bfeb2e1f8bb3e6e75eba3ff9",
     "public/threshold/night-1024.avif": "cebc89753ab40fb8c0f451beafbf2151fa3da84b8b8d220abbd0296965108176",
     "public/threshold/night-1024.jpg": "5003467ca8ca4a18468a7644f7950bf9d7eb9c044947e88937408ab119729c4b",

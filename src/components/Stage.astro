@@ -34,7 +34,7 @@ const root = tree.root;
 
 <!--
   Grain: full-frame material, not scene geometry — outside .camera so it never
-  scales/zooms with the approach. Also holds the sea-shimmer filter defs (d43):
+  scales/zooms with the approach. Also holds the sea-shimmer filter defs:
   one shared <svg> so both filters are defined once, referenced by CSS below.
   Two grain filters (animated seed / frozen seed) let reduced-motion swap which
   one is referenced in plain CSS, no JS needed to stop the animation.
@@ -72,7 +72,7 @@ const root = tree.root;
     <!--
       Sea shimmer: the noise's G channel is flattened to a constant 0.5 (feDisplacementMap's
       neutral, no-op value) before yChannelSelector reads it — vertical displacement is
-      structurally zero, so the horizon seam cannot tear (the recorded d43 trap). Only R
+      structurally zero, so the horizon seam cannot tear. Only R
       (unflattened) drives xChannelSelector, so displacement is horizontal-only.
     -->
     <filter id="sea-shimmer" x="-20%" y="-10%" width="140%" height="120%">
@@ -184,8 +184,8 @@ const root = tree.root;
   }
 
   /* Grain: plain opacity only — two independent mock implementations found
-     mix-blend-mode crushes the speckle to invisibility against this palette
-     (the recorded d43 trap). Reduced motion swaps which filter id the rect
+     mix-blend-mode crushes the speckle to invisibility against this palette.
+     Reduced motion swaps which filter id the rect
      references (film-grain-static has no seed <animate>) rather than pausing
      anything in JS — static grain still shows, per spec. */
   .grain-overlay {

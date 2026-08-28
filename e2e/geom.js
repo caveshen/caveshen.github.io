@@ -29,6 +29,14 @@ export async function sceneRects(page, selector) {
   }, selector);
 }
 
+// Live handle to the visible .scene copy (only one has a non-zero box) — for
+// callers that need to read more than a rect off it (e.g. computed style on
+// its children), where sceneRects's plain-value return isn't enough.
+export async function visibleSceneHandle(page) {
+  return page.evaluateHandle(() =>
+    [...document.querySelectorAll('.scene')].find((e) => e.getBoundingClientRect().width > 0));
+}
+
 // Does A paint after B (later in document order = drawn on top), scoped to the
 // visible scene variant. SVG paint order is document order.
 export async function paintsOver(page, aSel, bSel) {

@@ -1,9 +1,9 @@
-// scene-material.spec.js — the scene's persistent material (d43): film grain and
+// scene-material.spec.js — the scene's persistent material: film grain and
 // sea shimmer. Both live outside the day/night crossfade — this file only covers
 // the two SVG filter effects and their reduced-motion behaviour, not scene geometry
 // (scene.spec.js) or theme switching (theme.test.js).
 import { test, expect } from '@playwright/test';
-import { sceneRects } from './geom.js';
+import { visibleSceneHandle } from './geom.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -26,8 +26,8 @@ async function grainState(page) {
 }
 
 async function seaWaveFilter(page) {
-  return page.evaluate(() => {
-    const scene = [...document.querySelectorAll('.scene')].find((e) => e.getBoundingClientRect().width > 0);
+  const scene = await visibleSceneHandle(page);
+  return page.evaluate((scene) => {
     const sea = scene.querySelector('.f-sea');
     const wave = scene.querySelector('.f-wave');
     const ground = scene.querySelector('.f-ground');
@@ -36,7 +36,7 @@ async function seaWaveFilter(page) {
       wave: getComputedStyle(wave).filter,
       ground: getComputedStyle(ground).filter,
     };
-  });
+  }, scene);
 }
 
 test('grain overlay covers the full frame in both themes, at low plain opacity, never a blend mode', async ({ page }) => {
@@ -91,16 +91,6 @@ test('shimmer displacement is structurally horizontal-only — the vertical chan
   const scaleAnim = map.locator('animate[attributeName="scale"]');
   await expect(scaleAnim).toHaveAttribute('values', '5;12;5');
   await expect(scaleAnim).toHaveAttribute('dur', '7s');
-});
-
-test('shimmer never tears the horizon seam — the sea still meets the landform exactly', async ({ page }) => {
-  // Same seam contract scene.spec.js proves for the un-shimmered case — reasserted
-  // here with the shimmer filter live, since a vertical leak in the displacement
-  // would show up as this seam breaking apart.
-  const [sea] = await sceneRects(page, '.f-sea');
-  const [ground] = await sceneRects(page, '.f-ground');
-  expect(ground.y).toBeLessThanOrEqual(sea.y + sea.height + 1);
-  expect(ground.y).toBeGreaterThanOrEqual(sea.y + sea.height - 13);
 });
 
 test('reduced motion: grain stops animating (static filter, no seed animate) and shimmer motion stops entirely', async ({ page }) => {

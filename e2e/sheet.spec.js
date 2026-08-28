@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 import { approachPrompt, rectsIntersect } from './geom.js';
 
 test('/sheet renders complete CV content with JS disabled', async ({ browser }) => {
@@ -30,8 +30,10 @@ test('no-JS: / noscript link navigates to /sheet with real content', async ({ br
   const ctx = await browser.newContext({ javaScriptEnabled: false });
   const page = await ctx.newPage();
   await page.goto('/');
-  // Provided by the <noscript> block in index.astro.
-  const noscriptLink = page.locator('a[href="/sheet"]');
+  // Provided by the <noscript> block in index.astro (Stage's own noscript-note).
+  // Scoped: the threshold cover ships a second, now-hidden a[href="/sheet"] of
+  // its own (#cover-sheet), which would make a bare a[href="/sheet"] ambiguous.
+  const noscriptLink = page.locator('.noscript-note a[href="/sheet"]');
   await expect(noscriptLink).toBeVisible();
   await noscriptLink.click();
   await expect(page).toHaveURL('/sheet');

@@ -1,0 +1,239 @@
+---
+// ThresholdCover.astro — the title beat: Caveshen's own night photograph,
+// duotoned into the night tokens, with his name, the sheet's tagline, and a
+// New Game / Character Sheet menu over it. Ships visible by default (the
+// static build has no server to branch on); index.astro's inline head script
+// sets [data-cover="skip"] on <html> before first paint when the session
+// flag is already set, and the reduced-motion media query below drops the
+// cover unconditionally — both are pure CSS, so neither needs this file's
+// own script to run. The noscript rule is the third gate, for JS disabled.
+//
+// New Game today is a hard cut (session flag + remove()) — the un-develop
+// (photo drains, gold line-art, fills bloom) is a later ticket; this file
+// only owns the arrival and its dismissal.
+---
+<div class="threshold-cover" id="threshold-cover">
+  <!-- Defs-only: 0×0 and clipped, never display:none (some engines skip a
+       filter whose <svg> ancestor is display:none). -->
+  <svg class="cover-filter-defs" aria-hidden="true" focusable="false">
+    <defs>
+      <filter id="threshold-duotone" color-interpolation-filters="sRGB">
+        <feColorMatrix type="saturate" values="0" />
+        <!--
+          tableValues cannot read var() (the SVG-presentation-attribute
+          gotcha — see CLAUDE.md), so these are authored as literals from
+          tokens.css: dark end --sky (#0c1420), light end --celestial
+          (#ffc46b), each channel/255 to 4dp. src/tests/threshold.test.js
+          re-derives the same fractions from tokens.css and asserts they
+          match — keep both in step if either token or these move.
+        -->
+        <feComponentTransfer>
+          <feFuncR type="table" tableValues="0.0471 1" />
+          <feFuncG type="table" tableValues="0.0784 0.7686" />
+          <feFuncB type="table" tableValues="0.1255 0.4196" />
+        </feComponentTransfer>
+      </filter>
+    </defs>
+  </svg>
+
+  <picture class="cover-photo-wrap">
+    <source
+      type="image/avif"
+      srcset="/threshold/night-640.avif 640w, /threshold/night-1024.avif 1024w,
+              /threshold/night-1536.avif 1536w, /threshold/night-2048.avif 2048w"
+      sizes="100vw"
+    />
+    <img
+      class="cover-photo"
+      src="/threshold/night-2048.jpg"
+      srcset="/threshold/night-640.jpg 640w, /threshold/night-1024.jpg 1024w,
+              /threshold/night-1536.jpg 1536w, /threshold/night-2048.jpg 2048w"
+      sizes="100vw"
+      width="2048" height="1153"
+      alt=""
+      fetchpriority="high"
+      decoding="sync"
+    />
+  </picture>
+  <div class="cover-vignette" aria-hidden="true"></div>
+
+  <div class="cover-content">
+    <p class="cover-overline">PLACEHOLDER &mdash; a night arrival, before the game begins</p>
+    <h1 class="cover-name">Caveshen Rajman</h1>
+    <p class="cover-tagline">Problem solver, coffee enjoyer, 10x human</p>
+    <div class="cover-menu">
+      <button type="button" id="cover-new-game" class="cover-btn cover-btn-primary">
+        New Game <span class="cover-hotkey" aria-hidden="true">I</span>
+      </button>
+      <a href="/sheet" id="cover-sheet" class="cover-btn cover-btn-secondary">
+        Character Sheet <span class="cover-hotkey" aria-hidden="true">II</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- No-JS: today's page (Stage's own scene + its noscript link to /sheet) stands
+     untouched — the cover, which needs JS to ever leave, must not be there to
+     block it. !important: the safest way to outrank the base display:flex rule
+     regardless of author-stylesheet source order. -->
+<noscript>
+  <style>.threshold-cover { display: none !important; }</style>
+</noscript>
+
+<script>
+  const FLAG = 'thresholdDismissed';
+  const cover = document.getElementById('threshold-cover')!;
+  const sceneRoot = document.getElementById('scene-root');
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const alreadyDismissed = document.documentElement.dataset.cover === 'skip';
+
+  // Reduced motion or an already-dismissed session: the cover is CSS-hidden
+  // already (see the component comment above) — nothing here to wire, and the
+  // scene below must be interactive immediately, so inert is never applied.
+  if (!reducedMotion && !alreadyDismissed) {
+    if (sceneRoot) sceneRoot.setAttribute('inert', '');
+
+    function dismiss() {
+      sessionStorage.setItem(FLAG, '1');
+      document.removeEventListener('keydown', onKey);
+      cover.remove();
+      if (sceneRoot) sceneRoot.removeAttribute('inert');
+    }
+
+    function onKey(e: KeyboardEvent) {
+      if (e.key === '1') { e.preventDefault(); dismiss(); }
+      else if (e.key === '2') { e.preventDefault(); window.location.href = '/sheet'; }
+    }
+
+    document.getElementById('cover-new-game')!.addEventListener('click', dismiss);
+    document.addEventListener('keydown', onKey);
+  }
+</script>
+
+<style>
+  .threshold-cover {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--sky);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .threshold-cover { display: none; }
+  }
+  /* Set by index.astro's pre-paint head script when the session flag is
+     already set — see that script's comment for why it must run that early. */
+  :root[data-cover="skip"] .threshold-cover { display: none; }
+
+  .cover-filter-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+  .cover-photo-wrap { position: absolute; inset: 0; }
+  .cover-photo {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: url(#threshold-duotone);
+  }
+
+  /* Darkens toward the edges; the text block itself is legible via the same
+     dark text-shadow the approach prompt uses (Stage.astro), not this alone. */
+  .cover-vignette {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 55%, rgba(6, 8, 12, 0) 30%, rgba(6, 8, 12, 0.6) 100%);
+    pointer-events: none;
+  }
+
+  .cover-content {
+    position: relative;
+    z-index: 1;
+    max-width: 640px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+  }
+
+  /* Text-over-photo AA (see src/tests/threshold.test.js): same technique as
+     .approach-prompt (Stage.astro) — a dark anchor shadow, not the glass
+     plaque, carries the contrast duty here. --prompt-ink is white in both
+     themes, matching this cover's always-night register. */
+  .cover-overline, .cover-name, .cover-tagline, .cover-btn-secondary {
+    color: var(--prompt-ink);
+    text-shadow: 0 1px 3px rgba(7, 6, 14, 1), 0 0 12px rgba(7, 6, 14, 1),
+                 0 0 20px rgba(7, 6, 14, 0.7);
+  }
+
+  .cover-overline {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    opacity: 0.85;
+  }
+  .cover-name {
+    font-family: var(--display);
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    letter-spacing: 0.06em;
+    margin: 0.6rem 0 0.5rem;
+  }
+  .cover-tagline {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.1rem;
+    margin-bottom: 2.2rem;
+  }
+
+  .cover-menu {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+  }
+  .cover-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0.75rem 1.5rem;
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    border-radius: var(--r-pill);
+    transition: background var(--t-micro), color var(--t-micro), translate var(--t-micro);
+  }
+  .cover-btn-primary {
+    background: var(--gold);
+    color: var(--btn-primary-ink);
+  }
+  .cover-btn-primary:hover, .cover-btn-primary:focus-visible {
+    background: var(--gold-bright);
+    translate: 0 -1px;
+  }
+  .cover-btn-secondary {
+    background: transparent;
+  }
+  .cover-btn-secondary:hover, .cover-btn-secondary:focus-visible {
+    color: var(--gold-bright);
+  }
+  .cover-btn:focus-visible {
+    outline: 2px solid var(--gold-bright);
+    outline-offset: 2px;
+  }
+  .cover-hotkey {
+    font-size: 0.75em;
+    opacity: 0.7;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cover-btn { transition: none; }
+  }
+</style>

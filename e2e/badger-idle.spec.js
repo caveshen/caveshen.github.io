@@ -1,6 +1,6 @@
 // Badger two-frame idle animation.
 // HTTP-200 asset checks live in e2e/badger.spec.js and src/tests/hygiene.test.js.
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 test('reduced-motion: down frame has no animation', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });

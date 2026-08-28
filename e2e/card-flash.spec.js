@@ -7,7 +7,7 @@
 // page scripts). The loop records whether .card is ever rendered visible. CPU is
 // throttled 20× via CDP so script execution lags first paint by enough to catch
 // the flash. CDP is Chromium-only; the test skips on WebKit and Firefox.
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 test('card never painted visible before JS hides it (cold-load flash)', async ({ browser, browserName }) => {
   test.skip(browserName !== 'chromium', 'Emulation.setCPUThrottlingRate requires Chromium');

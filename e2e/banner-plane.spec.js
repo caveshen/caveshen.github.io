@@ -1,7 +1,7 @@
 // Ambient banner plane — e2e tests
 // Uses Playwright's clock API to fast-forward the JS setTimeout chain
 // deterministically rather than waiting real wall-clock minutes.
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 import { approachPrompt } from './geom.js';
 
 // Forces a landscape viewport — several mobile/tablet projects default to

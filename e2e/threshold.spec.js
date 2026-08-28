@@ -1,0 +1,116 @@
+// threshold.spec.js — the threshold cover (d43): the title beat at a fresh
+// load of /. Deliberately imports straight from '@playwright/test', not
+// fixtures.js — every other spec's fixture pre-dismisses the cover so it can
+// test the scene underneath; this file is the one place that needs the real,
+// undismissed cover.
+import { test, expect } from '@playwright/test';
+
+test('fresh load: cover is present, duotone filter applied, photo served from srcset variants', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('#threshold-cover')).toBeVisible();
+
+  const img = page.locator('.cover-photo');
+  await expect(img).toHaveAttribute('srcset', /night-640\.jpg/);
+  await expect(img).toHaveAttribute('srcset', /night-2048\.jpg/);
+  const filter = await img.evaluate((el) => getComputedStyle(el).filter);
+  expect(filter).toContain('threshold-duotone');
+
+  await expect(page.locator('h1.cover-name')).toHaveText('Caveshen Rajman');
+  await expect(page.getByText('Problem solver, coffee enjoyer, 10x human')).toBeVisible();
+});
+
+test('New Game and Character Sheet are real controls: a <button> and a <a href="/sheet">', async ({ page }) => {
+  await page.goto('/');
+  expect(await page.locator('#cover-new-game').evaluate((el) => el.tagName)).toBe('BUTTON');
+  await expect(page.locator('#cover-sheet')).toHaveAttribute('href', '/sheet');
+});
+
+test('menu tab order: New Game first, then Character Sheet', async ({ page, browserName }) => {
+  await page.goto('/');
+  await page.keyboard.press('Tab');
+  await expect(page.locator('#cover-new-game')).toBeFocused();
+  test.skip(browserName === 'webkit', 'WebKit does not Tab-focus <a> elements by default (platform behaviour, not a site bug)');
+  await page.keyboard.press('Tab');
+  await expect(page.locator('#cover-sheet')).toBeFocused();
+});
+
+test('Enter activates New Game', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#cover-new-game').focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#threshold-cover')).toHaveCount(0);
+});
+
+test('Space activates New Game', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#cover-new-game').focus();
+  await page.keyboard.press('Space');
+  await expect(page.locator('#threshold-cover')).toHaveCount(0);
+});
+
+test('hotkey "1" dismisses the cover and sets the session flag', async ({ page }) => {
+  await page.goto('/');
+  await page.keyboard.press('1');
+  await expect(page.locator('#threshold-cover')).toHaveCount(0);
+  expect(await page.evaluate(() => sessionStorage.getItem('thresholdDismissed'))).toBe('1');
+});
+
+test('hotkey "2" navigates to /sheet', async ({ page }) => {
+  await page.goto('/');
+  await page.keyboard.press('2');
+  await expect(page).toHaveURL('/sheet');
+});
+
+test('New Game (click) removes the cover, sets the flag, and frees the scene from inert', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#cover-new-game').click();
+  await expect(page.locator('#threshold-cover')).toHaveCount(0);
+  expect(await page.evaluate(() => sessionStorage.getItem('thresholdDismissed'))).toBe('1');
+  await expect(page.locator('#scene-root')).not.toHaveAttribute('inert', '');
+});
+
+test('Character Sheet navigates to /sheet', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#cover-sheet').click();
+  await expect(page).toHaveURL('/sheet');
+});
+
+// Frozen-state: a plain load with the flag pre-set, not a live wait on the dismissal.
+test('a flagged load renders without the cover (computed display, not geometry)', async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem('thresholdDismissed', '1'));
+  await page.goto('/');
+  const display = await page.locator('#threshold-cover').evaluate((el) => getComputedStyle(el).display);
+  expect(display).toBe('none');
+});
+
+test('sheet-return never replays the cover once New Game has been chosen', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#cover-new-game').click();
+  await page.goto('/sheet');
+  await page.locator('.back-link').click();
+  await expect(page).toHaveURL('/');
+  const display = await page.locator('#threshold-cover').evaluate((el) => getComputedStyle(el).display);
+  expect(display).toBe('none');
+});
+
+test('reduced motion: the cover does not render and the scene is immediately interactive', async ({ browser }) => {
+  const ctx = await browser.newContext({ reducedMotion: 'reduce' });
+  const page = await ctx.newPage();
+  await page.goto('/');
+  const display = await page.locator('#threshold-cover').evaluate((el) => getComputedStyle(el).display);
+  expect(display).toBe('none');
+  await expect(page.locator('#scene-root')).not.toHaveAttribute('inert', '');
+  await ctx.close();
+});
+
+test('no-JS: the cover is hidden and today\'s page (with its own noscript link) stands untouched', async ({ browser }) => {
+  const ctx = await browser.newContext({ javaScriptEnabled: false });
+  const page = await ctx.newPage();
+  await page.goto('/');
+  await expect(page.locator('#threshold-cover')).toBeHidden();
+  // Scoped to Stage's own noscript link — the cover ships a second, now-hidden
+  // a[href="/sheet"] of its own (#cover-sheet), which would make a bare
+  // a[href="/sheet"] locator ambiguous.
+  await expect(page.locator('.noscript-note a[href="/sheet"]')).toBeVisible();
+  await ctx.close();
+});

@@ -2,7 +2,7 @@
 // sea shimmer. Both live outside the day/night crossfade — this file only covers
 // the two SVG filter effects and their reduced-motion behaviour, not scene geometry
 // (scene.spec.js) or theme switching (theme.test.js).
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 import { visibleSceneHandle } from './geom.js';
 
 test.beforeEach(async ({ page }) => {

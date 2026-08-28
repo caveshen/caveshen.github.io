@@ -1,5 +1,5 @@
 // 404 page, hygiene files (robots/sitemap), and OG/meta tag checks.
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 import { approachPrompt } from './geom.js';
 
 test('404 page: navigating to unknown route returns a page with a way home', async ({ page }) => {

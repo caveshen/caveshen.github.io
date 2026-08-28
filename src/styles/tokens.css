@@ -221,6 +221,93 @@
   .scene stop { transition: none; }
 }
 
+/* ── The un-develop (d43 ticket 05): pre-armed line-art → staged fill bloom ─
+   Single tunable timing block — starting values from the mock; Caveshen
+   tunes these at preview. ThresholdCover.astro's script adds #scene-root's
+   .pre-armed the moment the cover is about to show interactively (the same
+   gate that shows the cover at all — reduced motion, no JS, and a
+   dismissed session never see it, so those paths render the resting scene
+   directly, no intro). New Game swaps .pre-armed for .blooming, which owns
+   the transition and the per-depth delay below; the arming rule itself
+   declares no transition property, so it can never animate on its own. */
+:root {
+  --undevelop-title-fade:         0.4s;
+  --undevelop-photo-drain:        1.3s;
+  /* The beat the gold wireframe must stand alone before fills bloom (Further
+     Notes, photo-threshold spec) — bloom start is derived from it, not a
+     separate guess, so the hold survives any retune of the drain itself. */
+  --undevelop-hold:               0.2s;
+  --undevelop-bloom-start:        calc(var(--undevelop-photo-drain) + var(--undevelop-hold));
+  --undevelop-bloom-duration:     1.1s;
+  --undevelop-stagger-world:      0.18s;
+  --undevelop-stagger-foreground: 0.36s;
+  --undevelop-stagger-badger:     0.5s;
+}
+
+/* Depth groups follow the scene's own paint order (Scene.astro): the sky
+   rect stands alone, .bg-layer is the world (landforms, city, sky bodies),
+   .fg-layer is the foreground (sea, ground, rail), the Badger last inside
+   it. The class list is every fill class actually painted in each layer —
+   see CityScape.astro/Moon.astro/Scene.astro — except f-rail/f-seam
+   (already stroke, not fill; pre-armed just points their existing stroke
+   gold and lets the .scene line 0.4s transition above carry them back) and
+   f-sparkle (already a gold stroke mark, nothing to arm). */
+#scene-root.pre-armed .scene > .f-sky,
+#scene-root.pre-armed .bg-layer :is(.f-star, .f-halo, .f-moon-glow, .f-moon,
+  .f-crater, .f-moon-shade, .f-cloudbank, .f-sun-glow, .f-cel, .f-far,
+  .f-mtn-shade, .f-mtn-lit, .f-mist, .f-mid, .f-fringe, .f-near, .f-bld-shade, .f-beacon),
+#scene-root.pre-armed .fg-layer :is(.f-sea, .f-moon, .f-wave, .f-sail, .f-ground) {
+  fill-opacity: 0;
+  stroke: var(--gold);
+  stroke-width: 1;
+  stroke-opacity: 1;
+}
+#scene-root.pre-armed .f-rail,
+#scene-root.pre-armed .f-seam {
+  stroke: var(--gold);
+}
+/* Raster, not vector (Badger.astro) — no fill/stroke to arm as line-art, so
+   it simply stays out of the picture until its own bloom delay below. */
+#scene-root.pre-armed .js-character {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#scene-root.blooming .scene > .f-sky {
+  stroke: var(--gold);
+  stroke-width: 1;
+  transition: fill-opacity var(--undevelop-bloom-duration) ease,
+              stroke-opacity var(--undevelop-bloom-duration) ease;
+  transition-delay: var(--undevelop-bloom-start);
+  fill-opacity: 1;
+  stroke-opacity: 0;
+}
+#scene-root.blooming .bg-layer :is(.f-star, .f-halo, .f-moon-glow, .f-moon,
+  .f-crater, .f-moon-shade, .f-cloudbank, .f-sun-glow, .f-cel, .f-far,
+  .f-mtn-shade, .f-mtn-lit, .f-mist, .f-mid, .f-fringe, .f-near, .f-bld-shade, .f-beacon) {
+  stroke: var(--gold);
+  stroke-width: 1;
+  transition: fill-opacity var(--undevelop-bloom-duration) ease,
+              stroke-opacity var(--undevelop-bloom-duration) ease;
+  transition-delay: calc(var(--undevelop-bloom-start) + var(--undevelop-stagger-world));
+  fill-opacity: 1;
+  stroke-opacity: 0;
+}
+#scene-root.blooming .fg-layer :is(.f-sea, .f-moon, .f-wave, .f-sail, .f-ground) {
+  stroke: var(--gold);
+  stroke-width: 1;
+  transition: fill-opacity var(--undevelop-bloom-duration) ease,
+              stroke-opacity var(--undevelop-bloom-duration) ease;
+  transition-delay: calc(var(--undevelop-bloom-start) + var(--undevelop-stagger-foreground));
+  fill-opacity: 1;
+  stroke-opacity: 0;
+}
+#scene-root.blooming .js-character {
+  transition: opacity var(--undevelop-bloom-duration) ease;
+  transition-delay: calc(var(--undevelop-bloom-start) + var(--undevelop-stagger-badger));
+  opacity: 1;
+}
+
 /* ── Sky + far-mountain atmospheric gradients ───────────────────────────────
    Gradient <defs> live once per Scene SVG (Scene.astro), ids suffixed by
    variant — three Scene instances render per page (standard/wide/tall, two

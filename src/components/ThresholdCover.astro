@@ -8,9 +8,11 @@
 // cover unconditionally — both are pure CSS, so neither needs this file's
 // own script to run. The noscript rule is the third gate, for JS disabled.
 //
-// New Game today is a hard cut (session flag + remove()) — the un-develop
-// (photo drains, gold line-art, fills bloom) is a later ticket; this file
-// only owns the arrival and its dismissal.
+// New Game plays the un-develop: title fades, the photo drains, and
+// #scene-root's pre-armed gold wireframe (tokens.css) blooms in by depth
+// underneath — all timing lives in tokens.css's --undevelop-* block, the
+// one place Caveshen retunes at preview. This file only owns the arrival,
+// arming the scene, and playing/cleaning up the dismissal.
 ---
 <div class="threshold-cover" id="threshold-cover">
   <!-- Defs-only: 0×0 and clipped, never display:none (some engines skip a
@@ -91,13 +93,41 @@
   // already (see the component comment above) — nothing here to wire, and the
   // scene below must be interactive immediately, so inert is never applied.
   if (!reducedMotion && !alreadyDismissed) {
-    if (sceneRoot) sceneRoot.setAttribute('inert', '');
+    if (sceneRoot) {
+      sceneRoot.setAttribute('inert', '');
+      // Fills at zero, gold strokes on (tokens.css) — the scene stands as
+      // line-art under the opaque cover, ready for New Game to bloom it.
+      sceneRoot.classList.add('pre-armed');
+    }
 
+    // The un-develop: title fades, photo drains (this file's CSS), and the
+    // pre-armed scene blooms in by depth (tokens.css) — one class swap here,
+    // every delay and duration lives in the --undevelop-* tokens.
     function dismiss() {
       sessionStorage.setItem(FLAG, '1');
       document.removeEventListener('keydown', onKey);
-      cover.remove();
+      // Scene interactive right away — Story 10's keyboard route never
+      // waits on the animation, even while it's still playing underneath.
       if (sceneRoot) sceneRoot.removeAttribute('inert');
+      cover.classList.add('cover-undeveloping');
+      if (sceneRoot) {
+        sceneRoot.classList.remove('pre-armed');
+        sceneRoot.classList.add('blooming');
+      }
+      // Cleanup once the cover itself has fully faded (its own opacity
+      // transition, the slowest of the two cover fades) — not the whole
+      // bloom sequence, which keeps running underneath regardless.
+      cover.addEventListener('transitionend', function onFaded(e) {
+        if (e.target !== cover || e.propertyName !== 'opacity') return;
+        cover.removeEventListener('transitionend', onFaded);
+        cover.remove();
+        // The New Game button that held focus left with the cover — land
+        // focus on the scene's first control rather than losing it to
+        // <body> (Story 10: focus lands somewhere useful, not nowhere).
+        if (document.activeElement === document.body) {
+          sceneRoot?.querySelector('button, a[href]')?.focus();
+        }
+      });
     }
 
     // Both routes to /sheet (the link click and the "2" hotkey) call this one
@@ -135,6 +165,21 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .threshold-cover { display: none; }
+  }
+
+  /* The un-develop: photograph drains over --undevelop-photo-drain, the
+     content (title/tagline/menu) fades faster over --undevelop-title-fade
+     on top of it — both tokens.css's, so preview tuning stays one place.
+     pointer-events:none from the first frame lets the scene underneath
+     take clicks/taps immediately, before the fade finishes. */
+  .threshold-cover.cover-undeveloping {
+    pointer-events: none;
+    transition: opacity var(--undevelop-photo-drain) ease;
+    opacity: 0;
+  }
+  .threshold-cover.cover-undeveloping .cover-content {
+    transition: opacity var(--undevelop-title-fade) ease;
+    opacity: 0;
   }
   /* Set by index.astro's pre-paint head script when the session flag is
      already set — see that script's comment for why it must run that early. */

@@ -117,7 +117,7 @@ test('reduced motion: the cover does not render, and the scene renders at restin
   await ctx.close();
 });
 
-// ── The un-develop (d43 ticket 05) ──────────────────────────────────────────
+// ── The un-develop ───────────────────────────────────────────────────────────
 // Frozen-state sampling throughout: no test here waits on a live clock.
 // The pre-armed check reads a static style (no transition has run yet); the
 // stagger check reads the declared transition-delay (a fact, not a moving
@@ -142,6 +142,11 @@ test('scene under the cover is pre-armed as line-art before New Game: fills zero
   await expect(ground).toHaveCSS('fill-opacity', '0');
   const nearBuilding = page.locator('.scene-standard .bg-layer .f-near').first();
   await expect(nearBuilding).toHaveCSS('fill-opacity', '0');
+
+  // The rail-shadow blobs are dark fills too — they must go with the rest,
+  // not sit on top of the wireframe.
+  const railShadow = page.locator('.scene-standard .fg-layer .f-rail-shadow');
+  await expect(railShadow).toHaveCSS('fill-opacity', '0');
 });
 
 test('New Game plays the un-develop: title gone, photo drained, fills bloomed, Badger present', async ({ page }) => {

@@ -221,7 +221,7 @@
   .scene stop { transition: none; }
 }
 
-/* ── The un-develop (d43 ticket 05): pre-armed line-art → staged fill bloom ─
+/* ── The un-develop: pre-armed line-art → staged fill bloom ─────────────────
    Single tunable timing block — starting values from the mock; Caveshen
    tunes these at preview. ThresholdCover.astro's script adds #scene-root's
    .pre-armed the moment the cover is about to show interactively (the same
@@ -233,9 +233,9 @@
 :root {
   --undevelop-title-fade:         0.4s;
   --undevelop-photo-drain:        1.3s;
-  /* The beat the gold wireframe must stand alone before fills bloom (Further
-     Notes, photo-threshold spec) — bloom start is derived from it, not a
-     separate guess, so the hold survives any retune of the drain itself. */
+  /* The wireframe must hold alone before fills bloom — bloom start is derived
+     from this, not a separate guess, so the hold survives any retune of the
+     drain itself. */
   --undevelop-hold:               0.2s;
   --undevelop-bloom-start:        calc(var(--undevelop-photo-drain) + var(--undevelop-hold));
   --undevelop-bloom-duration:     1.1s;
@@ -251,12 +251,14 @@
    see CityScape.astro/Moon.astro/Scene.astro — except f-rail/f-seam
    (already stroke, not fill; pre-armed just points their existing stroke
    gold and lets the .scene line 0.4s transition above carry them back) and
-   f-sparkle (already a gold stroke mark, nothing to arm). */
+   f-sparkle (already a gold stroke mark, nothing to arm).
+   ponytail: every fill class must appear in all these :is() lists; a class
+   missed here survives the wireframe hold as a dark blob instead of arming. */
 #scene-root.pre-armed .scene > .f-sky,
 #scene-root.pre-armed .bg-layer :is(.f-star, .f-halo, .f-moon-glow, .f-moon,
   .f-crater, .f-moon-shade, .f-cloudbank, .f-sun-glow, .f-cel, .f-far,
   .f-mtn-shade, .f-mtn-lit, .f-mist, .f-mid, .f-fringe, .f-near, .f-bld-shade, .f-beacon),
-#scene-root.pre-armed .fg-layer :is(.f-sea, .f-moon, .f-wave, .f-sail, .f-ground) {
+#scene-root.pre-armed .fg-layer :is(.f-sea, .f-moon, .f-wave, .f-sail, .f-ground, .f-rail-shadow) {
   fill-opacity: 0;
   stroke: var(--gold);
   stroke-width: 1;
@@ -293,7 +295,7 @@
   fill-opacity: 1;
   stroke-opacity: 0;
 }
-#scene-root.blooming .fg-layer :is(.f-sea, .f-moon, .f-wave, .f-sail, .f-ground) {
+#scene-root.blooming .fg-layer :is(.f-sea, .f-moon, .f-wave, .f-sail, .f-ground, .f-rail-shadow) {
   stroke: var(--gold);
   stroke-width: 1;
   transition: fill-opacity var(--undevelop-bloom-duration) ease,

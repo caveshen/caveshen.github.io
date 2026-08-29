@@ -86,7 +86,7 @@ the document body under their original `§` headings as history.
 | d40 | Scene rewrite workshop — a from-scratch reimagining of both scenes under the Dragon Age register | *new* | ✅ CONCLUDED 2026-08-25; RETIRED 2026-08-27 — the adopted build order is superseded by d43; unbuilt ideas lapse, re-raisable (§d40) |
 | d41 | CI matrix sharding — run the eight projects as parallel jobs; consider smoke-only deploys on main | *new* | ✅ DECIDED 2026-08-24 — one job per project on PRs; main pre-deploy gate is smoke-only (desktop-1920); delivered on `ci/matrix-sharding` (§d41) |
 | d42 | Reference-photo front — hybrid photo background + animated Badger under the d37 language | *new* | ✅ FOLDED 2026-08-27 into d43 — the photo enters as a threshold, not a platform; its open questions are answered in §d43 (§d42) |
-| d43 | Photo-threshold front — night-photo title cover; New Game draws the world in; grain and shimmer stay | *new* | 🏗 spec published 2026-08-27 (`docs/specs/photo-threshold.md`, ready-for-agent, seams confirmed) — delivery on `item/photo-threshold` (§d43) |
+| d43 | Photo-threshold front — night-photo title cover; New Game draws the world in; grain and shimmer stay | *new* | ✅ delivered 2026-08-29 on `item/photo-threshold`, awaiting Caveshen's local preview (§d43) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -6508,7 +6508,7 @@ Parked until d40's adopted ideas land.
 
 ## d43. Photo-threshold front — the night photo opens the site; New Game draws the world in
 
-### 💡 RAISED 2026-08-27 — direction accepted at the hybrid mock; awaiting spec and build
+### ✅ DELIVERED 2026-08-29 — built on `item/photo-threshold`, awaiting Caveshen's local preview
 
 The front gains a title beat. The site opens on the owner's night photograph
 of the massif (today `screenshots/cpt/20251125_200737.jpg`; it must enter the

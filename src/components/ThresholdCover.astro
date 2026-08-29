@@ -103,6 +103,13 @@
   const cover = document.getElementById('threshold-cover')!;
   const sceneRoot = document.getElementById('scene-root');
   const returnBtn = document.getElementById('return-to-menu')!;
+  // Authored here (beside the cover's own markup) for one file to own, but
+  // this button's DOM position matters for tab order: it must never queue
+  // ahead of the toggle/scene, which its authored position (before
+  // #scene-root, so it can sit near the cover) would otherwise do whenever
+  // the cover is suppressed — every route back into the scene. Moved to the
+  // end of <body> before anything can tab through, so it lands last.
+  document.body.appendChild(returnBtn);
   const reducedMotionQuery = matchMedia('(prefers-reduced-motion: reduce)');
   const alreadyDismissed = document.documentElement.dataset.cover === 'skip';
 
@@ -385,12 +392,14 @@
      glass chip) since this is a rarer, lower-priority action. Floating
      shadowed text over the busy scene, same legible-in-both-themes idiom as
      .approach-prompt (Stage.astro): white ink, dark anchor shadow, fixed
-     regardless of day/night rather than themed. Stacked above
-     .fullscreen-toggle (Stage.astro), which already holds this corner. */
+     regardless of day/night rather than themed. Same bottom row as
+     .fullscreen-toggle (Stage.astro), just to its left — stacking this
+     taller/wider button above the toggle instead reached far enough up the
+     frame to overlap the character's hit area on short viewports. */
   .return-to-menu {
     position: fixed;
-    right: 1rem;
-    bottom: 4.5rem;
+    right: 4.5rem;
+    bottom: 1rem;
     z-index: 1; /* outranks .stage-frame, painted later in the DOM */
     min-height: 44px;
     padding: 0.5rem 0.75rem;

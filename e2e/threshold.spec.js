@@ -218,6 +218,16 @@ test('Return to menu appears on a flagged load', async ({ page }) => {
   await expect(page.locator('#return-to-menu')).toBeVisible();
 });
 
+// Authored ahead of #scene-root (near the cover it belongs to), but the
+// script moves it to the end of <body> so it tabs after the toggle and scene
+// rather than queueing ahead of them whenever the cover is suppressed.
+test('Return to menu is moved to the end of <body>, so it tabs last', async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem('thresholdDismissed', '1'));
+  await page.goto('/');
+  const lastId = await page.evaluate(() => document.body.lastElementChild?.id);
+  expect(lastId).toBe('return-to-menu');
+});
+
 test('Return to menu restores the cover and clears the session flag', async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem('thresholdDismissed', '1'));
   await page.goto('/');

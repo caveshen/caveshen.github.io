@@ -60,9 +60,14 @@ test('grain overlay covers the full frame in both themes, at low plain opacity, 
 
 test('grain speckle is contrast-pushed and steps its seed on a discrete schedule', async ({ page }) => {
   const grain = page.locator('#film-grain');
-  await expect(grain.locator('feTurbulence')).toHaveCount(1);
-  const seedAnim = grain.locator('feTurbulence > animate[attributeName="seed"]');
-  await expect(seedAnim).toHaveAttribute('calcMode', 'discrete');
+  const noise = grain.locator('#film-grain-noise');
+  await expect(noise).toHaveCount(1);
+  const before = await noise.getAttribute('seed');
+  // Driven by stage.js on a 1.4s timer (not SMIL — see Stage.astro's comment),
+  // so the attribute itself is the only observable proof of the schedule.
+  await expect(async () => {
+    expect(await noise.getAttribute('seed')).not.toBe(before);
+  }).toPass({ timeout: 3000 });
   // Contrast push: feComponentTransfer steepens the curve (slope > 1) rather than
   // passing the turbulence through untouched.
   const slope = await grain.locator('feFuncR').getAttribute('slope');
@@ -100,6 +105,12 @@ test('reduced motion: grain stops animating (static filter, no seed animate) and
   const grain = await grainState(page);
   expect(grain.filter).toContain('film-grain-static');
   await expect(page.locator('#film-grain-static feTurbulence > animate')).toHaveCount(0);
+  // stage.js's seed timer is guarded off under reduced motion (not just unused —
+  // CSS never references #film-grain here, but the timer must not even run).
+  const noise = page.locator('#film-grain-noise');
+  const seedAtStart = await noise.getAttribute('seed');
+  await page.waitForTimeout(1600);
+  expect(await noise.getAttribute('seed')).toBe(seedAtStart);
 
   const filters = await seaWaveFilter(page);
   expect(filters.sea).toBe('none');

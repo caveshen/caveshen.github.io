@@ -57,6 +57,19 @@ export function initStage(tree) {
   document.addEventListener('keydown', () => document.documentElement.classList.add('kb-focus'), true);
   document.addEventListener('pointerdown', () => document.documentElement.classList.remove('kb-focus'), true);
 
+  // Film grain's seed schedule (Stage.astro's #film-grain filter) — a plain
+  // timer, not a SMIL <animate>; see that file's comment for why. Skipped
+  // under reduced motion, where CSS never references this filter anyway.
+  const grainNoise = document.getElementById('film-grain-noise');
+  if (grainNoise && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const seeds = [2, 9, 4, 13, 7, 1, 11];
+    let seedIndex = 0;
+    setInterval(() => {
+      seedIndex = (seedIndex + 1) % seeds.length;
+      grainNoise.setAttribute('seed', String(seeds[seedIndex]));
+    }, 1400);
+  }
+
   const render = initEngine(
     tree,
     { speechEl, stageEl: directionEl, choicesEl, cardEl: card },

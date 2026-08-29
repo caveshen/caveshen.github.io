@@ -12,7 +12,7 @@
     "src/components/Scene.astro": "da95bc28eb19a320a5cf7e35ae2425e39852d14f7f9f9a717c2b27537a15f47e",
     "src/components/Stage.astro": "b1cf79c6afa91837595f0f3f928c47db50cb264b733e94010469997f439d23b9",
     "src/components/ThemeToggle.astro": "554d5a808bf4cf7634b21758d340f4fb280ad2283d9d99a432327cdccf55d45f",
-    "src/components/ThresholdCover.astro": "0068c6135b798680f194785d9750def25692099bd62c70630d88ad106795c329",
+    "src/components/ThresholdCover.astro": "c74f89fab093ae4fb9710729d06ccd671bbbb14f7878a4d544eb801d1d66c635",
     "src/pages/og.astro": "96ff704559c7e504a88e8533f7d64ac6639eed36e119468df31aae0405418411",
     "src/styles/tokens.css": "95d03bec6e2c03e1ab7c9a662a620409017d3d23693136afb3745a7c0c17c7fd"
   },
@@ -21,7 +21,7 @@
     "public/favicon-16.png": "931f0ac7a48508e43fd1aed111a9b2c34fbdd2b3c15bf2d6d0b0e00a88b3c581",
     "public/favicon-32.png": "d9cc47617bf36fed57345f597c45012aecad9847d8fbeffe880164d02892c6f4",
     "public/favicon.ico": "978149d9999bc957aeab05dbbdd9315d7becf613cb67fa6c4d8a870ae246921e",
-    "public/og-image.png": "ae6ed69f850152212daf463fe0a5855cfd566435a26691a98233127abd4fb161",
+    "public/og-image.png": "4b28ff65621aa6b90b10985c36e12cb705f2c18047f802d4d327a8e4af8725b2",
     "public/sheet-portrait.png": "ad061d6678cb4a5fd1ec22fc0955e3093f18c807bfeb2e1f8bb3e6e75eba3ff9",
     "public/threshold/night-1024.avif": "cebc89753ab40fb8c0f451beafbf2151fa3da84b8b8d220abbd0296965108176",
     "public/threshold/night-1024.jpg": "5003467ca8ca4a18468a7644f7950bf9d7eb9c044947e88937408ab119729c4b",

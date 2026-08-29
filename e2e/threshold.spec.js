@@ -5,6 +5,13 @@
 // undismissed cover.
 import { test, expect } from '@playwright/test';
 
+// dismiss() hides the cover (not removed — Return to menu brings the same
+// element back), so "gone" is asserted as computed display, the house
+// pattern for state hidden by CSS rather than absence from the DOM.
+function coverDisplay(page) {
+  return page.locator('#threshold-cover').evaluate((el) => getComputedStyle(el).display);
+}
+
 test('fresh load: cover is present, duotone filter applied, photo served from srcset variants', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('#threshold-cover')).toBeVisible();
@@ -38,20 +45,20 @@ test('Enter activates New Game', async ({ page }) => {
   await page.goto('/');
   await page.locator('#cover-new-game').focus();
   await page.keyboard.press('Enter');
-  await expect(page.locator('#threshold-cover')).toHaveCount(0);
+  await expect.poll(() => coverDisplay(page)).toBe('none');
 });
 
 test('Space activates New Game', async ({ page }) => {
   await page.goto('/');
   await page.locator('#cover-new-game').focus();
   await page.keyboard.press('Space');
-  await expect(page.locator('#threshold-cover')).toHaveCount(0);
+  await expect.poll(() => coverDisplay(page)).toBe('none');
 });
 
 test('hotkey "1" dismisses the cover and sets the session flag', async ({ page }) => {
   await page.goto('/');
   await page.keyboard.press('1');
-  await expect(page.locator('#threshold-cover')).toHaveCount(0);
+  await expect.poll(() => coverDisplay(page)).toBe('none');
   expect(await page.evaluate(() => sessionStorage.getItem('thresholdDismissed'))).toBe('1');
 });
 
@@ -64,7 +71,7 @@ test('hotkey "2" navigates to /sheet', async ({ page }) => {
 test('New Game (click) removes the cover, sets the flag, and frees the scene from inert', async ({ page }) => {
   await page.goto('/');
   await page.locator('#cover-new-game').click();
-  await expect(page.locator('#threshold-cover')).toHaveCount(0);
+  await expect.poll(() => coverDisplay(page)).toBe('none');
   expect(await page.evaluate(() => sessionStorage.getItem('thresholdDismissed'))).toBe('1');
   await expect(page.locator('#scene-root')).not.toHaveAttribute('inert', '');
 });
@@ -156,7 +163,7 @@ test('New Game plays the un-develop: title gone, photo drained, fills bloomed, B
   // Provably finished: polls for the real end condition, not a fixed wait.
   // The full sequence (bloom-start + badger stagger + bloom duration) runs
   // past Playwright's 5s default poll, so these get a wider one explicitly.
-  await expect(page.locator('#threshold-cover')).toHaveCount(0, { timeout: 8000 });
+  await expect.poll(() => coverDisplay(page), { timeout: 8000 }).toBe('none');
   const sky = page.locator('.scene-standard > .f-sky');
   await expect(sky).toHaveCSS('fill-opacity', '1', { timeout: 8000 });
   const ground = page.locator('.scene-standard .fg-layer .f-ground');
@@ -189,5 +196,62 @@ test('no-JS: the cover is hidden and today\'s page (with its own noscript link) 
   // a[href="/sheet"] of its own (#cover-sheet), which would make a bare
   // a[href="/sheet"] locator ambiguous.
   await expect(page.locator('.noscript-note a[href="/sheet"]')).toBeVisible();
+  await expect(page.locator('#return-to-menu')).toBeHidden();
+  await ctx.close();
+});
+
+// ── Return to menu ──────────────────────────────────────────────────────────
+// Ships hidden and only appears once JS has decided the cover isn't showing
+// (fresh dismissal or a flagged load); clicking it clears the flag, restores
+// the cover, and re-arms the scene for a full replay of the un-develop.
+
+test('Return to menu appears once New Game has dismissed the cover', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('#return-to-menu')).toBeHidden();
+  await page.locator('#cover-new-game').click();
+  await expect(page.locator('#return-to-menu')).toBeVisible();
+});
+
+test('Return to menu appears on a flagged load', async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem('thresholdDismissed', '1'));
+  await page.goto('/');
+  await expect(page.locator('#return-to-menu')).toBeVisible();
+});
+
+test('Return to menu restores the cover and clears the session flag', async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem('thresholdDismissed', '1'));
+  await page.goto('/');
+  await page.locator('#return-to-menu').click();
+
+  await expect.poll(() => coverDisplay(page)).not.toBe('none');
+  expect(await page.evaluate(() => sessionStorage.getItem('thresholdDismissed'))).toBeNull();
+  await expect(page.locator('#return-to-menu')).toBeHidden();
+});
+
+test('after Return to menu, New Game replays the full pre-arm', async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem('thresholdDismissed', '1'));
+  await page.goto('/');
+  await page.locator('#return-to-menu').click();
+
+  // Frozen-state, same check the original pre-arm test makes: fills at
+  // zero, ready for New Game to bloom them in again.
+  const sky = page.locator('.scene-standard > .f-sky');
+  await expect(sky).toHaveCSS('fill-opacity', '0');
+});
+
+test('reduced motion: Return to menu restores the cover instantly, and a further New Game skips the staged bloom', async ({ browser }) => {
+  const ctx = await browser.newContext({ reducedMotion: 'reduce' });
+  const page = await ctx.newPage();
+  await page.goto('/');
+  await expect(page.locator('#return-to-menu')).toBeVisible();
+
+  await page.locator('#return-to-menu').click();
+  await expect.poll(() => coverDisplay(page)).not.toBe('none');
+
+  await page.locator('#cover-new-game').click();
+  await expect.poll(() => coverDisplay(page)).toBe('none');
+  const fillOpacity = await page.locator('.scene-standard .f-sky')
+    .evaluate((el) => getComputedStyle(el).fillOpacity);
+  expect(fillOpacity).toBe('1');
   await ctx.close();
 });

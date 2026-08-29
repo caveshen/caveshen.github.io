@@ -13,6 +13,11 @@
 // underneath — all timing lives in tokens.css's --undevelop-* block, the
 // one place Caveshen retunes at preview. This file only owns the arrival,
 // arming the scene, and playing/cleaning up the dismissal.
+//
+// Return to menu: a quiet button on the arrived scene brings the cover back
+// (session flag cleared, scene re-armed) so New Game can be replayed. The
+// cover element is hidden, not removed, once dismissed, so it stays
+// available for this — see dismiss()'s cleanup below.
 ---
 <div class="threshold-cover" id="threshold-cover">
   <!-- Defs-only: 0×0 and clipped, never display:none (some engines skip a
@@ -20,6 +25,12 @@
   <svg class="cover-filter-defs" aria-hidden="true" focusable="false">
     <defs>
       <filter id="threshold-duotone" color-interpolation-filters="sRGB">
+        <!-- Gentle unsharp mask ahead of the duotone step — the duotone's table
+             transfer posterises luminance into two flat tones, so any softness
+             in the source photo reads as a blurred edge once mapped; a light
+             sharpen here keeps the ridge line crisp without haloing. -->
+        <feConvolveMatrix order="3" preserveAlpha="true" edgeMode="duplicate"
+          kernelMatrix="0 -0.5 0 -0.5 3 -0.5 0 -0.5 0" />
         <feColorMatrix type="saturate" values="0" />
         <!--
           tableValues cannot read var() (the SVG-presentation-attribute
@@ -60,7 +71,6 @@
   <div class="cover-vignette" aria-hidden="true"></div>
 
   <div class="cover-content">
-    <p class="cover-overline">PLACEHOLDER &mdash; a night arrival, before the game begins</p>
     <h1 class="cover-name">Caveshen Rajman</h1>
     <p class="cover-tagline">Problem solver, coffee enjoyer, 10x human</p>
     <div class="cover-menu">
@@ -74,6 +84,12 @@
   </div>
 </div>
 
+<!-- Ships hidden; JS unhides it once it knows the cover isn't showing (fresh
+     dismissal, a flagged load, or reduced motion — see the script below).
+     No explicit display override needed: nothing else in this stylesheet sets
+     `display` on this button, so the plain [hidden] UA rule is never outranked. -->
+<button type="button" id="return-to-menu" class="return-to-menu" hidden>Return to menu</button>
+
 <!-- No-JS: today's page (Stage's own scene + its noscript link to /sheet) stands
      untouched — the cover, which needs JS to ever leave, must not be there to
      block it. !important: the safest way to outrank the base display:flex rule
@@ -86,70 +102,123 @@
   const FLAG = 'thresholdDismissed';
   const cover = document.getElementById('threshold-cover')!;
   const sceneRoot = document.getElementById('scene-root');
-  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const returnBtn = document.getElementById('return-to-menu')!;
+  const reducedMotionQuery = matchMedia('(prefers-reduced-motion: reduce)');
   const alreadyDismissed = document.documentElement.dataset.cover === 'skip';
 
-  // Reduced motion or an already-dismissed session: the cover is CSS-hidden
-  // already (see the component comment above) — nothing here to wire, and the
-  // scene below must be interactive immediately, so inert is never applied.
-  if (!reducedMotion && !alreadyDismissed) {
-    if (sceneRoot) {
-      sceneRoot.setAttribute('inert', '');
-      // Fills at zero, gold strokes on (tokens.css) — the scene stands as
-      // line-art under the opaque cover, ready for New Game to bloom it.
-      sceneRoot.classList.add('pre-armed');
-    }
-
-    // The un-develop: title fades, photo drains (this file's CSS), and the
-    // pre-armed scene blooms in by depth (tokens.css) — one class swap here,
-    // every delay and duration lives in the --undevelop-* tokens.
-    function dismiss() {
-      sessionStorage.setItem(FLAG, '1');
-      document.removeEventListener('keydown', onKey);
-      // Scene interactive right away — Story 10's keyboard route never
-      // waits on the animation, even while it's still playing underneath.
-      if (sceneRoot) sceneRoot.removeAttribute('inert');
-      cover.classList.add('cover-undeveloping');
-      if (sceneRoot) {
-        sceneRoot.classList.remove('pre-armed');
-        sceneRoot.classList.add('blooming');
-      }
-      // Cleanup once the cover itself has fully faded (its own opacity
-      // transition, the slowest of the two cover fades) — not the whole
-      // bloom sequence, which keeps running underneath regardless.
-      cover.addEventListener('transitionend', function onFaded(e) {
-        if (e.target !== cover || e.propertyName !== 'opacity') return;
-        cover.removeEventListener('transitionend', onFaded);
-        cover.remove();
-        // The New Game button that held focus left with the cover — land
-        // focus on the scene's first control rather than losing it to
-        // <body> (Story 10: focus lands somewhere useful, not nowhere).
-        if (document.activeElement === document.body) {
-          sceneRoot?.querySelector('button, a[href]')?.focus();
-        }
-      });
-    }
-
-    // Both routes to /sheet (the link click and the "2" hotkey) call this one
-    // function, so the session flag is set exactly once, in one place, before
-    // either leaves the page — same suppression New Game gets from dismiss().
-    function visitSheet() {
-      sessionStorage.setItem(FLAG, '1');
-      window.location.href = '/sheet';
-    }
-
-    function onKey(e: KeyboardEvent) {
-      if (e.key === '1') { e.preventDefault(); dismiss(); }
-      else if (e.key === '2') { e.preventDefault(); visitSheet(); }
-    }
-
-    document.getElementById('cover-new-game')!.addEventListener('click', dismiss);
-    document.getElementById('cover-sheet')!.addEventListener('click', (e: MouseEvent) => {
-      e.preventDefault();
-      visitSheet();
-    });
-    document.addEventListener('keydown', onKey);
+  // Fills at zero, gold strokes on (tokens.css) — the scene stands as
+  // line-art under the opaque cover, ready for New Game to bloom it. Shared
+  // by the initial arm below and by Return to menu re-arming it later.
+  function armScene() {
+    if (!sceneRoot) return;
+    sceneRoot.setAttribute('inert', '');
+    sceneRoot.classList.remove('blooming');
+    sceneRoot.classList.add('pre-armed');
   }
+
+  // The un-develop: title fades, photo drains (this file's CSS), and the
+  // pre-armed scene blooms in by depth (tokens.css) — one class swap here,
+  // every delay and duration lives in the --undevelop-* tokens.
+  function dismiss() {
+    sessionStorage.setItem(FLAG, '1');
+    document.removeEventListener('keydown', onKey);
+    // Scene interactive right away — Story 10's keyboard route never
+    // waits on the animation, even while it's still playing underneath.
+    if (sceneRoot) sceneRoot.removeAttribute('inert');
+
+    // A visitor who reached the cover again via Return to menu, under
+    // reduced motion, gets the same instant swap a fresh reduced-motion
+    // load gets — no staged bloom, which this script never plays for such
+    // a visitor otherwise.
+    if (reducedMotionQuery.matches) {
+      if (sceneRoot) sceneRoot.classList.remove('pre-armed', 'blooming');
+      cover.hidden = true;
+      cover.classList.remove('cover-undeveloping', 'cover-forced-visible', 'cover-returning');
+      returnBtn.hidden = false;
+      return;
+    }
+
+    cover.classList.add('cover-undeveloping');
+    if (sceneRoot) {
+      sceneRoot.classList.remove('pre-armed');
+      sceneRoot.classList.add('blooming');
+    }
+    // Cleanup once the cover itself has fully faded (its own opacity
+    // transition, the slowest of the two cover fades) — not the whole
+    // bloom sequence, which keeps running underneath regardless. Hidden,
+    // not removed, so Return to menu can bring the same element back.
+    cover.addEventListener('transitionend', function onFaded(e) {
+      if (e.target !== cover || e.propertyName !== 'opacity') return;
+      cover.removeEventListener('transitionend', onFaded);
+      cover.hidden = true;
+      cover.classList.remove('cover-undeveloping', 'cover-forced-visible');
+      returnBtn.hidden = false;
+      // The New Game button that held focus left with the cover — land
+      // focus on the scene's first control rather than losing it to
+      // <body> (Story 10: focus lands somewhere useful, not nowhere).
+      if (document.activeElement === document.body) {
+        sceneRoot?.querySelector('button, a[href]')?.focus();
+      }
+    });
+  }
+
+  // Both routes to /sheet (the link click and the "2" hotkey) call this one
+  // function, so the session flag is set exactly once, in one place, before
+  // either leaves the page — same suppression New Game gets from dismiss().
+  function visitSheet() {
+    sessionStorage.setItem(FLAG, '1');
+    window.location.href = '/sheet';
+  }
+
+  function onKey(e: KeyboardEvent) {
+    if (e.key === '1') { e.preventDefault(); dismiss(); }
+    else if (e.key === '2') { e.preventDefault(); visitSheet(); }
+  }
+
+  // Unconditional: harmless while the cover is hidden (display:none takes it
+  // out of hit-testing and the tab order), and this is what lets Return to
+  // menu bring a working menu back without re-wiring these two.
+  document.getElementById('cover-new-game')!.addEventListener('click', dismiss);
+  document.getElementById('cover-sheet')!.addEventListener('click', (e: MouseEvent) => {
+    e.preventDefault();
+    visitSheet();
+  });
+
+  // Reduced motion or an already-dismissed session: the cover is CSS-hidden
+  // already (see the component comment above) — nothing to arm, and the
+  // scene below must be interactive immediately, so inert is never applied.
+  // Return to menu is this visitor's only route back to it.
+  if (!reducedMotionQuery.matches && !alreadyDismissed) {
+    armScene();
+    document.addEventListener('keydown', onKey);
+  } else {
+    returnBtn.hidden = false;
+  }
+
+  // Return to menu: available whenever JS runs and the cover isn't showing
+  // (see above). Clears the flag, re-arms the scene so a subsequent New
+  // Game replays the full un-develop, and brings the cover back with a
+  // brief fade — instantly under reduced motion, which otherwise never
+  // shows this cover at all; the visitor asked for it explicitly by clicking.
+  returnBtn.addEventListener('click', () => {
+    sessionStorage.removeItem(FLAG);
+    delete document.documentElement.dataset.cover;
+    returnBtn.hidden = true;
+    armScene();
+    document.addEventListener('keydown', onKey);
+
+    cover.hidden = false;
+    // Beats the reduced-motion media query below, which shares this rule's
+    // specificity and would otherwise keep winning regardless of source
+    // order — same reasoning as the noscript !important above.
+    cover.classList.add('cover-forced-visible');
+    if (reducedMotionQuery.matches) return;
+
+    cover.classList.remove('cover-returning');
+    void cover.offsetWidth; // force reflow so the class change below transitions rather than no-ops
+    cover.classList.add('cover-returning');
+    requestAnimationFrame(() => cover.classList.remove('cover-returning'));
+  });
 </script>
 
 <style>
@@ -184,15 +253,40 @@
   /* Set by index.astro's pre-paint head script when the session flag is
      already set — see that script's comment for why it must run that early. */
   :root[data-cover="skip"] .threshold-cover { display: none; }
+  /* dismiss() hides the cover rather than removing it, so Return to menu
+     (below) can bring the same element back — needs its own override, same
+     as .fullscreen-toggle[hidden] (Stage.astro), since the base rule above
+     is author-origin display:flex and would otherwise outrank the UA
+     stylesheet's [hidden]{display:none}. */
+  .threshold-cover[hidden] { display: none; }
+
+  /* Return to menu brings the cover back even under reduced motion, which
+     the query above would otherwise keep hiding regardless of [hidden] —
+     see the matching comment on the button's click handler. */
+  .threshold-cover.cover-forced-visible { display: flex !important; }
+  .threshold-cover.cover-returning {
+    transition: opacity 0.3s ease;
+    opacity: 0;
+  }
 
   .cover-filter-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 
-  .cover-photo-wrap { position: absolute; inset: 0; }
+  .cover-photo-wrap { position: absolute; inset: 0; overflow: hidden; }
   .cover-photo {
     display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
+    /* Top-anchored crop plus a zoom from that same anchor: keeps the ridge
+       low in frame, clear of the centred title/tagline/menu, at both the
+       wide desktop crop and the tall mobile one. Zooming from the top edge
+       (not the box centre) pushes everything below it further down/out of
+       frame while the sky at the anchor stays put — object-position alone
+       is too weak on its own; scale from the box centre would just enlarge
+       the ridge in place rather than push it down. */
+    object-position: 50% 0%;
+    transform-origin: 50% 0%;
+    transform: scale(1.22);
     filter: url(#threshold-duotone);
   }
 
@@ -217,20 +311,12 @@
      .approach-prompt (Stage.astro) — a dark anchor shadow, not the glass
      plaque, carries the contrast duty here. --prompt-ink is white in both
      themes, matching this cover's always-night register. */
-  .cover-overline, .cover-name, .cover-tagline, .cover-btn-secondary {
+  .cover-name, .cover-tagline, .cover-btn-secondary {
     color: var(--prompt-ink);
     text-shadow: 0 1px 3px rgba(7, 6, 14, 1), 0 0 12px rgba(7, 6, 14, 1),
                  0 0 20px rgba(7, 6, 14, 0.7);
   }
 
-  .cover-overline {
-    font-family: var(--serif);
-    font-style: italic;
-    font-size: 0.85rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    opacity: 0.85;
-  }
   .cover-name {
     font-family: var(--display);
     font-size: clamp(2rem, 6vw, 3.5rem);
@@ -292,5 +378,42 @@
 
   @media (prefers-reduced-motion: reduce) {
     .cover-btn { transition: none; }
+  }
+
+  /* Quiet furniture on the arrived scene, not the cover itself — mono and
+     small-caps like the theme toggle's register, but text-only/ghost (no
+     glass chip) since this is a rarer, lower-priority action. Floating
+     shadowed text over the busy scene, same legible-in-both-themes idiom as
+     .approach-prompt (Stage.astro): white ink, dark anchor shadow, fixed
+     regardless of day/night rather than themed. Stacked above
+     .fullscreen-toggle (Stage.astro), which already holds this corner. */
+  .return-to-menu {
+    position: fixed;
+    right: 1rem;
+    bottom: 4.5rem;
+    z-index: 1; /* outranks .stage-frame, painted later in the DOM */
+    min-height: 44px;
+    padding: 0.5rem 0.75rem;
+    font-family: var(--mono);
+    font-variant-caps: small-caps;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    color: var(--prompt-ink);
+    text-shadow: 0 1px 3px rgba(7, 6, 14, 1), 0 0 12px rgba(7, 6, 14, 1),
+                 0 0 20px rgba(7, 6, 14, 0.7);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color var(--t-micro);
+  }
+  .return-to-menu:hover, .return-to-menu:focus-visible {
+    color: var(--gold-bright);
+  }
+  .return-to-menu:focus-visible {
+    outline: 2px solid var(--gold-bright);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .return-to-menu { transition: none; }
   }
 </style>

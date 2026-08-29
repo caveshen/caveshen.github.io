@@ -26,7 +26,9 @@ into the night tokens. Over it: his name as the hero title in the
 display face, the character-sheet tagline as the subtitle, and a
 two-option menu — **New Game** (gold primary) and **Character Sheet**
 (quiet secondary). "The Interview" stays the project's internal name
-and the document title; it appears in no heading.
+only; the document title is the owner's name alone (preview ruling
+2026-08-29, superseding the earlier keep-it-in-the-title decision).
+It appears in no heading.
 
 Choosing New Game plays the **un-develop**: the title fades, the
 photograph drains away, and beneath it the whole vector scene stands

@@ -153,13 +153,22 @@ export async function seekFrameTransition(page, fraction) {
 // machine — fine for a same/different comparison, not for an exact near-zero
 // threshold. One frozen at birth has never run a frame, so
 // sampleFrameTransition() below always seeks a stationary animation.
+//
+// Stashes the caught Animation objects on window.__frameAnims rather than
+// leaving sampleFrameTransition() re-query getAnimations() later — seeking a
+// paused CSS-transition Animation to exactly its effect end (fraction 1)
+// makes Chromium drop it from getAnimations() even though it's still paused,
+// so a later re-query can find nothing and hang forever. A direct reference
+// keeps working after that drop.
 export async function armFrameFreeze(page) {
   await page.evaluate(() => {
+    window.__frameAnims = [];
     document.querySelector('.card').addEventListener('transitionrun', (e) => {
       e.target.getAnimations().forEach((a) => {
         if (a.transitionProperty === '--frame' || a.transitionProperty === '--frame-faint') {
           a.currentTime = 0;
           a.pause();
+          window.__frameAnims.push(a);
         }
       });
     });
@@ -170,16 +179,12 @@ export async function armFrameFreeze(page) {
 // active duration. Requires armFrameFreeze() to have run first, so the
 // transition is already paused and this only ever seeks a stationary animation.
 export async function sampleFrameTransition(page, fraction) {
-  await page.waitForFunction(() =>
-    document.querySelector('.card').getAnimations()
-      .some((a) => a.transitionProperty === '--frame'));
+  await page.waitForFunction(() => window.__frameAnims?.length > 0);
   return page.evaluate((fraction) => {
     const card = document.querySelector('.card');
-    card.getAnimations().forEach((a) => {
-      if (a.transitionProperty === '--frame' || a.transitionProperty === '--frame-faint') {
-        const timing = a.effect.getComputedTiming();
-        a.currentTime = (timing.delay ?? 0) + (timing.duration ?? 0) * fraction;
-      }
+    window.__frameAnims.forEach((a) => {
+      const timing = a.effect.getComputedTiming();
+      a.currentTime = (timing.delay ?? 0) + (timing.duration ?? 0) * fraction;
     });
     const cs = getComputedStyle(card);
     // Engines disagree on the RGB channels a colour interpolation reports for

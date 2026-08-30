@@ -1,14 +1,13 @@
 // Renders public/og-image.png (1200×630) and the icon set: favicon-16.png
-// (the canonical badger head), favicon-32.png (the badger champion),
-// favicon.ico (16 head + 32 champion, for legacy/taskbar consumers), and
-// apple-touch-icon.png (180×180 champion). Sized rasters only — no
-// favicon.svg — so 16px and 32px browser contexts genuinely get different
-// art. The OG image is a screenshot of the built site's real /og route
-// (astro build → astro preview), which renders the real Scene component.
-// The head assets bake src/assets/badger-head.svg's token-class fills to hex
-// (read from tokens.css :root) over a night-ink backdrop. The champion
-// assets process .scratch/NAG_Badger.jpg (gitignored, private source) into
-// pixel art. Run from the repo root: node tools/render-og.js
+// (the champion, smoothly downscaled to 16px), favicon-32.png (the champion
+// at native size), favicon.ico (both sizes, for legacy/taskbar consumers),
+// and apple-touch-icon.png (180×180 champion). Sized rasters only — no
+// favicon.svg. The OG image is a screenshot of the built site's real /og
+// route (astro build → astro preview), which renders the real Scene
+// component. The champion assets process .scratch/NAG_Badger.jpg (gitignored,
+// private source) into pixel art at 32×32, then every other size (16, 180)
+// is derived from that same canvas in-process — one source of truth. Run
+// from the repo root: node tools/render-og.js
 import { chromium } from 'playwright-core';
 import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { spawn, spawnSync } from 'node:child_process';
@@ -20,9 +19,7 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const PORT = 4331;
 const browser = await chromium.launch({ channel: 'msedge' });
 
-// ── canonical head: baked to hex, over a night-ink rounded square ──────────
-// bgHex/faviconSVG are reused below to render favicon-16.png and the 16px
-// slot of favicon.ico — one bake, two consumers.
+// tokens.css :root hex lookup — feeds the champion's ink/cream/tile palette.
 const tokensCSS = readFileSync(path.join(root, 'src/styles/tokens.css'), 'utf8');
 const tokensRootBlock = tokensCSS.match(/:root\s*\{[\s\S]*?\n\}/)[0];
 const hexOf = (varName) => {
@@ -30,34 +27,6 @@ const hexOf = (varName) => {
   if (!m) throw new Error(`${varName} not found in tokens.css :root block`);
   return m[1];
 };
-const bgHex = hexOf('--bg');
-
-const faviconSVG = (() => {
-  const headSVG = readFileSync(path.join(root, 'src/assets/badger-head.svg'), 'utf8');
-
-  // class → var(--x) mapping, read off tokens.css's own fill rules (the head
-  // source carries no strokes) — not hand-maintained, so a new f-head-* class
-  // picks up its colour for free.
-  const classToVar = Object.fromEntries(
-    [...tokensCSS.matchAll(/\.([\w-]+)\s*\{[^}]*fill\s*:\s*var\((--[\w-]+)\)/g)]
-      .map((m) => [m[1], m[2]])
-  );
-  const bakedHead = headSVG
-    .replace(/^<svg[^>]*>/, '')
-    .replace(/<\/svg>\s*$/, '')
-    .replace(/<!--[\s\S]*?-->/g, '') // comments describe the class idiom, false once baked to fill=
-    .replace(/class="([\w-]+)"/g, (full, cls) => {
-      const varName = classToVar[cls];
-      if (!varName) throw new Error(`no tokens.css fill rule maps class ${cls} to a var()`);
-      return `fill="${hexOf(varName)}"`;
-    });
-
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220">
-  <rect width="200" height="220" rx="24" fill="${bgHex}"/>
-${bakedHead}
-</svg>
-`;
-})();
 
 // ── champion: 32×32 pixel art processed from the private source photo ──────
 // Recipe: flood-fill the near-white background from the edges to the crater
@@ -75,7 +44,7 @@ if (!existsSync(jpgPath)) {
 }
 const jpgDataURL = `data:image/jpeg;base64,${readFileSync(jpgPath).toString('base64')}`;
 
-const { champion32, touch180 } = await (async () => {
+const { champion32, touch180, favicon16 } = await (async () => {
   const page = await browser.newPage();
   const result = await page.evaluate(async ({ jpgDataURL, TILE, INK, CREAM }) => {
     const img = new Image();
@@ -153,7 +122,21 @@ const { champion32, touch180 } = await (async () => {
     tctx.fillRect(0, 0, 180, 180);
     tctx.drawImage(champ, 0, 0, 32, 32, 10, 10, 160, 160);
 
-    return { champion32: champ.toDataURL('image/png'), touch180: touch.toDataURL('image/png') };
+    // 16×16 favicon slot: a smooth (bilinear, browser high-quality) 50%
+    // downscale of the champion — the same mark at every size.
+    const fav = document.createElement('canvas');
+    fav.width = 16;
+    fav.height = 16;
+    const fctx = fav.getContext('2d');
+    fctx.imageSmoothingEnabled = true;
+    fctx.imageSmoothingQuality = 'high';
+    fctx.drawImage(champ, 0, 0, 16, 16);
+
+    return {
+      champion32: champ.toDataURL('image/png'),
+      touch180: touch.toDataURL('image/png'),
+      favicon16: fav.toDataURL('image/png'),
+    };
   }, { jpgDataURL, TILE, INK, CREAM });
   await page.close();
   return result;
@@ -205,23 +188,14 @@ console.log('rendered public/favicon-32.png');
   console.log('rendered public/apple-touch-icon.png');
 }
 
-// ── favicon-16.png + favicon.ico: 16px canonical head, 32px champion ───────
+// ── favicon-16.png + favicon.ico: 16px + 32px, both the champion ───────────
 {
-  const page = await browser.newPage();
-  await page.setViewportSize({ width: 16, height: 16 });
-  await page.setContent(`<!doctype html>
-<html><head><meta charset="utf-8"><style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { width: 16px; height: 16px; background: ${bgHex}; overflow: hidden; }
-svg { display: block; width: 16px; height: 16px; }
-</style></head><body>${faviconSVG}</body></html>`);
-  const head16 = await page.screenshot({ clip: { x: 0, y: 0, width: 16, height: 16 } });
-  await page.close();
-  writeFileSync(path.join(root, 'public', 'favicon-16.png'), head16);
+  const fav16 = Buffer.from(favicon16.split(',')[1], 'base64');
+  writeFileSync(path.join(root, 'public', 'favicon-16.png'), fav16);
   console.log('rendered public/favicon-16.png');
 
   // ICO container (valid since Vista): ICONDIR + one ICONDIRENTRY per image.
-  const images = [{ size: 16, png: head16 }, { size: 32, png: champ32 }];
+  const images = [{ size: 16, png: fav16 }, { size: 32, png: champ32 }];
   const header = Buffer.alloc(6);
   header.writeUInt16LE(0, 0);          // reserved
   header.writeUInt16LE(1, 2);          // type: icon

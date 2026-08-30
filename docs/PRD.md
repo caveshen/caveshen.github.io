@@ -86,9 +86,12 @@ the document body under their original `§` headings as history.
 | d40 | Scene rewrite workshop — a from-scratch reimagining of both scenes under the Dragon Age register | *new* | ✅ CONCLUDED 2026-08-25; RETIRED 2026-08-27 — the adopted build order is superseded by d43; unbuilt ideas lapse, re-raisable (§d40) |
 | d41 | CI matrix sharding — run the eight projects as parallel jobs; consider smoke-only deploys on main | *new* | ✅ DECIDED 2026-08-24 — one job per project on PRs; main pre-deploy gate is smoke-only (desktop-1920); delivered on `ci/matrix-sharding` (§d41) |
 | d42 | Reference-photo front — hybrid photo background + animated Badger under the d37 language | *new* | ✅ FOLDED 2026-08-27 into d43 — the photo enters as a threshold, not a platform; its open questions are answered in §d43 (§d42) |
-| d43 | Photo-threshold front — night-photo title cover; New Game draws the world in; grain and shimmer stay | *new* | ✅ COMPLETE 2026-08-30 — preview passed with amendments; PR #32 full matrix green; awaiting squash-merge (§d43) |
-| d44 | Favicon refinement — the vector Badger head as favicon works but does not fully satisfy | *new* | 💡 raised 2026-08-29 at the d43 preview — Caveshen's ask; no direction chosen yet (§d44) |
+| d43 | Photo-threshold front — night-photo title cover; New Game draws the world in; grain and shimmer stay | *new* | ✅ COMPLETE 2026-08-30 — preview passed with amendments; PR #32 squash-merged to main (§d43) |
+| d44 | Favicon refinement — the vector Badger head as favicon works but does not fully satisfy | *new* | ✅ COMPLETE 2026-08-31 — E2-smooth shipped; PR #33 matrix green; squash-merged to main (§d44) |
 | d45 | The Badger on the threshold — render him on the cover as the continuity piece into both views; settle cover routing/history | *new* | 💡 raised 2026-08-29 at the d43 preview — needs its own grill → spec → tickets loop before any build (§d45) |
+| d46 | Design-language style guide — fonts, type scale, palette, framing rules, laws, in one reference doc | *new* | ✅ COMPLETE 2026-08-31 — `docs/STYLE_GUIDE.md` shipped with PR #33 (§d46) |
+| d47 | Coming-soon live cover — go live with the threshold front; menu blurred, "coming soon" beneath | *new* | 💡 raised 2026-08-30 — Caveshen's call: the domain must stop idling; grill at pickup (§d47) |
+| d48 | Character sheet goes live — un-gate the sheet on the live site once finalised | *new* | 💡 raised 2026-08-30 — second stage of d47; parked until the sheet is done (§d48) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -6559,7 +6562,7 @@ Supersessions: this item takes the slot of d40's scroll-reveal (including
 its duty to replace the d36 glow) and folds d42, whose open questions it
 answers by making the photo a threshold rather than a platform.
 
-### ✅ COMPLETE 2026-08-30 — preview passed; PR #32 matrix green
+### ✅ COMPLETE 2026-08-30 — preview passed; PR #32 matrix green; squash-merged to main
 
 Preview rulings that landed as amendments on the branch: the cover's
 overline was removed; the photo was reframed and gently sharpened so
@@ -6586,6 +6589,90 @@ The vector Badger head serves as the favicon (d35 work). It is
 acceptable but Caveshen is not fully happy with it. Refine it. No
 direction chosen yet — candidates and a mock round belong to the item
 when it is picked up.
+
+### 🔨 IN PROGRESS 2026-08-30 — grilled; mock round commissioned on `item/favicon-refinement`
+
+The complaint, named at the grill: the 32px pixel-art champion (from
+the NAG photo) is illegible at tab size, and the icon set splits into
+two artworks — 16px head, 32px champion — so no single mark carries
+the identity. The head drawing itself is fine; the site-language
+clash was not the issue.
+
+Directions chosen for the candidate mocks (the gold line-art head was
+offered and not picked):
+
+1. One vector head as the mark everywhere, geometry simplified per
+   size so 16px stays crisp.
+2. The arms-aloft champion redrawn as a proper vector silhouette —
+   drawn fresh, not traced from the photo.
+3. A monogram or emblem in the site tokens, stepping away from the
+   Badger for the tab.
+
+Mock round renders each candidate at 16/32/48/180 on simulated light
+and dark tab strips. Caveshen picks at preview; only then does the
+icon pipeline (`tools/render-og.js`) change.
+
+### ✅ COMPLETE 2026-08-31 — PR #33 matrix green; squash-merged to main
+
+The first PR matrix failed on desktop-1920 only, both runs, and the
+defect predated this branch: Chromium drops a paused CSS-transition
+Animation from `getAnimations()` once it is seeked to exactly its
+effect end, so `sampleFrameTransition` in `e2e/geom.js` could re-query
+an empty list and wait out its timeout. The hang was reproduced
+locally by forcing a repeat sample at fraction 1, then fixed at the
+root: `armFrameFreeze` stashes the Animation references at freeze
+time and the sampler seeks those directly. Frame tests stress-ran
+110/110 green on desktop-1920 before the re-push.
+
+### ✅ BUILT 2026-08-30 — reviewer passed; awaiting preview
+
+Delivered on `item/favicon-refinement`: `favicon-16.png` and the ico's
+16px slot now derive from the same 32×32 champion canvas as every
+other icon size, reduced 2:1 with the browser's high-quality bilinear
+filter, inside `tools/render-og.js`. The vector-head bake left the
+icon pipeline; `badger-head.svg` stays as an asset and left the
+freshness gate's inputs. Review ran on two axes: spec (faithful — a
+true 50% reduction of the real champion canvas, 32/48/180 untouched,
+gate honest) and standards (two comment-rule breaches found and
+fixed — item tags and deleted-code history moved out of source).
+Units green: 203 passed, 1 skipped. The og-image byte-shift in the
+diff is screenshot non-determinism from the derive script's full
+pass, hash-tracked by the manifest.
+
+Round-three verdict (2026-08-30): **E2-smooth picked** — the shipped
+32px champion reduced 2:1 with a plain bilinear filter, "certainly
+the best one so far". E2-nearest passed over; F (the Paragon mock)
+rejected outright — the quick-polygon wing read as a compass needle,
+not the mark. Build: `tools/render-og.js` derives `favicon-16.png`
+and the 16px slot of `favicon.ico` from the 32px champion art by
+smooth 50% downscale, replacing the vector-head bake in that slot.
+32/48/180 assets unchanged. The head SVG remains an asset; only its
+favicon duty ends.
+
+Round-two verdict (2026-08-30): E (the champion hand-pixelled fresh
+on the 16 grid) rejected — not enthused. Round three, two candidates:
+
+- **E2 — like-for-like downscale.** The shipped favicon-32.png
+  champion reduced to 16px as directly as possible (nearest-neighbour
+  2:1), so the 16px slot carries the very artwork Caveshen already
+  likes, not an interpretation of it.
+- **F — the Paragon symbol, raw.** The correct reference
+  (Mass Effect's wing-in-ring mark; no badger tie-in at all),
+  redrawn by eye as an original vector in the site colours (celestial
+  gold on night-ink). Law note: reference images are never traced,
+  shipped, or committed — the mock is an original redraw living in
+  gitignored screenshots/, and whether a recognisable third-party
+  mark can ship at all is Caveshen's explicit ruling at preview.
+
+Round-one verdict (2026-08-30): all four mocked directions rejected
+(tuned head, vector champion redraw, monogram, paragon-style emblem —
+the last drawn off-reference; the true symbol is a layered swept wing
+with an eagle head in a ring). The ruling that reframed the item: the
+pixel champion at 32/48/180 stays — Caveshen likes it. Only the 16px
+slot (and therefore the tab) is wrong, because it carries a different
+artwork, the vector head. Round two draws one candidate: the champion
+hand-pixelled on the 16 grid, same palette and cream-card framing —
+one artwork family at every size.
 
 ## d45. The Badger on the threshold — cover continuity and routing
 
@@ -6615,3 +6702,53 @@ Two connected observations from the first preview of the d43 cover:
 Both touch the one-world law, the view-transition machinery, and the
 d43 un-develop choreography. Parked until the loop runs — nothing of
 this ships inside d43.
+
+## d46. Design-language style guide
+
+### 🔨 IN PROGRESS 2026-08-30 — Caveshen's ask during the d44 mock rounds; rides `item/favicon-refinement`
+
+Store the site's design language in one reference document: fonts and
+where each face is used, type scale, the colour palette (both themes,
+by token name — `src/styles/tokens.css` stays the source of truth),
+framing conventions (rounded squares, the champion's cream card), and
+the standing laws (no generated art, the owner-photo exception, AA
+contrast over photographs). Lives at `docs/STYLE_GUIDE.md` as a repo
+doc first; a rendered public page is a separate future ask if wanted.
+
+## d47. Coming-soon live cover — go live with the threshold, gate the rest
+
+### 💡 RAISED 2026-08-30 — Caveshen's call during d44
+
+Go live on the real domain with the d43 threshold cover as the whole
+public site for now: the night photograph, the name, the tagline —
+with the two menu buttons blurred and disabled, and an italicised
+"coming soon" beneath them. The purpose: the domain sits unused while
+iteration stays local. A live front gives Caveshen something to show
+while the dialogue copy and the vectorised scene are finished, and it
+puts Cloudflare (DNS, caching) to real use at last.
+
+Raised with eyes open: the standing advice was to wait for a finished
+slice. Caveshen rules that the domain must not idle. The item queues
+behind d44; grill at pickup. Questions for that grill:
+
+- What deep links (`/sheet`, the scene) do while the site is gated —
+  404, redirect to the cover, or quietly work for those who know.
+- What the no-JS and reduced-motion paths show when the cover is the
+  terminus instead of a threshold (today `noscript` hides the cover
+  and lands on the scene — the opposite of gated).
+- Whether coming-soon mode is a build flag, an environment variable,
+  or a long-lived branch — and how d48 later un-gates cleanly.
+- The public front's OG card, document title, and robots posture
+  while gated.
+- "coming soon" is site copy — Caveshen's wording, his sign-off at
+  preview as ever.
+
+## d48. Character sheet goes live
+
+### 💡 RAISED 2026-08-30 — the second stage of d47
+
+Once the character sheet is finalised, un-gate it on the live site:
+its menu button un-blurs and routes as designed, while the scene (New
+Game) stays gated until its own moment. Scope and sequencing belong
+to pickup; the mechanism depends on whatever gate d47 builds. Parked
+until the sheet is done.

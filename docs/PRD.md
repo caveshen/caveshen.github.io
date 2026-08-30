@@ -6609,6 +6609,16 @@ Mock round renders each candidate at 16/32/48/180 on simulated light
 and dark tab strips. Caveshen picks at preview; only then does the
 icon pipeline (`tools/render-og.js`) change.
 
+Round-one verdict (2026-08-30): all four mocked directions rejected
+(tuned head, vector champion redraw, monogram, paragon-style emblem —
+the last drawn off-reference; the true symbol is a layered swept wing
+with an eagle head in a ring). The ruling that reframed the item: the
+pixel champion at 32/48/180 stays — Caveshen likes it. Only the 16px
+slot (and therefore the tab) is wrong, because it carries a different
+artwork, the vector head. Round two draws one candidate: the champion
+hand-pixelled on the 16 grid, same palette and cream-card framing —
+one artwork family at every size.
+
 ## d45. The Badger on the threshold — cover continuity and routing
 
 ### 💡 RAISED 2026-08-29 — Caveshen's ask at the d43 preview; needs a grill → spec → tickets loop

@@ -90,6 +90,8 @@ the document body under their original `§` headings as history.
 | d44 | Favicon refinement — the vector Badger head as favicon works but does not fully satisfy | *new* | 🔨 IN PROGRESS 2026-08-30 — grilled; three candidate directions in a mock round on `item/favicon-refinement` (§d44) |
 | d45 | The Badger on the threshold — render him on the cover as the continuity piece into both views; settle cover routing/history | *new* | 💡 raised 2026-08-29 at the d43 preview — needs its own grill → spec → tickets loop before any build (§d45) |
 | d46 | Design-language style guide — fonts, type scale, palette, framing rules, laws, in one reference doc | *new* | 🔨 IN PROGRESS 2026-08-30 — Caveshen's ask during d44; small enough to ride `item/favicon-refinement` (§d46) |
+| d47 | Coming-soon live cover — go live with the threshold front; menu blurred, "coming soon" beneath | *new* | 💡 raised 2026-08-30 — Caveshen's call: the domain must stop idling; grill at pickup (§d47) |
+| d48 | Character sheet goes live — un-gate the sheet on the live site once finalised | *new* | 💡 raised 2026-08-30 — second stage of d47; parked until the sheet is done (§d48) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -6685,3 +6687,41 @@ framing conventions (rounded squares, the champion's cream card), and
 the standing laws (no generated art, the owner-photo exception, AA
 contrast over photographs). Lives at `docs/STYLE_GUIDE.md` as a repo
 doc first; a rendered public page is a separate future ask if wanted.
+
+## d47. Coming-soon live cover — go live with the threshold, gate the rest
+
+### 💡 RAISED 2026-08-30 — Caveshen's call during d44
+
+Go live on the real domain with the d43 threshold cover as the whole
+public site for now: the night photograph, the name, the tagline —
+with the two menu buttons blurred and disabled, and an italicised
+"coming soon" beneath them. The purpose: the domain sits unused while
+iteration stays local. A live front gives Caveshen something to show
+while the dialogue copy and the vectorised scene are finished, and it
+puts Cloudflare (DNS, caching) to real use at last.
+
+Raised with eyes open: the standing advice was to wait for a finished
+slice. Caveshen rules that the domain must not idle. The item queues
+behind d44; grill at pickup. Questions for that grill:
+
+- What deep links (`/sheet`, the scene) do while the site is gated —
+  404, redirect to the cover, or quietly work for those who know.
+- What the no-JS and reduced-motion paths show when the cover is the
+  terminus instead of a threshold (today `noscript` hides the cover
+  and lands on the scene — the opposite of gated).
+- Whether coming-soon mode is a build flag, an environment variable,
+  or a long-lived branch — and how d48 later un-gates cleanly.
+- The public front's OG card, document title, and robots posture
+  while gated.
+- "coming soon" is site copy — Caveshen's wording, his sign-off at
+  preview as ever.
+
+## d48. Character sheet goes live
+
+### 💡 RAISED 2026-08-30 — the second stage of d47
+
+Once the character sheet is finalised, un-gate it on the live site:
+its menu button un-blurs and routes as designed, while the scene (New
+Game) stays gated until its own moment. Scope and sequencing belong
+to pickup; the mechanism depends on whatever gate d47 builds. Parked
+until the sheet is done.

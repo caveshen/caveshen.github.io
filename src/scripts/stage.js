@@ -70,6 +70,22 @@ export function initStage(tree) {
     }, 1400);
   }
 
+  // Sea shimmer's displacement scale (Stage.astro's #sea-shimmer filter) — a plain
+  // timer stepping the same 5-to-12-to-5 triangle wave a SMIL <animate> used to
+  // drive continuously; see that file's comment for why. Skipped under reduced
+  // motion, where CSS drops the filter entirely anyway.
+  const shimmerScale = document.getElementById('sea-shimmer-scale');
+  if (shimmerScale && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const CYCLE_MS = 7000;
+    const HALF_MS = CYCLE_MS / 2;
+    const start = performance.now();
+    setInterval(() => {
+      const phase = (performance.now() - start) % CYCLE_MS;
+      const ramp = phase < HALF_MS ? phase / HALF_MS : (CYCLE_MS - phase) / HALF_MS;
+      shimmerScale.setAttribute('scale', (5 + 7 * ramp).toFixed(2));
+    }, 150);
+  }
+
   const render = initEngine(
     tree,
     { speechEl, stageEl: directionEl, choicesEl, cardEl: card },

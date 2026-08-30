@@ -92,10 +92,20 @@ test('shimmer displacement is structurally horizontal-only — the vertical chan
   const nums = values.trim().split(/\s+/).map(Number);
   const gRow = nums.slice(5, 10);
   expect(gRow).toEqual([0, 0, 0, 0, 0.5]);
+});
 
-  const scaleAnim = map.locator('animate[attributeName="scale"]');
-  await expect(scaleAnim).toHaveAttribute('values', '5;12;5');
-  await expect(scaleAnim).toHaveAttribute('dur', '7s');
+test('shimmer scale steps a 5-to-12-to-5 ramp on a discrete schedule, not a SMIL animate', async ({ page }) => {
+  const map = page.locator('#sea-shimmer-scale');
+  await expect(map.locator('animate')).toHaveCount(0);
+  const before = await map.getAttribute('scale');
+  // Driven by stage.js on a timer (not SMIL — see Stage.astro's comment),
+  // so the attribute itself is the only observable proof of the schedule.
+  await expect(async () => {
+    const after = await map.getAttribute('scale');
+    expect(after).not.toBe(before);
+    expect(parseFloat(after)).toBeGreaterThanOrEqual(5);
+    expect(parseFloat(after)).toBeLessThanOrEqual(12);
+  }).toPass({ timeout: 1000 });
 });
 
 test('reduced motion: grain stops animating (static filter, no seed animate) and shimmer motion stops entirely', async ({ page }) => {
@@ -115,4 +125,11 @@ test('reduced motion: grain stops animating (static filter, no seed animate) and
   const filters = await seaWaveFilter(page);
   expect(filters.sea).toBe('none');
   expect(filters.wave).toBe('none');
+
+  // stage.js's shimmer-scale timer is guarded off under reduced motion too —
+  // not just unused, since CSS never references #sea-shimmer here either.
+  const map = page.locator('#sea-shimmer-scale');
+  const scaleAtStart = await map.getAttribute('scale');
+  await page.waitForTimeout(300);
+  expect(await map.getAttribute('scale')).toBe(scaleAtStart);
 });

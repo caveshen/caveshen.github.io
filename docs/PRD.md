@@ -87,9 +87,9 @@ the document body under their original `§` headings as history.
 | d41 | CI matrix sharding — run the eight projects as parallel jobs; consider smoke-only deploys on main | *new* | ✅ DECIDED 2026-08-24 — one job per project on PRs; main pre-deploy gate is smoke-only (desktop-1920); delivered on `ci/matrix-sharding` (§d41) |
 | d42 | Reference-photo front — hybrid photo background + animated Badger under the d37 language | *new* | ✅ FOLDED 2026-08-27 into d43 — the photo enters as a threshold, not a platform; its open questions are answered in §d43 (§d42) |
 | d43 | Photo-threshold front — night-photo title cover; New Game draws the world in; grain and shimmer stay | *new* | ✅ COMPLETE 2026-08-30 — preview passed with amendments; PR #32 squash-merged to main (§d43) |
-| d44 | Favicon refinement — the vector Badger head as favicon works but does not fully satisfy | *new* | ✅ BUILT 2026-08-30 — E2-smooth shipped on `item/favicon-refinement`; reviewer passed; awaiting Caveshen's preview and the PR (§d44) |
+| d44 | Favicon refinement — the vector Badger head as favicon works but does not fully satisfy | *new* | ✅ COMPLETE 2026-08-31 — E2-smooth shipped; PR #33 matrix green; squash-merged to main (§d44) |
 | d45 | The Badger on the threshold — render him on the cover as the continuity piece into both views; settle cover routing/history | *new* | 💡 raised 2026-08-29 at the d43 preview — needs its own grill → spec → tickets loop before any build (§d45) |
-| d46 | Design-language style guide — fonts, type scale, palette, framing rules, laws, in one reference doc | *new* | 🔨 IN PROGRESS 2026-08-30 — Caveshen's ask during d44; small enough to ride `item/favicon-refinement` (§d46) |
+| d46 | Design-language style guide — fonts, type scale, palette, framing rules, laws, in one reference doc | *new* | ✅ COMPLETE 2026-08-31 — `docs/STYLE_GUIDE.md` shipped with PR #33 (§d46) |
 | d47 | Coming-soon live cover — go live with the threshold front; menu blurred, "coming soon" beneath | *new* | 💡 raised 2026-08-30 — Caveshen's call: the domain must stop idling; grill at pickup (§d47) |
 | d48 | Character sheet goes live — un-gate the sheet on the live site once finalised | *new* | 💡 raised 2026-08-30 — second stage of d47; parked until the sheet is done (§d48) |
 
@@ -6611,6 +6611,18 @@ offered and not picked):
 Mock round renders each candidate at 16/32/48/180 on simulated light
 and dark tab strips. Caveshen picks at preview; only then does the
 icon pipeline (`tools/render-og.js`) change.
+
+### ✅ COMPLETE 2026-08-31 — PR #33 matrix green; squash-merged to main
+
+The first PR matrix failed on desktop-1920 only, both runs, and the
+defect predated this branch: Chromium drops a paused CSS-transition
+Animation from `getAnimations()` once it is seeked to exactly its
+effect end, so `sampleFrameTransition` in `e2e/geom.js` could re-query
+an empty list and wait out its timeout. The hang was reproduced
+locally by forcing a repeat sample at fraction 1, then fixed at the
+root: `armFrameFreeze` stashes the Animation references at freeze
+time and the sampler seeks those directly. Frame tests stress-ran
+110/110 green on desktop-1920 before the re-push.
 
 ### ✅ BUILT 2026-08-30 — reviewer passed; awaiting preview
 

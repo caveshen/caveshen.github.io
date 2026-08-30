@@ -40,7 +40,7 @@ describe('public hygiene files', () => {
   });
 });
 
-// ── Favicon: sized rasters only — head at 16px, champion at 32px ───────────
+// ── Favicon: sized rasters only — champion at both 16px and 32px ───────────
 
 describe('favicon.svg absence (regression guard: sized rasters only)', () => {
   it('is not shipped in public/', () => {
@@ -53,7 +53,7 @@ describe('favicon.svg absence (regression guard: sized rasters only)', () => {
   });
 });
 
-describe('favicon-16.png (canonical head, 16px slot)', () => {
+describe('favicon-16.png (champion, smooth-downscaled, 16px slot)', () => {
   it('exists', () => {
     expect(existsSync(join(root, 'public/favicon-16.png'))).toBe(true);
   });
@@ -75,7 +75,7 @@ describe('favicon-32.png (champion, 32px slot)', () => {
   });
 });
 
-describe('favicon.ico (multi-size: 16 head + 32 champion)', () => {
+describe('favicon.ico (multi-size: 16 + 32, both champion)', () => {
   const buf = readFileSync(join(root, 'public/favicon.ico'));
 
   it('declares two images', () => {

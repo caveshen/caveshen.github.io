@@ -17,10 +17,11 @@ function filesUnder(relDir) {
     .map((rel) => `${relDir}/${rel.split(path.sep).join('/')}`);
 }
 
-// The /og route's composition chain and the favicon head source — see the
-// spec's freshness gate section for the over-coverage rationale.
+// The /og route's composition chain — see the spec's freshness gate section
+// for the over-coverage rationale. badger-head.svg is a live asset
+// (src/components/BadgerHead.astro) but feeds no derived image, so it is
+// not an input here.
 export const COMMITTED_INPUTS = [
-  'src/assets/badger-head.svg',
   'src/pages/og.astro',
   ...filesUnder('src/components'),
   ...filesUnder('src/styles'),

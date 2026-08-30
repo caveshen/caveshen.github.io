@@ -1,5 +1,5 @@
 // return-journey.spec.js — /sheet → / return via cross-document view transition.
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 import { approachPrompt } from './geom.js';
 
 // Waits for the current page's pagereveal-set settle signal (window.__vtFinished)

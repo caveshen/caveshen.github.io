@@ -1,6 +1,6 @@
 // button-feel.spec.js — d37 §5: the dialogue plate idiom (rest state, ignition,
 // ring, numeral) and its reduced-motion gating, plus the theme-toggle flip.
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 import { approachPrompt } from './geom.js';
 
 test.beforeEach(async ({ page }) => {

@@ -1,7 +1,7 @@
 // scene.spec.js — the scene's own composition: ground, skyline, and paint order at the
 // seams. Figure/character integrity lives with their subject (not-found.spec.js,
 // badger.spec.js) — this file is only about the backdrop the characters stand in.
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 import { sceneRects, paintsOver, rectsIntersect, rectContains } from './geom.js';
 
 test.beforeEach(async ({ page }) => {

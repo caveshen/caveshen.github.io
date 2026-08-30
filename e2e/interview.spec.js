@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 import { rectsIntersect, visibleRect, rectContains, approachPrompt } from './geom.js';
 
 test.beforeEach(async ({ page }) => {
@@ -122,7 +122,9 @@ test('/sheet link present without JavaScript (noscript fallback)', async ({ brow
   const ctx  = await browser.newContext({ javaScriptEnabled: false });
   const page = await ctx.newPage();
   await page.goto('/');
-  await expect(page.locator('a[href="/sheet"]')).toBeVisible();
+  // Scoped: the threshold cover ships a second, now-hidden a[href="/sheet"] of
+  // its own (#cover-sheet), which would make a bare a[href="/sheet"] ambiguous.
+  await expect(page.locator('.noscript-note a[href="/sheet"]')).toBeVisible();
   await ctx.close();
 });
 

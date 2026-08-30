@@ -1,5 +1,5 @@
 // portrait-handoff — hand-off cleanup and navigation behaviour on /.
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 import { approachPrompt } from './geom.js';
 
 // Approaches and clicks the system button to navigate to /sheet.

@@ -29,6 +29,14 @@ export async function sceneRects(page, selector) {
   }, selector);
 }
 
+// Live handle to the visible .scene copy (only one has a non-zero box) — for
+// callers that need to read more than a rect off it (e.g. computed style on
+// its children), where sceneRects's plain-value return isn't enough.
+export async function visibleSceneHandle(page) {
+  return page.evaluateHandle(() =>
+    [...document.querySelectorAll('.scene')].find((e) => e.getBoundingClientRect().width > 0));
+}
+
 // Does A paint after B (later in document order = drawn on top), scoped to the
 // visible scene variant. SVG paint order is document order.
 export async function paintsOver(page, aSel, bSel) {
@@ -194,22 +202,6 @@ export async function settledOpacity(locator) {
     });
     return parseFloat(getComputedStyle(el).opacity);
   });
-}
-
-// Seeks locator's own animation (or, with pseudo given, its pseudo-element's
-// animation) to an explicit currentTime and pauses there — frozen-state
-// sampling for a chosen point mid-fade, rather than the finished value
-// settledOpacity above reads. { subtree: true } is required to see an
-// element's own pseudo-element animations at all — pseudoElement then picks
-// out the right one from the (possibly multi-target) subtree list.
-export async function sampleAnimationAt(locator, timeMs, pseudo = null) {
-  return locator.evaluate((el, { timeMs, pseudo }) => {
-    el.getAnimations({ subtree: true })
-      .filter((a) => a.effect.pseudoElement === pseudo)
-      .forEach((a) => { a.currentTime = timeMs; a.pause(); });
-    const cs = getComputedStyle(el, pseudo);
-    return { opacity: parseFloat(cs.opacity), filter: cs.filter };
-  }, { timeMs, pseudo });
 }
 
 // Reveals the approach prompt by hovering the visible character's hit

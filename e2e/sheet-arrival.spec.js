@@ -1,5 +1,5 @@
 // sheet-arrival.spec.js — /sheet arrival via cross-document view transition.
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 import { assertPortraitGeometry, assertPortraitNoAnim, approachPrompt } from './geom.js';
 
 // Navigate from / to /sheet via the dialogue system option.

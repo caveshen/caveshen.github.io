@@ -1,5 +1,5 @@
 // The Badger owns `/` — no selection mechanism, the route is the selector.
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 import { sceneRects, approachPrompt, visibleRect } from './geom.js';
 
 test.beforeEach(async ({ page }) => {

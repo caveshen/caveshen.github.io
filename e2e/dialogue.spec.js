@@ -1,5 +1,5 @@
 // dialogue.spec.js — streaming dialogue text: cadence, skip, and the a11y contract.
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 import { assertNoIdentityMarkup, assertPlaqueGlass, approachPrompt } from './geom.js';
 
 test.beforeEach(async ({ page }) => {

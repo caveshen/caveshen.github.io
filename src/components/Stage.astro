@@ -32,6 +32,45 @@ const root = tree.root;
 
 </div><!-- /.camera -->
 
+<!--
+  Grain: a pre-rendered tile (tools/build-grain-tiles.mjs), not a live
+  feTurbulence filter — a full-viewport SVG filter re-rasterised on every
+  paint by CI's software-rendered Linux WebKit (no GPU) starved the whole
+  e2e matrix; see that script's header. Outside .camera so it never scales/
+  zooms with the approach. stage.js cycles which tile url() is set.
+-->
+<div class="grain-overlay" aria-hidden="true"></div>
+
+<!--
+  Sea shimmer's filter defs — a 0-sized SVG purely to hold <defs>, referenced
+  by CSS below (.f-sea/.f-wave).
+-->
+<svg class="filter-defs" aria-hidden="true" focusable="false" width="0" height="0">
+  <defs>
+    <!--
+      The noise's G channel is flattened to a constant 0.5 (feDisplacementMap's
+      neutral, no-op value) before yChannelSelector reads it — vertical displacement is
+      structurally zero, so the horizon seam cannot tear. Only R
+      (unflattened) drives xChannelSelector, so displacement is horizontal-only.
+      The breathing scale is driven from stage.js, not a SMIL <animate>: WebKit pays a
+      steep, continuous cost for animating this attribute via SMIL — a JS timer stepping
+      the same 5-to-12-to-5 ramp runs far cheaper. numOctaves is 1 (not 2) and the filter
+      region is tightened to the minimum that avoids edge clipping at the max displacement
+      scale (12) — both cut WebKit's per-paint raster cost for this filter.
+    -->
+    <filter id="sea-shimmer" x="-8%" y="-4%" width="116%" height="108%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.015 0.05" numOctaves="1" seed="6" result="noise" />
+      <feColorMatrix in="noise" type="matrix"
+        values="1 0 0 0 0
+                0 0 0 0 0.5
+                0 0 0 0 0
+                0 0 0 0 1" result="flatY" />
+      <feDisplacementMap id="sea-shimmer-scale" in="SourceGraphic" in2="flatY"
+        xChannelSelector="R" yChannelSelector="G" scale="5" />
+    </filter>
+  </defs>
+</svg>
+
 <!-- wind: motes on the breeze, deliberately outside .camera so the breeze stays a
      constant speed when the camera pushes in. -->
 <div class="wind" aria-hidden="true">
@@ -125,6 +164,35 @@ const root = tree.root;
     .camera { transition: none; }
   }
 
+  /* Grain: plain opacity only — two independent mock implementations found
+     mix-blend-mode crushes the speckle to invisibility against this palette.
+     background-image is one of the pre-rendered tiles (tools/build-grain-tiles.mjs);
+     stage.js cycles which tile url() is set, and leaves the CSS default (grain-0)
+     alone under reduced motion — static grain still shows, per spec, nothing to
+     pause. tile is 240px square, repeating. */
+  .grain-overlay {
+    position: absolute;
+    inset: 0;
+    opacity: 0.12;
+    pointer-events: none;
+    background-image: url(/grain/grain-0.webp);
+    background-repeat: repeat;
+  }
+
+  /* Sea shimmer: sea and wave fills only. Reduced motion drops the filter
+     entirely rather than swapping to a frozen displacement — a still scene,
+     zero risk of the horizon-tear trap, no second filter to author. */
+  .stage-frame .f-sea,
+  .stage-frame .f-wave {
+    filter: url(#sea-shimmer);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .stage-frame .f-sea,
+    .stage-frame .f-wave {
+      filter: none;
+    }
+  }
+
   .wind { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
   .mote {
     position: absolute;
@@ -167,8 +235,7 @@ const root = tree.root;
     font-size: 0.95rem;
     font-weight: 600;
     letter-spacing: 0.12em;
-    /* --prompt-ink is light in both themes (d36 ruling: the prompt ships
-       light-on-dark even by day, where --text itself is dark). */
+    /* Plain white in both themes (see --prompt-ink in tokens.css). */
     color: var(--prompt-ink);
     background: none;
     border: none;
@@ -180,16 +247,12 @@ const root = tree.root;
     cursor: pointer;
     /* The shadow carries the AA contrast duty the old glass control used to
        carry (see the composited contrast cells in src/tests/theme.test.js).
-       Six layers, tuning values: a tight dark anchor (small blur, high
-       alpha) for legibility, a three-stop gold bloom in the approach
-       light's own colour (rgba(255, 215, 94), see LIGHT_ON in stage.js) so
-       the prompt reads as the light moving to it, and a dark pocket (a
-       dense inner layer plus a wider outer skirt) that holds the text
-        readable against the gold. Both themes use dark shadows behind light
-        text (--prompt-ink carries the day case), so one rule serves both. */
-    text-shadow: 0 1px 3px rgba(7, 6, 14, 1), 0 0 6px rgba(255, 215, 94, 0.9),
-                 0 0 16px rgba(255, 215, 94, 0.65), 0 0 28px rgba(255, 215, 94, 0.4),
-                 0 0 12px rgba(7, 6, 14, 1), 0 0 20px rgba(7, 6, 14, 0.7);
+       Three dark layers: a tight anchor (small blur, high alpha) for
+       legibility, a dense inner layer, and a wider outer skirt that lifts
+       the text off a bright sky. Both themes use the same dark shadow
+       behind the same white text, so one rule serves both. */
+    text-shadow: 0 1px 3px rgba(7, 6, 14, 1), 0 0 12px rgba(7, 6, 14, 1),
+                 0 0 20px rgba(7, 6, 14, 0.7);
   }
   .approach-prompt:focus-visible {
     outline: 2px solid var(--gold-bright);

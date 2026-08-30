@@ -86,7 +86,9 @@ the document body under their original `§` headings as history.
 | d40 | Scene rewrite workshop — a from-scratch reimagining of both scenes under the Dragon Age register | *new* | ✅ CONCLUDED 2026-08-25; RETIRED 2026-08-27 — the adopted build order is superseded by d43; unbuilt ideas lapse, re-raisable (§d40) |
 | d41 | CI matrix sharding — run the eight projects as parallel jobs; consider smoke-only deploys on main | *new* | ✅ DECIDED 2026-08-24 — one job per project on PRs; main pre-deploy gate is smoke-only (desktop-1920); delivered on `ci/matrix-sharding` (§d41) |
 | d42 | Reference-photo front — hybrid photo background + animated Badger under the d37 language | *new* | ✅ FOLDED 2026-08-27 into d43 — the photo enters as a threshold, not a platform; its open questions are answered in §d43 (§d42) |
-| d43 | Photo-threshold front — night-photo title cover; New Game draws the world in; grain and shimmer stay | *new* | 💡 raised 2026-08-27 — direction accepted at the hybrid mock (`screenshots/view4f-hybrid.html`); awaiting spec and build (§d43) |
+| d43 | Photo-threshold front — night-photo title cover; New Game draws the world in; grain and shimmer stay | *new* | ✅ COMPLETE 2026-08-30 — preview passed with amendments; PR #32 full matrix green; awaiting squash-merge (§d43) |
+| d44 | Favicon refinement — the vector Badger head as favicon works but does not fully satisfy | *new* | 💡 raised 2026-08-29 at the d43 preview — Caveshen's ask; no direction chosen yet (§d44) |
+| d45 | The Badger on the threshold — render him on the cover as the continuity piece into both views; settle cover routing/history | *new* | 💡 raised 2026-08-29 at the d43 preview — needs its own grill → spec → tickets loop before any build (§d45) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -6508,7 +6510,7 @@ Parked until d40's adopted ideas land.
 
 ## d43. Photo-threshold front — the night photo opens the site; New Game draws the world in
 
-### 💡 RAISED 2026-08-27 — direction accepted at the hybrid mock; awaiting spec and build
+### ✅ DELIVERED 2026-08-29 — built on `item/photo-threshold`, awaiting Caveshen's local preview
 
 The front gains a title beat. The site opens on the owner's night photograph
 of the massif (today `screenshots/cpt/20251125_200737.jpg`; it must enter the
@@ -6556,3 +6558,60 @@ For the spec to settle:
 Supersessions: this item takes the slot of d40's scroll-reveal (including
 its duty to replace the d36 glow) and folds d42, whose open questions it
 answers by making the photo a threshold rather than a platform.
+
+### ✅ COMPLETE 2026-08-30 — preview passed; PR #32 matrix green
+
+Preview rulings that landed as amendments on the branch: the cover's
+overline was removed; the photo was reframed and gently sharpened so
+the ridge sits below the title and menu; a quiet "Return to menu"
+button joined the scene (bottom row, beside the fullscreen toggle) —
+it clears the session flag so New Game replays the beat; the document
+title became the owner's name alone; the white approach prompt
+survived. CODING_STANDARDS.md entered the repo.
+
+The PR matrix then failed on WebKit and taught an expensive lesson,
+fixed across three commits: SMIL `<animate>` on filter attributes and
+full-viewport live `feTurbulence` starve software-rendered WebKit.
+The grain's seed step and the shimmer's scale ramp moved to JS
+timers, and the grain itself became four pre-rendered seamless webp
+tiles cycled by the same timer — visually identical, and the WebKit
+CI jobs fell from a 25-minute kill to ~6-10 minutes green. Recorded
+as a gotcha in CLAUDE.md.
+
+## d44. Favicon refinement
+
+### 💡 RAISED 2026-08-29 — Caveshen's ask at the d43 preview
+
+The vector Badger head serves as the favicon (d35 work). It is
+acceptable but Caveshen is not fully happy with it. Refine it. No
+direction chosen yet — candidates and a mock round belong to the item
+when it is picked up.
+
+## d45. The Badger on the threshold — cover continuity and routing
+
+### 💡 RAISED 2026-08-29 — Caveshen's ask at the d43 preview; needs a grill → spec → tickets loop
+
+Two connected observations from the first preview of the d43 cover:
+
+1. **The Badger appears from nowhere.** From the cover, opening the
+   Character Sheet shows his portrait with no origin — he "magically
+   appears". From the Cape Town scene the portrait travel (d32/d33)
+   gives him continuity; the cover has none. Caveshen's proposal:
+   render the Badger on the cover itself — below the menu, floating —
+   so he is the continuity piece into both views: into the scene
+   (where today the un-develop blooms him last; with him already
+   present, the world could draw in around him instead — a
+   choreography change to design, not assume) and into the sheet
+   (extending the existing portrait-travel morph to start from the
+   cover).
+2. **Routing.** New Game changes state but not the URL. Open
+   questions: should the cover and the scene be distinct history
+   entries so the browser Back button returns to the menu (matching
+   the new "Return to menu" affordance — game grammar suggests yes);
+   what deep links, canonical URLs, and the OG card do about it; how
+   the session-flag suppression and the no-JS path survive any
+   routing change.
+
+Both touch the one-world law, the view-transition machinery, and the
+d43 un-develop choreography. Parked until the loop runs — nothing of
+this ships inside d43.

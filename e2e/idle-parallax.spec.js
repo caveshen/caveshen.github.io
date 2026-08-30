@@ -1,5 +1,5 @@
 // Idle micro-parallax — pointer-driven background drift, desktop pointers only.
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 import { visibleRect, waitBgSettle } from './geom.js';
 
 test('resting pointer position drifts the background, never the foreground', async ({ page }) => {

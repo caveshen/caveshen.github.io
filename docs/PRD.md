@@ -87,7 +87,7 @@ the document body under their original `§` headings as history.
 | d41 | CI matrix sharding — run the eight projects as parallel jobs; consider smoke-only deploys on main | *new* | ✅ DECIDED 2026-08-24 — one job per project on PRs; main pre-deploy gate is smoke-only (desktop-1920); delivered on `ci/matrix-sharding` (§d41) |
 | d42 | Reference-photo front — hybrid photo background + animated Badger under the d37 language | *new* | ✅ FOLDED 2026-08-27 into d43 — the photo enters as a threshold, not a platform; its open questions are answered in §d43 (§d42) |
 | d43 | Photo-threshold front — night-photo title cover; New Game draws the world in; grain and shimmer stay | *new* | ✅ COMPLETE 2026-08-30 — preview passed with amendments; PR #32 squash-merged to main (§d43) |
-| d44 | Favicon refinement — the vector Badger head as favicon works but does not fully satisfy | *new* | 🔨 IN PROGRESS 2026-08-30 — grilled; three candidate directions in a mock round on `item/favicon-refinement` (§d44) |
+| d44 | Favicon refinement — the vector Badger head as favicon works but does not fully satisfy | *new* | ✅ BUILT 2026-08-30 — E2-smooth shipped on `item/favicon-refinement`; reviewer passed; awaiting Caveshen's preview and the PR (§d44) |
 | d45 | The Badger on the threshold — render him on the cover as the continuity piece into both views; settle cover routing/history | *new* | 💡 raised 2026-08-29 at the d43 preview — needs its own grill → spec → tickets loop before any build (§d45) |
 | d46 | Design-language style guide — fonts, type scale, palette, framing rules, laws, in one reference doc | *new* | 🔨 IN PROGRESS 2026-08-30 — Caveshen's ask during d44; small enough to ride `item/favicon-refinement` (§d46) |
 | d47 | Coming-soon live cover — go live with the threshold front; menu blurred, "coming soon" beneath | *new* | 💡 raised 2026-08-30 — Caveshen's call: the domain must stop idling; grill at pickup (§d47) |
@@ -6611,6 +6611,21 @@ offered and not picked):
 Mock round renders each candidate at 16/32/48/180 on simulated light
 and dark tab strips. Caveshen picks at preview; only then does the
 icon pipeline (`tools/render-og.js`) change.
+
+### ✅ BUILT 2026-08-30 — reviewer passed; awaiting preview
+
+Delivered on `item/favicon-refinement`: `favicon-16.png` and the ico's
+16px slot now derive from the same 32×32 champion canvas as every
+other icon size, reduced 2:1 with the browser's high-quality bilinear
+filter, inside `tools/render-og.js`. The vector-head bake left the
+icon pipeline; `badger-head.svg` stays as an asset and left the
+freshness gate's inputs. Review ran on two axes: spec (faithful — a
+true 50% reduction of the real champion canvas, 32/48/180 untouched,
+gate honest) and standards (two comment-rule breaches found and
+fixed — item tags and deleted-code history moved out of source).
+Units green: 203 passed, 1 skipped. The og-image byte-shift in the
+diff is screenshot non-determinism from the derive script's full
+pass, hash-tracked by the manifest.
 
 Round-three verdict (2026-08-30): **E2-smooth picked** — the shipped
 32px champion reduced 2:1 with a plain bilinear filter, "certainly

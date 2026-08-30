@@ -6610,6 +6610,16 @@ Mock round renders each candidate at 16/32/48/180 on simulated light
 and dark tab strips. Caveshen picks at preview; only then does the
 icon pipeline (`tools/render-og.js`) change.
 
+Round-three verdict (2026-08-30): **E2-smooth picked** — the shipped
+32px champion reduced 2:1 with a plain bilinear filter, "certainly
+the best one so far". E2-nearest passed over; F (the Paragon mock)
+rejected outright — the quick-polygon wing read as a compass needle,
+not the mark. Build: `tools/render-og.js` derives `favicon-16.png`
+and the 16px slot of `favicon.ico` from the 32px champion art by
+smooth 50% downscale, replacing the vector-head bake in that slot.
+32/48/180 assets unchanged. The head SVG remains an asset; only its
+favicon duty ends.
+
 Round-two verdict (2026-08-30): E (the champion hand-pixelled fresh
 on the 16 grid) rejected — not enthused. Round three, two candidates:
 

@@ -86,8 +86,8 @@ the document body under their original `§` headings as history.
 | d40 | Scene rewrite workshop — a from-scratch reimagining of both scenes under the Dragon Age register | *new* | ✅ CONCLUDED 2026-08-25; RETIRED 2026-08-27 — the adopted build order is superseded by d43; unbuilt ideas lapse, re-raisable (§d40) |
 | d41 | CI matrix sharding — run the eight projects as parallel jobs; consider smoke-only deploys on main | *new* | ✅ DECIDED 2026-08-24 — one job per project on PRs; main pre-deploy gate is smoke-only (desktop-1920); delivered on `ci/matrix-sharding` (§d41) |
 | d42 | Reference-photo front — hybrid photo background + animated Badger under the d37 language | *new* | ✅ FOLDED 2026-08-27 into d43 — the photo enters as a threshold, not a platform; its open questions are answered in §d43 (§d42) |
-| d43 | Photo-threshold front — night-photo title cover; New Game draws the world in; grain and shimmer stay | *new* | ✅ COMPLETE 2026-08-30 — preview passed with amendments; PR #32 full matrix green; awaiting squash-merge (§d43) |
-| d44 | Favicon refinement — the vector Badger head as favicon works but does not fully satisfy | *new* | 💡 raised 2026-08-29 at the d43 preview — Caveshen's ask; no direction chosen yet (§d44) |
+| d43 | Photo-threshold front — night-photo title cover; New Game draws the world in; grain and shimmer stay | *new* | ✅ COMPLETE 2026-08-30 — preview passed with amendments; PR #32 squash-merged to main (§d43) |
+| d44 | Favicon refinement — the vector Badger head as favicon works but does not fully satisfy | *new* | 🔨 IN PROGRESS 2026-08-30 — grilled; three candidate directions in a mock round on `item/favicon-refinement` (§d44) |
 | d45 | The Badger on the threshold — render him on the cover as the continuity piece into both views; settle cover routing/history | *new* | 💡 raised 2026-08-29 at the d43 preview — needs its own grill → spec → tickets loop before any build (§d45) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
@@ -6559,7 +6559,7 @@ Supersessions: this item takes the slot of d40's scroll-reveal (including
 its duty to replace the d36 glow) and folds d42, whose open questions it
 answers by making the photo a threshold rather than a platform.
 
-### ✅ COMPLETE 2026-08-30 — preview passed; PR #32 matrix green
+### ✅ COMPLETE 2026-08-30 — preview passed; PR #32 matrix green; squash-merged to main
 
 Preview rulings that landed as amendments on the branch: the cover's
 overline was removed; the photo was reframed and gently sharpened so
@@ -6586,6 +6586,28 @@ The vector Badger head serves as the favicon (d35 work). It is
 acceptable but Caveshen is not fully happy with it. Refine it. No
 direction chosen yet — candidates and a mock round belong to the item
 when it is picked up.
+
+### 🔨 IN PROGRESS 2026-08-30 — grilled; mock round commissioned on `item/favicon-refinement`
+
+The complaint, named at the grill: the 32px pixel-art champion (from
+the NAG photo) is illegible at tab size, and the icon set splits into
+two artworks — 16px head, 32px champion — so no single mark carries
+the identity. The head drawing itself is fine; the site-language
+clash was not the issue.
+
+Directions chosen for the candidate mocks (the gold line-art head was
+offered and not picked):
+
+1. One vector head as the mark everywhere, geometry simplified per
+   size so 16px stays crisp.
+2. The arms-aloft champion redrawn as a proper vector silhouette —
+   drawn fresh, not traced from the photo.
+3. A monogram or emblem in the site tokens, stepping away from the
+   Badger for the tab.
+
+Mock round renders each candidate at 16/32/48/180 on simulated light
+and dark tab strips. Caveshen picks at preview; only then does the
+icon pipeline (`tools/render-og.js`) change.
 
 ## d45. The Badger on the threshold — cover continuity and routing
 

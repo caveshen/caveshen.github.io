@@ -1,7 +1,8 @@
-// scene-material.spec.js — the scene's persistent material: film grain and
-// sea shimmer. Both live outside the day/night crossfade — this file only covers
-// the two SVG filter effects and their reduced-motion behaviour, not scene geometry
-// (scene.spec.js) or theme switching (theme.test.js).
+// scene-material.spec.js — the scene's persistent material: film grain (a
+// pre-rendered tile) and sea shimmer (an SVG filter). Both live outside the
+// day/night crossfade — this file only covers those two effects and their
+// reduced-motion behaviour, not scene geometry (scene.spec.js) or theme
+// switching (theme.test.js).
 import { test, expect } from './fixtures.js';
 import { visibleSceneHandle } from './geom.js';
 
@@ -12,7 +13,6 @@ test.beforeEach(async ({ page }) => {
 async function grainState(page) {
   return page.evaluate(() => {
     const overlay = document.querySelector('.grain-overlay');
-    const speckle = document.querySelector('.grain-speckle');
     const cs = getComputedStyle(overlay);
     const rect = overlay.getBoundingClientRect();
     return {
@@ -20,7 +20,7 @@ async function grainState(page) {
       height: rect.height,
       opacity: parseFloat(cs.opacity),
       blend: cs.mixBlendMode,
-      filter: getComputedStyle(speckle).filter,
+      backgroundImage: cs.backgroundImage,
     };
   });
 }
@@ -47,7 +47,7 @@ test('grain overlay covers the full frame in both themes, at low plain opacity, 
   expect(night.opacity).toBeGreaterThan(0.05);
   expect(night.opacity).toBeLessThan(0.2);
   expect(night.blend).toBe('normal');
-  expect(night.filter).toContain('film-grain');
+  expect(night.backgroundImage).toContain('grain-');
 
   await page.locator('#toggle').click();
   const day = await grainState(page);
@@ -58,20 +58,17 @@ test('grain overlay covers the full frame in both themes, at low plain opacity, 
   expect(day.blend).toBe('normal');
 });
 
-test('grain speckle is contrast-pushed and steps its seed on a discrete schedule', async ({ page }) => {
-  const grain = page.locator('#film-grain');
-  const noise = grain.locator('#film-grain-noise');
-  await expect(noise).toHaveCount(1);
-  const before = await noise.getAttribute('seed');
-  // Driven by stage.js on a 1.4s timer (not SMIL — see Stage.astro's comment),
-  // so the attribute itself is the only observable proof of the schedule.
+test('grain overlay steps its background tile on a discrete schedule', async ({ page }) => {
+  const overlay = page.locator('.grain-overlay');
+  const before = await overlay.evaluate((el) => getComputedStyle(el).backgroundImage);
+  // Driven by stage.js on a 1.4s timer cycling pre-rendered tiles
+  // (tools/build-grain-tiles.mjs) — the background-image is the only
+  // observable proof of the schedule.
   await expect(async () => {
-    expect(await noise.getAttribute('seed')).not.toBe(before);
+    const after = await overlay.evaluate((el) => getComputedStyle(el).backgroundImage);
+    expect(after).not.toBe(before);
+    expect(after).toContain('grain-');
   }).toPass({ timeout: 3000 });
-  // Contrast push: feComponentTransfer steepens the curve (slope > 1) rather than
-  // passing the turbulence through untouched.
-  const slope = await grain.locator('feFuncR').getAttribute('slope');
-  expect(parseFloat(slope)).toBeGreaterThan(1);
 });
 
 test('sea shimmer applies to the sea and wave fills only', async ({ page }) => {
@@ -108,19 +105,16 @@ test('shimmer scale steps a 5-to-12-to-5 ramp on a discrete schedule, not a SMIL
   }).toPass({ timeout: 1000 });
 });
 
-test('reduced motion: grain stops animating (static filter, no seed animate) and shimmer motion stops entirely', async ({ page }) => {
+test('reduced motion: grain stops animating (one pinned tile) and shimmer motion stops entirely', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.reload();
 
-  const grain = await grainState(page);
-  expect(grain.filter).toContain('film-grain-static');
-  await expect(page.locator('#film-grain-static feTurbulence > animate')).toHaveCount(0);
-  // stage.js's seed timer is guarded off under reduced motion (not just unused —
-  // CSS never references #film-grain here, but the timer must not even run).
-  const noise = page.locator('#film-grain-noise');
-  const seedAtStart = await noise.getAttribute('seed');
+  // stage.js's tile-cycling timer is guarded off under reduced motion — the
+  // CSS default tile (grain-0) stays pinned, not just unused.
+  const overlay = page.locator('.grain-overlay');
+  const tileAtStart = await overlay.evaluate((el) => getComputedStyle(el).backgroundImage);
   await page.waitForTimeout(1600);
-  expect(await noise.getAttribute('seed')).toBe(seedAtStart);
+  expect(await overlay.evaluate((el) => getComputedStyle(el).backgroundImage)).toBe(tileAtStart);
 
   const filters = await seaWaveFilter(page);
   expect(filters.sea).toBe('none');

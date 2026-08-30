@@ -35,6 +35,7 @@ export const PRIVATE_INPUTS = [
 ].sort();
 
 const THRESHOLD_WIDTHS = [640, 1024, 1536, 2048];
+const GRAIN_TILE_COUNT = 4;
 
 export const OUTPUTS = [
   'public/apple-touch-icon.png',
@@ -44,6 +45,7 @@ export const OUTPUTS = [
   'public/og-image.png',
   'public/sheet-portrait.png',
   ...THRESHOLD_WIDTHS.flatMap((w) => [`public/threshold/night-${w}.avif`, `public/threshold/night-${w}.jpg`]),
+  ...Array.from({ length: GRAIN_TILE_COUNT }, (_, i) => `public/grain/grain-${i}.webp`),
 ].sort();
 
 // Text inputs are hashed with CRLF normalized to LF: this checkout has

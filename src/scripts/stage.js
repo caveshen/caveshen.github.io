@@ -57,16 +57,18 @@ export function initStage(tree) {
   document.addEventListener('keydown', () => document.documentElement.classList.add('kb-focus'), true);
   document.addEventListener('pointerdown', () => document.documentElement.classList.remove('kb-focus'), true);
 
-  // Film grain's seed schedule (Stage.astro's #film-grain filter) — a plain
-  // timer, not a SMIL <animate>; see that file's comment for why. Skipped
-  // under reduced motion, where CSS never references this filter anyway.
-  const grainNoise = document.getElementById('film-grain-noise');
-  if (grainNoise && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const seeds = [2, 9, 4, 13, 7, 1, 11];
-    let seedIndex = 0;
+  // Film grain: cycles which pre-rendered tile (tools/build-grain-tiles.mjs)
+  // .grain-overlay's background-image points at, replacing the old seed-
+  // stepped live feTurbulence filter — see Stage.astro's comment for why.
+  // Skipped under reduced motion, where the CSS default tile (grain-0)
+  // stays pinned — no animation to guard off, just this cycling timer.
+  const grainOverlay = document.querySelector('.grain-overlay');
+  if (grainOverlay && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const tiles = [0, 1, 2, 3].map((n) => `url(/grain/grain-${n}.webp)`);
+    let tileIndex = 0;
     setInterval(() => {
-      seedIndex = (seedIndex + 1) % seeds.length;
-      grainNoise.setAttribute('seed', String(seeds[seedIndex]));
+      tileIndex = (tileIndex + 1) % tiles.length;
+      grainOverlay.style.backgroundImage = tiles[tileIndex];
     }, 1400);
   }
 

@@ -11,6 +11,7 @@ import { root, COMMITTED_INPUTS, PRIVATE_INPUTS, OUTPUTS, hashFile, manifestPath
 const commandFor = (file) => {
   if (file === 'public/sheet-portrait.png') return 'node tools/make-portrait.mjs';
   if (file.startsWith('public/threshold/')) return 'node tools/build-threshold-photo.mjs';
+  if (file.startsWith('public/grain/')) return 'node tools/build-grain-tiles.mjs';
   return 'node tools/render-og.js';
 };
 

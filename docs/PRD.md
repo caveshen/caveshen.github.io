@@ -86,7 +86,7 @@ the document body under their original `§` headings as history.
 | d40 | Scene rewrite workshop — a from-scratch reimagining of both scenes under the Dragon Age register | *new* | ✅ CONCLUDED 2026-08-25; RETIRED 2026-08-27 — the adopted build order is superseded by d43; unbuilt ideas lapse, re-raisable (§d40) |
 | d41 | CI matrix sharding — run the eight projects as parallel jobs; consider smoke-only deploys on main | *new* | ✅ DECIDED 2026-08-24 — one job per project on PRs; main pre-deploy gate is smoke-only (desktop-1920); delivered on `ci/matrix-sharding` (§d41) |
 | d42 | Reference-photo front — hybrid photo background + animated Badger under the d37 language | *new* | ✅ FOLDED 2026-08-27 into d43 — the photo enters as a threshold, not a platform; its open questions are answered in §d43 (§d42) |
-| d43 | Photo-threshold front — night-photo title cover; New Game draws the world in; grain and shimmer stay | *new* | ✅ delivered 2026-08-29 on `item/photo-threshold`, awaiting Caveshen's local preview (§d43) |
+| d43 | Photo-threshold front — night-photo title cover; New Game draws the world in; grain and shimmer stay | *new* | ✅ COMPLETE 2026-08-30 — preview passed with amendments; PR #32 full matrix green; awaiting squash-merge (§d43) |
 | d44 | Favicon refinement — the vector Badger head as favicon works but does not fully satisfy | *new* | 💡 raised 2026-08-29 at the d43 preview — Caveshen's ask; no direction chosen yet (§d44) |
 | d45 | The Badger on the threshold — render him on the cover as the continuity piece into both views; settle cover routing/history | *new* | 💡 raised 2026-08-29 at the d43 preview — needs its own grill → spec → tickets loop before any build (§d45) |
 
@@ -6558,6 +6558,25 @@ For the spec to settle:
 Supersessions: this item takes the slot of d40's scroll-reveal (including
 its duty to replace the d36 glow) and folds d42, whose open questions it
 answers by making the photo a threshold rather than a platform.
+
+### ✅ COMPLETE 2026-08-30 — preview passed; PR #32 matrix green
+
+Preview rulings that landed as amendments on the branch: the cover's
+overline was removed; the photo was reframed and gently sharpened so
+the ridge sits below the title and menu; a quiet "Return to menu"
+button joined the scene (bottom row, beside the fullscreen toggle) —
+it clears the session flag so New Game replays the beat; the document
+title became the owner's name alone; the white approach prompt
+survived. CODING_STANDARDS.md entered the repo.
+
+The PR matrix then failed on WebKit and taught an expensive lesson,
+fixed across three commits: SMIL `<animate>` on filter attributes and
+full-viewport live `feTurbulence` starve software-rendered WebKit.
+The grain's seed step and the shimmer's scale ramp moved to JS
+timers, and the grain itself became four pre-rendered seamless webp
+tiles cycled by the same timer — visually identical, and the WebKit
+CI jobs fell from a 25-minute kill to ~6-10 minutes green. Recorded
+as a gotcha in CLAUDE.md.
 
 ## d44. Favicon refinement
 

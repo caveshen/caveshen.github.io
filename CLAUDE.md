@@ -87,6 +87,15 @@ npm run build       # astro build
   WebKit reports the last-laid-out geometry. Assert computed `display` on the
   nearest `.night-only`/`.day-only` gate instead (see `sceneDisplay` in
   `e2e/scene.spec.js`). Found 2026-08-23 at the d37 PR matrix.
+- **SMIL animations and full-viewport live SVG filters starve WebKit.**
+  Software-rendered WebKit (CI runners; weak Apple devices) pays a
+  disproportionate, per-paint cost for `<animate>` on filter attributes and
+  for large live `feTurbulence` regions — enough to blow ordinary click
+  timeouts across the whole e2e suite while Chromium/Firefox stay fast, and
+  invisible on a strong local machine. Drive stepped values from a JS timer
+  and pre-render noise as tiled raster images (see `tools/build-grain-tiles.mjs`).
+  Found 2026-08-30 at the d43 PR matrix: WebKit jobs went from a 25-minute
+  kill to ~6-10 minutes green on this change alone.
 - **Script focus ignites plate one on every pointer modality** — `:focus-visible`
   matches after `approach()`'s programmatic focus even for touch. Tests that
   need a plate at true rest read the *second* one (`button-feel.spec.js`).

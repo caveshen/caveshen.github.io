@@ -89,6 +89,7 @@ the document body under their original `§` headings as history.
 | d43 | Photo-threshold front — night-photo title cover; New Game draws the world in; grain and shimmer stay | *new* | ✅ COMPLETE 2026-08-30 — preview passed with amendments; PR #32 squash-merged to main (§d43) |
 | d44 | Favicon refinement — the vector Badger head as favicon works but does not fully satisfy | *new* | 🔨 IN PROGRESS 2026-08-30 — grilled; three candidate directions in a mock round on `item/favicon-refinement` (§d44) |
 | d45 | The Badger on the threshold — render him on the cover as the continuity piece into both views; settle cover routing/history | *new* | 💡 raised 2026-08-29 at the d43 preview — needs its own grill → spec → tickets loop before any build (§d45) |
+| d46 | Design-language style guide — fonts, type scale, palette, framing rules, laws, in one reference doc | *new* | 🔨 IN PROGRESS 2026-08-30 — Caveshen's ask during d44; small enough to ride `item/favicon-refinement` (§d46) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -6609,6 +6610,21 @@ Mock round renders each candidate at 16/32/48/180 on simulated light
 and dark tab strips. Caveshen picks at preview; only then does the
 icon pipeline (`tools/render-og.js`) change.
 
+Round-two verdict (2026-08-30): E (the champion hand-pixelled fresh
+on the 16 grid) rejected — not enthused. Round three, two candidates:
+
+- **E2 — like-for-like downscale.** The shipped favicon-32.png
+  champion reduced to 16px as directly as possible (nearest-neighbour
+  2:1), so the 16px slot carries the very artwork Caveshen already
+  likes, not an interpretation of it.
+- **F — the Paragon symbol, raw.** The correct reference
+  (Mass Effect's wing-in-ring mark; no badger tie-in at all),
+  redrawn by eye as an original vector in the site colours (celestial
+  gold on night-ink). Law note: reference images are never traced,
+  shipped, or committed — the mock is an original redraw living in
+  gitignored screenshots/, and whether a recognisable third-party
+  mark can ship at all is Caveshen's explicit ruling at preview.
+
 Round-one verdict (2026-08-30): all four mocked directions rejected
 (tuned head, vector champion redraw, monogram, paragon-style emblem —
 the last drawn off-reference; the true symbol is a layered swept wing
@@ -6647,3 +6663,15 @@ Two connected observations from the first preview of the d43 cover:
 Both touch the one-world law, the view-transition machinery, and the
 d43 un-develop choreography. Parked until the loop runs — nothing of
 this ships inside d43.
+
+## d46. Design-language style guide
+
+### 🔨 IN PROGRESS 2026-08-30 — Caveshen's ask during the d44 mock rounds; rides `item/favicon-refinement`
+
+Store the site's design language in one reference document: fonts and
+where each face is used, type scale, the colour palette (both themes,
+by token name — `src/styles/tokens.css` stays the source of truth),
+framing conventions (rounded squares, the champion's cream card), and
+the standing laws (no generated art, the owner-photo exception, AA
+contrast over photographs). Lives at `docs/STYLE_GUIDE.md` as a repo
+doc first; a rendered public page is a separate future ask if wanted.

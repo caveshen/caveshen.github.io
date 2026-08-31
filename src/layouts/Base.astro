@@ -14,12 +14,18 @@ export interface Props {
   noindex?: boolean;
 }
 
+// Ungated build (the github.io preview) is noindex by default — its only
+// public home is the preview host. Gated build (the live cover) is
+// indexable by default. Pages that need noindex either way (404, /og) still
+// pass the prop explicitly.
+const GATED = import.meta.env.GATED === '1';
+
 const {
   title = "Caveshen Rajman",
-  description = "PLACEHOLDER — Caveshen Rajman's portfolio.",
+  description = "Problem solver, coffee enjoyer, 10x human",
   ogImage = "/og-image.png",
   bodyClass = "",
-  noindex = false,
+  noindex = !GATED,
 } = Astro.props;
 
 const canonicalURL = Astro.url.toString();

@@ -7,6 +7,8 @@ const ch = { channel: 'msedge' };
 
 export default defineConfig({
   testDir: './e2e',
+  // The gated spec asserts the GATED build; it runs only under playwright.gated.config.js.
+  testIgnore: 'gated-cover.spec.js',
   use: { baseURL: 'http://localhost:4321' },
   webServer: {
     // astro 7 `dev` daemonizes when stdin isn't a TTY — the spawned parent exits and

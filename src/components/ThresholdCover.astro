@@ -18,8 +18,18 @@
 // (session flag cleared, scene re-armed) so New Game can be replayed. The
 // cover element is hidden, not removed, once dismissed, so it stays
 // available for this — see dismiss()'s cleanup below.
+//
+// Gated mode (the `gated` prop): the cover is the whole page, always
+// visible. Both menu controls render disabled and blurred, a native
+// <button disabled> standing in for the sheet link (an <a> cannot be
+// disabled), and no dismissal script, hotkeys, return button or noscript
+// override ship — there is no scene underneath to reach.
+interface Props {
+  gated?: boolean;
+}
+const { gated = false } = Astro.props;
 ---
-<div class="threshold-cover" id="threshold-cover">
+<div class={gated ? 'threshold-cover cover-gated' : 'threshold-cover'} id="threshold-cover">
   <!-- Defs-only: 0×0 and clipped, never display:none (some engines skip a
        filter whose <svg> ancestor is display:none). -->
   <svg class="cover-filter-defs" aria-hidden="true" focusable="false">
@@ -73,17 +83,33 @@
   <div class="cover-content">
     <h1 class="cover-name">Caveshen Rajman</h1>
     <p class="cover-tagline">Problem solver, coffee enjoyer, 10x human</p>
-    <div class="cover-menu">
-      <button type="button" id="cover-new-game" class="cover-btn cover-btn-primary">
-        New Game <span class="cover-hotkey" aria-hidden="true">I</span>
-      </button>
-      <a href="/sheet" id="cover-sheet" class="cover-btn cover-btn-secondary">
-        Character Sheet <span class="cover-hotkey" aria-hidden="true">II</span>
-      </a>
-    </div>
+    {gated ? (
+      <Fragment>
+      <div class="cover-menu">
+        <button type="button" id="cover-new-game" class="cover-btn cover-btn-primary" disabled>
+          New Game
+        </button>
+        <button type="button" id="cover-sheet" class="cover-btn cover-btn-secondary" disabled>
+          Character Sheet
+        </button>
+      </div>
+      <p class="cover-coming-soon">Coming Soon</p>
+      </Fragment>
+    ) : (
+      <div class="cover-menu">
+        <button type="button" id="cover-new-game" class="cover-btn cover-btn-primary">
+          New Game <span class="cover-hotkey" aria-hidden="true">I</span>
+        </button>
+        <a href="/sheet" id="cover-sheet" class="cover-btn cover-btn-secondary">
+          Character Sheet <span class="cover-hotkey" aria-hidden="true">II</span>
+        </a>
+      </div>
+    )}
   </div>
 </div>
 
+{!gated && (
+<Fragment>
 <!-- Ships hidden; JS unhides it once it knows the cover isn't showing (fresh
      dismissal, a flagged load, or reduced motion — see the script below).
      No explicit display override needed: nothing else in this stylesheet sets
@@ -227,6 +253,8 @@
     requestAnimationFrame(() => cover.classList.remove('cover-returning'));
   });
 </script>
+</Fragment>
+)}
 
 <style>
   .threshold-cover {
@@ -239,8 +267,12 @@
     justify-content: center;
     background: var(--sky);
   }
+  /* Gated mode is the whole page — there is no scene to reveal underneath,
+     so this rule (and the ones below that hide/skip the cover) never
+     applies to it: the cover stays the identical static terminus on every
+     client, JS or no JS, motion preference or none. */
   @media (prefers-reduced-motion: reduce) {
-    .threshold-cover { display: none; }
+    .threshold-cover:not(.cover-gated) { display: none; }
   }
 
   /* The un-develop: photograph drains over --undevelop-photo-drain, the
@@ -318,7 +350,7 @@
      .approach-prompt (Stage.astro) — a dark anchor shadow, not the glass
      plaque, carries the contrast duty here. --prompt-ink is white in both
      themes, matching this cover's always-night register. */
-  .cover-name, .cover-tagline, .cover-btn-secondary {
+  .cover-name, .cover-tagline, .cover-btn-secondary, .cover-coming-soon {
     color: var(--prompt-ink);
     text-shadow: 0 1px 3px rgba(7, 6, 14, 1), 0 0 12px rgba(7, 6, 14, 1),
                  0 0 20px rgba(7, 6, 14, 0.7);
@@ -335,6 +367,12 @@
     font-style: italic;
     font-size: 1.1rem;
     margin-bottom: 2.2rem;
+  }
+  .cover-coming-soon {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1rem;
+    margin-top: 1.5rem;
   }
 
   .cover-menu {
@@ -373,6 +411,13 @@
   }
   .cover-btn-secondary:hover, .cover-btn-secondary:focus-visible {
     color: var(--gold-bright);
+  }
+  /* Gated mode: both controls are genuinely disabled (not just styled), so
+     assistive tech announces them disabled and Tab skips them — this rule
+     is purely the visual "coming soon" read. */
+  .cover-btn:disabled {
+    filter: blur(2px);
+    cursor: not-allowed;
   }
   .cover-btn:focus-visible {
     outline: 2px solid var(--gold-bright);

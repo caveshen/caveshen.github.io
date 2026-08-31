@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://caveshen.github.io/sitemap-index.xml

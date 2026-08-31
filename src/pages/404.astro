@@ -6,16 +6,25 @@ import Base from '../layouts/Base.astro';
 import ThemeToggle from '../components/ThemeToggle.astro';
 import Stage from '../components/Stage.astro';
 import HoodedFigure from '../components/HoodedFigure.astro';
+import ThresholdCover from '../components/ThresholdCover.astro';
 import tree from '../data/dialogue-404.json';
 
 const CHARACTER = HoodedFigure;
 const CHARACTER_LABEL = 'a hooded figure on the promenade';
+
+// The repo's build-time flag (see index.astro) — a gated 404 must not leak
+// the unfinished scene/dialogue to an unknown deep link.
+const GATED = import.meta.env.GATED === '1';
 ---
 <Base
   title="404 — Caveshen Rajman"
   description="PLACEHOLDER — Page not found. Caveshen Rajman's portfolio."
   noindex
 >
+  {GATED ? (
+    <ThresholdCover gated />
+  ) : (
+    <Fragment>
   <ThemeToggle />
 
   <Stage tree={tree} character={CHARACTER} characterLabel={CHARACTER_LABEL}
@@ -26,11 +35,15 @@ const CHARACTER_LABEL = 'a hooded figure on the promenade';
       </p>
     </noscript>
   </Stage>
+    </Fragment>
+  )}
 </Base>
 
+{!GATED && (
 <script>
   import { initStage } from '../scripts/stage.js';
   import tree from '../data/dialogue-404.json';
 
   initStage(tree);
 </script>
+)}

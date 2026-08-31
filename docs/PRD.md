@@ -90,7 +90,7 @@ the document body under their original `§` headings as history.
 | d44 | Favicon refinement — the vector Badger head as favicon works but does not fully satisfy | *new* | ✅ COMPLETE 2026-08-31 — E2-smooth shipped; PR #33 matrix green; squash-merged to main (§d44) |
 | d45 | The Badger on the threshold — render him on the cover as the continuity piece into both views; settle cover routing/history | *new* | 💡 raised 2026-08-29 at the d43 preview — needs its own grill → spec → tickets loop before any build (§d45) |
 | d46 | Design-language style guide — fonts, type scale, palette, framing rules, laws, in one reference doc | *new* | ✅ COMPLETE 2026-08-31 — `docs/STYLE_GUIDE.md` shipped with PR #33 (§d46) |
-| d47 | Coming-soon live cover — go live with the threshold front; menu blurred, "coming soon" beneath | *new* | 💡 raised 2026-08-30 — Caveshen's call: the domain must stop idling; grill at pickup (§d47) |
+| d47 | Coming-soon live cover — go live with the threshold front; menu blurred, "Coming Soon" beneath | *new* | 🔨 SPEC ACCEPTED 2026-08-31 — grill concluded; spec at `docs/specs/coming-soon-cover.md`; building on `item/coming-soon-cover` (§d47) |
 | d48 | Character sheet goes live — un-gate the sheet on the live site once finalised | *new* | 💡 raised 2026-08-30 — second stage of d47; parked until the sheet is done (§d48) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
@@ -6728,20 +6728,33 @@ while the dialogue copy and the vectorised scene are finished, and it
 puts Cloudflare (DNS, caching) to real use at last.
 
 Raised with eyes open: the standing advice was to wait for a finished
-slice. Caveshen rules that the domain must not idle. The item queues
-behind d44; grill at pickup. Questions for that grill:
+slice. Caveshen rules that the domain must not idle.
 
-- What deep links (`/sheet`, the scene) do while the site is gated —
-  404, redirect to the cover, or quietly work for those who know.
-- What the no-JS and reduced-motion paths show when the cover is the
-  terminus instead of a threshold (today `noscript` hides the cover
-  and lands on the scene — the opposite of gated).
-- Whether coming-soon mode is a build flag, an environment variable,
-  or a long-lived branch — and how d48 later un-gates cleanly.
-- The public front's OG card, document title, and robots posture
-  while gated.
-- "coming soon" is site copy — Caveshen's wording, his sign-off at
-  preview as ever.
+### 🔨 SPEC ACCEPTED 2026-08-31 — grill concluded, rulings settled
+
+The pickup grill ran 2026-08-31 and answered every open question. The
+full spec is `docs/specs/coming-soon-cover.md`; the rulings in brief:
+
+- **Cutover in scope.** Cloudflare Pages serves caveshen.com with the
+  gated build. The GitHub Pages deploy stays untouched — the github.io
+  site remains a live ungated preview, marked noindex.
+- **One boolean build-time flag** (the repo's first), off by default;
+  only the Cloudflare deploy build sets it. When on, the landing page
+  ships the cover only — no scene in the payload, so the no-JS,
+  reduced-motion, and session-flag escape paths have nothing to reach.
+- **Deep links 302 to the cover** via an edge redirect rule set emitted
+  by the gated build.
+- **Indexable while gated**; sitemap lists `/` only; robots and llms
+  output become build-generated so each host states its own posture.
+- **Scene OG card and the plain-name title stay.** The placeholder meta
+  description is replaced with real copy at preview. JSON-LD waits for
+  d48.
+- **Copy is "Coming Soon"**, italic, beneath the blurred disabled
+  buttons — real copy, Caveshen's pass at preview as ever.
+- **d48 un-gates** by refactoring the boolean and dropping a redirect
+  rule; no staged flag until the real requirement exists.
+- Human-only Cloudflare steps (Pages project, domain, DNS, secrets) run
+  through a guided wizard at delivery.
 
 ## d48. Character sheet goes live
 

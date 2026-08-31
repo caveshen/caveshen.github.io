@@ -56,8 +56,15 @@ fully testable locally.
   is added to GitHub Pages — the github.io host must keep serving.
 - **Deep links (grill Q3).** The gated build emits an edge redirect rule
   set (Cloudflare Pages `_redirects` format, version-controlled in the
-  build output): every route except the cover 302s to `/`. The ungated
-  build emits none.
+  build output): each built route except the cover 302s to `/`. The
+  rules are enumerated, never a `/*` splat — Cloudflare Pages applies
+  `_redirects` before static assets, so a splat would also redirect the
+  cover's own CSS, JS, and images, plus the robots, sitemap, llms, and
+  OG files the gated posture must serve. Unknown routes fall through to
+  the 404 page; with the gate on, that page renders only the cover (the
+  same boolean and cover mode as the landing page) and returns HTTP 404.
+  The ungated build emits no rules and keeps today's 404 page unchanged.
+  Amended 2026-08-31 at delivery, on the reviewer's evidence.
 - **Per-build web posture (grill Q5, Q9).** The site URL becomes
   build-aware: the gated build uses https://caveshen.com for canonicals,
   OG URLs, and the sitemap; the ungated build keeps the github.io URL.

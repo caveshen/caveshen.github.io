@@ -3,6 +3,12 @@
 // port 4322), never the default config. desktop only — the gate is markup,
 // not rendering.
 import { test, expect } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+
+const distDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist');
+const dist = (rel) => readFileSync(path.join(distDir, rel), 'utf8');
 
 test('gated build: cover only, no scene/dialogue/dismissal script in the payload', async ({ page }) => {
   await page.goto('/');
@@ -50,4 +56,56 @@ test('no-JS and reduced motion: the gated page shows the identical static cover'
   await expect(page.locator('#threshold-cover')).toBeVisible();
   await expect(page.getByText('Coming Soon')).toBeVisible();
   await ctx.close();
+});
+
+test('title, OG, and description are correct, and the page is indexable', async ({ page }) => {
+  await page.goto('/');
+  const desc = await page.locator('meta[name="description"]').getAttribute('content');
+  expect(desc).toBe('Engineering Manager. Problem solver, coffee enjoyer, 10x human.');
+  expect(await page.title()).toBe('Caveshen Rajman');
+  expect(await page.locator('meta[name="robots"]').count()).toBe(0);
+  const canonical = await page.locator('link[rel="canonical"]').getAttribute('href');
+  const ogUrl = await page.locator('meta[property="og:url"]').getAttribute('content');
+  const ogImage = await page.locator('meta[property="og:image"]').getAttribute('content');
+  expect(canonical).toBe('https://caveshen.com/');
+  expect(ogUrl).toBe('https://caveshen.com/');
+  expect(ogImage).toBe('https://caveshen.com/og-image.png');
+});
+
+// Build-output facts: astro preview never honours Cloudflare's edge
+// _redirects, so these read the built dist/ files this config just produced.
+test('dist: robots.txt allows all and names the caveshen.com sitemap', () => {
+  const text = dist('robots.txt');
+  expect(text).toContain('User-agent: *');
+  expect(text).toContain('Allow: /');
+  expect(text).toContain('Sitemap: https://caveshen.com/sitemap-index.xml');
+});
+
+test('dist: sitemap lists the cover only, not /sheet', () => {
+  const text = dist('sitemap-0.xml');
+  expect(text).toContain('https://caveshen.com/');
+  expect(text).not.toContain('/sheet');
+});
+
+test('dist: llms.txt describes the cover, not the full site', () => {
+  const text = dist('llms.txt');
+  expect(text).toContain('coming soon');
+  expect(text).toContain('caveshen.com');
+});
+
+test('dist: _redirects sends non-cover routes to / with a 302', () => {
+  const text = dist('_redirects');
+  expect(text).toContain('/sheet / 302');
+  expect(text).toContain('/og / 302');
+  expect(text).toContain('/404 / 302');
+});
+
+test('dist: 404.html is cover-only, no scene/dialogue in the payload', () => {
+  // Checked against <body> only: the page's own <head> title/description
+  // stay untouched by this gate (out of scope here), so they keep their
+  // pre-existing PLACEHOLDER text regardless.
+  const body = dist('404.html').split('<body')[1];
+  expect(body).not.toContain('id="stage"');
+  expect(body).not.toContain('PLACEHOLDER');
+  expect(body).toContain('id="threshold-cover"');
 });

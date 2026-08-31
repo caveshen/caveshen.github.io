@@ -12,31 +12,35 @@ const root = join(__dirname, '../..');
 // ── Hygiene static files ──────────────────────────────────────────────────────
 
 describe('public hygiene files', () => {
-  it('robots.txt exists', () => {
-    expect(existsSync(join(root, 'public/robots.txt'))).toBe(true);
-  });
-
-  it('robots.txt points at sitemap', () => {
-    const content = readFileSync(join(root, 'public/robots.txt'), 'utf8');
-    expect(content).toContain('Sitemap:');
-  });
-
-  it('robots.txt allows all crawlers', () => {
-    const content = readFileSync(join(root, 'public/robots.txt'), 'utf8');
-    expect(content).toContain('User-agent: *');
-    expect(content).toContain('Allow: /');
-  });
-
-  it('llms.txt exists', () => {
-    expect(existsSync(join(root, 'public/llms.txt'))).toBe(true);
-  });
-
   it('apple-touch-icon.png exists', () => {
     expect(existsSync(join(root, 'public/apple-touch-icon.png'))).toBe(true);
   });
 
   it('og-image.png exists', () => {
     expect(existsSync(join(root, 'public/og-image.png'))).toBe(true);
+  });
+});
+
+// ── robots/llms: build-generated, per-posture (regression guard: no static files) ──
+
+describe('robots.txt and llms.txt (build-generated, not static)', () => {
+  it('is not shipped as a static file in public/ (posture differs per build)', () => {
+    expect(existsSync(join(root, 'public/robots.txt'))).toBe(false);
+    expect(existsSync(join(root, 'public/llms.txt'))).toBe(false);
+  });
+
+  it('robots.txt.js carries both postures: allow (gated) and disallow (ungated)', () => {
+    const src = readFileSync(join(root, 'src/pages/robots.txt.js'), 'utf8');
+    expect(src).toContain('Allow: /');
+    expect(src).toContain('Disallow: /');
+    expect(src).not.toContain('PLACEHOLDER');
+  });
+
+  it('llms.txt.js carries both postures: the cover (gated) and the preview notice (ungated)', () => {
+    const src = readFileSync(join(root, 'src/pages/llms.txt.js'), 'utf8');
+    expect(src).toContain('GATED_BODY');
+    expect(src).toContain('UNGATED_BODY');
+    expect(src).not.toContain('PLACEHOLDER');
   });
 });
 
@@ -134,6 +138,16 @@ describe('badger idle frames', () => {
     expect(src).toContain('prefers-reduced-motion: reduce');
     // down frame must be zeroed out under reduced motion
     expect(src).toMatch(/prefers-reduced-motion[\s\S]*\.badger-down[\s\S]*opacity:\s*0/);
+  });
+});
+
+// ── Landing meta description: ruled copy, not the placeholder ─────────────
+
+describe('landing page meta description', () => {
+  it('index.astro carries the ruled tagline, verbatim, no PLACEHOLDER', () => {
+    const src = readFileSync(join(root, 'src/pages/index.astro'), 'utf8');
+    expect(src).toContain('Engineering Manager. Problem solver, coffee enjoyer, 10x human.');
+    expect(src).not.toContain('PLACEHOLDER');
   });
 });
 

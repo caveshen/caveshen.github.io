@@ -83,8 +83,31 @@ jobs:
         continue-on-error: true
         run: npm run test:perf
 
+  gated:
+    # Proves the gate before deploy: build with GATED on and run the
+    # single desktop config that asserts cover-only markup plus the
+    # gated dist-file checks. The gate is markup, not rendering, so one
+    # engine (branded Edge, preinstalled — no Playwright install step)
+    # is enough. Runs on every push and PR, same as the test matrix.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Gated pass
+        run: npx playwright test --config playwright.gated.config.js
+
   build:
-    needs: test
+    needs: [test, gated]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:

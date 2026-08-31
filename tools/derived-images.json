@@ -11,7 +11,7 @@
     "src/components/Scene.astro": "da95bc28eb19a320a5cf7e35ae2425e39852d14f7f9f9a717c2b27537a15f47e",
     "src/components/Stage.astro": "1bab0138207952d43e642d5799fc9e4fe5fdb1db7655f299872e83b0e4447eeb",
     "src/components/ThemeToggle.astro": "554d5a808bf4cf7634b21758d340f4fb280ad2283d9d99a432327cdccf55d45f",
-    "src/components/ThresholdCover.astro": "222bcd6da56c9dee926398bbe7a4232e5e970c5ad52d242e0c8193eec8ea4c83",
+    "src/components/ThresholdCover.astro": "3aedb3124ecb2ba308bbcb11a19750604afbec331feaf53da08632810da96ce1",
     "src/pages/og.astro": "96ff704559c7e504a88e8533f7d64ac6639eed36e119468df31aae0405418411",
     "src/styles/tokens.css": "95d03bec6e2c03e1ab7c9a662a620409017d3d23693136afb3745a7c0c17c7fd"
   },
@@ -28,7 +28,7 @@
     "public/grain/grain-2.webp": "0be6a031018499538043f4606bd44cc7a9455f565e199a2cc05efad794337df3",
     "public/grain/grain-3.png": "16b0293618c4b04d662ee36989d3adaa8f567552a5a122498728339b5c15bce3",
     "public/grain/grain-3.webp": "5223f96902e5424534c77907ed70b303b1b8cdc8f0d93cf56dab69d828ba0642",
-    "public/og-image.png": "341dcea81853ea4e9c983c5fde19337d4ded090cddd85a632519f9a926e841e6",
+    "public/og-image.png": "4e08785ebb5509ddddf20c74506887d426d4da534eb5f0e003f669104a2358b8",
     "public/sheet-portrait.png": "ad061d6678cb4a5fd1ec22fc0955e3093f18c807bfeb2e1f8bb3e6e75eba3ff9",
     "public/threshold/night-1024.avif": "cebc89753ab40fb8c0f451beafbf2151fa3da84b8b8d220abbd0296965108176",
     "public/threshold/night-1024.jpg": "5003467ca8ca4a18468a7644f7950bf9d7eb9c044947e88937408ab119729c4b",

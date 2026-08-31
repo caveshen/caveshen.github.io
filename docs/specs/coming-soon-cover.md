@@ -67,9 +67,9 @@ fully testable locally.
   is the preview host.
 - **Meta (grill Q6, Q12).** The scene OG card stays. The document title
   stays "Caveshen Rajman". The placeholder meta description is replaced
-  with real copy. Draft, for Caveshen's pass at preview: "Engineering
-  Manager. A character sheet, a hand-drawn world, and a conversation —
-  coming soon." JSON-LD waits for d48.
+  with the cover tagline, ruled by Caveshen 2026-08-31: "Engineering
+  Manager. Problem solver, coffee enjoyer, 10x human." His copy
+  verbatim — no placeholder marker. JSON-LD waits for d48.
 - **Copy (grill Q7, Q11).** The line is exactly "Coming Soon", italic,
   beneath the buttons. It ships as real copy, no placeholder marker;
   Caveshen's sign-off happens at preview as ever.

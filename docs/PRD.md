@@ -90,7 +90,7 @@ the document body under their original `§` headings as history.
 | d44 | Favicon refinement — the vector Badger head as favicon works but does not fully satisfy | *new* | ✅ COMPLETE 2026-08-31 — E2-smooth shipped; PR #33 matrix green; squash-merged to main (§d44) |
 | d45 | The Badger on the threshold — render him on the cover as the continuity piece into both views; settle cover routing/history | *new* | 💡 raised 2026-08-29 at the d43 preview — needs its own grill → spec → tickets loop before any build (§d45) |
 | d46 | Design-language style guide — fonts, type scale, palette, framing rules, laws, in one reference doc | *new* | ✅ COMPLETE 2026-08-31 — `docs/STYLE_GUIDE.md` shipped with PR #33 (§d46) |
-| d47 | Coming-soon live cover — go live with the threshold front; menu blurred, "Coming Soon" beneath | *new* | 🔨 SPEC ACCEPTED 2026-08-31 — grill concluded; spec at `docs/specs/coming-soon-cover.md`; building on `item/coming-soon-cover` (§d47) |
+| d47 | Coming-soon live cover — go live with the threshold front; menu blurred, "Coming Soon" beneath | *new* | 🔨 DELIVERED 2026-09-01 — PR #34 green, awaiting squash-merge; live-domain checks run after merge (§d47) |
 | d48 | Character sheet goes live — un-gate the sheet on the live site once finalised | *new* | 💡 raised 2026-08-30 — second stage of d47; parked until the sheet is done (§d48) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
@@ -6743,7 +6743,9 @@ full spec is `docs/specs/coming-soon-cover.md`; the rulings in brief:
   ships the cover only — no scene in the payload, so the no-JS,
   reduced-motion, and session-flag escape paths have nothing to reach.
 - **Deep links 302 to the cover** via an edge redirect rule set emitted
-  by the gated build.
+  by the gated build. Amended mid-delivery (planner ruling): known
+  routes 302; unknown routes fall through to a cover-only 404 page, so
+  the gated 404 never ships the scene.
 - **Indexable while gated**; sitemap lists `/` only; robots and llms
   output become build-generated so each host states its own posture.
 - **Scene OG card and the plain-name title stay.** The placeholder meta
@@ -6755,6 +6757,19 @@ full spec is `docs/specs/coming-soon-cover.md`; the rulings in brief:
   rule; no staged flag until the real requirement exists.
 - Human-only Cloudflare steps (Pages project, domain, DNS, secrets) run
   through a guided wizard at delivery.
+
+### 🔨 DELIVERED 2026-09-01 — PR #34 green, awaiting squash-merge
+
+All four tickets landed on `item/coming-soon-cover`; the full CI matrix
+and the new gated pass are green on the PR. The wizard ran: Cloudflare
+Pages project `caveshen-com` exists, caveshen.com is attached with DNS
+active, and the deploy secrets are in the repo. Caveshen passed both
+builds at local preview, including the ruled copy.
+
+Left to do, both post-merge: the `deploy-cloudflare` job's first run on
+main, then the live checks — caveshen.com serves the gated cover over
+HTTPS, `/sheet` 302s home, caveshen.github.io still serves the full
+ungated site.
 
 ## d48. Character sheet goes live
 

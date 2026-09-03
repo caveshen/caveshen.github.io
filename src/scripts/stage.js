@@ -69,6 +69,9 @@ export function initStage(tree) {
   const grainOverlay = document.querySelector('.grain-overlay');
   const grainOverlayAlt = document.querySelector('.grain-overlay-alt');
   if (grainOverlay && grainOverlayAlt && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    // CSS owns the resting opacity (.grain-overlay's rule) — read it once
+    // rather than repeating the value here.
+    const restOpacity = getComputedStyle(grainOverlay).opacity;
     const tiles = [0, 1, 2, 3].map((n) => `url(/grain/grain-${n}.webp)`);
     let tileIndex = 0;
     let visible = grainOverlay;
@@ -76,7 +79,7 @@ export function initStage(tree) {
     setInterval(() => {
       tileIndex = (tileIndex + 1) % tiles.length;
       hidden.style.backgroundImage = tiles[tileIndex];
-      hidden.style.opacity = '0.12';
+      hidden.style.opacity = restOpacity;
       visible.style.opacity = '0';
       [visible, hidden] = [hidden, visible];
     }, 1400);

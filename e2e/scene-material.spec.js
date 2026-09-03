@@ -79,16 +79,20 @@ test('grain overlay steps its background tile on a discrete schedule', async ({ 
 });
 
 test('grain tile swap cross-fades: the incoming layer passes through an intermediate opacity, no instant jump', async ({ page }) => {
+  // Resting opacity is CSS's value (.grain-overlay), read fresh rather than
+  // hard-coded — captured before any tick can have fired.
+  const restOpacity = await page.locator('.grain-overlay').evaluate((el) => parseFloat(getComputedStyle(el).opacity));
+
   // No blind sleep — poll tightly until a layer is caught strictly between
-  // its two resting opacities (0 hidden, 0.12 shown). A hard-cut swap (the
-  // defect) never produces that sample: the two layers only ever read at
-  // one of the two resting values.
+  // its two resting opacities (0 hidden, restOpacity shown). A hard-cut
+  // swap (the defect) never produces that sample: the two layers only ever
+  // read at one of the two resting values.
   await expect(async () => {
     const opacities = await page.evaluate(() =>
       [...document.querySelectorAll('.grain-overlay, .grain-overlay-alt')]
         .map((el) => parseFloat(getComputedStyle(el).opacity))
     );
-    expect(opacities.some((o) => o > 0 && o < 0.12)).toBe(true);
+    expect(opacities.some((o) => o > 0 && o < restOpacity)).toBe(true);
   }).toPass({ timeout: 3000, intervals: [15] });
 });
 

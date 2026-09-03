@@ -38,9 +38,10 @@ const root = tree.root;
   paint by CI's software-rendered Linux WebKit (no GPU) starved the whole
   e2e matrix; see that script's header. Outside .camera so it never scales/
   zooms with the approach. stage.js cycles which tile url() is set.
-  A second layer (grain-overlay-alt) sits behind it so the tile swap can
-  cross-fade instead of hard-cutting — stage.js alternates which one is
-  visible.
+  A second layer (grain-overlay-alt) is a plain sibling here, stacked by
+  DOM order alone (no z-index) — its own opacity starts at 0, so it paints
+  over the first invisibly. stage.js cross-fades the tile swap by
+  alternating which one is faded in.
 -->
 <div class="grain-overlay" aria-hidden="true"></div>
 <div class="grain-overlay-alt" aria-hidden="true"></div>

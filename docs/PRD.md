@@ -90,7 +90,7 @@ the document body under their original `§` headings as history.
 | d44 | Favicon refinement — the vector Badger head as favicon works but does not fully satisfy | *new* | ✅ COMPLETE 2026-08-31 — E2-smooth shipped; PR #33 matrix green; squash-merged to main (§d44) |
 | d45 | The Badger on the threshold — render him on the cover as the continuity piece into both views; settle cover routing/history | *new* | 💡 raised 2026-08-29 at the d43 preview — needs its own grill → spec → tickets loop before any build (§d45) |
 | d46 | Design-language style guide — fonts, type scale, palette, framing rules, laws, in one reference doc | *new* | ✅ COMPLETE 2026-08-31 — `docs/STYLE_GUIDE.md` shipped with PR #33 (§d46) |
-| d47 | Coming-soon live cover — go live with the threshold front; menu blurred, "Coming Soon" beneath | *new* | 🔨 DELIVERED 2026-09-01 — PR #34 green, awaiting squash-merge; live-domain checks run after merge (§d47) |
+| d47 | Coming-soon live cover — go live with the threshold front; menu blurred, "Coming Soon" beneath | *new* | ✅ LIVE 2026-09-01 — PR #34 squash-merged (`2ec7d81`); post-merge live checks all passed (§d47) |
 | d48 | Character sheet goes live — un-gate the sheet on the live site once finalised | *new* | 💡 raised 2026-08-30 — second stage of d47; parked until the sheet is done (§d48) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
@@ -6770,6 +6770,21 @@ Left to do, both post-merge: the `deploy-cloudflare` job's first run on
 main, then the live checks — caveshen.com serves the gated cover over
 HTTPS, `/sheet` 302s home, caveshen.github.io still serves the full
 ungated site.
+
+### ✅ LIVE 2026-09-01 — post-merge checks all passed
+
+PR #34 squash-merged to main as `2ec7d81`. The `Deploy to GitHub Pages`
+run for that commit finished with every job green, including
+`deploy-cloudflare`. Checks made after the merge:
+
+- `https://caveshen.com/` returns HTTP 200 and its page shows the
+  "Coming Soon" cover.
+- `https://caveshen.com/sheet` returns HTTP 302 and sends the visitor
+  to `/`.
+- `https://caveshen.github.io/` still returns HTTP 200 and shows the
+  full menu (New Game, Sheet), not the gated cover.
+
+All three checks passed. The row above moves from DELIVERED to LIVE.
 
 ## d48. Character sheet goes live
 

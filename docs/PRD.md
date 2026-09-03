@@ -6821,3 +6821,25 @@ an opacity strictly between hidden and fully shown, which a hard cut
 can never produce. The test was checked red first, with the fade
 duration set to zero, then green after restoring it. Full unit suite
 and the e2e suite on Chromium and WebKit both pass.
+
+### 🔨 DELIVERED 2026-09-03 — cross-fade failed preview; ruling moved to static grain
+
+Caveshen failed the cross-fade at preview. Two uncorrelated noise
+tiles blending over 700 milliseconds still read as the grain
+breathing every 1.4 seconds — still flicker, just a softer one.
+
+Ruling: the grain does not animate at all. This front is a night
+photograph, not film footage, and a photograph's grain is fixed. A
+static tile also costs nothing to run, which matters alongside how it
+looks.
+
+The second grain layer, the cycling timer, and the cross-fade CSS are
+all removed. One tile remains (`grain-0`); the other three pre-rendered
+tiles and the seeds that built them are gone, and the tile-building
+tool now renders only one. The Playwright tests that proved the old
+cycling schedule and the cross-fade are replaced with one test: the
+grain layer's background-image is present and unchanged across a
+three-second sample. That test was checked red against the cross-fade
+code first, then green after the static change. Full unit suite and
+the e2e suite on Chromium, Firefox, and WebKit all pass. Built on
+`item/grain-flicker`, awaiting Caveshen's preview.

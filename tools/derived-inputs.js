@@ -36,7 +36,7 @@ export const PRIVATE_INPUTS = [
 ].sort();
 
 const THRESHOLD_WIDTHS = [640, 1024, 1536, 2048];
-const GRAIN_TILE_COUNT = 4;
+const GRAIN_TILE_COUNT = 1;
 
 export const OUTPUTS = [
   'public/apple-touch-icon.png',

@@ -58,42 +58,17 @@ test('grain overlay covers the full frame in both themes, at low plain opacity, 
   expect(day.blend).toBe('normal');
 });
 
-async function grainLayerImages(page) {
-  return page.evaluate(() =>
-    [...document.querySelectorAll('.grain-overlay, .grain-overlay-alt')]
-      .map((el) => getComputedStyle(el).backgroundImage)
-  );
-}
-
-test('grain overlay steps its background tile on a discrete schedule', async ({ page }) => {
-  const before = await grainLayerImages(page);
-  // Driven by stage.js on a 1.4s timer cycling pre-rendered tiles
-  // (tools/build-grain-tiles.mjs) across two cross-fading layers — the swap
-  // updates one layer's background-image at a time, so check both rather
-  // than assuming which one changes on a given tick.
-  await expect(async () => {
-    const after = await grainLayerImages(page);
-    expect(after).not.toEqual(before);
-    expect(after.some((img) => img.includes('grain-'))).toBe(true);
-  }).toPass({ timeout: 3000 });
-});
-
-test('grain tile swap cross-fades: the incoming layer passes through an intermediate opacity, no instant jump', async ({ page }) => {
-  // Resting opacity is CSS's value (.grain-overlay), read fresh rather than
-  // hard-coded — captured before any tick can have fired.
-  const restOpacity = await page.locator('.grain-overlay').evaluate((el) => parseFloat(getComputedStyle(el).opacity));
-
-  // No blind sleep — poll tightly until a layer is caught strictly between
-  // its two resting opacities (0 hidden, restOpacity shown). A hard-cut
-  // swap (the defect) never produces that sample: the two layers only ever
-  // read at one of the two resting values.
-  await expect(async () => {
-    const opacities = await page.evaluate(() =>
-      [...document.querySelectorAll('.grain-overlay, .grain-overlay-alt')]
-        .map((el) => parseFloat(getComputedStyle(el).opacity))
-    );
-    expect(opacities.some((o) => o > 0 && o < restOpacity)).toBe(true);
-  }).toPass({ timeout: 3000, intervals: [15] });
+test('grain overlay is static: same background-image sampled 3s apart', async ({ page }) => {
+  const overlay = page.locator('.grain-overlay');
+  const before = await overlay.evaluate((el) => getComputedStyle(el).backgroundImage);
+  expect(before).toContain('grain-');
+  // A photograph's grain is fixed, not moving — no timer should ever touch
+  // this. 3s clears both the old single-layer 1.4s hard-cut cycle and the
+  // cross-fade version's 2.8s per-layer round trip, so this fails red if
+  // either timer ever comes back.
+  await page.waitForTimeout(3000);
+  const after = await overlay.evaluate((el) => getComputedStyle(el).backgroundImage);
+  expect(after).toBe(before);
 });
 
 test('sea shimmer applies to the sea and wave fills only', async ({ page }) => {
@@ -134,14 +109,12 @@ test('reduced motion: grain stops animating (one pinned tile) and shimmer motion
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.reload();
 
-  // stage.js's tile-cycling timer is guarded off under reduced motion — the
-  // CSS default tile (grain-0) stays pinned, not just unused. The alt layer
-  // (the cross-fade partner) must never become visible either.
+  // Grain has no timer at all now — the CSS default tile (grain-0) stays
+  // pinned regardless of motion preference.
   const overlay = page.locator('.grain-overlay');
   const tileAtStart = await overlay.evaluate((el) => getComputedStyle(el).backgroundImage);
   await page.waitForTimeout(1600);
   expect(await overlay.evaluate((el) => getComputedStyle(el).backgroundImage)).toBe(tileAtStart);
-  expect(await page.locator('.grain-overlay-alt').evaluate((el) => getComputedStyle(el).opacity)).toBe('0');
 
   const filters = await seaWaveFilter(page);
   expect(filters.sea).toBe('none');

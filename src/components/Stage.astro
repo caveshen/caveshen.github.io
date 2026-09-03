@@ -38,8 +38,12 @@ const root = tree.root;
   paint by CI's software-rendered Linux WebKit (no GPU) starved the whole
   e2e matrix; see that script's header. Outside .camera so it never scales/
   zooms with the approach. stage.js cycles which tile url() is set.
+  A second layer (grain-overlay-alt) sits behind it so the tile swap can
+  cross-fade instead of hard-cutting — stage.js alternates which one is
+  visible.
 -->
 <div class="grain-overlay" aria-hidden="true"></div>
+<div class="grain-overlay-alt" aria-hidden="true"></div>
 
 <!--
   Sea shimmer's filter defs — a 0-sized SVG purely to hold <defs>, referenced
@@ -169,14 +173,34 @@ const root = tree.root;
      background-image is one of the pre-rendered tiles (tools/build-grain-tiles.mjs);
      stage.js cycles which tile url() is set, and leaves the CSS default (grain-0)
      alone under reduced motion — static grain still shows, per spec, nothing to
-     pause. tile is 240px square, repeating. */
-  .grain-overlay {
+     pause. tile is 240px square, repeating.
+
+     Two stacked layers cross-fade the tile swap instead of hard-cutting it:
+     .grain-overlay starts as the visible one, .grain-overlay-alt starts hidden.
+     stage.js sets the incoming layer's tile then flips the two opacities;
+     this transition does the actual fade. Both layers briefly overlap
+     mid-fade, but grain opacity is so low (0.12) the extra blend is not
+     visible. Reduced motion never touches either inline opacity, so these
+     CSS resting values are what ships: grain-overlay pinned visible,
+     grain-overlay-alt pinned hidden. */
+  .grain-overlay,
+  .grain-overlay-alt {
     position: absolute;
     inset: 0;
-    opacity: 0.12;
+    opacity: 0;
     pointer-events: none;
     background-image: url(/grain/grain-0.webp);
     background-repeat: repeat;
+    transition: opacity 700ms linear;
+  }
+  .grain-overlay {
+    opacity: 0.12;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .grain-overlay,
+    .grain-overlay-alt {
+      transition: none;
+    }
   }
 
   /* Sea shimmer: sea and wave fills only. Reduced motion drops the filter

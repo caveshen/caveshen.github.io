@@ -58,17 +58,27 @@ export function initStage(tree) {
   document.addEventListener('pointerdown', () => document.documentElement.classList.remove('kb-focus'), true);
 
   // Film grain: cycles which pre-rendered tile (tools/build-grain-tiles.mjs)
-  // .grain-overlay's background-image points at, replacing the old seed-
-  // stepped live feTurbulence filter — see Stage.astro's comment for why.
-  // Skipped under reduced motion, where the CSS default tile (grain-0)
-  // stays pinned — no animation to guard off, just this cycling timer.
+  // the visible grain layer's background-image points at, replacing the old
+  // seed-stepped live feTurbulence filter — see Stage.astro's comment for
+  // why. Two layers (grain-overlay / grain-overlay-alt) cross-fade the swap
+  // via their CSS opacity transition: each tick, the currently-hidden layer
+  // gets the next tile and fades in while the visible one fades out, then
+  // the two roles swap. Skipped under reduced motion, where the CSS resting
+  // opacities stay pinned (grain-overlay visible, grain-overlay-alt hidden)
+  // — no animation to guard off, just this cycling timer.
   const grainOverlay = document.querySelector('.grain-overlay');
-  if (grainOverlay && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  const grainOverlayAlt = document.querySelector('.grain-overlay-alt');
+  if (grainOverlay && grainOverlayAlt && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     const tiles = [0, 1, 2, 3].map((n) => `url(/grain/grain-${n}.webp)`);
     let tileIndex = 0;
+    let visible = grainOverlay;
+    let hidden = grainOverlayAlt;
     setInterval(() => {
       tileIndex = (tileIndex + 1) % tiles.length;
-      grainOverlay.style.backgroundImage = tiles[tileIndex];
+      hidden.style.backgroundImage = tiles[tileIndex];
+      hidden.style.opacity = '0.12';
+      visible.style.opacity = '0';
+      [visible, hidden] = [hidden, visible];
     }, 1400);
   }
 

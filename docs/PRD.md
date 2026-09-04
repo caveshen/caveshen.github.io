@@ -6943,6 +6943,10 @@ Rulings, 2026-09-05:
   generated SVG Badger head retires entirely. The pixel champion, cut from
   Caveshen's own photo, stays in the repo as an easter egg or fallback but
   leaves the icon slots.
+- Pixel 8 stays in the CI matrix (closes d51's open question). The matrix
+  is iphone-15pro, ipad, pixel-8, desktop-1920, desktop-2560,
+  desktop-firefox.
+- The eight-ticket order above is committed; pickup starts at ticket 1.
 
 The ticket-level plan lives in `.scratch/cutover-plan.md` (local working
 papers, not committed).

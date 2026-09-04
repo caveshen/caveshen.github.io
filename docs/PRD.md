@@ -95,6 +95,7 @@ the document body under their original `§` headings as history.
 | d49 | Grain-flicker defect — the film-grain tile swap hard-cut every 1.4s, read as a pop | *new* | ✅ COMPLETE 2026-09-03 — static grain passed preview; PR #35 squash-merged to main (§d49) |
 | d50 | Night too light — the static grain lifts the blacks slightly; night should read darker | *new* | 💡 raised 2026-09-03 at the d49 preview — not queued; pick up on Caveshen's go (§d50) |
 | d51 | Repo goes private, CI trimmed — retire the GitHub Pages deploy, trim Actions triggers and matrix, flip the repo private | *new* | 💡 raised 2026-09-03 — rulings recorded, matrix cut ruled bar pixel-8; pick up after d49 (§d51) |
+| d52 | Videogame-menus cutover — the redesign on `item/videogame-menus` becomes the site; retire the gated front, re-pin and prune the suite, CI to the d51 rulings, identity and meta, docs rewrite, then cut over caveshen.com | *new* | 🔨 ACCEPTED 2026-09-05 — redesign approved at preview; plan in `.scratch/cutover-plan.md`; folds d48 and d51 into its order (§d52) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -6909,3 +6910,35 @@ desktop-1920, desktop-2560, and desktop-firefox. Drop iphone-se and
 desktop-1366. That is about 29 minutes per PR run. Still open:
 pixel-8, the only Android and touch-Chromium project, at about 3
 minutes. Caveshen decides at pickup whether it stays.
+
+## d52. Videogame-menus cutover
+
+### 🔨 ACCEPTED 2026-09-05 — the redesign is the new target
+
+On 2026-09-04 Caveshen asked Fable 5.1, working alone, to redesign all
+three views as videogame menus: Dragon Age and Mass Effect register, blue
+and gold, PRD rulings set aside. The result landed on
+`item/videogame-menus` and shipped to a preview host,
+preview.caveshen.com, on a separate Cloudflare Pages project
+(`caveshen-preview`). He approved it, dialogue included, and made the
+branch the working branch.
+
+Rulings, 2026-09-05:
+
+- The redesign replaces the site in main. Nothing from the old front is
+  kept for its own sake; the scene art, the Badger, the un-develop, the
+  view-transition morph and the dialogue engine stay because the new
+  design uses them.
+- Fable does the work in the main thread. Delegation to sub-agents had
+  disappointed; it is no longer the default on this repo.
+- The order of work: retire the gated front, re-pin the e2e suite, prune
+  the suite for relevance and cost, CI to the d51 rulings, favicon and
+  meta re-established for the new register, PRD and docs rewritten as
+  current truth, Caveshen's copy pass, then the PR to main and the
+  cutover. The preview project and its DNS record are deleted after the
+  cutover; the repo goes private last.
+- d48 (sheet goes live) is absorbed: the cutover un-gates everything at
+  once. d51 keeps its rulings and runs as a ticket here.
+
+The ticket-level plan lives in `.scratch/cutover-plan.md` (local working
+papers, not committed).

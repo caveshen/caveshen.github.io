@@ -170,3 +170,36 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+  deploy-preview:
+    # The working branch ships to preview.caveshen.com on every push, gated
+    # on the unit suite only: the e2e specs are being re-pinned to the new
+    # design and must not hold the preview. Ungated build, its own project.
+    if: github.ref == 'refs/heads/item/videogame-menus'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Build (preview host)
+        run: npm run build
+        env:
+          SITE: https://preview.caveshen.com
+
+      - name: Deploy to Cloudflare Pages (preview project)
+        run: npx wrangler@4 pages deploy dist --project-name=caveshen-preview --branch=item/videogame-menus
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

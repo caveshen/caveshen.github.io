@@ -8,7 +8,8 @@ import { fileURLToPath } from 'node:url';
 // a plain Node module before Vite/Astro exist, so read process.env here, not
 // import.meta.env.
 const GATED = process.env.GATED === '1';
-const site = GATED ? 'https://caveshen.com' : 'https://caveshen.github.io';
+// SITE overrides the canonical host for a preview deploy (preview.caveshen.com).
+const site = process.env.SITE ?? (GATED ? 'https://caveshen.com' : 'https://caveshen.github.io');
 
 // Cloudflare Pages edge redirect: every route but the live cover 302s home.
 // Gated build only — the github.io preview emits none.

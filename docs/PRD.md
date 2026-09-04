@@ -6939,6 +6939,10 @@ Rulings, 2026-09-05:
   cutover; the repo goes private last.
 - d48 (sheet goes live) is absorbed: the cutover un-gates everything at
   once. d51 keeps its rulings and runs as a ticket here.
+- Favicon: the gold diamond on navy at every size, 16 included. The
+  generated SVG Badger head retires entirely. The pixel champion, cut from
+  Caveshen's own photo, stays in the repo as an easter egg or fallback but
+  leaves the icon slots.
 
 The ticket-level plan lives in `.scratch/cutover-plan.md` (local working
 papers, not committed).

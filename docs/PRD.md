@@ -92,7 +92,7 @@ the document body under their original `§` headings as history.
 | d46 | Design-language style guide — fonts, type scale, palette, framing rules, laws, in one reference doc | *new* | ✅ COMPLETE 2026-08-31 — `docs/STYLE_GUIDE.md` shipped with PR #33 (§d46) |
 | d47 | Coming-soon live cover — go live with the threshold front; menu blurred, "Coming Soon" beneath | *new* | ✅ LIVE 2026-09-01 — PR #34 squash-merged (`2ec7d81`); post-merge live checks all passed (§d47) |
 | d48 | Character sheet goes live — un-gate the sheet on the live site once finalised | *new* | 💡 raised 2026-08-30 — second stage of d47; parked until the sheet is done (§d48) |
-| d49 | Grain-flicker defect — the film-grain tile swap hard-cut every 1.4s, read as a pop | *new* | ✅ ACCEPTED 2026-09-03 — static grain passed preview; PR raised for squash-merge (§d49) |
+| d49 | Grain-flicker defect — the film-grain tile swap hard-cut every 1.4s, read as a pop | *new* | ✅ COMPLETE 2026-09-03 — static grain passed preview; PR #35 squash-merged to main (§d49) |
 | d50 | Night too light — the static grain lifts the blacks slightly; night should read darker | *new* | 💡 raised 2026-09-03 at the d49 preview — not queued; pick up on Caveshen's go (§d50) |
 | d51 | Repo goes private, CI trimmed — retire the GitHub Pages deploy, trim Actions triggers and matrix, flip the repo private | *new* | 💡 raised 2026-09-03 — rulings recorded, matrix cut ruled bar pixel-8; pick up after d49 (§d51) |
 
@@ -6850,7 +6850,7 @@ the e2e suite on Chromium, Firefox, and WebKit all pass. Built on
 
 Caveshen passed the static grain at preview: no flicker. He noted the
 night reads a little lighter than it should and suspects the grain.
-That is raised as d50. PR raised for squash-merge.
+That is raised as d50. PR #35 squash-merged to main.
 
 ## d50. Night too light — the static grain lifts the blacks
 

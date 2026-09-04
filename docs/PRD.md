@@ -94,7 +94,7 @@ the document body under their original `§` headings as history.
 | d48 | Character sheet goes live — un-gate the sheet on the live site once finalised | *new* | 💡 raised 2026-08-30 — second stage of d47; parked until the sheet is done (§d48) |
 | d49 | Grain-flicker defect — the film-grain tile swap hard-cut every 1.4s, read as a pop | *new* | ✅ ACCEPTED 2026-09-03 — static grain passed preview; PR raised for squash-merge (§d49) |
 | d50 | Night too light — the static grain lifts the blacks slightly; night should read darker | *new* | 💡 raised 2026-09-03 at the d49 preview — not queued; pick up on Caveshen's go (§d50) |
-| d51 | Repo goes private, CI trimmed — retire the GitHub Pages deploy, trim Actions triggers and matrix, flip the repo private | *new* | 💡 raised 2026-09-03 — rulings recorded; matrix cut still open; pick up after d49 (§d51) |
+| d51 | Repo goes private, CI trimmed — retire the GitHub Pages deploy, trim Actions triggers and matrix, flip the repo private | *new* | 💡 raised 2026-09-03 — rulings recorded, matrix cut ruled bar pixel-8; pick up after d49 (§d51) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -6903,3 +6903,9 @@ grill decides which devices stay and what coverage is lost.
 
 Order at pickup: trim CI and retire Pages on a branch, merge, then
 flip the repo private in the GitHub settings.
+
+Matrix ruling, later the same day: keep iphone-15pro, ipad,
+desktop-1920, desktop-2560, and desktop-firefox. Drop iphone-se and
+desktop-1366. That is about 29 minutes per PR run. Still open:
+pixel-8, the only Android and touch-Chromium project, at about 3
+minutes. Caveshen decides at pickup whether it stays.

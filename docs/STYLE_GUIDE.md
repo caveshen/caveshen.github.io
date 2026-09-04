@@ -179,9 +179,9 @@ blow click timeouts across the whole e2e suite while Chromium and Firefox
 stay fast. This codebase avoids both:
 
 - Stepped filter values are driven from a JS timer, not `<animate>`.
-- Film grain is four pre-rendered seamless tiles (`public/grain/grain-*.webp`,
-  built by `tools/build-grain-tiles.mjs`), cycled by a timer, instead of a
-  live full-viewport `feTurbulence` filter.
+- Film grain is one pre-rendered seamless tile (`public/grain/grain-0.webp`,
+  built by `tools/build-grain-tiles.mjs`), static, instead of a live
+  full-viewport `feTurbulence` filter.
 
 See the CLAUDE.md gotcha dated 2026-08-30 for the measured before/after (a
 25-minute WebKit kill fell to 6–10 minutes green on this change alone).

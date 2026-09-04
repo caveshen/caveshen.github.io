@@ -37,7 +37,8 @@ const root = tree.root;
   feTurbulence filter — a full-viewport SVG filter re-rasterised on every
   paint by CI's software-rendered Linux WebKit (no GPU) starved the whole
   e2e matrix; see that script's header. Outside .camera so it never scales/
-  zooms with the approach. stage.js cycles which tile url() is set.
+  zooms with the approach. Static: this front is a night photograph, and a
+  photograph's grain is fixed, not moving.
 -->
 <div class="grain-overlay" aria-hidden="true"></div>
 
@@ -166,10 +167,9 @@ const root = tree.root;
 
   /* Grain: plain opacity only — two independent mock implementations found
      mix-blend-mode crushes the speckle to invisibility against this palette.
-     background-image is one of the pre-rendered tiles (tools/build-grain-tiles.mjs);
-     stage.js cycles which tile url() is set, and leaves the CSS default (grain-0)
-     alone under reduced motion — static grain still shows, per spec, nothing to
-     pause. tile is 240px square, repeating. */
+     background-image is the pre-rendered tile (tools/build-grain-tiles.mjs).
+     Static — no timer, no reduced-motion case needed. tile is 240px square,
+     repeating. */
   .grain-overlay {
     position: absolute;
     inset: 0;

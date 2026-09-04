@@ -57,21 +57,6 @@ export function initStage(tree) {
   document.addEventListener('keydown', () => document.documentElement.classList.add('kb-focus'), true);
   document.addEventListener('pointerdown', () => document.documentElement.classList.remove('kb-focus'), true);
 
-  // Film grain: cycles which pre-rendered tile (tools/build-grain-tiles.mjs)
-  // .grain-overlay's background-image points at, replacing the old seed-
-  // stepped live feTurbulence filter — see Stage.astro's comment for why.
-  // Skipped under reduced motion, where the CSS default tile (grain-0)
-  // stays pinned — no animation to guard off, just this cycling timer.
-  const grainOverlay = document.querySelector('.grain-overlay');
-  if (grainOverlay && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const tiles = [0, 1, 2, 3].map((n) => `url(/grain/grain-${n}.webp)`);
-    let tileIndex = 0;
-    setInterval(() => {
-      tileIndex = (tileIndex + 1) % tiles.length;
-      grainOverlay.style.backgroundImage = tiles[tileIndex];
-    }, 1400);
-  }
-
   // Sea shimmer's displacement scale (Stage.astro's #sea-shimmer filter) — a plain
   // timer stepping the same 5-to-12-to-5 triangle wave a SMIL <animate> used to
   // drive continuously; see that file's comment for why. Skipped under reduced

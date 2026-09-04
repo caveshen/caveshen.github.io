@@ -58,17 +58,17 @@ test('grain overlay covers the full frame in both themes, at low plain opacity, 
   expect(day.blend).toBe('normal');
 });
 
-test('grain overlay steps its background tile on a discrete schedule', async ({ page }) => {
+test('grain overlay is static: same background-image sampled 3s apart', async ({ page }) => {
   const overlay = page.locator('.grain-overlay');
   const before = await overlay.evaluate((el) => getComputedStyle(el).backgroundImage);
-  // Driven by stage.js on a 1.4s timer cycling pre-rendered tiles
-  // (tools/build-grain-tiles.mjs) — the background-image is the only
-  // observable proof of the schedule.
-  await expect(async () => {
-    const after = await overlay.evaluate((el) => getComputedStyle(el).backgroundImage);
-    expect(after).not.toBe(before);
-    expect(after).toContain('grain-');
-  }).toPass({ timeout: 3000 });
+  expect(before).toContain('grain-');
+  // A photograph's grain is fixed, not moving — no timer should ever touch
+  // this. 3s clears both the old single-layer 1.4s hard-cut cycle and the
+  // cross-fade version's 2.8s per-layer round trip, so this fails red if
+  // either timer ever comes back.
+  await page.waitForTimeout(3000);
+  const after = await overlay.evaluate((el) => getComputedStyle(el).backgroundImage);
+  expect(after).toBe(before);
 });
 
 test('sea shimmer applies to the sea and wave fills only', async ({ page }) => {
@@ -109,8 +109,8 @@ test('reduced motion: grain stops animating (one pinned tile) and shimmer motion
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.reload();
 
-  // stage.js's tile-cycling timer is guarded off under reduced motion — the
-  // CSS default tile (grain-0) stays pinned, not just unused.
+  // Grain has no timer at all now — the CSS default tile (grain-0) stays
+  // pinned regardless of motion preference.
   const overlay = page.locator('.grain-overlay');
   const tileAtStart = await overlay.evaluate((el) => getComputedStyle(el).backgroundImage);
   await page.waitForTimeout(1600);

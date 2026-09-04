@@ -90,8 +90,11 @@ the document body under their original `§` headings as history.
 | d44 | Favicon refinement — the vector Badger head as favicon works but does not fully satisfy | *new* | ✅ COMPLETE 2026-08-31 — E2-smooth shipped; PR #33 matrix green; squash-merged to main (§d44) |
 | d45 | The Badger on the threshold — render him on the cover as the continuity piece into both views; settle cover routing/history | *new* | 💡 raised 2026-08-29 at the d43 preview — needs its own grill → spec → tickets loop before any build (§d45) |
 | d46 | Design-language style guide — fonts, type scale, palette, framing rules, laws, in one reference doc | *new* | ✅ COMPLETE 2026-08-31 — `docs/STYLE_GUIDE.md` shipped with PR #33 (§d46) |
-| d47 | Coming-soon live cover — go live with the threshold front; menu blurred, "Coming Soon" beneath | *new* | 🔨 DELIVERED 2026-09-01 — PR #34 green, awaiting squash-merge; live-domain checks run after merge (§d47) |
+| d47 | Coming-soon live cover — go live with the threshold front; menu blurred, "Coming Soon" beneath | *new* | ✅ LIVE 2026-09-01 — PR #34 squash-merged (`2ec7d81`); post-merge live checks all passed (§d47) |
 | d48 | Character sheet goes live — un-gate the sheet on the live site once finalised | *new* | 💡 raised 2026-08-30 — second stage of d47; parked until the sheet is done (§d48) |
+| d49 | Grain-flicker defect — the film-grain tile swap hard-cut every 1.4s, read as a pop | *new* | ✅ COMPLETE 2026-09-03 — static grain passed preview; PR #35 squash-merged to main (§d49) |
+| d50 | Night too light — the static grain lifts the blacks slightly; night should read darker | *new* | 💡 raised 2026-09-03 at the d49 preview — not queued; pick up on Caveshen's go (§d50) |
+| d51 | Repo goes private, CI trimmed — retire the GitHub Pages deploy, trim Actions triggers and matrix, flip the repo private | *new* | 💡 raised 2026-09-03 — rulings recorded, matrix cut ruled bar pixel-8; pick up after d49 (§d51) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -6771,6 +6774,21 @@ main, then the live checks — caveshen.com serves the gated cover over
 HTTPS, `/sheet` 302s home, caveshen.github.io still serves the full
 ungated site.
 
+### ✅ LIVE 2026-09-01 — post-merge checks all passed
+
+PR #34 squash-merged to main as `2ec7d81`. The `Deploy to GitHub Pages`
+run for that commit finished with every job green, including
+`deploy-cloudflare`. Checks made after the merge:
+
+- `https://caveshen.com/` returns HTTP 200 and its page shows the
+  "Coming Soon" cover.
+- `https://caveshen.com/sheet` returns HTTP 302 and sends the visitor
+  to `/`.
+- `https://caveshen.github.io/` still returns HTTP 200 and shows the
+  full menu (New Game, Sheet), not the gated cover.
+
+All three checks passed. The row above moves from DELIVERED to LIVE.
+
 ## d48. Character sheet goes live
 
 ### 💡 RAISED 2026-08-30 — the second stage of d47
@@ -6780,3 +6798,114 @@ its menu button un-blurs and routes as designed, while the scene (New
 Game) stays gated until its own moment. Scope and sequencing belong
 to pickup; the mechanism depends on whatever gate d47 builds. Parked
 until the sheet is done.
+
+## d49. Grain-flicker defect — the film-grain tile swap popped
+
+### 💡 RAISED 2026-09-03 — Caveshen saw a flicker on the live site
+
+Caveshen reported a "grain flicker" on the arrived scene. Diagnosis
+found the cause: the film-grain overlay swaps its whole noise tile
+every 1.4 seconds with a hard cut, no blend between the old and new
+tile. That reads as a small, regular pop rather than continuous
+texture.
+
+### 🔨 DELIVERED 2026-09-03 — built on `item/grain-flicker`, awaiting Caveshen's preview
+
+Fixed with a cross-fade. A second grain layer sits alongside the
+first; every 1.4 seconds the hidden layer gets the next tile and the
+two layers fade opacity in and out of each other over 700ms, driven
+by a plain CSS opacity transition. The swap cadence is unchanged, and
+reduced motion is unchanged — the first layer stays pinned on its
+starting tile, the second layer stays fully hidden.
+
+A new Playwright test proves the fade: it polls for a layer caught at
+an opacity strictly between hidden and fully shown, which a hard cut
+can never produce. The test was checked red first, with the fade
+duration set to zero, then green after restoring it. Full unit suite
+and the e2e suite on Chromium and WebKit both pass.
+
+### 🔨 DELIVERED 2026-09-03 — cross-fade failed preview; ruling moved to static grain
+
+Caveshen failed the cross-fade at preview. Two uncorrelated noise
+tiles blending over 700 milliseconds still read as the grain
+breathing every 1.4 seconds — still flicker, just a softer one.
+
+Ruling: the grain does not animate at all. This front is a night
+photograph, not film footage, and a photograph's grain is fixed. A
+static tile also costs nothing to run, which matters alongside how it
+looks.
+
+The second grain layer, the cycling timer, and the cross-fade CSS are
+all removed. One tile remains (`grain-0`); the other three pre-rendered
+tiles and the seeds that built them are gone, and the tile-building
+tool now renders only one. The Playwright tests that proved the old
+cycling schedule and the cross-fade are replaced with one test: the
+grain layer's background-image is present and unchanged across a
+three-second sample. That test was checked red against the cross-fade
+code first, then green after the static change. Full unit suite and
+the e2e suite on Chromium, Firefox, and WebKit all pass. Built on
+`item/grain-flicker`, awaiting Caveshen's preview.
+
+### ✅ ACCEPTED 2026-09-03 — static grain passed preview
+
+Caveshen passed the static grain at preview: no flicker. He noted the
+night reads a little lighter than it should and suspects the grain.
+That is raised as d50. PR #35 squash-merged to main.
+
+## d50. Night too light — the static grain lifts the blacks
+
+### 💡 RAISED 2026-09-03 — at the d49 preview
+
+Caveshen: night should be a bit darker, and the grain is the likely
+cause. The grain tile is mid-grey noise laid over the scene with a
+normal blend at 0.12 opacity, so every pixel moves 12% of the way
+toward grey, and the darkest areas move the most.
+
+Candidate fixes for pickup: blend the grain with `multiply` or
+`overlay`, so it adds texture without lifting the blacks; or render a
+darker tile. Either needs a preview. Not queued; pick up on
+Caveshen's go.
+
+## d51. Repo goes private, CI trimmed
+
+### 💡 RAISED 2026-09-03 — rulings so far
+
+Caveshen wants the source hidden until the site is ready. The facts
+that shape the item:
+
+- The account is on the GitHub Free plan. A private repo meters
+  Actions at 2,000 minutes a month.
+- GitHub Pages does not publish from a private Free repo, so
+  caveshen.github.io goes dark. Caveshen accepts that. Local preview
+  still works. The Cloudflare deploy does not care about visibility.
+- Measured cost today, from the PR #34 run: a PR push runs 12 jobs
+  for about 44 minutes; a push to any branch, or to main, about 6.
+  Last week's cadence would use 2,000 to 2,500 minutes a month.
+- `main` has no branch protection, so a PR whose CI is skipped can
+  still be merged.
+
+Rulings given 2026-09-03:
+
+- No CI on branch pushes. The PR run covers them.
+- No CI on draft PRs. The full matrix runs when the PR leaves draft.
+- No CI on docs-only pushes.
+- Retire the GitHub Pages deploy job.
+
+Open: cut the device matrix. Parallel jobs do not save billed
+minutes; only fewer projects do. Setup is under a minute per job, so
+the test time itself is the cost. Per project on the PR #34 run:
+iphone-15pro 8.7 min, ipad 8.6, iphone-se 7.5, desktop-firefox 4.0,
+desktop-1920 4.1, desktop-1366 3.7, desktop-2560 3.5, pixel-8 3.1.
+The three WebKit devices are about 25 of the 44 minutes. One device
+per family (one WebKit phone, one Android phone, one desktop
+Chromium, Firefox) would cost about 20 minutes per PR run. The pickup
+grill decides which devices stay and what coverage is lost.
+
+Order at pickup: trim CI and retire Pages on a branch, merge, then
+flip the repo private in the GitHub settings.
+
+Matrix ruling, later the same day: keep iphone-15pro, ipad,
+desktop-1920, desktop-2560, and desktop-firefox. Drop iphone-se and
+desktop-1366. That is about 29 minutes per PR run. Still open:
+pixel-8, the only Android and touch-Chromium project, at about 3
+minutes. Caveshen decides at pickup whether it stays.

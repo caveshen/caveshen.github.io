@@ -1,13 +1,14 @@
-// Renders public/grain/grain-<n>.png — small seamless film-grain tiles that
-// replace the live full-viewport feTurbulence filter (Stage.astro used to
+// Renders public/grain/grain-0.png — a small seamless film-grain tile that
+// replaces the live full-viewport feTurbulence filter (Stage.astro used to
 // paint one directly). CI's software-rendered Linux WebKit re-rasterises a
 // full-viewport feTurbulence filter on every paint at a cost Windows WebKit
 // never shows locally; a repeating background-image tile is free at paint
-// time. Each tile is a real render of the SAME filter recipe Stage.astro used
+// time. The tile is a real render of the SAME filter recipe Stage.astro used
 // to run live (baseFrequency/numOctaves/color matrix/component transfer
 // unchanged) — only the filter's primitive subregion is pinned to exactly
 // TILE×TILE with stitchTiles="stitch", which is what makes feTurbulence
-// periodic at that size, so the tile repeats with no visible seam.
+// periodic at that size, so the tile repeats with no visible seam. One tile,
+// static — a photograph's grain is fixed, not moving.
 // Run from the repo root: node tools/build-grain-tiles.mjs
 import { chromium } from 'playwright-core';
 import sharp from 'sharp';
@@ -18,7 +19,7 @@ import { hashFile, updateManifest } from './derived-inputs.js';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const TILE = 240;
-const SEEDS = [2, 9, 4, 13]; // subset of stage.js's old seed-cycling schedule
+const SEEDS = [2]; // stage.js's old seed-cycling schedule, first seed only
 
 const html = (seed) => `<!doctype html><meta charset="utf-8">
 <style>html,body{margin:0}</style>

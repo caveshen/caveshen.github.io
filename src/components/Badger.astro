@@ -1,13 +1,11 @@
 ---
-// Badger.astro — commissioned Badger avatar, full rights (not the inspiration-only decal).
-// Same x/y/scale contract as HoodedFigure.astro: local y=196 is the ground/shoe line, so
-// callers pass the figure's own FIG anchors straight through.
-// Treatment: grayscale + contrast, darker at night, so the raster doesn't out-detail the
-// flat-silhouette world.
-// Raster size: 200 is SVG units, not pixels — do not resize the 500×500 source down; it's
-// already tight at the top of the range (≈1024 device px at 2560/2×).
-// Two-frame idle: swaps on --badger-cadence (800ms/frame, 1.6s cycle), CSS-only;
-// prefers-reduced-motion holds the up frame.
+// Badger.astro — commissioned Badger avatar, full rights. Same x/y/scale
+// contract as HoodedFigure.astro: local y=196 is the ground line. Treatment:
+// grayscale + contrast, darker at night, so the raster doesn't out-detail the
+// flat-silhouette world. Raster size 200 is SVG units, not pixels.
+// Two-frame idle swaps on --badger-cadence, CSS-only; reduced motion holds
+// the up frame. The quest marker above his head is the "talk to me" sign
+// (styled and bobbed in Stage.astro).
 interface Props {
   x: number;
   y: number;
@@ -25,16 +23,21 @@ const { x, y, scale = 1 } = Astro.props;
   <image class="badger-image badger-up"   href="/badger-up.png"   x="-100" y="-4" width="200" height="200" />
   <image class="badger-image badger-down" href="/badger-down.png" x="-100" y="-4" width="200" height="200" />
 
-  <!-- invisible marker over the face — drives approach/zoom framing, same as .face-void -->
+  <!-- invisible marker over the face — drives approach/zoom framing -->
   <rect class="face-void" x="-42" y="34" width="84" height="66" fill="transparent" />
 
-  <!-- Generous invisible hit surface — figure bounds (x:-100..100, y:-4..196)
-       plus comfortable padding. Painted last so it sits topmost and owns the
-       whole padded area's hover/click, not just the drawn silhouette. Never
-       focusable — see .js-character-hit in Stage.astro (pointer-events:all,
-       cursor:pointer) and stage.js (hover summons the approach prompt; a
-       click or tap starts the dialogue directly, same as the prompt). -->
-  <rect class="js-character-hit" x="-120" y="-20" width="240" height="230" fill="transparent" />
+  <!-- quest marker: a gold diamond in a ring, above the head -->
+  <g class="quest-marker" transform="translate(0,-34)" aria-hidden="true">
+    <g class="quest-marker-bob">
+      <circle class="f-marker-ring" cx="0" cy="0" r="15" />
+      <polygon class="f-marker" points="0,-9 7,0 0,9 -7,0" />
+    </g>
+  </g>
+
+  <!-- Generous invisible hit surface — figure bounds plus padding. Painted
+       last so it owns the whole padded area's hover/click. Never focusable —
+       see .js-character-hit in Stage.astro. -->
+  <rect class="js-character-hit" x="-120" y="-60" width="240" height="270" fill="transparent" />
 
 </g>
 
@@ -46,7 +49,7 @@ const { x, y, scale = 1 } = Astro.props;
     filter: grayscale(1) contrast(1.05) brightness(.95);
   }
   :root:not([data-time="day"]) .badger-image {
-    filter: grayscale(1) contrast(1.05) brightness(.95) brightness(.7);
+    filter: grayscale(1) contrast(1.05) brightness(.95) brightness(.72);
   }
 
   /* up shows first half of cycle, down second half; steps(1, end) = hard-cut, no cross-fade */

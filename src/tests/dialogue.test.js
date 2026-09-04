@@ -136,8 +136,8 @@ describe('engine DOM rendering', () => {
     experienceBtn.click();
     expect(speechEl.textContent.trim().length).toBeGreaterThan(0);
     expect(speechEl.textContent).not.toBe(rootSpeech);
-    // After navigating to experience, there should be exactly one "ask something else" button
-    expect(choicesEl.querySelectorAll('button').length).toBe(1);
+    // The next node always offers at least a way back
+    expect(choicesEl.querySelectorAll('button').length).toBeGreaterThanOrEqual(1);
   });
 
   it('system option has class "system"', () => {
@@ -153,7 +153,7 @@ describe('engine DOM rendering', () => {
     const nonSystemBtn = [...choicesEl.querySelectorAll('button')]
       .find(b => !b.classList.contains('system'));
     nonSystemBtn.click();
-    // Content changed — nodes have different PLACEHOLDER strings
+    // Content changed — nodes carry different lines
     expect(speechEl.textContent).not.toBe(before);
     expect(document.querySelector('[aria-live="polite"]')).not.toBeNull();
   });

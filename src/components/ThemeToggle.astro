@@ -1,4 +1,7 @@
 ---
+// ThemeToggle.astro — turns the world's sky over: night (default) or day.
+// HUD chip, top right. Base.astro's inline head script applies the stored
+// theme before first paint; this only syncs the label and handles clicks.
 ---
 <button class="toggle" id="toggle" aria-label="Switch to day mode"><span class="toggle-icon">☼</span> day</button>
 
@@ -7,9 +10,8 @@
   const icon = toggle.querySelector('.toggle-icon') as HTMLSpanElement;
   const label = icon.nextSibling as Text;
 
-  // Sync button label to the theme already applied by Base.astro's inline script.
   // Mutates the existing icon span/text node in place rather than rebuilding
-  // them, so the span keeps Astro's scoped-style hash (see the style block below).
+  // them, so the span keeps Astro's scoped-style hash.
   function syncLabel(isDay: boolean) {
     icon.textContent = isDay ? '☽' : '☼';
     label.textContent = isDay ? ' night' : ' day';
@@ -17,15 +19,9 @@
   }
   syncLabel(document.documentElement.dataset.time === 'day');
 
-  // B7 (d31 Part B): the diegetic touch — turning the sky over. Pure CSS
-  // keyframe (gated by prefers-reduced-motion in the stylesheet below); this
-  // brackets it with a class, removed on animationend so the class never
-  // outlives an animation that actually played. flipTimer is a fallback only,
-  // for when no animation plays (reduced motion) or animationend is missed.
-  // Must comfortably exceed the 220ms toggle-flip animation — a fallback
-  // near 220ms would race the animation's own animationend and strip the
-  // class early, recreating the phantom-failure bug this fallback exists
-  // alongside (see the comment above).
+  // One glyph flip per click; the class is removed on animationend, with a
+  // timer fallback for when no animation plays (reduced motion). The fallback
+  // must comfortably exceed the 220ms flip so it never races animationend.
   const FLIP_FALLBACK_MS = 2000;
   let flipTimer: ReturnType<typeof setTimeout>;
   function endFlip() {
@@ -33,8 +29,6 @@
     clearTimeout(flipTimer);
   }
   toggle.addEventListener('animationend', (e) => {
-    // Guards against a bubbled animationend from some future descendant
-    // animation stripping the class before toggle-flip itself finishes.
     if (e.animationName === 'toggle-flip') endFlip();
   });
   toggle.addEventListener('click', () => {
@@ -43,10 +37,8 @@
     document.documentElement.dataset.time = next;
     localStorage.setItem('time', next);
     syncLabel(!isDay);
-    // remove/reflow/add restarts the animation on a rapid second click, when
-    // a bare add() would be a no-op since the class is still present.
     endFlip();
-    void toggle.offsetWidth;
+    void toggle.offsetWidth; // restart the animation on a rapid second click
     toggle.classList.add('flipping');
     flipTimer = setTimeout(endFlip, FLIP_FALLBACK_MS);
   });
@@ -57,57 +49,46 @@
     position: absolute;
     top: 1rem;
     right: 1rem;
-    /* .stage-frame is full-bleed and later in the DOM, so it would otherwise
-       paint over this earlier sibling; z-index lifts the toggle above it
-       (see the matching note on .page-foot). */
+    /* .stage-frame is full-bleed and later in the DOM; z-index lifts the
+       toggle above it. */
     z-index: 1;
-    font-family: var(--mono);
-    font-size: 0.78rem;
-    letter-spacing: 0.08em;
-    color: var(--text);
-    /* B7 (d31 Part B): join the HUD — same translucent glass chip as
-       .page-foot/.fullscreen-toggle (Stage.astro) instead of a solid --card,
-       so the three corner elements read as one HUD language. Also B3's box:
-       4px-radius rectangle, 2px border, replacing the pill. */
-    background: rgba(10, 8, 22, 0.55);
-    border: 2px solid rgba(233, 226, 207, 0.22);
-    border-radius: 4px;
-    padding: 0.45rem 0.95rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 44px;
+    font-family: var(--hud);
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--prompt-ink);
+    text-shadow: 0 1px 3px rgba(7, 6, 14, 1), 0 0 12px rgba(7, 6, 14, 0.9);
+    background: rgba(6, 10, 18, 0.55);
+    border: 1px solid var(--holo-dim);
+    border-radius: 3px;
+    padding: 0.45rem 0.9rem;
     cursor: pointer;
     backdrop-filter: blur(3px);
-    transition: color 0.12s ease, border-color 0.12s ease, background 0.4s ease,
-      translate 0.1s ease;
+    transition: color 0.12s ease, border-color 0.12s ease, translate 0.1s ease;
   }
   .toggle:hover, .toggle:focus-visible {
-    color: var(--btn-hover-text);
-    border-color: var(--btn-hover-border);
-    /* Standard verb (d37 §6): the faint warm wash laid over the resting
-       glass — a bare wash alone would strip the chip's dark ground. */
-    background: linear-gradient(var(--btn-hover-bg), var(--btn-hover-bg)), rgba(10, 8, 22, 0.55);
+    color: var(--gold-bright);
+    border-color: var(--gold-bright);
   }
   .toggle:focus-visible {
-    outline: 2px solid var(--gold-bright);
-    outline-offset: 2px;
+    outline: 1px solid var(--holo);
+    outline-offset: 3px;
   }
   .toggle:active {
     translate: 0 1px;
   }
-  :root[data-time="day"] .toggle {
-    background: rgba(253, 251, 245, 0.65);
-    border-color: rgba(37, 48, 56, 0.22);
-  }
-  :root[data-time="day"] .toggle:hover,
-  :root[data-time="day"] .toggle:focus-visible {
-    background: linear-gradient(var(--btn-hover-bg), var(--btn-hover-bg)), rgba(253, 251, 245, 0.65);
-  }
   @media (prefers-reduced-motion: reduce) {
     .toggle { transition: none; }
   }
-  /* B7's diegetic touch: one 180deg rotateY flip on the glyph as the theme
-     crossfades — turning the sky over. rotateY, not translate: nothing else
-     drives this element's transform, so there's no trap to dodge here. */
   .toggle-icon {
     display: inline-block;
+    font-size: 1.1em;
+    color: var(--gold-bright);
   }
   .toggle.flipping .toggle-icon {
     animation: toggle-flip 220ms ease;

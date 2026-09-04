@@ -1,168 +1,180 @@
-/* Design tokens: d37 night palette (Dragon Age register); day overrides on data-time="day". */
+/* Design tokens: night blue-and-gold (the game register); day overrides on data-time="day". */
 :root {
-  --bg:          #0c1118;
-  --sky:         #0c1420;
-  --mountain:    #161f27;
-  --mountain-mid:#242f39; /* foothill step between --mountain-far and --mountain */
-  --mountain-far:#33414d;
-  --sea:         #1f3036;
-  --celestial:   #ffc46b; /* candlelight windows + stars at night; the sun disc by day */
-  --text:        #ece4d4;
-  --stage:       #7f9490;
-  --option:      #8fb4d8;
+  --bg:        #060a12;
+  --sky:       #0a1428;
+  --mountain:  #131f30;
+  --mountain-mid: #1f3049; /* foothill step between --mountain-far and --mountain */
+  --mountain-far: #34495f;
+  --sea:       #142d45;
+  --celestial: #ffc46b; /* candlelight windows + stars at night; the sun disc by day */
+  --text:      #ece4d4;
+  --stage:     #8aa0b8;
+  --option:    #6fb3e8;
 
-  --serif:  "Cormorant Garamond", "Times New Roman", serif;
-  --display: "Cinzel", "Times New Roman", serif;
-  --mono:   "Cascadia Code", ui-monospace, Consolas, monospace;
+  --serif:     "Cormorant Garamond", "Times New Roman", serif;
+  --display:   "Cinzel", "Times New Roman", serif;
+  --mono:      "Cascadia Code", ui-monospace, Consolas, monospace;
+  /* HUD face: menus, labels, stats, hotkeys — the sci-fi constant. */
+  --hud:       "Rajdhani", "Segoe UI", "Helvetica Neue", sans-serif;
 
-  --r-sharp: 4px;
-  --r-panel: 10px;
-  --r-pill:  999px;
+  --r-sharp:   4px;
+  --r-panel:   10px;
+  --r-pill:    999px;
 
-  --t-micro:    150ms ease;
+  --t-micro:   150ms ease;
   --ease-camera: cubic-bezier(0.16, 1, 0.3, 1);
   --theme-transition: background-color 0.4s ease, color 0.4s ease;
 
   /* Extended tokens — shared via tokens.css; some consumed only by / */
-  --card-edge:        #2b2822;
-  --dim:              #9aa39b;
-  --option-border:    rgba(143, 180, 216, 0.35);
+  --card-edge: #22304a;
+  --dim:       #9aa8b8;
+  --option-border: rgba(111, 179, 232, 0.35);
   /* Hover verb (spec §6): faint warm wash, border and text to gold-bright. */
-  --btn-hover-bg:     rgba(217, 169, 78, 0.10);
+  --btn-hover-bg: rgba(217, 169, 78, 0.10);
   --btn-hover-border: #ffc46b;
-  --btn-hover-text:   #ffc46b;
-  --chip-text:        #0c1118;
+  --btn-hover-text: #ffc46b;
+  --chip-text: #060a12;
   /* Primary action (spec §6): ink on the filled gold pill. Day flips to light
      ink because day's darkened bronze gold is too close to dark ink for AA. */
-  --btn-primary-ink:  #0c1118;
+  --btn-primary-ink: #060a12;
   /* Dialogue plate ignition text (spec §5): bone brighter than --text. */
   --plate-hover-text: #f6efe0;
   /* Approach prompt: plain white in both themes. */
-  --prompt-ink:       #ffffff;
+  --prompt-ink: #ffffff;
 
   /* House gold (spec §2): rules, marks, fills; bright for hover/focus. */
-  --gold:        #d9a94e;
+  --gold:      #d9a94e;
   --gold-bright: #ffc46b;
-  --glass-bg:     rgba(14, 16, 22, 0.75);
-  --glass-border: rgba(236, 228, 212, 0.18);
-  --hairline:     rgba(217, 169, 78, 0.35);
+  --glass-bg:  rgba(6, 10, 18, 0.78);
+  --glass-border: rgba(111, 179, 232, 0.22);
+  --hairline:  rgba(217, 169, 78, 0.35);
 
   /* Sheet panel surface: ink sinking into black */
-  --panel-grad:       linear-gradient(180deg, #1a1a17 0%, #0a0b09 100%);
+  --panel-grad: linear-gradient(180deg, #0f1a2c 0%, #070b14 100%);
   /* Sheet page background: faint gold and lavender glows on ink */
-  --sheet-bg:         radial-gradient(900px 520px at 82% -6%, rgba(217, 169, 78, 0.10), transparent 65%),
-                      radial-gradient(760px 480px at 6% 34%, rgba(143, 180, 216, 0.07), transparent 60%),
-                      #0a0c11;
+  --sheet-bg:  radial-gradient(900px 520px at 82% -6%, rgba(217, 169, 78, 0.10), transparent 65%),
+                      radial-gradient(760px 480px at 6% 34%, rgba(111, 179, 232, 0.08), transparent 60%),
+                      #060a12;
 
   /* Bone moon (locked pale disc), standing-parapet rail, near-shore ground,
      ambient wind motes. */
-  --moon:   #e8e2d2;
-  --crater: #ccc5b2;
+  --moon:      #e8e2d2;
+  --crater:    #ccc5b2;
   /* unlit side of the moon once tonight's real phase draws its shadow */
-  --moon-shade: #131a23;
-  --rail:   #0a0e13;
-  --ground: #0b0e12;
+  --moon-shade: #12203a;
+  --rail:      #080d16;
+  --ground:    #0a1018;
   --mote:      #d8c9a0;
   --mote-op:   .30;
 
   /* Sea foam — a lighter tint of --sea, kept distinct from
      the pale/cream --moon so wave marks read as sea, not moon reflection. */
-  --wave: #3d5a60;
+  --wave:      #2f5878;
 
   /* Scene rebuild (d37 §3): moon's cloud bank, ridge mist, day sails on the
      bay, the antenna light on the tallest tower. Sail/beacon render in one
      theme only, but parity still demands both entries. */
-  --cloud-bank: #232f38;
-  --mist:       #4a5a66;
-  --sail:       #f2ede1;
-  --beacon:     #c0392b;
+  --cloud-bank: #1f3350;
+  --mist:      #4a5f78;
+  --sail:      #f2ede1;
+  --beacon:    #c0392b;
 
   /* Badger-head dark (mask stripes, nose) — identity colour, no day entry. */
   --head-dark: #0f1826;
 
   /* Where the sky's own falloff and the far mountains' base converge, so they
      read as one continuous haze rather than two shapes gradiented independently. */
-  --sky-horizon: #1d2b33;
+  --sky-horizon: #1c3554;
   /* A third, paler distance step past --mountain-far, for the warehouse fringe —
      the furthest-west cluster — so silhouette weight recedes in three steps. */
-  --mountain-fringe: #46545e;
+  --mountain-fringe: #465a70;
   /* Lit/shade facets, blended ±8% luminance from --mountain-far — the massif's own
      base tone, not a new colour. */
-  --mountain-lit:   #3e4c58;
-  --mountain-shade: #293540;
+  --mountain-lit: #3f556c;
+  --mountain-shade: #2a3c50;
   /* Building side-face, darkened from --mountain (the f-near/city fill). */
-  --building-shade: #0d1218;
+  --building-shade: #0c1522;
   /* Ground-plane depth falloff, darker toward the viewer than --ground. */
-  --ground-near: #05070a;
+  --ground-near: #04070c;
+
+  /* Holo blue: the system's own voice — readouts, labels, rules. Gold stays
+     the player's attention (markers, hover, the active thing). */
+  --holo:      #6fb3e8;
+  --holo-dim:  rgba(111, 179, 232, 0.35);
+  --navy:      #0e1a2e;
 }
 
 :root[data-time="day"] {
-  --bg:          #e7f0f5;
-  --sky:         #cfe0f0;
+  --bg:        #e7f0f5;
+  --sky:       #cfe0f0;
   /* Day mountains are umber/tan steps (spec §2), not slate — the far step
      warms, mid and near deepen. */
-  --mountain:    #5d4633;
-  --mountain-mid:#8a6d52;
-  --mountain-far:#a98d6f;
-  --sea:         #86b8d0;
-  --celestial:   #e9b64f;
-  --text:        #2b2723;
-  --stage:       #4c5f5c; /* darkened from #5d7470, same hue, for AA at 0.81 day glass */
-  --option:      #3e5d85; /* darkened from #3f5f88, same hue, for AA at 0.81 day glass */
+  --mountain:  #5d4633;
+  --mountain-mid: #8a6d52;
+  --mountain-far: #a98d6f;
+  --sea:       #86b8d0;
+  --celestial: #e9b64f;
+  --text:      #2b2723;
+  --stage:     #4c5f5c; /* darkened from #5d7470, same hue, for AA at 0.81 day glass */
+  --option:    #3e5d85; /* darkened from #3f5f88, same hue, for AA at 0.81 day glass */
 
-  --card-edge:        rgba(43, 39, 35, 0.12);
-  --dim:              #5d574b;
-  --option-border:    rgba(63, 95, 136, 0.35);
-  --btn-hover-bg:     rgba(217, 169, 78, 0.15);
+  --card-edge: rgba(43, 39, 35, 0.12);
+  --dim:       #5d574b;
+  --option-border: rgba(63, 95, 136, 0.35);
+  --btn-hover-bg: rgba(217, 169, 78, 0.15);
   --btn-hover-border: #57431a;
-  --btn-hover-text:   #57431a;
-  --chip-text:        #2b2723;
+  --btn-hover-text: #57431a;
+  --chip-text: #2b2723;
   /* Day gold darkens to bronze for AA on pale ground, so the pill's ink flips
      light — dark ink on bronze lands near 2:1, cream clears 4.5:1. */
-  --btn-primary-ink:  #fdfbf5;
+  --btn-primary-ink: #fdfbf5;
   /* "Text brightens" inverts on pale ground: day ink steps to bronze instead
      of toward bone (night's value is already brighter than night --text). */
   --plate-hover-text: var(--gold-bright);
-  --prompt-ink:       #ffffff;
+  --prompt-ink: #ffffff;
 
   /* Day gold darkens toward bronze for AA on pale grounds, so "bright" (the
      hover/focus step) is the darker bronze here — salience inverts on light. */
-  --gold:        #6f5620;
+  --gold:      #6f5620;
   --gold-bright: #57431a;
-  --glass-bg:     rgba(253, 251, 245, 0.81);
+  --glass-bg:  rgba(253, 251, 245, 0.81);
   --glass-border: rgba(43, 39, 35, 0.20);
-  --hairline:     rgba(111, 86, 32, 0.35);
+  --hairline:  rgba(111, 86, 32, 0.35);
 
   /* Sheet panel surface: parchment wash — cream warming at the base */
-  --panel-grad:       linear-gradient(180deg, #fdfbf5 0%, #f4eee0 100%);
+  --panel-grad: linear-gradient(180deg, #fdfbf5 0%, #f4eee0 100%);
   /* Sheet page background: pale daytime-sky blue, mirroring the day scene */
-  --sheet-bg:         linear-gradient(180deg, #d7e9f4 0%, #e7f0f5 100%);
+  --sheet-bg:  linear-gradient(180deg, #d7e9f4 0%, #e7f0f5 100%);
 
   /* Moon stays pale in both themes (it's hidden by day anyway); rail/ground/mote
      lighten for the day sky. */
-  --moon:   #e7e3cf;
-  --crater: #cbc6ae;
+  --moon:      #e7e3cf;
+  --crater:    #cbc6ae;
   --moon-shade: #cfe0f0;
-  --rail:   #7b93ac;
-  --ground: #33403c;
+  --rail:      #7b93ac;
+  --ground:    #33403c;
   --mote:      #5f7068;
   --mote-op:   .28;
   --wave:      #a8d4cf;
 
-  --sky-horizon:     #dde9f5;
+  --sky-horizon: #dde9f5;
   /* Day derived steps re-blended from the umber ladder (±8% luminance from
      the far step; building-shade darkened from near; fringe one paler step
      past far). */
   --mountain-fringe: #c2ab8e;
-  --mountain-lit:    #b89a79;
-  --mountain-shade:  #9b8266;
-  --building-shade:  #463424;
-  --ground-near:     #1f2c28;
+  --mountain-lit: #b89a79;
+  --mountain-shade: #9b8266;
+  --building-shade: #463424;
+  --ground-near: #1f2c28;
 
   --cloud-bank: #fdfbf5;
-  --mist:       #dde9f5;
-  --sail:       #f2ede1;
-  --beacon:     #c0392b;
+  --mist:      #dde9f5;
+  --sail:      #f2ede1;
+  --beacon:    #c0392b;
+
+  --holo:      #2c6aa0;
+  --holo-dim:  rgba(44, 106, 160, 0.35);
+  --navy:      #dfe9f2;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -231,17 +243,17 @@
    the transition and the per-depth delay below; the arming rule itself
    declares no transition property, so it can never animate on its own. */
 :root {
-  --undevelop-title-fade:         0.4s;
-  --undevelop-photo-drain:        1.3s;
+  --undevelop-title-fade: 0.4s;
+  --undevelop-photo-drain: 1.3s;
   /* The wireframe must hold alone before fills bloom — bloom start is derived
      from this, not a separate guess, so the hold survives any retune of the
      drain itself. */
-  --undevelop-hold:               0.2s;
-  --undevelop-bloom-start:        calc(var(--undevelop-photo-drain) + var(--undevelop-hold));
-  --undevelop-bloom-duration:     1.1s;
-  --undevelop-stagger-world:      0.18s;
+  --undevelop-hold: 0.2s;
+  --undevelop-bloom-start: calc(var(--undevelop-photo-drain) + var(--undevelop-hold));
+  --undevelop-bloom-duration: 1.1s;
+  --undevelop-stagger-world: 0.18s;
   --undevelop-stagger-foreground: 0.36s;
-  --undevelop-stagger-badger:     0.5s;
+  --undevelop-stagger-badger: 0.5s;
 }
 
 /* Depth groups follow the scene's own paint order (Scene.astro): the sky
@@ -401,4 +413,22 @@
 :root[data-time="day"] .f-cel.night-only rect { animation: none; }
 @media (prefers-reduced-motion: reduce) {
   .f-cel.night-only rect { animation: none; }
+}
+
+/* ── HUD surfaces hold the night register in both themes ───────────────────
+   The world has a time of day; the interface laid over it does not. Menus,
+   prompts, the dialogue and the quest marker re-declare the night values of
+   the tokens they read, so the day palette (bronze gold, dark ink) never
+   reaches them. */
+.card, .toggle, .fullscreen-toggle, .return-to-menu, .approach-prompt,
+.area-title, .quest-marker {
+  --text:        #ece4d4;
+  --stage:       #8aa0b8;
+  --dim:         #9aa8b8;
+  --gold:        #d9a94e;
+  --gold-bright: #ffc46b;
+  --holo:        #6fb3e8;
+  --holo-dim:    rgba(111, 179, 232, 0.35);
+  --navy:        #0e1a2e;
+  --btn-primary-ink: #060a12;
 }

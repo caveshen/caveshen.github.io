@@ -78,9 +78,32 @@ export function initStage(tree) {
     { speechEl, stageEl: directionEl, choicesEl, cardEl: card },
     (path) => { maybeHandoff(path); window.location.href = path; }
   );
+  // The wheel (Stage.astro) places options by index and count. Pure
+  // presentation, so it stays out of the engine: observe the list instead.
+  const placeChoices = () => {
+    const items = choicesEl.children;
+    choicesEl.style.setProperty('--n', String(items.length));
+    Array.prototype.forEach.call(items, (li, i) => li.style.setProperty('--i', String(i)));
+  };
+  new MutationObserver(placeChoices).observe(choicesEl, { childList: true });
 
   // Initial render is immediate — static content is already in place from SSR.
   render('root', true);
+
+  // Area title plays once, when the scene becomes the thing on screen: now,
+  // or when the cover's New Game hands over (ThresholdCover.astro dispatches
+  // scene:enter). Re-runs on a replay so the place is named again.
+  const areaTitle = document.getElementById('area-title');
+  const sceneRoot = document.getElementById('scene-root');
+  const playAreaTitle = (fromCover) => {
+    if (!areaTitle) return;
+    areaTitle.classList.remove('play', 'from-cover');
+    void areaTitle.offsetWidth; // restart the animation on a replay
+    areaTitle.classList.add('play');
+    if (fromCover) areaTitle.classList.add('from-cover');
+  };
+  if (!sceneRoot || !sceneRoot.hasAttribute('inert')) playAreaTitle(false);
+  document.addEventListener('scene:enter', () => playAreaTitle(true));
 
   // Card starts [hidden] in markup so no-JS visitors never see it; this script
   // (progressive enhancement) unhides it and adds the entering-fade class here,
@@ -243,6 +266,7 @@ export function initStage(tree) {
     }
 
     fadeOutPlane();
+    stageFrame.classList.add('approached');
 
     card.hidden    = false;
     endDlgBtn.hidden = false;
@@ -299,6 +323,7 @@ export function initStage(tree) {
     bgLayers.forEach((el) => { el.style.transition = ''; });
 
     card.hidden    = true;
+    stageFrame.classList.remove('approached');
     // Re-arm the entering class so a later re-approach fades in again instead
     // of popping; also snaps a mid-fade card cleanly back rather than leaving
     // it stuck half-faded, since hidden takes over the same tick.
@@ -564,6 +589,20 @@ export function initStage(tree) {
     if (e.key === 'Escape' && approached) {
       e.preventDefault();
       exit();
+      return;
+    }
+    // Hotkeys only while the scene is the thing on screen (not under the
+    // cover, which owns the digits there) and with no modifier held.
+    if (document.getElementById('scene-root')?.hasAttribute('inert')) return;
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    if (!approached && (e.key === 'e' || e.key === 'E') && !approachBtn.hidden) {
+      e.preventDefault();
+      approach();
+      return;
+    }
+    if (approached && /^[1-9]$/.test(e.key)) {
+      const btn = choicesEl.querySelectorAll('button')[Number(e.key) - 1];
+      if (btn) { e.preventDefault(); btn.click(); }
     }
   });
 }

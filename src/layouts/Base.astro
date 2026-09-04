@@ -5,6 +5,9 @@ import '@fontsource/cinzel/700.css';
 import '@fontsource/cormorant-garamond/500.css';
 import '@fontsource/cormorant-garamond/600.css';
 import '@fontsource/cormorant-garamond/500-italic.css';
+import '@fontsource/rajdhani/500.css';
+import '@fontsource/rajdhani/600.css';
+import '@fontsource/rajdhani/700.css';
 
 export interface Props {
   title?: string;
@@ -12,6 +15,9 @@ export interface Props {
   ogImage?: string;
   bodyClass?: string;
   noindex?: boolean;
+  /* night: the page ignores the stored day/night choice (menus have no
+     time of day; only the world does). */
+  theme?: 'auto' | 'night';
 }
 
 // Ungated build (the github.io preview) is noindex by default — its only
@@ -26,6 +32,7 @@ const {
   ogImage = "/og-image.png",
   bodyClass = "",
   noindex = !GATED,
+  theme = 'auto',
 } = Astro.props;
 
 const canonicalURL = Astro.url.toString();
@@ -55,13 +62,13 @@ const ogImageURL = new URL(ogImage, Astro.site).toString();
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImageURL} />
     <!-- Inline: set data-time before first paint to avoid flash -->
-    <script is:inline>
+    {theme === 'auto' && <script is:inline>
       (function () {
         var t = localStorage.getItem("time");
         if (t === "day") document.documentElement.dataset.time = "day";
         // Night is the default — no attribute needed
       })();
-    </script>
+    </script>}
     <!-- Page-specific head injections (preloads, etc.) -->
     <slot name="head" />
   </head>

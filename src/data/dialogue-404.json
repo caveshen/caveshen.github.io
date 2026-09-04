@@ -1,23 +1,24 @@
 {
   "root": {
-    "stage": "PLACEHOLDER — stage direction: this door isn't in the script. That's the 404, told as narration rather than something Caveshen says.",
-    "speech": "PLACEHOLDER — Caveshen's in-character reaction to a visitor finding a door that hasn't been written yet.",
+    "stage": "A hooded figure stands at a door that isn't in the script.",
+    "speech": "This one isn't written yet. Nothing behind it but scaffolding and a very confused developer.",
     "options": [
-      { "label": "PLACEHOLDER: Ask what was supposed to be through here", "to": "curious" },
-      { "label": "PLACEHOLDER: Leave the way you came", "to": "/", "kind": "system" }
+      { "label": "What was supposed to be here?", "to": "curious" },
+      { "label": "Leave the way you came", "to": "/", "kind": "system" }
     ]
   },
   "curious": {
-    "speech": "PLACEHOLDER — a second line, going a little further into the joke before the visitor is shown out.",
+    "speech": "Something, once. The address changed, or the page did, or you typed it from memory. Memory is a poor map of a website.",
     "options": [
-      { "label": "PLACEHOLDER: Keep pushing on the door", "to": "pushing" },
-      { "label": "PLACEHOLDER: Back to the start", "to": "root", "kind": "system" }
+      { "label": "Push on the door anyway", "to": "pushing" },
+      { "label": "Back to the start", "to": "root", "kind": "system" }
     ]
   },
   "pushing": {
-    "speech": "PLACEHOLDER — the deepest node: the door still doesn't open, because there is genuinely nothing behind it yet.",
+    "stage": "The door does not move. The figure does not either.",
+    "speech": "Still nothing. The promenade is that way, and the Badger is better company.",
     "options": [
-      { "label": "PLACEHOLDER: Leave the way you came", "to": "/", "kind": "system" }
+      { "label": "Leave the way you came", "to": "/", "kind": "system" }
     ]
   }
 }

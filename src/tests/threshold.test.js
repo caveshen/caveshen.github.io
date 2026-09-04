@@ -31,7 +31,7 @@ const toTable = (darkHex, lightHex) => {
   return [0, 1, 2].map((i) => [round4(dark[i] / 255), round4(light[i] / 255)]);
 };
 
-describe('duotone tableValues match tokens.css (--sky dark end, --celestial light end)', () => {
+describe('tone-map tableValues match tokens.css (--sky darkest stop, --celestial lightest stop)', () => {
   const [expR, expG, expB] = toTable(nightTokens['--sky'], nightTokens['--celestial']);
   const funcs = [...coverAstro.matchAll(/feFunc([RGB])\s+type="table"\s+tableValues="([\d.\s]+)"/g)]
     .map((m) => [m[1], m[2].trim().split(/\s+/).map(Number)]);
@@ -44,11 +44,12 @@ describe('duotone tableValues match tokens.css (--sky dark end, --celestial ligh
     ['R', expR],
     ['G', expG],
     ['B', expB],
-  ])('feFunc%s tableValues match --sky/--celestial to 4dp', (channel, expected) => {
+  ])('feFunc%s first and last stops match --sky/--celestial to 4dp', (channel, expected) => {
     const found = funcs.find((f) => f[0] === channel)?.[1];
     expect(found, `feFunc${channel} tableValues missing`).toBeTruthy();
+    expect(found.length, 'four stops: navy, horizon, holo, gold').toBe(4);
     expect(found[0]).toBeCloseTo(expected[0], 4);
-    expect(found[1]).toBeCloseTo(expected[1], 4);
+    expect(found[found.length - 1]).toBeCloseTo(expected[1], 4);
   });
 });
 
@@ -99,6 +100,8 @@ describe("WCAG AA contrast (≥ 4.5:1) on the cover's text, worst-case (brightes
     ['name (h1)', 'cover-name'],
     ['tagline', 'cover-tagline'],
     ['menu (Character Sheet)', 'cover-btn-secondary'],
+    ['menu (New game, the lit row)', 'cover-btn-primary'],
+    ['role line', 'cover-role'],
   ])('%s clears AA', (_label, className) => {
     const rule = coverAstro.match(new RegExp(`\\.${className}[\\s\\S]*?\\{([^}]+)\\}`))?.[1] ?? '';
     expect(rule, `.${className} rule missing`).toBeTruthy();
@@ -110,22 +113,5 @@ describe("WCAG AA contrast (≥ 4.5:1) on the cover's text, worst-case (brightes
 
     const effectiveBg = compositeOver(shadow.rgb, shadow.alpha, WORST_CASE_RGB);
     expect(contrast(hexToRgb(textHex), effectiveBg)).toBeGreaterThanOrEqual(4.5);
-  });
-});
-
-// ── WCAG AA contrast on the New Game primary button ─────────────────────────
-// Solid gold pill, no photo behind it — a direct token-pair check, colour and
-// background read from the rule itself so a token swap re-proves the pair.
-describe("WCAG AA contrast (≥ 4.5:1) on the cover's primary button", () => {
-  it('New Game: ink on gold', () => {
-    const rule = coverAstro.match(/\.cover-btn-primary\s*\{([^}]+)\}/)?.[1] ?? '';
-    expect(rule, '.cover-btn-primary rule missing').toBeTruthy();
-
-    const inkVar = rule.match(/color:\s*var\((--[\w-]+)\)/)?.[1];
-    const bgVar = rule.match(/background:\s*var\((--[\w-]+)\)/)?.[1];
-    expect(inkVar, 'color var missing').toBeTruthy();
-    expect(bgVar, 'background var missing').toBeTruthy();
-
-    expect(contrast(hexToRgb(nightTokens[inkVar]), hexToRgb(nightTokens[bgVar]))).toBeGreaterThanOrEqual(4.5);
   });
 });

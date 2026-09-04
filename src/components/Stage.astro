@@ -1,10 +1,8 @@
 ---
-// Stage.astro — the approach interaction: frame, camera, prompt and card. The
-// paired src/scripts/stage.js does all DOM lookups via generic selectors, but
-// the markup itself isn't fully route-agnostic: tree, character,
-// characterLabel and promptLabel vary by route (props below); the noscript
-// note is a slot since it's markup, not a value. index.astro owns the
-// <script> that calls initStage(tree).
+// Stage.astro — the in-world view: frame, camera, HUD, the approach and the
+// dialogue wheel. The paired src/scripts/stage.js does all DOM lookups via
+// generic selectors; tree, character, labels and the area title vary by route
+// (props below). index.astro owns the <script> that calls initStage(tree).
 import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
 import Scene from './Scene.astro';
 
@@ -12,20 +10,25 @@ interface Props {
   tree: { root: { stage?: string; speech: string } };
   character: AstroComponentFactory;
   characterLabel?: string;
+  speakerName: string;
   promptLabel: string;
+  areaName: string;
+  areaSub?: string;
 }
-const { tree, character: Character, characterLabel = '', promptLabel } = Astro.props;
+const {
+  tree, character: Character, characterLabel = '', speakerName, promptLabel,
+  areaName, areaSub = '',
+} = Astro.props;
 const root = tree.root;
 ---
 <!--
-  stage-frame: a full-height stage — a place to stand in, not a letterbox strip.
-  overflow:hidden clips the camera zoom; .camera carries the transform.
-  The dialogue card lives inside it as an in-scene overlay.
+  stage-frame: a full-height stage. overflow:hidden clips the camera zoom;
+  .camera carries the transform. The HUD and the dialogue live inside it as
+  in-scene overlays.
 -->
 <div class="stage-frame">
 <div class="camera">
 
-<!-- Only the variant differs per call. -->
 <Scene variant="standard" character={Character} characterLabel={characterLabel} />
 <Scene variant="wide" character={Character} characterLabel={characterLabel} />
 <Scene variant="tall" character={Character} characterLabel={characterLabel} />
@@ -34,30 +37,21 @@ const root = tree.root;
 
 <!--
   Grain: a pre-rendered tile (tools/build-grain-tiles.mjs), not a live
-  feTurbulence filter — a full-viewport SVG filter re-rasterised on every
-  paint by CI's software-rendered Linux WebKit (no GPU) starved the whole
-  e2e matrix; see that script's header. Outside .camera so it never scales/
-  zooms with the approach. Static: this front is a night photograph, and a
-  photograph's grain is fixed, not moving.
+  feTurbulence filter — see that script's header. Outside .camera so it never
+  scales with the approach. Static.
 -->
 <div class="grain-overlay" aria-hidden="true"></div>
 
-<!--
-  Sea shimmer's filter defs — a 0-sized SVG purely to hold <defs>, referenced
-  by CSS below (.f-sea/.f-wave).
--->
+<!-- Sea shimmer's filter defs — a 0-sized SVG purely to hold <defs>. -->
 <svg class="filter-defs" aria-hidden="true" focusable="false" width="0" height="0">
   <defs>
     <!--
       The noise's G channel is flattened to a constant 0.5 (feDisplacementMap's
-      neutral, no-op value) before yChannelSelector reads it — vertical displacement is
-      structurally zero, so the horizon seam cannot tear. Only R
-      (unflattened) drives xChannelSelector, so displacement is horizontal-only.
-      The breathing scale is driven from stage.js, not a SMIL <animate>: WebKit pays a
-      steep, continuous cost for animating this attribute via SMIL — a JS timer stepping
-      the same 5-to-12-to-5 ramp runs far cheaper. numOctaves is 1 (not 2) and the filter
-      region is tightened to the minimum that avoids edge clipping at the max displacement
-      scale (12) — both cut WebKit's per-paint raster cost for this filter.
+      neutral value) before yChannelSelector reads it, so displacement is
+      horizontal-only and the horizon seam cannot tear. The breathing scale is
+      driven from stage.js, not a SMIL <animate>: WebKit pays a steep cost for
+      SMIL on filter attributes. numOctaves 1 and a tight filter region keep
+      WebKit's per-paint raster cost down.
     -->
     <filter id="sea-shimmer" x="-8%" y="-4%" width="116%" height="108%">
       <feTurbulence type="fractalNoise" baseFrequency="0.015 0.05" numOctaves="1" seed="6" result="noise" />
@@ -72,8 +66,8 @@ const root = tree.root;
   </defs>
 </svg>
 
-<!-- wind: motes on the breeze, deliberately outside .camera so the breeze stays a
-     constant speed when the camera pushes in. -->
+<!-- wind: motes on the breeze, outside .camera so the breeze keeps a constant
+     speed when the camera pushes in. -->
 <div class="wind" aria-hidden="true">
   <span class="mote" style="top:44%;animation-duration:17s;animation-delay:0s"></span>
   <span class="mote" style="top:62%;animation-duration:21s;animation-delay:-6s;width:4px;height:4px"></span>
@@ -82,55 +76,56 @@ const root = tree.root;
   <span class="mote" style="top:35%;animation-duration:19s;animation-delay:-14s"></span>
 </div>
 
-<!--
-  Approach prompt: floating shadowed text, not a boxed control — a real
-  <button> so it keeps a keyboard tab stop and native Enter/Space activation.
-  The `hidden` attribute stays the no-JS gate (this script unhides it at init,
-  same as before); once unhidden, .approach-prompt's own opacity:0/pointer-
-  events:none is the rest state — stage.js reveals it on hover/focus (see
-  positionPrompt() and the reveal/linger wiring near the bottom of this file's
-  paired stage.js). Position is approximate right-foreground; JS places it
-  near the measured figure.
--->
-<button class="approach-prompt" id="approach-prompt" hidden>{promptLabel}</button>
+<!-- Area title: plays once on arrival (stage.js adds .play), the way an RPG
+     names a region as you enter it. Decorative — the scene SVG's own label
+     already names the place for assistive tech. -->
+<div class="area-title" id="area-title" aria-hidden="true">
+  <p class="area-name">{areaName}</p>
+  {areaSub && <p class="area-sub">{areaSub}</p>}
+</div>
 
-<!-- Card ships hidden so it is never painted before JS runs.
+<!--
+  Approach prompt: the interact prompt. A real <button> so it keeps a keyboard
+  tab stop and native Enter/Space activation; the E hotkey (stage.js) is the
+  same verb. `hidden` is the no-JS gate; once unhidden, opacity:0 is the rest
+  state and stage.js reveals it on hover or focus and places it by the figure.
+-->
+<button class="approach-prompt" id="approach-prompt" hidden>
+  <kbd aria-hidden="true">E</kbd> <span>{promptLabel}</span>
+</button>
+
+<!-- Dialogue ships hidden so it is never painted before JS runs.
      noscript overrides [hidden] with display:block for the no-JS path. -->
 <noscript><style>.card[hidden] { display: block; }</style></noscript>
 <main class="card" hidden>
   <!-- Static root content for no-JS path; engine overwrites on init -->
   <p class="stage" id="stage">{root.stage}</p>
+  <p class="speaker-name">{speakerName}</p>
   <div aria-live="polite">
     <p class="speech" id="speech">{root.speech}</p>
   </div>
+  <!-- The wheel. stage.js sets --n on the list and --i on each option so
+       CSS can place them around the arc; under 760px it is a plain list. -->
   <ul class="choices" id="choices"></ul>
-  <!--
-    End dialogue: hidden by default (JS reveals on approach, hides on exit).
-    Renders as an ordinary dialogue plate (d37 §5 — the old system variant
-    died). With JS off this stays hidden — no camera to exit, so no exit
-    control needed in the no-JS path.
-  -->
-  <button class="end-dialogue" id="end-dialogue" hidden>PLACEHOLDER: End dialogue ✕</button>
+  <button class="end-dialogue" id="end-dialogue" hidden>
+    Leave <kbd aria-hidden="true">Esc</kbd>
+  </button>
   <slot />
 </main>
 
 <!--
-  Fullscreen toggle lives INSIDE .stage-frame, not as a body-level sibling like
-  ThemeToggle — the Fullscreen API only keeps descendants of the fullscreened
-  element visible/interactive, so it must be one to stay clickable.
-  Hidden by default; JS unhides it only if the Fullscreen API is usable, so a
-  no-JS or unsupported-API visitor never sees a dead button.
+  Fullscreen toggle lives INSIDE .stage-frame — the Fullscreen API only keeps
+  descendants of the fullscreened element visible. Hidden by default; JS
+  unhides it only if the API is usable.
 -->
 <button class="fullscreen-toggle" id="fullscreen-toggle" hidden aria-label="Enter fullscreen">
-  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
-       stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+       stroke-width="1.5" stroke-linecap="square" aria-hidden="true">
     <path d="M4 9V4H9M15 4H20V9M20 15V20H15M9 20H4V15" />
   </svg>
 </button>
 
 </div><!-- /.stage-frame -->
-
-<p class="page-foot">PLACEHOLDER — attribution line. All copy is placeholder; the real script is Caveshen's to write.</p>
 
 <style is:global>
   /* ponytail: stage-frame is position:relative which makes it a positioned element
@@ -214,70 +209,131 @@ const root = tree.root;
     .mote { animation: none; }
   }
 
-  .approach-prompt {
+  /* ── Area title: one reveal on arrival ── */
+  .area-title {
     position: absolute;
-    /* Rest state: invisible and inert, not the `hidden` attribute — the
-       button must stay in layout so positionPrompt() can measure and place
-       it. stage.js's reveal/linger wiring flips both to (1, auto) on hover
-       or focus and back on linger-timeout or dialogue exit; it always
-       cancels the previous WAAPI fade before starting a new one, so
-       overlapping reveals never composite wrongly. */
-    opacity: 0;
+    left: 50%;
+    top: 18%;
+    translate: -50% 0;
+    text-align: center;
     pointer-events: none;
-    /* JS overrides left/top after measuring the visible figure; CSS is fallback */
-    right: 10%;
-    bottom: 38%;
-    /* Playbill costume: the site's serif, small caps, generous tracking —
-       set like a line from a theatre programme, its own register, not the
-       stage voice. Values below are tuning values. */
-    font-family: var(--serif);
-    font-variant-caps: small-caps;
-    font-size: 0.95rem;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    /* Plain white in both themes (see --prompt-ink in tokens.css). */
+    opacity: 0;
     color: var(--prompt-ink);
-    background: none;
-    border: none;
-    /* No box, border, or glass — floating text, not a control. Padding is
-       breathing room around the glyphs; min-height below is what keeps the
-       44px touch floor (padding alone measured 41.2px). */
-    padding: 0.85rem 1rem;
-    min-height: 44px;
-    cursor: pointer;
-    /* The shadow carries the AA contrast duty the old glass control used to
-       carry (see the composited contrast cells in src/tests/theme.test.js).
-       Three dark layers: a tight anchor (small blur, high alpha) for
-       legibility, a dense inner layer, and a wider outer skirt that lifts
-       the text off a bright sky. Both themes use the same dark shadow
-       behind the same white text, so one rule serves both. */
     text-shadow: 0 1px 3px rgba(7, 6, 14, 1), 0 0 12px rgba(7, 6, 14, 1),
                  0 0 20px rgba(7, 6, 14, 0.7);
   }
-  .approach-prompt:focus-visible {
-    outline: 2px solid var(--gold-bright);
-    outline-offset: 2px;
+  .area-name {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(1.6rem, 3.6vw, 2.6rem);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding-bottom: 0.45rem;
+    border-bottom: 1px solid var(--gold);
   }
-  /* The reveal/linger fade itself is WAAPI (stage.js), not a CSS transition —
-     a CSS transition would race the linger timer. Nothing here to gate under
-     reduced motion; stage.js's own reducedMotion() check zeroes the WAAPI
-     duration live instead (belt-and-braces already covers the camera/wind/
-     scene transitions that ARE CSS-driven, elsewhere in this file). */
+  .area-sub {
+    margin-top: 0.5rem;
+    font-family: var(--hud);
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold-bright);
+  }
+  .area-title.play { animation: area-reveal 4.2s ease-in-out 1 both; }
+  .area-title.play.from-cover { animation-delay: calc(var(--undevelop-bloom-start) + 0.5s); }
+  @keyframes area-reveal {
+    0%   { opacity: 0; transform: translateY(8px); }
+    18%  { opacity: 1; transform: none; }
+    78%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .area-title.play { animation: area-reveal-still 3s linear 1 both; }
+    @keyframes area-reveal-still { 0%, 90% { opacity: 1; } 100% { opacity: 0; } }
+  }
+
+  /* ── Interact prompt ── */
+  .approach-prompt {
+    position: absolute;
+    /* Rest state: invisible and inert, not `hidden` — the button must stay
+       in layout so positionPrompt() can measure and place it. stage.js flips
+       opacity and pointer-events on hover or focus (WAAPI fade). */
+    opacity: 0;
+    pointer-events: none;
+    right: 10%;
+    bottom: 38%;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--hud);
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--prompt-ink);
+    background: none;
+    border: none;
+    padding: 0.6rem 0.9rem;
+    min-height: 44px;
+    cursor: pointer;
+    text-shadow: 0 1px 3px rgba(7, 6, 14, 1), 0 0 12px rgba(7, 6, 14, 1),
+                 0 0 20px rgba(7, 6, 14, 0.7);
+  }
+  .approach-prompt kbd,
+  .end-dialogue kbd {
+    display: inline-block;
+    min-width: 1.6em;
+    padding: 0.15em 0.4em;
+    font-family: var(--hud);
+    font-weight: 700;
+    font-size: 0.8em;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    text-align: center;
+    color: #060a12;
+    background: var(--gold-bright);
+    border-radius: 3px;
+    text-shadow: none;
+  }
+  .approach-prompt:focus-visible {
+    outline: 1px solid var(--holo);
+    outline-offset: 3px;
+  }
 
   /* Character hit surface: a transparent rect inside each .js-character
-     (Badger.astro/HoodedFigure.astro), sized generously around the figure.
-     fill:transparent alone would NOT hit-test (SVG's default pointer-events
-     is visiblePainted) — pointer-events:all makes the padded area hoverable
-     even though nothing is painted there. Never focusable — hover summons
-     the approach prompt, and a click or tap starts the dialogue directly,
-     the same path activating the prompt uses (stage.js). The prompt remains
-     the keyboard/screen-reader vector; no ARIA goes on the character. */
+     sized generously around the figure. pointer-events:all makes the padded
+     area hoverable even though nothing is painted there. Never focusable —
+     the prompt remains the keyboard vector. */
   .js-character-hit {
     fill: transparent;
     pointer-events: all;
     cursor: pointer;
   }
 
+  /* ── Quest marker: the "someone to talk to" sign over the character.
+     Badger.astro/HoodedFigure.astro draw it; this bobs it and hides it once
+     the dialogue is open. transform-box so the CSS transform composes with the
+     group's own SVG translate. ── */
+  .quest-marker-bob {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: marker-bob 1.8s ease-in-out infinite;
+  }
+  .f-marker { fill: var(--gold-bright); }
+  .f-marker-ring { fill: none; stroke: var(--gold-bright); stroke-width: 1.5; opacity: 0.55; }
+  .js-character:hover .f-marker-ring { opacity: 1; }
+  .stage-frame.approached .quest-marker { display: none; }
+  .stage-frame.approached .area-title { display: none; }
+  @keyframes marker-bob {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-7px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .quest-marker-bob { animation: none; }
+  }
+
+  /* ── HUD buttons (bottom-right row): fullscreen beside Main menu ── */
   .fullscreen-toggle {
     position: absolute;
     right: 1rem;
@@ -286,56 +342,34 @@ const root = tree.root;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    color: var(--text);
-    background: rgba(10, 8, 22, 0.55);
-    border: 1px solid rgba(233, 226, 207, 0.22);
-    border-radius: 999px;
+    width: 2.6rem;
+    height: 2.6rem;
+    color: var(--prompt-ink);
+    background: rgba(6, 10, 18, 0.55);
+    border: 1px solid var(--holo-dim);
+    border-radius: 3px;
     cursor: pointer;
     backdrop-filter: blur(3px);
-    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    transition: color 0.15s ease, border-color 0.15s ease;
   }
-  /* display:flex above is author-origin CSS, outranking the UA stylesheet's
-     [hidden]{display:none} regardless of selector specificity — left alone it
-     would render the button even while `hidden` is set. Reasserted explicitly
-     so JS (or its absence) stays the only thing that can reveal this button. */
   .fullscreen-toggle[hidden] { display: none; }
   .fullscreen-toggle:hover,
   .fullscreen-toggle:focus-visible {
-    color: var(--btn-hover-text);
-    border-color: var(--btn-hover-border);
-    /* Standard verb (d37 §6): the faint warm wash laid over the resting
-       glass — a bare wash alone would strip the chip's dark ground. */
-    background: linear-gradient(var(--btn-hover-bg), var(--btn-hover-bg)), rgba(10, 8, 22, 0.55);
+    color: var(--gold-bright);
+    border-color: var(--gold-bright);
   }
   .fullscreen-toggle:focus-visible {
-    outline: 2px solid var(--gold-bright);
-    outline-offset: 2px;
-  }
-  :root[data-time="day"] .fullscreen-toggle {
-    background: rgba(253, 251, 245, 0.65);
-    border-color: rgba(37, 48, 56, 0.22);
-  }
-  :root[data-time="day"] .fullscreen-toggle:hover,
-  :root[data-time="day"] .fullscreen-toggle:focus-visible {
-    background: linear-gradient(var(--btn-hover-bg), var(--btn-hover-bg)), rgba(253, 251, 245, 0.65);
+    outline: 1px solid var(--holo);
+    outline-offset: 3px;
   }
   @media (prefers-reduced-motion: reduce) {
     .fullscreen-toggle { transition: none; }
   }
-  /* Portrait: the dialogue card runs almost the full frame height, leaving no
-     clear bottom-right corner. The one band clear of the toggle, card, and
-     figure/approach-prompt in between is just under the toggle, so the
-     button moves there for this aspect only; every other variant has room
-     to spare at the literal bottom-right and is left alone. */
+  /* Portrait: the dialogue runs almost the full frame height; the one band
+     clear of it is just under the theme toggle. */
   @media (max-aspect-ratio: 4/5) {
     .fullscreen-toggle { top: 4rem; bottom: auto; }
   }
-  /* Fullscreen is the full-window mode already used elsewhere — scenes crop
-     via preserveAspectRatio rather than stretch, so no new scaling strategy is
-     needed. Explicit width/height override aspect-ratio (it only fills a
-     missing dimension), so no separate aspect-ratio:auto override is needed. */
   .stage-frame:fullscreen {
     max-width: none;
     width: 100vw;
@@ -494,322 +528,245 @@ const root = tree.root;
     .banner-plane { display: none; }
   }
 
-  /* End dialogue shares the dialogue plate exactly (d37 §5) — box model,
-     pseudos, ignition and ring all ride the combined .choices button
-     selectors below; this block keeps only what those can't express for a
-     bare button outside the .choices list. */
-  .end-dialogue {
-    margin-top: 0.75rem;
-  }
-  /* Same author-origin-vs-UA-stylesheet override as .fullscreen-toggle[hidden] above */
-  .end-dialogue[hidden] { display: none; }
-
-  /* Typed so the entrance can transition them like any other colour — an
-     untyped custom property snaps instead of interpolating. */
-  @property --frame {
-    syntax: '<color>';
-    inherits: false;
-    initial-value: transparent;
-  }
-  @property --frame-faint {
-    syntax: '<color>';
-    inherits: false;
-    initial-value: transparent;
-  }
-
-  /* Dialogue card: an in-scene overlay, not a block below the scene */
+  /* ── The dialogue: subtitle above, wheel below ── */
   .card {
     position: absolute;
     left: 50%;
-    bottom: 3.5%;
+    bottom: 2%;
     transform: translateX(-50%);
-    width: min(600px, 88%);
-    /* Caps headroom loss on short viewports so it can't collapse to a
-       sliver at any tested viewport (stage.js clamps the zoom scale to fit
-       whatever this leaves).
-       Replaces the old 96.5svh-only cap outright — that term only ever won
-       above a ~2686px-tall viewport, never in practice. 110px is verified
-       empirically across a swept range of short viewports, not just the two
-       tested phone projects: in roughly 440-500 CSS px wide x 620-655 tall,
-       the fit calc below wants a ratio under the 1.3x zoom floor, so the
-       floor overrides it and clearance decays from ~3px toward zero, grazing
-       slightly negative (~-0.45px) near 480x620 — accepted, since no phone
-       reports a portrait size there; the invariant rests on SAFETY_PX alone
-       in that band, not on 110px + the fit calc. Cost, accepted: the cap
-       also binds on iphone-15pro's 393x659, trimming ~11px off the card's
-       natural height. See PRD.md §16 open question 4 for the measurements. */
-    max-height: calc(100svh - 110px); /* short viewports: scroll */
+    width: min(760px, 94%);
+    /* Caps headroom loss on short viewports (stage.js clamps the zoom to fit
+       whatever this leaves). */
+    max-height: calc(100svh - 110px);
     overflow-y: auto;
     pointer-events: auto; /* re-enable: stage-frame has pointer-events:none */
-    padding: 1.75rem 2rem 2rem;
-    /* Same glass material as .fullscreen-toggle/.page-foot (.approach-prompt
-       dropped its own glass for floating shadowed text — see that rule),
-       plus an etched inner frame: hairline via negative-offset outline (.card
-       is never focusable, so outline is free) and corner brackets as
-       background layers — default attachment keeps them pinned while
-       overflow-y content scrolls beneath. */
-    --frame:       rgba(217, 169, 78, 0.55); /* house gold at 55% — d37 §6 brackets motif */
-    --frame-faint: rgba(233, 226, 207, 0.18);
-    background: rgba(10, 8, 22, 0.75);
-    border: 2px solid rgba(233, 226, 207, 0.22);
-    border-radius: 4px;
-    backdrop-filter: blur(3px);
-    outline: 1px solid var(--frame-faint);
-    outline-offset: -8px;
-    background-image:
-      linear-gradient(var(--frame), var(--frame)), linear-gradient(var(--frame), var(--frame)),
-      linear-gradient(var(--frame), var(--frame)), linear-gradient(var(--frame), var(--frame)),
-      linear-gradient(var(--frame), var(--frame)), linear-gradient(var(--frame), var(--frame)),
-      linear-gradient(var(--frame), var(--frame)), linear-gradient(var(--frame), var(--frame));
-    background-position:
-      left 8px top 8px,    left 8px top 8px,
-      right 8px top 8px,   right 8px top 8px,
-      left 8px bottom 8px, left 8px bottom 8px,
-      right 8px bottom 8px, right 8px bottom 8px;
-    background-size:
-      14px 2px, 2px 14px,
-      14px 2px, 2px 14px,
-      14px 2px, 2px 14px,
-      14px 2px, 2px 14px;
-    background-repeat: no-repeat;
-    /* Opacity/transform/frame tail on the transition list — 170ms delay + 380ms
-       duration lands at 550ms, matching the camera zoom's own 550ms. --frame and
-       --frame-faint ride the same window so the etched frame draws in alongside
-       the fade instead of simply being present. */
-    transition: background 0.4s ease, border-color 0.4s ease,
-      opacity 380ms ease 170ms, transform 380ms ease 170ms,
-      --frame 380ms ease 170ms, --frame-faint 380ms ease 170ms;
+    padding: 1rem 1rem 0.5rem;
+    text-align: center;
+    color: var(--text);
+    /* Subtitle and wheel float over the scene with a soft dark ground behind
+       them — no plaque, the way a game's dialogue sits over the world. */
+    background: radial-gradient(ellipse at 50% 100%, rgba(6, 10, 18, 0.9) 30%, rgba(6, 10, 18, 0.55) 62%, rgba(6, 10, 18, 0) 100%);
+    transition: opacity 380ms ease 170ms, transform 380ms ease 170ms;
   }
-  :root[data-time="day"] .card {
-    --frame:       rgba(111, 86, 32, 0.55); /* day gold (bronze) at 55% — d37 §6 */
-    --frame-faint: rgba(37, 48, 56, 0.18);
-    /* background-color, not the shorthand — the shorthand would wipe the
-       corner-bracket background layers above. */
-    background-color: rgba(253, 251, 245, 0.81);
-    border-color: rgba(37, 48, 56, 0.22);
-  }
-  /* JS-only starting state (added by approach()'s init, re-armed by exit()) —
-     never static on .card itself, or the no-JS path would render it invisible. */
+  /* JS-only starting state (approach() in stage.js) — never static on .card
+     itself, or the no-JS path would render it invisible. */
   .card.card-entering {
     opacity: 0;
-    transform: translateX(-50%) translateY(6px);
-    /* Frame starting point: transparent, so the hairline and corner brackets
-       draw in as this class is removed, riding the transition list above. */
-    --frame:       transparent;
-    --frame-faint: transparent;
-  }
-  /* :root[data-time="day"] .card (0,3,0) otherwise outranks .card.card-entering
-     (0,2,0) and would skip the transparent starting point under day theme. */
-  :root[data-time="day"] .card.card-entering {
-    --frame:       transparent;
-    --frame-faint: transparent;
+    transform: translateX(-50%) translateY(10px);
   }
   .stage {
-    font-size: 0.92rem;
+    font-family: var(--serif);
+    font-size: 0.95rem;
     font-style: italic;
     color: var(--stage);
-    margin: 0 0 0.75rem;
+    margin: 0 0 0.5rem;
+  }
+  .speaker-name {
+    font-family: var(--hud);
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--gold-bright);
+    margin: 0 0 0.35rem;
   }
   .speech, .speech-stream {
-    font-size: 1.1rem;
-    margin: 0 0 1.5rem;
-    min-height: 3.2em;
+    font-family: var(--serif);
+    font-size: 1.3rem;
+    line-height: 1.45;
+    max-width: 38rem;
+    margin: 0 auto 1.1rem;
+    min-height: 2.9em;
+    text-shadow: 0 1px 3px rgba(7, 6, 14, 1), 0 0 10px rgba(7, 6, 14, 0.9);
   }
-  .speech {
-    transition: opacity 0.25s ease;
-  }
-  /* Visually-hidden while streaming, never display:none — clip-path keeps
-     #speech (the live region) in the a11y tree so its already-complete text
-     stays announced, while the sibling .speech-stream carries the visible
-     typewriter reveal. */
+  .speech { transition: opacity 0.25s ease; }
+  /* Visually-hidden while streaming, never display:none — keeps #speech (the
+     live region) in the a11y tree while .speech-stream carries the reveal. */
   .speech.speech-clip {
     position: absolute;
     clip-path: inset(50%);
   }
-  .speech-stream .pending {
-    visibility: hidden;
-  }
-  /* Dimmed, not disabled — every activation is swallowed by the card's own
-     skip listener while streaming, so this is the disabled-control carve-out,
-     not a contrast regression. */
-  .card.is-streaming .choices {
-    opacity: 0.55;
-  }
+  .speech-stream .pending { visibility: hidden; }
+  /* Dimmed, not disabled — activations are swallowed by the card's own skip
+     listener while streaming. */
+  .card.is-streaming .choices { opacity: 0.55; }
+
+  /* The wheel: a ring with the options on spokes around it. The first three
+     options fan across the right side, any further ones across the left.
+     --n (count) and --i (index) come from stage.js; cos()/sin() place each
+     spoke, the label sits just outside the ring on that spoke. */
   .choices {
+    --r: 104px;
+    --gap: 16px;
     list-style: none;
-    margin: 0;
+    margin: 0 auto;
     padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-    /* d37 §5: one uniform plate per option. The roman numeral index is pure
-       presentation, generated here so the engine's data model stays untouched
-       (dialogue.js keeps writing plain textContent buttons). */
+    position: relative;
+    width: min(100%, 720px);
+    height: calc(var(--r) * 2 + 36px);
     counter-reset: plate;
   }
-  .choices li {
-    position: relative;
-    counter-increment: plate;
-  }
-  /* Numeral sits in space reserved by the plate's left padding; centred on
-     the plate rather than hung on the label's first line — option labels are
-     single-line at every tested width, and this survives wrapping without a
-     baseline hack. */
-  .choices li::before {
-    content: counter(plate, upper-roman);
-    position: absolute;
-    left: 1.2rem;
-    top: 50%;
-    translate: 0 -50%;
-    font-family: var(--mono);
-    font-size: 0.72rem;
-    letter-spacing: 0.15em;
-    color: var(--gold);
-    opacity: 0.8;
-  }
-  /* The dialogue plate (d37 §5) — shared by every choice button and the End
-     dialogue exit, which renders as an ordinary plate now the system variant
-     has died. Pseudo-element allocation: ::before is the left gold rule,
-     ::after the ✦ ignition glyph; both carry alt-text form ('✦' / '') so the
-     glyph stays out of the accessible name. */
-  .choices button,
-  .end-dialogue {
-    display: block;
-    position: relative;
-    width: 100%;
-    text-align: left;
-    font-family: var(--serif);
-    font-size: 1.02rem;
-    color: var(--text);
-    background: rgba(236, 228, 212, 0.04);
-    border: none;
-    border-radius: var(--r-sharp);
-    /* Left padding reserves room for the numeral (li::before above); right
-       padding reserves the ✦'s slot so nothing shifts when it fades in. */
-    padding: 0.7rem 2.6rem 0.7rem 3.2rem;
-    cursor: pointer;
-    transition: background var(--t-micro), color var(--t-micro);
-  }
-  .choices button::before,
-  .end-dialogue::before {
+  .choices::before {
     content: '';
     position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: var(--gold);
-    opacity: 0.35;
-    transition: width var(--t-micro), background var(--t-micro), opacity var(--t-micro);
-  }
-  .choices button::after,
-  .end-dialogue::after {
-    content: '✦' / '';
-    position: absolute;
-    right: 1.2rem;
+    left: 50%;
     top: 50%;
-    translate: 0 -50%;
-    opacity: 0;
-    color: var(--gold-bright);
-    transition: opacity var(--t-micro);
+    width: calc(var(--r) * 2);
+    height: calc(var(--r) * 2);
+    translate: -50% -50%;
+    border-radius: 50%;
+    border: 1px solid var(--holo-dim);
+    box-shadow: inset 0 0 0 9px rgba(6, 10, 18, 0.5), inset 0 0 0 10px var(--holo-dim),
+                0 0 28px rgba(111, 179, 232, 0.12);
+    pointer-events: none;
   }
-  /* :root.kb-focus (stage.js), not :focus-visible: the first choice is
-     script-focused when a dialogue opens (approach() in stage.js), redirecting
-     focus from whatever was clicked/tapped to a different element — every
-     engine matches :focus-visible for that redirect regardless of input
-     modality, so the highlight would wrongly show for a mouse/tap arrival too.
-     kb-focus tracks real keyboard use instead (see stage.js). */
+  /* Hub: the marker glyph, now at the centre of the choice. */
+  .choices::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 12px;
+    height: 12px;
+    translate: -50% -50%;
+    rotate: 45deg;
+    background: var(--gold-bright);
+    box-shadow: 0 0 12px rgba(255, 196, 107, 0.6);
+    pointer-events: none;
+  }
+  .choices li {
+    /* right side: spokes at -50°, 0°, 50° (fewer options sit symmetric) */
+    --k: min(var(--n, 1), 3);
+    --a: calc((var(--i, 0) - (var(--k) - 1) / 2) * 50deg);
+    position: absolute;
+    left: calc(50% + (var(--r) + var(--gap)) * cos(var(--a)));
+    top: calc(50% + (var(--r) + var(--gap)) * sin(var(--a)));
+    translate: 0 -50%;
+    width: max-content;
+    max-width: 15rem;
+    counter-increment: plate;
+  }
+  .choices li:nth-child(n+4) {
+    /* left side: the same fan, mirrored */
+    --k: calc(var(--n, 4) - 3);
+    --a: calc(180deg - (var(--i, 3) - 3 - (var(--k) - 1) / 2) * 50deg);
+    left: auto;
+    right: calc(50% - (var(--r) + var(--gap)) * cos(var(--a)));
+    text-align: right;
+  }
+  /* Spoke node on the ring, at the option's angle. */
+  .choices li::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    translate: -50% -50%;
+    rotate: 45deg;
+    background: var(--holo);
+    left: calc(-1 * var(--gap) + 1px);
+  }
+  .choices li:nth-child(n+4)::after {
+    left: auto;
+    right: calc(-1 * var(--gap) + 1px);
+    translate: 50% -50%;
+  }
+  .choices li:hover::after,
+  :root.kb-focus .choices li:focus-within::after { background: var(--gold-bright); }
+  .choices button,
+  .end-dialogue {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--hud);
+    font-weight: 600;
+    font-size: 1.05rem;
+    letter-spacing: 0.06em;
+    line-height: 1.2;
+    text-align: left;
+    color: var(--text);
+    background: rgba(6, 10, 18, 0.82);
+    border: 1px solid var(--holo-dim);
+    border-radius: 3px;
+    padding: 0.55rem 0.9rem;
+    min-height: 44px;
+    cursor: pointer;
+    transition: color var(--t-micro), border-color var(--t-micro), background var(--t-micro);
+  }
+  /* Slot number: a small holo cap, the same as the menu's hotkeys. */
+  .choices button::before {
+    content: counter(plate);
+    flex: none;
+    min-width: 1.5em;
+    padding: 0.1em 0.3em;
+    font-size: 0.75em;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    color: var(--holo);
+    border: 1px solid var(--holo-dim);
+    border-radius: 3px;
+  }
+  .choices button.system { color: var(--holo); }
   .choices button:hover,
   :root.kb-focus .choices button:focus,
   .end-dialogue:hover,
   .end-dialogue:focus-visible {
-    color: var(--plate-hover-text);
-    background: rgba(217, 169, 78, 0.10);
+    color: var(--gold-bright);
+    border-color: var(--gold-bright);
+    background: rgba(24, 20, 10, 0.9);
   }
   .choices button:hover::before,
-  :root.kb-focus .choices button:focus::before,
-  .end-dialogue:hover::before,
-  .end-dialogue:focus-visible::before {
-    width: 3px;
+  :root.kb-focus .choices button:focus::before {
+    color: #060a12;
     background: var(--gold-bright);
-    opacity: 1;
+    border-color: var(--gold-bright);
   }
-  .choices button:hover::after,
-  :root.kb-focus .choices button:focus::after,
-  .end-dialogue:hover::after,
-  .end-dialogue:focus-visible::after {
-    opacity: 1;
-  }
-  /* The browser's own UA stylesheet still draws its native default ring on
-     :focus-visible (which, unlike our own rules above, DOES match the
-     redirect case) — reset it unconditionally, then the kb-focus rule below
-     re-adds ours only for a real keyboard arrival. */
-  .choices button:focus-visible {
-    outline: none;
-  }
+  /* Native :focus-visible matches the script-redirected focus on open for
+     every input modality; reset it and let the kb-focus gate re-add ours. */
+  .choices button:focus-visible { outline: none; }
   :root.kb-focus .choices button:focus {
-    outline: 2px solid var(--gold-bright);
-    outline-offset: 2px;
+    outline: 1px solid var(--holo);
+    outline-offset: 3px;
   }
+  .end-dialogue {
+    position: absolute;
+    right: 0.5rem;
+    top: 0.5rem;
+    background: none;
+    border-color: transparent;
+    color: var(--dim);
+    font-size: 0.9rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .end-dialogue kbd { background: var(--holo); }
+  .end-dialogue[hidden] { display: none; }
   .end-dialogue:focus-visible {
-    outline: 2px solid var(--gold-bright);
-    outline-offset: 2px;
+    outline: 1px solid var(--holo);
+    outline-offset: 3px;
   }
+
+  /* Narrow: the wheel becomes a stack. */
+  @media (max-width: 760px), (max-aspect-ratio: 4/5) {
+    .card { padding-bottom: 0.75rem; }
+    .choices { height: auto; display: flex; flex-direction: column; gap: 0.5rem; }
+    .choices::before, .choices::after, .choices li::after { display: none; }
+    .choices li { position: static; translate: none; width: auto; max-width: none; text-align: left; }
+    .choices button { width: 100%; }
+    .end-dialogue { position: static; margin-top: 0.75rem; }
+  }
+
   .noscript-note {
     margin-top: 1rem;
-    font-family: var(--mono);
-    font-size: 0.85rem;
+    font-family: var(--hud);
+    font-size: 0.95rem;
   }
-  .noscript-note a { color: var(--option); }
-  /* Standard verb (d37 §6) — these links carry no box, so the verb's text
-     half is all there is to turn. */
+  .noscript-note a { color: var(--holo); }
   .noscript-note a:hover,
-  .noscript-note a:focus-visible { color: var(--btn-hover-text); }
-  .noscript-note a:focus-visible {
-    outline: 2px solid var(--gold-bright);
-    outline-offset: 2px;
-  }
-  /* Full-bleed stage means the footer can't sit in normal flow below it
-     (would force a scrollbar), so it floats top-left, mirroring the theme
-     toggle's top-right corner. Same glass-chip treatment as
-     .fullscreen-toggle. Paints above the frame by paint
-     order already (declared after it in the DOM); z-index:1 is belt-and-
-     braces only. max-width keeps clear of the toggle's corner at the
-     narrowest tested viewport (390px). */
-  .page-foot {
-    position: fixed;
-    left: 1rem;
-    top: 1rem;
-    z-index: 1;
-    max-width: min(260px, 48vw);
-    font-family: var(--mono);
-    font-size: 0.68rem;
-    line-height: 1.4;
-    letter-spacing: 0.06em;
-    color: var(--text);
-    background: rgba(10, 8, 22, 0.55);
-    border: 1px solid rgba(233, 226, 207, 0.22);
-    border-radius: 12px;
-    padding: 0.5rem 0.85rem;
-    backdrop-filter: blur(3px);
-  }
-  :root[data-time="day"] .page-foot {
-    background: rgba(253, 251, 245, 0.65);
-    border-color: rgba(37, 48, 56, 0.22);
-  }
-
-  @media (max-width: 680px) {
-    .card { padding: 1.4rem 1.3rem 1.5rem; }
-  }
+  .noscript-note a:focus-visible { color: var(--gold-bright); }
 
   @media (prefers-reduced-motion: reduce) {
-    /* .scene rect/polygon/circle/line/path reduced-motion lives in tokens.css,
-       alongside the base rule it disables. Pseudos need their own entries —
-       an element's transition:none says nothing about its ::before/::after. */
-    body, .card, .speech, .choices button, .end-dialogue,
-    .choices button::before, .choices button::after,
-    .end-dialogue::before, .end-dialogue::after {
-      transition: none;
-    }
+    .card, .choices button, .end-dialogue, .speech { transition: none; }
   }
 </style>

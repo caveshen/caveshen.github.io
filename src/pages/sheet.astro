@@ -1,589 +1,741 @@
 ---
+// sheet.astro — the character record: the CV as a game's character menu.
+// Always the night register (menus have no time of day). Tabs are in-page
+// anchors, so the whole record reads top to bottom without JavaScript.
 import Base from '../layouts/Base.astro';
-import ThemeToggle from '../components/ThemeToggle.astro';
+
+// Attributes: score out of 20, the way a tabletop sheet reads. Illustrative;
+// Caveshen tunes the numbers.
+const ATTRIBUTES = [
+  { name: 'People',    score: 17 },
+  { name: 'Tech',      score: 16 },
+  { name: 'Delivery',  score: 16 },
+  { name: 'Strategy',  score: 15 },
+  { name: 'Product',   score: 14 },
+  { name: 'Narrative', score: 13 },
+];
+const mod = (score: number) => Math.floor((score - 10) / 2);
+// Gauge: a 270° arc on r=26; the dash length is the lit fraction of that arc.
+const GAUGE_R = 26;
+const GAUGE_ARC = 2 * Math.PI * GAUGE_R * 0.75;
+
+// Skill tree: five schools, each a column of nodes, top to bottom in the order
+// they were learned. rank 3 = mastered, 2 = proficient, 1 = learning.
+const SCHOOLS: Array<{ name: string; nodes: Array<[string, number]> }> = [
+  { name: 'Engineering',        nodes: [['.NET and C#', 3], ['SQL', 3], ['JavaScript', 3], ['Spring', 2]] },
+  { name: 'Frameworks',         nodes: [['Vue', 2], ['React', 2], ['Angular', 2], ['GraphQL', 2]] },
+  { name: 'Cloud and tooling',  nodes: [['Azure', 3], ['Azure DevOps', 3], ['AWS', 2], ['Power BI', 2]] },
+  { name: 'Quality',            nodes: [['NUnit and XUnit', 3], ['Selenium', 3], ['Cypress', 2], ['WebDriverIO', 2], ['K6', 2]] },
+  { name: 'Leadership',         nodes: [['Mentoring', 3], ['Team building', 3], ['Stakeholders', 3], ['Change management', 2], ['Strategy', 2]] },
+];
+const COL_W = 200, ROW_H = 74, TOP = 64, HEX_R = 19;
+const hexPoints = (cx: number, cy: number, r: number) =>
+  Array.from({ length: 6 }, (_, i) => {
+    const a = Math.PI / 3 * i + Math.PI / 6;
+    return `${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`;
+  }).join(' ');
+const treeHeight = TOP + ROW_H * Math.max(...SCHOOLS.map((s) => s.nodes.length)) - 10;
+const RANK = ['', 'learning', 'proficient', 'mastered'];
 ---
 <Base
-  title="Character Sheet — Caveshen Rajman"
-  description="PLACEHOLDER — Caveshen Rajman's RPG-flavoured CV: Engineering Manager, skills, quest log, and achievements."
+  title="Character sheet — Caveshen Rajman"
+  description="Caveshen Rajman's character record: Engineering Manager, level 11. Attributes, skill tree, quest log and codex, with the plain CV to download."
+  theme="night"
 >
   <script is:inline>
     /* Sets arrived-by-morph on <html> before first paint when a cross-document
        view transition is active — fires before the page renders. */
     window.addEventListener('pagereveal', function(e) {
-      // Exposes the transition's settle signal so tests can await the actual finish
-      // instant instead of guessing at a wall-clock delay.
       window.__vtFinished = e.viewTransition ? e.viewTransition.finished : null;
       if (e.viewTransition) {
         document.documentElement.classList.add('arrived-by-morph');
       }
     });
   </script>
-  <ThemeToggle />
 
-  <main class="sheet-wrap">
+  <header class="menu-bar">
+    <a href="/" class="back-link"><kbd aria-hidden="true">Esc</kbd> Back to the promenade</a>
+    <nav class="menu-tabs" aria-label="Sections">
+      <a href="#character">Character</a>
+      <a href="#abilities">Abilities</a>
+      <a href="#quests">Quest log</a>
+      <a href="#codex">Codex</a>
+    </nav>
+    <a href="/cv.pdf" class="download-btn">Download CV <span class="download-note">PDF, plain format</span></a>
+  </header>
 
-    <header class="nameplate">
-      <nav class="sheet-nav">
-        <a href="/" class="back-link">&#8592; Back to the interview</a>
-        <a href="/cv.pdf" class="download-btn">&#11015; Download Character Sheet</a>
-      </nav>
-      <div class="nameplate-inner">
-        <div class="head-panel">
-          <img class="head-portrait" src="/sheet-portrait.png" alt="Caveshen Rajman" width="128" height="128" />
-          <span class="corner tl" aria-hidden="true"></span>
-          <span class="corner tr" aria-hidden="true"></span>
-          <span class="corner bl" aria-hidden="true"></span>
-          <span class="corner br" aria-hidden="true"></span>
-        </div>
-        <div class="name-box">
-          <h1>Caveshen Rajman</h1>
-          <!-- his authored LinkedIn headline, not invented copy -->
-          <p class="epithet">Problem solver, coffee enjoyer, 10x human</p>
-          <p class="player-caption">Character Name</p>
-        </div>
+  <main class="record">
+
+    <section class="character" id="character" aria-labelledby="character-name">
+      <div class="portrait-frame">
+        <img class="head-portrait" src="/sheet-portrait.png" alt="Caveshen Rajman" width="128" height="128" />
+        <span class="corner tl" aria-hidden="true"></span>
+        <span class="corner tr" aria-hidden="true"></span>
+        <span class="corner bl" aria-hidden="true"></span>
+        <span class="corner br" aria-hidden="true"></span>
+        <span class="level-badge"><span class="level-word">Level</span>11</span>
       </div>
-      <div class="id-grid">
-        <div class="id-field">
-          <!-- PLACEHOLDER: Class & Level — scores are illustrative; Caveshen tunes -->
-          <p class="value">Engineering Manager <em>11</em></p>
-          <p class="label">Class &amp; Level</p>
-        </div>
-        <div class="id-field">
-          <p class="value">Software Engineering</p>
-          <p class="label">Background</p>
-        </div>
-        <div class="id-field">
-          <p class="value">Cape Town, South Africa</p>
-          <p class="label">Home Region</p>
-        </div>
-        <div class="id-field">
-          <p class="value">PLACEHOLDER</p>
-          <p class="label">Alignment</p>
-        </div>
-        <div class="id-field xp-bar">
+
+      <div class="identity">
+        <h1 id="character-name">Caveshen Rajman</h1>
+        <p class="class-line">Engineering Manager</p>
+        <p class="epithet">Problem solver, coffee enjoyer, 10x human</p>
+        <dl class="id-fields">
+          <div><dt>Origin</dt><dd>Durban, South Africa</dd></div>
+          <div><dt>Base</dt><dd>Cape Town, South Africa</dd></div>
+          <div><dt>Background</dt><dd>Software engineering</dd></div>
+          <div><dt>Faction</dt><dd>Derivco</dd></div>
+        </dl>
+        <div class="xp">
           <div class="xp-track"><div class="xp-fill"></div></div>
-          <p class="label">Experience &mdash; 11 years in tech &middot; levelling since 2015</p>
+          <p class="xp-label">Experience: 11 years in software, since 2015</p>
         </div>
       </div>
-    </header>
 
-    <div class="sheet-grid">
+      <ul class="attributes" aria-label="Attributes">
+        {ATTRIBUTES.map(({ name, score }) => (
+          <li class="attribute">
+            <svg class="gauge" viewBox="0 0 64 64" aria-hidden="true">
+              <circle class="gauge-track" cx="32" cy="32" r={GAUGE_R}
+                stroke-dasharray={`${GAUGE_ARC} ${2 * Math.PI * GAUGE_R}`} />
+              <circle class="gauge-fill" cx="32" cy="32" r={GAUGE_R}
+                stroke-dasharray={`${(GAUGE_ARC * score / 20).toFixed(1)} ${2 * Math.PI * GAUGE_R}`} />
+            </svg>
+            <span class="attr-score">{score}</span>
+            <span class="attr-name">{name}</span>
+            <span class="attr-mod">{mod(score) >= 0 ? '+' : ''}{mod(score)}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
 
-      <section class="abilities-col" aria-label="Ability scores">
-        <!-- PLACEHOLDER: scores and wording; Caveshen to tune -->
-        <div class="ability"><p class="ab-name">People</p><p class="ab-score">17</p><span class="ab-mod">+3</span></div>
-        <div class="ability"><p class="ab-name">Tech</p><p class="ab-score">16</p><span class="ab-mod">+3</span></div>
-        <div class="ability"><p class="ab-name">Product</p><p class="ab-score">14</p><span class="ab-mod">+2</span></div>
-        <div class="ability"><p class="ab-name">Delivery</p><p class="ab-score">16</p><span class="ab-mod">+3</span></div>
-        <div class="ability"><p class="ab-name">Narrative</p><p class="ab-score">13</p><span class="ab-mod">+1</span></div>
-        <div class="ability"><p class="ab-name">Strategy</p><p class="ab-score">15</p><span class="ab-mod">+2</span></div>
-      </section>
-
-      <div class="middle-col">
-
-        <section class="panel" aria-labelledby="skills-caption">
-          <h2 class="section-head">Skill Proficiencies</h2>
-          <ul class="skill-list">
-            <!-- PLACEHOLDER: skills list; Caveshen to replace with real list -->
-            <li><span class="dot expert"></span><span class="skill-mod">+6</span><span class="skill-name">Mentoring</span><span class="skill-attr">(People)</span></li>
-            <li><span class="dot prof"></span><span class="skill-mod">+5</span><span class="skill-name">Team Building</span><span class="skill-attr">(People)</span></li>
-            <li><span class="dot prof"></span><span class="skill-mod">+5</span><span class="skill-name">Stakeholder Diplomacy</span><span class="skill-attr">(People)</span></li>
-            <li><span class="dot expert"></span><span class="skill-mod">+6</span><span class="skill-name">C# Systems</span><span class="skill-attr">(Tech)</span></li>
-            <li><span class="dot prof"></span><span class="skill-mod">+5</span><span class="skill-name">SQL Archaeology</span><span class="skill-attr">(Tech)</span></li>
-            <li><span class="dot prof"></span><span class="skill-mod">+4</span><span class="skill-name">Roadmapping</span><span class="skill-attr">(Product)</span></li>
-            <li><span class="dot prof"></span><span class="skill-mod">+4</span><span class="skill-name">Scope Wrangling</span><span class="skill-attr">(Delivery)</span></li>
-            <li><span class="dot prof"></span><span class="skill-mod">+4</span><span class="skill-name">Games Journalism</span><span class="skill-attr">(Narrative)</span></li>
-            <li><span class="dot"></span><span class="skill-mod">+1</span><span class="skill-name">Dialogue Writing</span><span class="skill-attr">(Narrative)</span></li>
-            <li><span class="dot"></span><span class="skill-mod">+1</span><span class="skill-name">Worldbuilding</span><span class="skill-attr">(Narrative)</span></li>
-          </ul>
-          <div class="skill-key">
-            <span><span class="dot expert key-dot"></span>expertise</span>
-            <span><span class="dot prof key-dot"></span>proficient</span>
-            <span><span class="dot key-dot"></span>learning</span>
-          </div>
-          <p class="panel-caption" id="skills-caption">Skills</p>
-        </section>
-
-        <!-- spell tier assignments are Caveshen's to tune -->
-        <section class="panel" aria-labelledby="spellbook-caption">
-          <h2 class="section-head">Spellbook &mdash; Tech Stack</h2>
-          <div class="spell-tier">
-            <div class="tier-head">Specialisations <span class="slots">&middot; core craft</span></div>
-            <div class="spell-row">
-              <span class="spell">.NET / C#</span><span class="spell">SQL</span><span class="spell">JavaScript</span><span class="spell">Git</span>
-            </div>
-          </div>
-          <div class="spell-tier">
-            <div class="tier-head">Frameworks <span class="slots">&middot; practised</span></div>
-            <div class="spell-row">
-              <span class="spell">VueJS</span><span class="spell">React</span><span class="spell">Angular</span><span class="spell">GraphQL</span><span class="spell">Spring</span>
-            </div>
-          </div>
-          <div class="spell-tier">
-            <div class="tier-head">Passives <span class="slots">&middot; always on</span></div>
-            <div class="spell-row">
-              <span class="spell">Azure</span><span class="spell">AWS</span><span class="spell">Power BI</span>
-            </div>
-          </div>
-          <!-- tier name and joke note are Caveshen's to tune -->
-          <div class="spell-tier last-tier">
-            <div class="tier-head">Divination <span class="slots">&middot; the school of finding hidden truths</span></div>
-            <div class="spell-row">
-              <span class="spell">Cypress</span><span class="spell">Selenium</span><span class="spell">K6</span><span class="spell">NUnit</span><span class="spell">XUnit</span><span class="spell">WebDriverIO</span>
-            </div>
-          </div>
-          <p class="panel-caption" id="spellbook-caption">Spellbook &mdash; Tech Stack</p>
-        </section>
-
+    <section class="panel abilities" id="abilities" aria-labelledby="abilities-head">
+      <h2 class="section-head" id="abilities-head">Abilities</h2>
+      <p class="section-note">Five schools, each read top to bottom in the order the ranks were earned.</p>
+      <div class="tree-scroll">
+        <svg class="skill-tree" viewBox={`0 0 ${COL_W * SCHOOLS.length + 40} ${treeHeight}`}
+             role="img" aria-label="Skill tree: Engineering, Frameworks, Cloud and tooling, Quality and Leadership, each a column of ranks">
+          {SCHOOLS.map((school, c) => {
+            const cx = c * COL_W + 34;
+            const last = school.nodes.length - 1;
+            return (
+              <g class="school">
+                <text class="school-name" x={c * COL_W + 12} y="24">{school.name}</text>
+                <line class="school-rule" x1={c * COL_W + 12} y1="34" x2={(c + 1) * COL_W - 20} y2="34" />
+                <line class="school-spine" x1={cx} y1={TOP} x2={cx} y2={TOP + ROW_H * last} />
+                {school.nodes.map(([label, rank], r) => {
+                  const cy = TOP + ROW_H * r;
+                  return (
+                    <g class={`node rank-${rank}`}>
+                      <polygon points={hexPoints(cx, cy, HEX_R)} />
+                      <text class="node-rank" x={cx} y={cy + 4.5}>{rank}</text>
+                      <text class="node-label" x={cx + HEX_R + 12} y={cy + 4.5}>{label}</text>
+                      <title>{label}: {RANK[rank]}</title>
+                    </g>
+                  );
+                })}
+              </g>
+            );
+          })}
+        </svg>
       </div>
+      <ul class="rank-key" aria-hidden="true">
+        <li><span class="key-hex rank-3"></span>Mastered</li>
+        <li><span class="key-hex rank-2"></span>Proficient</li>
+        <li><span class="key-hex rank-1"></span>Learning</li>
+      </ul>
+    </section>
 
-      <div class="right-col">
+    <section class="panel quests" id="quests" aria-labelledby="quests-head">
+      <h2 class="section-head" id="quests-head">Quest log</h2>
 
-        <section class="panel" aria-labelledby="questlog-caption">
-          <h2 class="section-head">Backstory &mdash; Quest Log</h2>
-          <article class="quest">
-            <h3>Engineering Manager &mdash; Derivco Cape Town</h3>
-            <p class="q-meta">JUNE 2024 &mdash; PRESENT &middot; PLACEHOLDER</p>
-            <p>PLACEHOLDER &mdash; <em>the current campaign.</em></p>
-          </article>
-          <article class="quest">
-            <h3>Senior Software Engineer, Project Lead &mdash; Entelect</h3>
-            <p class="q-meta">APRIL 2022 &mdash; MAY 2024 &middot; PLACEHOLDER</p>
-            <p>PLACEHOLDER &mdash; consulting arc; many parties, many dungeons.</p>
-          </article>
-          <article class="quest">
-            <h3>Senior Software Developer (Technical Lead) &mdash; Derivco Durban</h3>
-            <p class="q-meta">JANUARY 2015 &mdash; MARCH 2022 &middot; PLACEHOLDER</p>
-            <!-- e.g. "Tester → Tech Lead — origin story" -->
-            <p>PLACEHOLDER &mdash; where the character was rolled.</p>
-          </article>
-          <article class="quest">
-            <h3>Managing Editor &mdash; EGMR</h3>
-            <p class="q-meta">FEBRUARY 2011 &mdash; DECEMBER 2015 &middot; PLACEHOLDER</p>
-            <p>PLACEHOLDER &mdash; the games-media arc; column, podcasts, press badges.</p>
-          </article>
-          <p class="panel-caption" id="questlog-caption">Backstory &mdash; Quest Log</p>
-        </section>
+      <h3 class="quest-group">Active</h3>
+      <article class="quest active">
+        <h4>Engineering Manager</h4>
+        <p class="q-meta"><span>Derivco, Cape Town</span><span>June 2024 to present</span></p>
+        <p>Leads two full-stack teams that own the Player Account Management and Player Balance Ledger product suites. Full ownership from idea to roadmap to delivery to support.</p>
+        <ul class="objectives">
+          <li class="done">Joined as Senior SDET; promoted to Engineering Manager in May 2025</li>
+          <li class="done">Over 100 billion requests a month at 99.98% uptime</li>
+          <li class="done">Compliant with EU GDPR and ISO 27001</li>
+          <li class="done">Built AI tooling for change management, audit and support tickets</li>
+          <li class="open">Keep the people sharp and the path clear</li>
+        </ul>
+      </article>
 
-        <section class="panel" aria-labelledby="feats-caption">
-          <h2 class="section-head">Features &amp; Traits</h2>
-          <ul class="feat-list">
-            <li><span class="feat-mark">&#10022;</span><span class="feat-body"><strong>Bachelor of Commerce, Information Systems &amp; Technology</strong> &mdash; University of KwaZulu-Natal, Durban &middot; 2014.</span></li>
-            <li><span class="feat-mark">&#10022;</span><span class="feat-body"><strong>Certified Tester, Foundation Level (ISTQB)</strong> &mdash; 2015.</span></li>
-            <li><span class="feat-mark">&#10022;</span><span class="feat-body"><strong>PLACEHOLDER: Training</strong> &mdash; Crucial Conversations, Personal Mastery, Legitimate Leadership.</span></li>
-          </ul>
-          <p class="panel-caption" id="feats-caption">Features &amp; Traits &mdash; Education &amp; Training</p>
-        </section>
+      <h3 class="quest-group">Completed</h3>
+      <article class="quest">
+        <h4>Senior Software Engineer, Project Lead</h4>
+        <p class="q-meta"><span>Entelect, Cape Town</span><span>April 2022 to May 2024</span></p>
+        <p>Consulting arc. Technical expertise, leadership and stakeholder management for eBay Mexico, Adevinta, FNZ UK and MunichRe.</p>
+        <ul class="objectives">
+          <li class="done">Acting team lead for eBay Mexico, Adevinta and FNZ UK</li>
+          <li class="done">Project lead at MunichRe: team lead and senior engineer in one</li>
+          <li class="done">Four fifths of the time hands-on, mostly in insurance</li>
+        </ul>
+      </article>
+      <article class="quest">
+        <h4>Senior Software Developer, Technical Lead</h4>
+        <p class="q-meta"><span>Derivco, Durban</span><span>January 2015 to March 2022</span></p>
+        <p>Where the character was rolled. Technical lead in the Quickfire BackOffice department: large-scale campaign creation and tracking tools, four teams of thirty people across four locations.</p>
+        <ul class="objectives">
+          <li class="done">Production tester, then developer, then technical lead</li>
+          <li class="done">Founded the Campaign Manager Design Board</li>
+          <li class="done">Wrote the strategies: branching, test-first automation, monitoring, feature flags</li>
+        </ul>
+      </article>
+      <article class="quest">
+        <h4>Managing Editor</h4>
+        <p class="q-meta"><span>EGMR</span><span>February 2011 to December 2015</span></p>
+        <p>The games-media arc. Reviews, columns, podcasts, press badges, and deadlines that did not move.</p>
+      </article>
+    </section>
 
-      </div>
+    <section class="panel codex" id="codex" aria-labelledby="codex-head">
+      <h2 class="section-head" id="codex-head">Codex</h2>
+      <ul class="codex-list">
+        <li><span class="codex-year">2014</span><span class="codex-body"><strong>Bachelor of Commerce, Information Systems and Technology</strong> University of KwaZulu-Natal, Durban</span></li>
+        <li><span class="codex-year">2015</span><span class="codex-body"><strong>Certified Tester, Foundation Level</strong> ISTQB</span></li>
+        <li><span class="codex-year">2018</span><span class="codex-body"><strong>Crucial Conversations</strong> Derivco</span></li>
+        <li><span class="codex-year">2019</span><span class="codex-body"><strong>Personal Mastery</strong> Derivco</span></li>
+        <li><span class="codex-year">2024</span><span class="codex-body"><strong>Legitimate Leadership</strong> Entelect</span></li>
+      </ul>
+    </section>
 
-      <div class="sheet-portrait" aria-hidden="true">
-        <img src="/badger-up.png" alt="" />
-        <p class="panel-caption">PLACEHOLDER</p>
-      </div>
+    <!-- Companion: the Badger keeps his seat on the rail at wide widths, and
+         travels here from the scene via the cross-document view transition. -->
+    <div class="sheet-portrait" aria-hidden="true">
+      <img src="/badger-up.png" alt="" />
+      <p class="companion-caption">Companion</p>
     </div>
 
     <footer class="sheet-foot">
       <a href="https://www.linkedin.com/in/caveshen" class="contact-link">LinkedIn</a>
       <a href="https://github.com/caveshen" class="contact-link">GitHub</a>
+      <a href="/cv.pdf" class="contact-link">Download CV</a>
     </footer>
 
   </main>
 </Base>
 
 <style is:global>
-  /* Sheet-scoped nebular background; / keeps plain --bg */
   body { background: var(--sheet-bg); }
 
-  .sheet-wrap {
+  /* ── Menu bar ── */
+  .menu-bar {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 1rem 2rem;
+    flex-wrap: wrap;
+    padding: 0.8rem clamp(1rem, 4vw, 3rem);
+    background: rgba(6, 10, 18, 0.85);
+    border-bottom: 1px solid var(--holo-dim);
+    backdrop-filter: blur(6px);
+  }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    font-family: var(--hud);
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--dim);
+    text-decoration: none;
+    transition: color var(--t-micro);
+  }
+  .back-link kbd,
+  .menu-bar kbd {
+    font-family: var(--hud);
+    font-size: 0.7rem;
+    padding: 0.1em 0.4em;
+    color: var(--holo);
+    border: 1px solid var(--holo-dim);
+    border-radius: 3px;
+  }
+  .back-link:hover, .back-link:focus-visible { color: var(--gold-bright); }
+  .menu-tabs {
+    display: flex;
+    gap: 0.25rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .menu-tabs a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0.4rem 1rem;
+    font-family: var(--hud);
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text);
+    text-decoration: none;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: color var(--t-micro), border-color var(--t-micro);
+  }
+  .menu-tabs a:hover, .menu-tabs a:focus-visible {
+    color: var(--gold-bright);
+    border-bottom-color: var(--gold-bright);
+  }
+  .back-link:focus-visible {
+    outline: 1px solid var(--holo);
+    outline-offset: 3px;
+  }
+  .menu-tabs a:focus-visible {
+    outline: 1px solid var(--holo);
+    outline-offset: 3px;
+  }
+  .download-btn:focus-visible {
+    outline: 1px solid var(--holo);
+    outline-offset: 3px;
+  }
+  /* The page's one filled control. */
+  .download-btn {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0.4rem 1.1rem;
+    font-family: var(--hud);
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    line-height: 1.1;
+    color: var(--btn-primary-ink);
+    background: var(--gold);
+    text-decoration: none;
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+    transition: background var(--t-micro);
+  }
+  .download-btn:hover, .download-btn:focus-visible { background: var(--gold-bright); }
+  .download-note {
+    font-weight: 600;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    opacity: 0.8;
+  }
+
+  /* ── Record ── */
+  .record {
+    position: relative;
     max-width: 1080px;
     margin: 0 auto;
-    padding: 1.75rem 1.25rem 4rem;
-  }
-
-  /* ── codex convention: hairline-ruled sections, caption BELOW ──
-     No boxed cards — structure comes from gold hairlines and space. */
-  .panel {
+    padding: 2rem clamp(1rem, 4vw, 1.5rem) 4rem;
     display: flex;
     flex-direction: column;
+    gap: 1.5rem;
   }
-  .panel + .panel {
-    border-top: 1px solid var(--hairline);
-    padding-top: 1.2rem;
+  .panel {
+    padding: 1.5rem clamp(1rem, 3vw, 2rem) 1.75rem;
+    background: linear-gradient(180deg, rgba(14, 26, 46, 0.55), rgba(6, 10, 18, 0.55));
+    border: 1px solid var(--holo-dim);
+    clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+    scroll-margin-top: 5rem;
   }
   .section-head {
-    font-family: var(--display);
-    font-size: 1rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    margin-bottom: 0.9rem;
-  }
-  .panel-caption {
-    font-family: var(--mono);
-    font-size: 0.6rem;
-    font-weight: 600;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--stage);
-    text-align: center;
-    margin-top: auto;
-    padding-top: 1rem;
-  }
-
-  .nameplate { margin-bottom: 1.25rem; }
-
-  .sheet-nav {
     display: flex;
-    gap: 0.75rem;
     align-items: center;
-    flex-wrap: wrap;
-    margin-bottom: 0.9rem;
+    gap: 1rem;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1.15rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold-bright);
+    margin-bottom: 1rem;
+  }
+  .section-head::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--gold), transparent);
+  }
+  .section-note {
+    font-family: var(--serif);
+    font-size: 1rem;
+    color: var(--dim);
+    margin: -0.4rem 0 1.2rem;
   }
 
-  .nameplate-inner {
+  /* ── Character ── */
+  .character {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1.25rem 2rem;
+    align-items: start;
+    scroll-margin-top: 5rem;
+  }
+  .portrait-frame {
+    position: relative;
+    width: 150px;
+    padding: 6px;
+    border: 1px solid var(--holo-dim);
+    background: rgba(6, 10, 18, 0.6);
+  }
+  .head-portrait { display: block; width: 100%; height: auto; }
+  .corner { position: absolute; width: 14px; height: 14px; border: 2px solid var(--gold); }
+  .corner.tl { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+  .corner.tr { top: -1px; right: -1px; border-left: 0; border-bottom: 0; }
+  .corner.bl { bottom: -1px; left: -1px; border-right: 0; border-top: 0; }
+  .corner.br { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+  /* Level: a gold diamond on the frame's corner. The diamond is a rotated
+     pseudo-element so the text inside stays upright. */
+  .level-badge {
+    position: absolute;
+    right: -12px;
+    bottom: -14px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2rem;
-    flex-wrap: wrap;
-  }
-
-  /* ── head portrait — bracketed frame, codex plate ── */
-  .head-panel {
-    position: relative;
-    border: 1px solid var(--hairline);
-    border-radius: var(--r-sharp);
-    padding: 5px;
-    width: 138px;
-    aspect-ratio: 1 / 1;
-    flex: none;
-  }
-  .head-portrait { display: block; width: 100%; height: auto; border-radius: 3px; }
-  .corner { position: absolute; width: 14px; height: 14px; opacity: 0.55; }
-  .corner.tl { top: 5px; left: 5px; border-top: 2px solid var(--gold); border-left: 2px solid var(--gold); }
-  .corner.tr { top: 5px; right: 5px; border-top: 2px solid var(--gold); border-right: 2px solid var(--gold); }
-  .corner.bl { bottom: 5px; left: 5px; border-bottom: 2px solid var(--gold); border-left: 2px solid var(--gold); }
-  .corner.br { bottom: 5px; right: 5px; border-bottom: 2px solid var(--gold); border-right: 2px solid var(--gold); }
-
-  .name-box {
-    text-align: center;
-    padding: 1.3rem 1.6rem;
-    border-top: 1px solid var(--hairline);
-    border-bottom: 1px solid var(--hairline);
-    flex: 1 1 20rem;
-    max-width: 34rem;
-  }
-  .name-box h1 {
+    width: 54px;
+    height: 54px;
     font-family: var(--display);
-    font-size: clamp(1.8rem, 4vw, 2.4rem);
+    font-weight: 700;
+    font-size: 1.35rem;
+    line-height: 1;
+    color: var(--btn-primary-ink);
+  }
+  .level-badge::before {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    background: var(--gold-bright);
+    rotate: 45deg;
+    z-index: -1;
+    box-shadow: 0 0 14px rgba(255, 196, 107, 0.45);
+  }
+  .level-badge .level-word {
+    font-family: var(--hud);
+    font-size: 0.5rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1px;
+  }
+
+  .identity h1 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(1.9rem, 4vw, 2.8rem);
+    letter-spacing: 0.05em;
+    line-height: 1.1;
+  }
+  .class-line {
+    font-family: var(--hud);
     font-weight: 600;
-    letter-spacing: 0.08em;
-    line-height: 1.2;
+    font-size: 1.05rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--holo);
+    margin-top: 0.35rem;
   }
   .epithet {
     font-family: var(--serif);
     font-style: italic;
-    font-size: 0.9rem;
+    font-size: 1.1rem;
+    color: var(--dim);
+    margin-top: 0.3rem;
+  }
+  .id-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 0.7rem 1.5rem;
+    margin-top: 1.2rem;
+  }
+  .id-fields dt {
+    font-family: var(--hud);
+    font-weight: 600;
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--holo);
+  }
+  .id-fields dd {
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    color: var(--text);
+  }
+  .xp { margin-top: 1.2rem; }
+  .xp-track {
+    height: 6px;
+    background: rgba(6, 10, 18, 0.8);
+    border: 1px solid var(--holo-dim);
+    overflow: hidden;
+  }
+  .xp-fill { --xp: 78%; width: var(--xp); height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-bright)); }
+  .xp-label {
+    font-family: var(--hud);
+    font-weight: 600;
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
     color: var(--dim);
     margin-top: 0.4rem;
   }
-  .player-caption {
-    font-family: var(--mono);
-    font-size: 0.58rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--stage);
-    margin-top: 0.75rem;
-  }
 
-  .id-grid {
-    margin-top: 1.4rem;
-    display: flex;
-    flex-wrap: wrap;
+  .attributes {
+    grid-column: 1 / -1;
+    list-style: none;
+    margin: 0.25rem 0 0;
+    padding: 1rem 0 0;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.5rem;
+    border-top: 1px solid var(--holo-dim);
   }
-  .id-field {
-    flex: 1 1 auto;
-    min-width: 9rem;
-    padding: 0 1.4rem;
-    border-left: 1px solid var(--hairline);
-  }
-  .id-field:first-child { border-left: none; padding-left: 0; }
-  .id-field .value {
-    font-family: var(--serif);
-    font-size: 1rem;
-    line-height: 1.3;
-  }
-  .id-field .value em {
-    color: var(--option);
-    font-style: normal;
-  }
-  .id-field .label {
-    font-family: var(--mono);
-    font-size: 0.54rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--stage);
-    margin-top: 0.25rem;
-  }
-  .xp-bar { flex-basis: 100%; padding-left: 0 !important; border-left: none !important; }
-  .xp-track {
-    height: 7px;
-    background: var(--bg);
-    border: 1px solid var(--hairline);
-    border-radius: 999px;
-    overflow: hidden;
-  }
-  .xp-fill { --xp: 78%; width: var(--xp); height: 100%; background: var(--gold); border-radius: 999px; }
-
-  .sheet-grid {
-    --grid-gap: 1.4rem;
+  .attribute {
     position: relative;
     display: grid;
-    grid-template-columns: 118px 1.2fr 1.4fr;
-    gap: var(--grid-gap);
-    align-items: start;
+    grid-template-rows: 64px auto auto;
+    justify-items: center;
+    text-align: center;
   }
-  .middle-col, .right-col {
-    display: flex;
-    flex-direction: column;
-    gap: 1.4rem;
+  .gauge { width: 64px; height: 64px; rotate: 135deg; }
+  .gauge circle { fill: none; stroke-width: 3; stroke-linecap: butt; }
+  .gauge-track { stroke: var(--holo-dim); }
+  .gauge-fill { stroke: var(--gold-bright); }
+  .attr-score {
+    position: absolute;
+    top: 18px;
+    left: 0;
+    right: 0;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1.35rem;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .attr-name {
+    font-family: var(--hud);
+    font-weight: 600;
+    font-size: 0.78rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--holo);
+    margin-top: 0.2rem;
+  }
+  .attr-mod {
+    font-family: var(--hud);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--dim);
   }
 
-  .abilities-col {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  .ability {
-    background: var(--panel-grad);
-    border: 1px solid var(--card-edge);
-    border-radius: var(--r-panel);
-    padding: 0.85rem 0.4rem 1.15rem;
-    text-align: center;
-    position: relative;
-    transition: border-color 0.4s ease;
-  }
-  .ab-name {
-    font-family: var(--mono);
-    font-size: 0.52rem;
-    font-weight: 600;
+  /* ── Abilities: the skill tree ── */
+  .tree-scroll { overflow-x: auto; }
+  .skill-tree { display: block; width: 100%; min-width: 860px; height: auto; }
+  .school-name {
+    font-family: var(--hud);
+    font-weight: 700;
+    font-size: 15px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--stage);
+    fill: var(--gold-bright);
   }
-  .ab-score {
-    font-family: var(--display);
-    font-size: 1.75rem;
+  .school-rule { stroke: var(--gold); stroke-opacity: 0.5; }
+  .school-spine { stroke: var(--holo-dim); stroke-width: 2; }
+  .node polygon { stroke-width: 1.5; }
+  .node.rank-3 polygon { fill: var(--gold-bright); stroke: var(--gold-bright); }
+  .node.rank-2 polygon { fill: var(--navy); stroke: var(--gold); }
+  .node.rank-1 polygon { fill: none; stroke: var(--holo); stroke-dasharray: 4 3; }
+  .node-rank {
+    font-family: var(--hud);
     font-weight: 700;
-    line-height: 1.1;
-    margin-top: 0.15rem;
-    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+    text-anchor: middle;
+    fill: var(--text);
   }
-  .ab-mod {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: -0.6rem;
-    background: var(--bg);
-    color: var(--option);
-    border: 1px solid var(--option-border);
-    border-radius: 999px;
-    font-family: var(--mono);
-    font-size: 0.63rem;
-    font-weight: 600;
-    padding: 0.1rem 0.45rem;
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-  }
-
-  .skill-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-  }
-  .skill-list li {
-    display: flex;
-    align-items: center;
-    gap: 0.55rem;
-    font-family: var(--mono);
-    font-size: 0.78rem;
-  }
-  .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    border: 1.5px solid var(--option);
-    flex: none;
-  }
-  .dot.prof { background: var(--option); }
-  .dot.expert { background: var(--celestial); border-color: var(--celestial); }
-  .skill-mod { color: var(--option); font-weight: 600; min-width: 2.2ch; font-variant-numeric: tabular-nums; }
-  .skill-name { color: var(--text); }
-  .skill-attr { color: var(--stage); font-size: 0.64rem; }
-  .skill-key {
-    font-family: var(--mono);
-    font-size: 0.58rem;
-    color: var(--dim);
-    margin-top: 0.7rem;
-    display: flex;
-    gap: 0.9rem;
-    align-items: center;
-  }
-  .key-dot { width: 7px; height: 7px; display: inline-block; vertical-align: middle; margin-right: 4px; }
-
-  .spell-tier { margin-bottom: 1.1rem; }
-  .spell-tier.last-tier { margin-bottom: 0; }
-  .tier-head {
-    display: flex;
-    align-items: baseline;
-    gap: 0.5rem;
-    font-family: var(--mono);
-    font-size: 0.62rem;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin-bottom: 0.5rem;
-  }
-  .slots { color: var(--stage); letter-spacing: 0.04em; text-transform: lowercase; }
-  .spell-row { display: flex; flex-wrap: wrap; gap: 0.45rem; }
-  .spell {
+  .node.rank-3 .node-rank { fill: #060a12; }
+  .node-label {
     font-family: var(--serif);
-    font-size: 0.95rem;
-    border: 1px solid var(--option-border);
-    border-radius: 999px;
-    padding: 0.2rem 0.85rem;
-    color: var(--text);
+    font-weight: 600;
+    font-size: 17px;
+    fill: var(--text);
+  }
+  .rank-key {
+    list-style: none;
+    display: flex;
+    gap: 1.5rem;
+    margin: 0.75rem 0 0;
+    padding: 0;
+    font-family: var(--hud);
+    font-weight: 600;
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+  .rank-key li { display: inline-flex; align-items: center; gap: 0.5rem; }
+  .key-hex {
+    width: 12px;
+    height: 12px;
+    clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  }
+  .key-hex.rank-3 { background: var(--gold-bright); }
+  .key-hex.rank-2 { background: var(--gold); }
+  .key-hex.rank-1 { background: var(--holo); }
+
+  /* ── Quest log ── */
+  .quest-group {
+    font-family: var(--hud);
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--holo);
+    margin: 1.25rem 0 0.5rem;
   }
   .quest {
-    padding: 1rem 0;
-    border-top: 1px solid var(--card-edge);
+    position: relative;
+    padding: 0.9rem 0 0.9rem 1.6rem;
+    border-left: 1px solid var(--holo-dim);
   }
-  .quest:first-of-type { border-top: none; padding-top: 0.1rem; }
-  .quest h3 { font-family: var(--display); font-size: 1rem; font-weight: 700; }
+  .quest::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 1.35rem;
+    width: 10px;
+    height: 10px;
+    rotate: 45deg;
+    background: var(--navy);
+    border: 1px solid var(--holo);
+  }
+  .quest.active { border-left-color: var(--gold); }
+  .quest.active::before { background: var(--gold-bright); border-color: var(--gold-bright); box-shadow: 0 0 10px rgba(255, 196, 107, 0.6); }
+  .quest h4 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1.15rem;
+    letter-spacing: 0.03em;
+  }
   .q-meta {
-    font-family: var(--mono);
-    font-size: 0.62rem;
+    display: flex;
+    gap: 0.4rem 1.5rem;
+    flex-wrap: wrap;
+    font-family: var(--hud);
+    font-weight: 600;
+    font-size: 0.82rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
     color: var(--gold);
-    letter-spacing: 0.05em;
-    margin: 0.25rem 0 0.4rem;
+    margin: 0.25rem 0 0.5rem;
   }
-  .quest p { font-size: 0.84rem; line-height: 1.6; color: var(--dim); }
-  .quest p em { color: var(--text); font-style: italic; }
-
-  .feat-list {
+  .quest p:not(.q-meta) {
+    font-family: var(--serif);
+    font-size: 1.08rem;
+    line-height: 1.55;
+    color: var(--dim);
+    max-width: 60ch;
+  }
+  .objectives {
     list-style: none;
+    margin: 0.6rem 0 0;
     padding: 0;
-    margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.3rem;
   }
-  .feat-list li { display: flex; gap: 0.6rem; font-size: 0.84rem; line-height: 1.55; }
-  .feat-mark { color: var(--gold); font-family: var(--mono); flex: none; }
-  .feat-body { color: var(--dim); }
-  .feat-body strong { color: var(--text); font-weight: 700; }
-
-  /* ── nav / download / contact ───────────────────────────── */
-  .back-link {
-    font-family: var(--mono);
-    font-size: 0.74rem;
-    color: var(--stage);
-    text-decoration: none;
-    border: 1px solid var(--card-edge);
-    border-radius: var(--r-pill);
-    padding: 0.35rem 0.9rem;
-    transition: color var(--t-micro), border-color var(--t-micro), background var(--t-micro);
+  .objectives li {
+    position: relative;
+    padding-left: 1.5rem;
+    font-family: var(--serif);
+    font-size: 1.02rem;
+    color: var(--text);
   }
-  .back-link:hover, .back-link:focus-visible {
-    color: var(--btn-hover-text);
-    border-color: var(--btn-hover-border);
-    background: var(--btn-hover-bg);
+  .objectives li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.35em;
+    width: 11px;
+    height: 11px;
+    border: 1px solid var(--holo);
   }
-  .back-link:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 2px; }
-
-  /* The page's one filled control (d37 §6, primary verb): solid house gold
-     pill, ink text; hover brightens and lifts 1px. */
-  .download-btn {
-    font-family: var(--mono);
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--btn-primary-ink);
-    background: var(--gold);
-    border: none;
-    border-radius: var(--r-pill);
-    padding: 0.5rem 1.2rem;
-    text-decoration: none;
-    transition: background var(--t-micro), translate var(--t-micro);
-  }
-  .download-btn:hover, .download-btn:focus-visible {
+  .objectives li.done::before {
     background: var(--gold-bright);
-    translate: 0 -1px;
+    border-color: var(--gold-bright);
+    clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
   }
-  .download-btn:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 2px; }
+  .objectives li.open { color: var(--holo); }
+
+  /* ── Codex ── */
+  .codex-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+    gap: 0.6rem 2rem;
+  }
+  .codex-list li { display: flex; gap: 1rem; align-items: baseline; }
+  .codex-year {
+    flex: none;
+    font-family: var(--hud);
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.1em;
+    color: var(--gold);
+    font-variant-numeric: tabular-nums;
+  }
+  .codex-body { font-family: var(--serif); font-size: 1.05rem; line-height: 1.5; color: var(--dim); }
+  .codex-body strong { display: block; color: var(--text); font-weight: 600; }
 
   .sheet-foot {
-    margin-top: 1.5rem;
     display: flex;
     justify-content: center;
-    gap: 1.25rem;
+    gap: 2rem;
     flex-wrap: wrap;
+    margin-top: 1rem;
   }
   .contact-link {
-    font-family: var(--mono);
-    font-size: 0.8rem;
-    color: var(--option);
+    font-family: var(--hud);
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--holo);
     text-decoration: none;
-    border-bottom: 1px dotted var(--option-border);
-    padding-bottom: 1px;
-    transition: color 0.12s ease, border-color 0.12s ease;
+    border-bottom: 1px solid var(--holo-dim);
+    padding-bottom: 2px;
+    transition: color var(--t-micro), border-color var(--t-micro);
   }
-  .contact-link:hover, .contact-link:focus-visible {
-    color: var(--btn-hover-text);
-    border-color: var(--btn-hover-border);
-  }
-  .contact-link:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 2px; }
+  .contact-link:hover, .contact-link:focus-visible { color: var(--gold-bright); border-color: var(--gold-bright); }
+  .contact-link:focus-visible { outline: 1px solid var(--holo); outline-offset: 3px; }
 
-  /* ── desktop height-alignment: right col sets height; middle last panel grows to meet it; rail stays natural ── */
-  @media (min-width: 901px) {
-    .sheet-grid { align-items: stretch; }
-    .abilities-col { align-self: start; }
-    .middle-col .panel:last-child { flex: 1; }
+  @media (max-width: 760px) {
+    .attributes { grid-template-columns: repeat(3, 1fr); }
+    .menu-tabs { margin-left: 0; order: 3; width: 100%; overflow-x: auto; }
+    .menu-tabs a { padding: 0.4rem 0.7rem; font-size: 0.9rem; }
+    .download-btn { margin-left: auto; }
   }
-
-  @media (max-width: 900px) {
-    .sheet-grid { grid-template-columns: 110px 1fr; }
-    .right-col { grid-column: 1 / -1; }
-  }
-  @media (max-width: 640px) {
-    .sheet-grid { grid-template-columns: 1fr; }
-    .abilities-col { flex-direction: row; flex-wrap: wrap; }
-    .ability { flex: 1 1 80px; }
-    .id-field { min-width: 100%; border-left: none; padding-left: 0; }
+  @media (max-width: 520px) {
+    .character { grid-template-columns: 1fr; }
+    .attributes { grid-template-columns: repeat(2, 1fr); }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .ability,
-    .back-link, .download-btn, .contact-link { transition: none; }
-  }
-
-  /* ── Badger portrait — reads as a 4th column beside .sheet-grid's
-     three, vertically centred on it, gap-matched via `right` rather than
-     replicated arithmetic. absolutely-positioned grid children skip grid
-     placement entirely, so this needs no grid-column of its own. ── */
+  /* ── Companion on the rail: a 4th column beside the record at wide widths,
+     vertically centred on it. ── */
   .sheet-portrait {
-    /* rail width minus grid gap and outer margin; ultrawide- and height-capped */
-    --portrait: min(480px, calc((100vw - 1080px) / 2 - 1.15rem), calc(100vh - 8rem));
+    --portrait: min(440px, calc((100vw - 1080px) / 2 - 1.5rem), calc(100vh - 8rem));
     display: none;
     position: absolute;
     top: 50%;
-    right: calc(100% + var(--grid-gap));
+    right: calc(100% + 1rem);
     width: var(--portrait);
     pointer-events: none;
     transform: translateY(-50%);
+    text-align: center;
   }
   @media (min-width: 1650px) {
     .sheet-portrait { display: block; }
@@ -592,12 +744,21 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     display: block;
     width: 100%;
     view-transition-name: character-portrait;
+    filter: grayscale(1) contrast(1.05) brightness(.8);
+  }
+  .companion-caption {
+    font-family: var(--hud);
+    font-weight: 600;
+    font-size: 0.8rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--holo);
   }
 
-  /* ── menu-open choreography — CSS only, <500ms total ─────────── */
+  /* ── Menu-open choreography: CSS only, under 500ms ── */
   @keyframes sheet-rise-fade {
     from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
+    to   { opacity: 1; transform: none; }
   }
   @keyframes portrait-slide-in {
     from { transform: translateY(-50%) translateX(-40%); }
@@ -607,36 +768,22 @@ import ThemeToggle from '../components/ThemeToggle.astro';
     from { width: 0; }
     to   { width: var(--xp); }
   }
-  /* Animates .nameplate-inner (name/epithet/id-grid), not .nameplate itself —
-     .sheet-nav's back/download links stay static from frame one, so nav never
-     moves under a pending click (the no-JS test clicks the back link before
-     any script could wait out the choreography). */
-  .nameplate-inner        { animation: sheet-rise-fade 180ms ease-out 0ms both; }
-  .abilities-col          { animation: sheet-rise-fade 180ms ease-out 70ms both; }
-  .middle-col, .right-col { animation: sheet-rise-fade 180ms ease-out 140ms both; }
-  .sheet-portrait         { animation: portrait-slide-in 240ms ease-out 200ms both; }
-  .xp-fill                { animation: xp-fill-grow 220ms ease-out 260ms both; }
+  .character      { animation: sheet-rise-fade 180ms ease-out 0ms both; }
+  .abilities      { animation: sheet-rise-fade 180ms ease-out 70ms both; }
+  .quests, .codex { animation: sheet-rise-fade 180ms ease-out 140ms both; }
+  .sheet-portrait { animation: portrait-slide-in 240ms ease-out 200ms both; }
+  .xp-fill        { animation: xp-fill-grow 220ms ease-out 260ms both; }
 
   @media (prefers-reduced-motion: reduce) {
-    .nameplate-inner, .abilities-col, .middle-col, .right-col {
-      animation: none;
-      opacity: 1;
-      transform: none;
-    }
-    /* translateY(-50%) is load-bearing (vertical centring), not motion — kept, not reset to none. */
+    .character, .abilities, .quests, .codex { animation: none; opacity: 1; transform: none; }
     .sheet-portrait { animation: none; transform: translateY(-50%); }
     .xp-fill { animation: none; width: var(--xp); }
+    .back-link, .menu-tabs a, .download-btn, .contact-link { transition: none; }
   }
 
-  /* Opt-in to cross-document view transitions. Gated under no-preference so
-     the swap is instant (no transition runs) when reduced motion is requested. */
   @media (prefers-reduced-motion: no-preference) {
     @view-transition { navigation: auto; }
   }
-
-  /* Morph travel time — preview-tuning knob, not a contract. */
   ::view-transition-group(character-portrait) { animation-duration: 400ms; }
-
-  /* When arriving via the morph, the portrait is already in place — suppress the slide-in. */
   .arrived-by-morph .sheet-portrait { animation: none; }
 </style>

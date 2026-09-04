@@ -1,47 +1,65 @@
 {
   "root": {
-    "stage": "PLACEHOLDER — stage direction: set the scene here.",
-    "speech": "PLACEHOLDER — Caveshen's opening line goes here.",
+    "stage": "The Badger turns from the rail. Behind him, the city keeps its lights on.",
+    "speech": "Evening. You found the promenade, so you're either lost or curious. Both are fine. What do you want to know?",
     "options": [
-      { "label": "PLACEHOLDER: Ask about experience", "to": "experience" },
-      { "label": "PLACEHOLDER: Ask about games and narrative", "to": "games" },
-      { "label": "PLACEHOLDER: Ask about day-to-day work", "to": "day" },
-      { "label": "PLACEHOLDER: Skip the chat — open the character sheet", "to": "/sheet", "kind": "system" }
+      { "label": "What do you actually do?", "to": "work" },
+      { "label": "Why the games?", "to": "games" },
+      { "label": "What are you looking for?", "to": "looking" },
+      { "label": "Open the character sheet", "to": "/sheet", "kind": "system" }
     ]
   },
-  "experience": {
-    "speech": "PLACEHOLDER — Caveshen will describe his engineering manager experience here.",
+  "work": {
+    "speech": "I run two engineering teams at Derivco. Player accounts and player balances: the parts of the system that must never be wrong, at a hundred billion requests a month. My job is to keep the people sharp and the path clear.",
     "options": [
-      { "label": "PLACEHOLDER: Ask something else", "to": "root" }
+      { "label": "How did you get there?", "to": "path" },
+      { "label": "What does a good week look like?", "to": "week" },
+      { "label": "Ask something else", "to": "root" }
+    ]
+  },
+  "path": {
+    "speech": "Tester first, in Durban, 2015. Then developer, then tech lead, then two years consulting through Entelect for eBay, Adevinta, FNZ and MunichRe. Back to Derivco in Cape Town, and into management in 2025. Every step taught me a different way to break things.",
+    "options": [
+      { "label": "What does a good week look like?", "to": "week" },
+      { "label": "Ask something else", "to": "root" }
+    ]
+  },
+  "week": {
+    "stage": "He counts on his claws.",
+    "speech": "A roadmap the team believes in. One hard conversation had early instead of late. A deploy nobody noticed. And a junior who ships something they were scared of last month.",
+    "options": [
+      { "label": "Why the games?", "to": "games" },
+      { "label": "Ask something else", "to": "root" }
     ]
   },
   "games": {
-    "speech": "PLACEHOLDER — Caveshen will explain his interest in games and narrative here. This topic BRANCHES: the two options below lead to their own nodes.",
+    "speech": "Before any of this I ran EGMR, a games site, for five years. Reviews, podcasts, press badges, deadlines. Games taught me that a system is only as good as the choice it puts in front of a person. That's still the whole job.",
     "options": [
-      { "label": "PLACEHOLDER: Which games shaped you?", "to": "games_influences" },
-      { "label": "PLACEHOLDER: What would you want to build?", "to": "games_build" },
-      { "label": "PLACEHOLDER: Ask something else", "to": "root" }
+      { "label": "Which games shaped you?", "to": "games_influences" },
+      { "label": "So why a badger?", "to": "badger" },
+      { "label": "Ask something else", "to": "root" }
     ]
   },
   "games_influences": {
-    "speech": "PLACEHOLDER — a sub-node one level deeper. Note it can hand off to a sibling branch (games_build) OR loop back — that reconvergence is how a tree becomes a graph.",
+    "speech": "BioWare, mostly. Dragon Age for the idea that every companion has a reason. Mass Effect for the idea that a good interface is a promise you keep. Also far too many hours in spreadsheets pretending to be strategy games.",
     "options": [
-      { "label": "PLACEHOLDER: So what would you build, then?", "to": "games_build" },
-      { "label": "PLACEHOLDER: Back to the start", "to": "root", "kind": "system" }
+      { "label": "So why a badger?", "to": "badger" },
+      { "label": "Back to the start", "to": "root", "kind": "system" }
     ]
   },
-  "games_build": {
-    "stage": "PLACEHOLDER — optional stage direction, shown here so you can see the `stage` field in an inner node too.",
-    "speech": "PLACEHOLDER — the deepest node in this example. It routes over to an existing topic (experience) to show branches don't have to dead-end at leaves.",
+  "badger": {
+    "stage": "He shrugs, which on a badger is mostly ears.",
+    "speech": "Small, stubborn, unbothered by things larger than itself. Digs until the problem is out of the ground. I didn't pick it. It fit.",
     "options": [
-      { "label": "PLACEHOLDER: Circle back to your experience", "to": "experience" },
-      { "label": "PLACEHOLDER: Back to the start", "to": "root", "kind": "system" }
+      { "label": "What are you looking for?", "to": "looking" },
+      { "label": "Back to the start", "to": "root", "kind": "system" }
     ]
   },
-  "day": {
-    "speech": "PLACEHOLDER — Caveshen will describe what he does day-to-day here.",
+  "looking": {
+    "speech": "People who want to build things properly and are honest when they haven't. If that's you, the sheet has the details and the CV has the dates. LinkedIn is where I answer.",
     "options": [
-      { "label": "PLACEHOLDER: Ask something else", "to": "root" }
+      { "label": "Open the character sheet", "to": "/sheet", "kind": "system" },
+      { "label": "Ask something else", "to": "root" }
     ]
   }
 }

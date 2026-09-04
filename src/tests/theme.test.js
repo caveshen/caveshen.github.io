@@ -39,7 +39,7 @@ const pageDayBlock   = pageStyle.match(/:root\[data-time="day"\]\s*\{([^}]+)\}/)
 
 // Font, motion, radius, and character-identity tokens are theme-neutral; no day override needed
 const ALLOWLIST = [
-  '--serif', '--display', '--mono',
+  '--serif', '--display', '--mono', '--hud',
   '--theme-transition', '--t-micro', '--ease-camera',
   '--r-sharp', '--r-panel', '--r-pill',
   '--head-dark',
@@ -227,8 +227,11 @@ describe('approach prompt text-shadow', () => {
 describe('self-hosted fonts', () => {
   const baseAstro = readFileSync(join(__dirname, '../layouts/Base.astro'), 'utf8');
 
-  it('Base.astro imports @fontsource Cinzel 600/700 and Cormorant Garamond 500/600/italic-500', () => {
+  it('Base.astro imports @fontsource Cinzel 600/700, Cormorant Garamond 500/600/italic-500 and Rajdhani 500/600/700', () => {
     for (const imp of [
+      '@fontsource/rajdhani/500.css',
+      '@fontsource/rajdhani/600.css',
+      '@fontsource/rajdhani/700.css',
       '@fontsource/cinzel/600.css',
       '@fontsource/cinzel/700.css',
       '@fontsource/cormorant-garamond/500.css',
@@ -254,9 +257,9 @@ describe('type roles', () => {
     expect(nightTokens['--display']).toContain('Cinzel');
   });
 
-  it('display roles (nameplate, ability scores, quest titles) consume --display', () => {
+  it('display roles (name, attribute scores, quest titles) consume --display', () => {
     const sheet = readFileSync(join(__dirname, '../pages/sheet.astro'), 'utf8');
-    for (const sel of ['.name-box h1', '.ab-score', '.quest h3']) {
+    for (const sel of ['.identity h1', '.attr-score', '.quest h4']) {
       const escaped = sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       expect(sheet, `${sel} does not use var(--display)`).toMatch(
         new RegExp(`${escaped}\\s*\\{[^}]*var\\(--display\\)`)
@@ -271,22 +274,19 @@ describe('interaction grammar (theme-direction §6)', () => {
   const sheetAstro  = readFileSync(join(__dirname, '../pages/sheet.astro'), 'utf8');
   const toggleAstro = readFileSync(join(__dirname, '../components/ThemeToggle.astro'), 'utf8');
 
-  it('the download button is the primary verb: gold pill, ink text, bright lift', () => {
+  it('the download button is the primary verb: filled gold, ink text, cut corners, brightens', () => {
     const btn = sheetAstro.match(/\.download-btn\s*\{([^}]+)\}/)?.[1] ?? '';
     expect(btn, 'filled with house gold').toContain('background: var(--gold)');
-    expect(btn, 'pill radius').toContain('border-radius: var(--r-pill)');
+    expect(btn, 'cut corners, not a pill').toContain('clip-path: polygon(');
     expect(btn, 'ink text').toContain('color: var(--btn-primary-ink)');
     const hover = sheetAstro.match(/\.download-btn:hover[\s\S]*?\{([^}]+)\}/)?.[1] ?? '';
     expect(hover, 'brightens on hover').toContain('background: var(--gold-bright)');
-    expect(hover, 'lifts 1px').toContain('-1px');
   });
 
-  it('the back-link takes the standard verb — no dashed idiom survives', () => {
+  it('the back-link is quiet HUD text that turns gold on hover', () => {
     expect(sheetAstro.match(/\.back-link\s*\{([^}]+)\}/)?.[1]).not.toContain('dashed');
     const hover = sheetAstro.match(/\.back-link:hover[\s\S]*?\{([^}]+)\}/)?.[1] ?? '';
-    expect(hover).toContain('var(--btn-hover-text)');
-    expect(hover).toContain('var(--btn-hover-border)');
-    expect(hover).toContain('var(--btn-hover-bg)');
+    expect(hover).toContain('var(--gold-bright)');
   });
 
   // One focus treatment site-wide. A selector may appear in several rules
@@ -300,12 +300,12 @@ describe('interaction grammar (theme-direction §6)', () => {
     ['download button',  sheetAstro,  '.download-btn:focus-visible'],
     ['contact links',    sheetAstro,  '.contact-link:focus-visible'],
   ];
-  it.each(ringSites)('the %s focus ring is gold-bright, 2px, offset 2px', (_name, src, sel) => {
+  it.each(ringSites)('the %s focus ring is a 1px holo line, offset 3px', (_name, src, sel) => {
     const escaped = sel.replace(/[.*+?${}()|[\]\\]/g, '\\$&');
     const bodies = [...src.matchAll(new RegExp(`${escaped}\\s*\\{([^}]+)\\}`, 'g'))].map(m => m[1]);
     expect(bodies.some(b =>
-      b.includes('outline: 2px solid var(--gold-bright)') &&
-      b.includes('outline-offset: 2px')
+      b.includes('outline: 1px solid var(--holo)') &&
+      b.includes('outline-offset: 3px')
     )).toBe(true);
   });
 });

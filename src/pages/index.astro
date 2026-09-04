@@ -126,10 +126,11 @@ const GATED = import.meta.env.GATED === '1';
     <!-- tree/character/characterLabel/promptLabel vary per route (see Stage.astro);
          the noscript note is a slot since it's markup, not a value. -->
     <Stage tree={tree} character={CHARACTER} characterLabel={CHARACTER_LABEL}
-      promptLabel="Approach the badger">
+      speakerName="The Badger" promptLabel="Talk to the Badger"
+      areaName="The Promenade" areaSub="Cape Town">
       <noscript>
         <p class="noscript-note">
-          <a href="/sheet">Open the character sheet &rarr;</a>
+          <a href="/sheet">Open the character sheet</a>
         </p>
       </noscript>
     </Stage>

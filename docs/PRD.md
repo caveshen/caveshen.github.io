@@ -92,7 +92,9 @@ the document body under their original `§` headings as history.
 | d46 | Design-language style guide — fonts, type scale, palette, framing rules, laws, in one reference doc | *new* | ✅ COMPLETE 2026-08-31 — `docs/STYLE_GUIDE.md` shipped with PR #33 (§d46) |
 | d47 | Coming-soon live cover — go live with the threshold front; menu blurred, "Coming Soon" beneath | *new* | ✅ LIVE 2026-09-01 — PR #34 squash-merged (`2ec7d81`); post-merge live checks all passed (§d47) |
 | d48 | Character sheet goes live — un-gate the sheet on the live site once finalised | *new* | 💡 raised 2026-08-30 — second stage of d47; parked until the sheet is done (§d48) |
-| d49 | Grain-flicker defect — the film-grain tile swap hard-cut every 1.4s, read as a pop | *new* | 🔨 DELIVERED 2026-09-03 — built on `item/grain-flicker`, cross-fade failed preview, grain now static, awaiting Caveshen's preview (§d49) |
+| d49 | Grain-flicker defect — the film-grain tile swap hard-cut every 1.4s, read as a pop | *new* | ✅ ACCEPTED 2026-09-03 — static grain passed preview; PR raised for squash-merge (§d49) |
+| d50 | Night too light — the static grain lifts the blacks slightly; night should read darker | *new* | 💡 raised 2026-09-03 at the d49 preview — not queued; pick up on Caveshen's go (§d50) |
+| d51 | Repo goes private, CI trimmed — retire the GitHub Pages deploy, trim Actions triggers and matrix, flip the repo private | *new* | 💡 raised 2026-09-03 — rulings recorded; matrix cut still open; pick up after d49 (§d51) |
 
 **Convention set by d22 (2026-07-27): name a test after what it tests, never
 after a tracker ID.** Tracker IDs get renumbered — that is exactly what happened
@@ -6843,3 +6845,61 @@ three-second sample. That test was checked red against the cross-fade
 code first, then green after the static change. Full unit suite and
 the e2e suite on Chromium, Firefox, and WebKit all pass. Built on
 `item/grain-flicker`, awaiting Caveshen's preview.
+
+### ✅ ACCEPTED 2026-09-03 — static grain passed preview
+
+Caveshen passed the static grain at preview: no flicker. He noted the
+night reads a little lighter than it should and suspects the grain.
+That is raised as d50. PR raised for squash-merge.
+
+## d50. Night too light — the static grain lifts the blacks
+
+### 💡 RAISED 2026-09-03 — at the d49 preview
+
+Caveshen: night should be a bit darker, and the grain is the likely
+cause. The grain tile is mid-grey noise laid over the scene with a
+normal blend at 0.12 opacity, so every pixel moves 12% of the way
+toward grey, and the darkest areas move the most.
+
+Candidate fixes for pickup: blend the grain with `multiply` or
+`overlay`, so it adds texture without lifting the blacks; or render a
+darker tile. Either needs a preview. Not queued; pick up on
+Caveshen's go.
+
+## d51. Repo goes private, CI trimmed
+
+### 💡 RAISED 2026-09-03 — rulings so far
+
+Caveshen wants the source hidden until the site is ready. The facts
+that shape the item:
+
+- The account is on the GitHub Free plan. A private repo meters
+  Actions at 2,000 minutes a month.
+- GitHub Pages does not publish from a private Free repo, so
+  caveshen.github.io goes dark. Caveshen accepts that. Local preview
+  still works. The Cloudflare deploy does not care about visibility.
+- Measured cost today, from the PR #34 run: a PR push runs 12 jobs
+  for about 44 minutes; a push to any branch, or to main, about 6.
+  Last week's cadence would use 2,000 to 2,500 minutes a month.
+- `main` has no branch protection, so a PR whose CI is skipped can
+  still be merged.
+
+Rulings given 2026-09-03:
+
+- No CI on branch pushes. The PR run covers them.
+- No CI on draft PRs. The full matrix runs when the PR leaves draft.
+- No CI on docs-only pushes.
+- Retire the GitHub Pages deploy job.
+
+Open: cut the device matrix. Parallel jobs do not save billed
+minutes; only fewer projects do. Setup is under a minute per job, so
+the test time itself is the cost. Per project on the PR #34 run:
+iphone-15pro 8.7 min, ipad 8.6, iphone-se 7.5, desktop-firefox 4.0,
+desktop-1920 4.1, desktop-1366 3.7, desktop-2560 3.5, pixel-8 3.1.
+The three WebKit devices are about 25 of the 44 minutes. One device
+per family (one WebKit phone, one Android phone, one desktop
+Chromium, Firefox) would cost about 20 minutes per PR run. The pickup
+grill decides which devices stay and what coverage is lost.
+
+Order at pickup: trim CI and retire Pages on a branch, merge, then
+flip the repo private in the GitHub settings.

@@ -2,6 +2,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { resolveNode, isPath, resolveTheme, initEngine } from '../scripts/dialogue.js';
 import tree from '../data/dialogue.json';
+import tree404 from '../data/dialogue-404.json';
 
 // ── Solitary tests (pure logic, no DOM) ──────────────────────────────────────
 
@@ -43,7 +44,10 @@ describe('resolveTheme', () => {
 
 // ── Dialogue-tree flow tests (real JSON) ─────────────────────────────────────
 
-describe('dialogue tree schema', () => {
+describe.each([
+  ['dialogue.json', tree, '/sheet'],
+  ['dialogue-404.json', tree404, '/'],
+])('tree schema: %s', (_name, tree, escapePath) => {
   it('every node has speech and ≥1 option', () => {
     for (const [id, node] of Object.entries(tree)) {
       expect(node.speech, `"${id}" missing speech`).toBeTruthy();
@@ -95,10 +99,10 @@ describe('dialogue tree schema', () => {
     }
   });
 
-  it('root has the /sheet system escape option', () => {
-    const sheetOpt = tree.root.options.find(opt => opt.to === '/sheet');
-    expect(sheetOpt).toBeDefined();
-    expect(sheetOpt.kind).toBe('system');
+  it('root has a system escape option to the other page', () => {
+    const escape = tree.root.options.find(opt => opt.to === escapePath);
+    expect(escape).toBeDefined();
+    expect(escape.kind).toBe('system');
   });
 });
 

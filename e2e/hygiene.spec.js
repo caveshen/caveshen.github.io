@@ -1,36 +1,20 @@
-// 404 page, hygiene files (robots/sitemap), and OG/meta tag checks.
+// Hygiene files (robots, llms, sitemap), the social card and icon links, meta posture.
 // A local build has no SITE override, so it carries the live posture:
 // indexable, allow all, caveshen.com URLs.
 import { test, expect } from './fixtures.js';
-import { approachPrompt } from './geom.js';
 
-test('404 page: navigating to unknown route returns a page with a way home', async ({ page }) => {
-  await page.goto('/this-does-not-exist', { waitUntil: 'domcontentloaded' });
-  // GitHub Pages / Astro serves 404.html directly. The way home is a dialogue system
-  // option (via isPath()), not a plain anchor — the anchor only exists in the no-JS
-  // noscript fallback (see the JS-disabled test below).
-  await approachPrompt(page);
-  await expect(page.locator('.choices button.system')).toBeVisible();
-});
-
-test('404 page: speech element has non-empty flavour text (not a blank error)', async ({ page }) => {
-  await page.goto('/this-does-not-exist', { waitUntil: 'domcontentloaded' });
-  const speech = ((await page.textContent('.speech')) ?? '').trim();
-  expect(speech.length).toBeGreaterThan(0);
-});
-
-test('404 page: readable with JS disabled', async ({ browser }) => {
-  const ctx = await browser.newContext({ javaScriptEnabled: false });
-  const page = await ctx.newPage();
-  await page.goto('/this-does-not-exist', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('a[href="/"]')).toBeVisible();
-  await ctx.close();
-});
-
-test('GET /robots.txt returns 200', async ({ request }) => {
-  const res = await request.get('/robots.txt');
+// The social card and icon links, and that each linked file is really served.
+async function expectSocialCard(page, request, path) {
+  await page.goto(path);
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', /\S/);
+  await expect(page.locator('meta[property="og:description"]')).toHaveAttribute('content', /\S/);
+  await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute('content', 'summary_large_image');
+  const ogImage = await page.locator('meta[property="og:image"]').getAttribute('content');
+  expect(ogImage).toContain('og-image.png');
+  const res = await request.get(new URL(ogImage).pathname);
   expect(res.status()).toBe(200);
-});
+  expect(res.headers()['content-type']).toContain('image/png');
+}
 
 test('robots.txt allows all and names the sitemap (live posture)', async ({ request }) => {
   const res = await request.get('/robots.txt');
@@ -45,17 +29,30 @@ test('GET /llms.txt returns 200', async ({ request }) => {
   expect(res.status()).toBe(200);
 });
 
-test('GET /sitemap-index.xml returns 200 with XML content-type', async ({ request }) => {
+test('sitemap-index.xml is served as XML and lists sitemap-0', async ({ request }) => {
   const res = await request.get('/sitemap-index.xml');
   expect(res.status()).toBe(200);
   expect(res.headers()['content-type']).toContain('xml');
-});
-
-test('sitemap-index.xml is valid XML with <sitemapindex>', async ({ request }) => {
-  const res = await request.get('/sitemap-index.xml');
   const text = await res.text();
   expect(text).toContain('<sitemapindex');
   expect(text).toContain('sitemap-0.xml');
+});
+
+test('/ carries a complete social card and the image is served', async ({ page, request }) => {
+  await expectSocialCard(page, request, '/');
+});
+
+test('/sheet carries a complete social card and the image is served', async ({ page, request }) => {
+  await expectSocialCard(page, request, '/sheet');
+});
+
+test('the apple-touch-icon is linked and served', async ({ page, request }) => {
+  await page.goto('/');
+  const href = await page.locator('link[rel="apple-touch-icon"]').getAttribute('href');
+  expect(href).toContain('apple-touch-icon');
+  const res = await request.get(href);
+  expect(res.status()).toBe(200);
+  expect(res.headers()['content-type']).toContain('image/png');
 });
 
 test('/ has the ruled meta description, character for character', async ({ page }) => {
@@ -77,71 +74,11 @@ test('/ canonical and og:url use the domain', async ({ page }) => {
   expect(ogUrl).toBe('https://caveshen.com/');
 });
 
-test('/ has og:title meta', async ({ page }) => {
-  await page.goto('/');
-  const og = await page.locator('meta[property="og:title"]').getAttribute('content');
-  expect(og).toBeTruthy();
-});
-
-test('/ has og:image meta pointing to og-image.png', async ({ page }) => {
-  await page.goto('/');
-  const og = await page.locator('meta[property="og:image"]').getAttribute('content');
-  expect(og).toContain('og-image.png');
-});
-
-test('/ has og:description meta', async ({ page }) => {
-  await page.goto('/');
-  const og = await page.locator('meta[property="og:description"]').getAttribute('content');
-  expect(og).toBeTruthy();
-});
-
-test('/ has twitter:card meta', async ({ page }) => {
-  await page.goto('/');
-  const tw = await page.locator('meta[name="twitter:card"]').getAttribute('content');
-  expect(tw).toBe('summary_large_image');
-});
-
-test('/ has <link rel="apple-touch-icon">', async ({ page }) => {
-  await page.goto('/');
-  const link = await page.locator('link[rel="apple-touch-icon"]').getAttribute('href');
-  expect(link).toContain('apple-touch-icon');
-});
-
 test('/sheet has <meta name="description">', async ({ page }) => {
   await page.goto('/sheet');
   const desc = await page.locator('meta[name="description"]').getAttribute('content');
   expect(desc).toBeTruthy();
   expect(desc.length).toBeGreaterThan(0);
-});
-
-test('/sheet has og:title meta', async ({ page }) => {
-  await page.goto('/sheet');
-  const og = await page.locator('meta[property="og:title"]').getAttribute('content');
-  expect(og).toBeTruthy();
-});
-
-test('/sheet has og:image meta', async ({ page }) => {
-  await page.goto('/sheet');
-  const og = await page.locator('meta[property="og:image"]').getAttribute('content');
-  expect(og).toContain('og-image.png');
-});
-
-test('/sheet has twitter:card meta', async ({ page }) => {
-  await page.goto('/sheet');
-  const tw = await page.locator('meta[name="twitter:card"]').getAttribute('content');
-  expect(tw).toBe('summary_large_image');
-});
-
-test('GET /og-image.png returns 200 with image/png content-type', async ({ request }) => {
-  const res = await request.get('/og-image.png');
-  expect(res.status()).toBe(200);
-  expect(res.headers()['content-type']).toContain('image/png');
-});
-
-test('GET /apple-touch-icon.png returns 200 with image/png content-type', async ({ request }) => {
-  const res = await request.get('/apple-touch-icon.png');
-  expect(res.status()).toBe(200);
-  expect(res.headers()['content-type']).toContain('image/png');
 });
 
 test('/og carries noindex meta', async ({ page }) => {

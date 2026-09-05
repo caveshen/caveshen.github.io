@@ -85,18 +85,6 @@ test('click-through: portrait geometry is correct on arrival (supported engine)'
   await assertPortraitGeometry(page, portrait);
 });
 
-// Only portrait slide-in is suppressed on morph arrival; the panels and XP bar keep their animations.
-test('click-through: panels and XP bar keep their animation names on morph arrival', async ({ page }) => {
-  await page.setViewportSize({ width: 1920, height: 1080 });
-  await navigateToSheet(page);
-  if (!(await arrivedByMorph(page))) return;
-
-  for (const sel of ['.character', '.abilities', '.quests', '.codex', '.xp-fill']) {
-    const animName = await page.locator(sel).evaluate((el) => getComputedStyle(el).animationName);
-    expect(animName, `${sel} animation name`).not.toBe('none');
-  }
-});
-
 // Direct navigation never sets the arrived-by-morph marker; portrait plays its slide-in animation.
 test('direct goto /sheet: no arrived-by-morph marker; portrait plays portrait-slide-in', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });

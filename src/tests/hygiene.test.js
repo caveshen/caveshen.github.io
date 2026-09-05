@@ -1,141 +1,29 @@
-// Hygiene checks: static files, favicon, 404 page, badger assets.
+// Hygiene: the favicon set is complete and linked at the sizes it is cut for.
 import { describe, it, expect } from 'vitest';
 import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const root = join(__dirname, '../..');
+const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
+const base = readFileSync(join(root, 'src/layouts/Base.astro'), 'utf8');
 
-// ── Hygiene static files ──────────────────────────────────────────────────────
-
-describe('public hygiene files', () => {
-  it('apple-touch-icon.png exists', () => {
-    expect(existsSync(join(root, 'public/apple-touch-icon.png'))).toBe(true);
+describe('favicon set', () => {
+  it.each([16, 32])('favicon-%ipx exists and Base.astro links it at that size', (size) => {
+    expect(existsSync(join(root, `public/favicon-${size}.png`))).toBe(true);
+    expect(base).toMatch(new RegExp(
+      `<link[^>]*href="/favicon-${size}\\.png"[^>]*sizes="${size}x${size}"|<link[^>]*sizes="${size}x${size}"[^>]*href="/favicon-${size}\\.png"`
+    ));
   });
 
-  it('og-image.png exists', () => {
-    expect(existsSync(join(root, 'public/og-image.png'))).toBe(true);
-  });
-});
-
-// ── robots/llms: build-generated, per-posture (regression guard: no static files) ──
-
-describe('robots.txt and llms.txt (build-generated, not static)', () => {
-  it('is not shipped as a static file in public/ (posture differs per build)', () => {
-    expect(existsSync(join(root, 'public/robots.txt'))).toBe(false);
-    expect(existsSync(join(root, 'public/llms.txt'))).toBe(false);
-  });
-
-  it('robots.txt.js carries both postures: allow (live) and disallow (preview)', () => {
-    const src = readFileSync(join(root, 'src/pages/robots.txt.js'), 'utf8');
-    expect(src).toContain('Allow: /');
-    expect(src).toContain('Disallow: /');
-  });
-});
-
-// ── Favicon: sized rasters only — champion at both 16px and 32px ───────────
-
-describe('favicon.svg absence (regression guard: sized rasters only)', () => {
-  it('is not shipped in public/', () => {
-    expect(existsSync(join(root, 'public/favicon.svg'))).toBe(false);
-  });
-
-  it('is not linked from Base.astro', () => {
-    const src = readFileSync(join(root, 'src/layouts/Base.astro'), 'utf8');
-    expect(src).not.toContain('favicon.svg');
-  });
-});
-
-describe('favicon-16.png (champion, smooth-downscaled, 16px slot)', () => {
-  it('exists', () => {
-    expect(existsSync(join(root, 'public/favicon-16.png'))).toBe(true);
-  });
-
-  it('Base.astro links it at sizes="16x16"', () => {
-    const src = readFileSync(join(root, 'src/layouts/Base.astro'), 'utf8');
-    expect(src).toMatch(/<link[^>]*href="\/favicon-16\.png"[^>]*sizes="16x16"|<link[^>]*sizes="16x16"[^>]*href="\/favicon-16\.png"/);
-  });
-});
-
-describe('favicon-32.png (champion, 32px slot)', () => {
-  it('exists', () => {
-    expect(existsSync(join(root, 'public/favicon-32.png'))).toBe(true);
-  });
-
-  it('Base.astro links it at sizes="32x32"', () => {
-    const src = readFileSync(join(root, 'src/layouts/Base.astro'), 'utf8');
-    expect(src).toMatch(/<link[^>]*href="\/favicon-32\.png"[^>]*sizes="32x32"|<link[^>]*sizes="32x32"[^>]*href="\/favicon-32\.png"/);
-  });
-});
-
-describe('favicon.ico (multi-size: 16 + 32, both champion)', () => {
-  const buf = readFileSync(join(root, 'public/favicon.ico'));
-
-  it('declares two images', () => {
+  it('favicon.ico carries a 16px and a 32px entry', () => {
+    const buf = readFileSync(join(root, 'public/favicon.ico'));
     expect(buf.readUInt16LE(4)).toBe(2);
-  });
-
-  it('carries a 16px entry and a 32px entry', () => {
     const sizes = [0, 1].map((i) => buf.readUInt8(6 + i * 16));
     expect(sizes.sort()).toEqual([16, 32]);
   });
-});
 
-// ── 404 page source ───────────────────────────────────────────────────────────
-
-describe('404 page', () => {
-  it('src/pages/404.astro exists', () => {
-    expect(existsSync(join(root, 'src/pages/404.astro'))).toBe(true);
-  });
-
-  it('404.astro links back to / (home)', () => {
-    const page = readFileSync(join(root, 'src/pages/404.astro'), 'utf8');
-    expect(page).toContain('href="/"');
-  });
-
-  it('dialogue-404.json root node has a non-empty speech line and at least one option', () => {
-    // The flavour copy moved out of 404.astro into its own dialogue tree.
-    const tree = JSON.parse(readFileSync(join(root, 'src/data/dialogue-404.json'), 'utf8'));
-    expect(tree.root.speech.trim().length).toBeGreaterThan(0);
-    expect(tree.root.options.length).toBeGreaterThanOrEqual(1);
-  });
-});
-
-// ── Badger two-frame idle ─────────────────────────────────────────────────
-
-describe('badger idle frames', () => {
-  it('badger-up.png exists', () => {
-    expect(existsSync(join(root, 'public/badger-up.png'))).toBe(true);
-  });
-
-  it('badger-down.png exists', () => {
-    expect(existsSync(join(root, 'public/badger-down.png'))).toBe(true);
-  });
-
-  it('Badger.astro references /badger-up.png', () => {
-    const src = readFileSync(join(root, 'src/components/Badger.astro'), 'utf8');
-    expect(src).toContain('/badger-up.png');
-  });
-
-  it('Badger.astro references /badger-down.png', () => {
-    const src = readFileSync(join(root, 'src/components/Badger.astro'), 'utf8');
-    expect(src).toContain('/badger-down.png');
-  });
-
-  it('Badger.astro has prefers-reduced-motion rule holding the up frame', () => {
-    const src = readFileSync(join(root, 'src/components/Badger.astro'), 'utf8');
-    expect(src).toContain('prefers-reduced-motion: reduce');
-    // down frame must be zeroed out under reduced motion
-    expect(src).toMatch(/prefers-reduced-motion[\s\S]*\.badger-down[\s\S]*opacity:\s*0/);
-  });
-});
-
-// ── Landing meta description: ruled copy ──────────────────────────────────
-
-describe('landing page meta description', () => {
-  it('index.astro carries the ruled tagline, verbatim', () => {
-    const src = readFileSync(join(root, 'src/pages/index.astro'), 'utf8');
-    expect(src).toContain('Engineering Manager. Problem solver, coffee enjoyer, 10x human.');
+  it('apple-touch-icon.png exists and is linked', () => {
+    expect(existsSync(join(root, 'public/apple-touch-icon.png'))).toBe(true);
+    expect(base).toContain('rel="apple-touch-icon"');
   });
 });

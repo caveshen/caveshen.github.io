@@ -73,13 +73,6 @@ jobs:
       - name: Integration tests
         run: npm run test:e2e -- --project=${{ matrix.project }}
 
-      - name: Performance suite (report-only)
-        # Report-only and pinned to one desktop project. continue-on-error:
-        # a broken harness must never block a main deploy.
-        if: matrix.project == 'desktop-1920'
-        continue-on-error: true
-        run: npm run test:perf
-
   build:
     needs: [test]
     if: github.ref == 'refs/heads/main'

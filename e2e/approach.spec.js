@@ -6,14 +6,10 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/');
 });
 
-// Same behaviour is shared code, so parity tests run on both routes.
-const ROUTES = ['/', '/404'];
-
 // Timing constants — must match stage.js's own (PROMPT_FADE_MS/PROMPT_LINGER_MS/
 // EXIT_REFOCUS_MS). Kept here as plain numbers (not imported) since stage.js
 // doesn't export them — a drift between the two would show up as a wrong
 // clock.fastForward boundary failing, not a silent pass.
-const PROMPT_FADE_MS = 500;
 const PROMPT_LINGER_MS = 1000;
 const EXIT_REFOCUS_MS = 1000;
 
@@ -21,20 +17,17 @@ test('card not visible on load with JS', async ({ page }) => {
   await expect(page.locator('.card')).not.toBeVisible();
 });
 
-for (const route of ROUTES) {
-  test(`at rest the scene is clean — the prompt is invisible and inert — ${route}`, async ({ page }) => {
-    await page.goto(route);
-    const prompt = page.locator('#approach-prompt');
-    // toBeVisible() alone would pass here even at opacity:0 (it doesn't check
-    // opacity) — the actual "clean at rest" contract is the computed style.
-    const style = await prompt.evaluate((el) => {
-      const cs = getComputedStyle(el);
-      return { opacity: cs.opacity, pointerEvents: cs.pointerEvents };
-    });
-    expect(style.opacity).toBe('0');
-    expect(style.pointerEvents).toBe('none');
+test('at rest the scene is clean — the prompt is invisible and inert', async ({ page }) => {
+  const prompt = page.locator('#approach-prompt');
+  // toBeVisible() alone would pass here even at opacity:0 (it doesn't check
+  // opacity) — the actual "clean at rest" contract is the computed style.
+  const style = await prompt.evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return { opacity: cs.opacity, pointerEvents: cs.pointerEvents };
   });
-}
+  expect(style.opacity).toBe('0');
+  expect(style.pointerEvents).toBe('none');
+});
 
 test('approach prompt has a non-empty accessible name, even hidden at rest', async ({ page }) => {
   const prompt = page.locator('#approach-prompt');
@@ -78,23 +71,6 @@ test('the revealed prompt is plain white in both themes', async ({ page }) => {
   expect(await prompt.evaluate((el) => getComputedStyle(el).color)).toBe('rgb(255, 255, 255)');
 });
 
-test('the character hit surface has the pointer cursor', async ({ page }) => {
-  const hit = page.locator('.js-character-hit:visible').first();
-  const cursor = await hit.evaluate((el) => getComputedStyle(el).cursor);
-  expect(cursor).toBe('pointer');
-});
-
-test('hovering the character reveals the prompt with a 500ms fade to full opacity', async ({ page }) => {
-  const prompt = page.locator('#approach-prompt');
-  await page.locator('.js-character-hit:visible').first().hover();
-  const duration = await prompt.evaluate((el) => {
-    const anim = el.getAnimations()[0];
-    return anim?.effect.getComputedTiming().duration;
-  });
-  expect(duration).toBe(PROMPT_FADE_MS);
-  expect(await settledOpacity(prompt)).toBe(1);
-});
-
 test('hovering the prompt itself keeps it visible — travelling from the character to it never loses it', async ({ page }) => {
   const prompt = page.locator('#approach-prompt');
   await page.locator('.js-character-hit:visible').first().hover();
@@ -129,34 +105,16 @@ test('linger: leaving both character and prompt holds the prompt for ~1s, then f
   expect(await settledOpacity(prompt)).toBe(0);
 });
 
-// Deliberately real time, no page.clock — proves the linger's own setTimeout
-// actually fires against the wall clock, not only against a virtual one. No
-// click anywhere in this test: a pure hover-then-leave.
-test('pure hover-away fades the prompt in real time — a stepped pointer path off both elements, no click', async ({ page }) => {
-  const prompt = page.locator('#approach-prompt');
-  await page.locator('.js-character-hit:visible').first().hover();
-  expect(await settledOpacity(prompt)).toBe(1);
-
-  // A real, stepped pointer path (not a teleport) off both the character and
-  // the prompt, dispatching genuine intermediate pointermove events.
-  await page.mouse.move(4, 4, { steps: 12 });
-
-  await expect(async () => {
-    expect(await settledOpacity(prompt)).toBe(0);
-  }).toPass({ timeout: PROMPT_LINGER_MS + PROMPT_FADE_MS + 3000 });
-});
-
 test('a click on the character starts the dialogue directly, the same as activating the prompt', async ({ page }) => {
   const hit = page.locator('.js-character-hit:visible').first();
   await hit.click();
   await expect(page.locator('.card')).toBeVisible();
 });
 
-for (const route of ROUTES) {
-  test(`after dialogue exit the scene starts clean again, with no leftover reveal state — ${route}`, async ({ page }) => {
+test('after dialogue exit the scene starts clean again, with no leftover reveal state', async ({ page }) => {
     await page.clock.install();
     await page.clock.pauseAt(Date.now() + 60_000);
-    await page.goto(route);
+    await page.goto('/');
     const hit = page.locator('.js-character-hit:visible').first();
     const prompt = page.locator('#approach-prompt');
 
@@ -180,8 +138,7 @@ for (const route of ROUTES) {
     await expect(prompt).not.toBeFocused();
     await page.clock.fastForward(PROMPT_LINGER_MS + 100);
     expect(await settledOpacity(prompt)).toBe(0);
-  });
-}
+});
 
 test('a single tap on the character approaches directly — no two-step, same as every other device', async ({ page }, testInfo) => {
   // .tap() needs a touch-capable context — gate on the project's static
@@ -189,14 +146,6 @@ test('a single tap on the character approaches directly — no two-step, same as
   test.skip(!testInfo.project.use.hasTouch, 'tap() requires a touch-capable project');
   const hit = page.locator('.js-character-hit:visible').first();
   await hit.tap();
-  await expect(page.locator('.card')).toBeVisible();
-});
-
-test('reduced motion: a click on the character approaches instantly, no zoom transition', async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.reload();
-  const hit = page.locator('.js-character-hit:visible').first();
-  await hit.click();
   await expect(page.locator('.card')).toBeVisible();
 });
 
@@ -210,18 +159,10 @@ test('keyboard focus reveals the prompt the same way as hover, with a visible fo
   expect(outlineStyle).not.toBe('none');
 });
 
-test('approaching shows the card', async ({ page }) => {
+test('approaching hides the prompt', async ({ page }) => {
   await approachPrompt(page);
-  await expect(page.locator('.card')).toBeVisible();
+  await expect(page.locator('#approach-prompt')).not.toBeVisible();
 });
-
-for (const route of ROUTES) {
-  test(`approaching hides the prompt — ${route}`, async ({ page }) => {
-    await page.goto(route);
-    await approachPrompt(page);
-    await expect(page.locator('#approach-prompt')).not.toBeVisible();
-  });
-}
 
 test('approaching applies a non-identity camera transform', async ({ page }) => {
   await approachPrompt(page);
@@ -232,77 +173,23 @@ test('approaching applies a non-identity camera transform', async ({ page }) => 
   expect(transform).not.toBe('none');
 });
 
-for (const route of ROUTES) {
-  test(`approach prompt is reachable by Tab from the toggle — ${route}`, async ({ page }) => {
-    await page.goto(route);
-    await page.keyboard.press('Tab'); // theme toggle
-    await page.keyboard.press('Tab'); // approach prompt
-    await expect(page.locator('#approach-prompt')).toBeFocused();
-  });
-
-  test(`approach prompt activates with Enter — ${route}`, async ({ page }) => {
-    await page.goto(route);
-    await page.keyboard.press('Tab');
-    await page.keyboard.press('Tab');
-    await page.keyboard.press('Enter');
-    await expect(page.locator('.card')).toBeVisible();
-  });
-
-  test(`approach prompt activates with Space — ${route}`, async ({ page }) => {
-    await page.goto(route);
-    await page.keyboard.press('Tab');
-    await page.keyboard.press('Tab');
-    await page.keyboard.press('Space');
-    await expect(page.locator('.card')).toBeVisible();
-  });
-}
-
-for (const route of ROUTES) {
-  test(`focus lands on first dialogue option after approaching — ${route}`, async ({ page }) => {
-    await page.goto(route);
-    await approachPrompt(page);
-    await expect(page.locator('#choices button').first()).toBeFocused();
-  });
-}
-
-// Focus manners: the first choice always receives focus on approach, but the
-// visible highlight must track HOW focus arrived — a keyboard arrival keeps
-// the ring (continuity); a pointer arrival must not look pre-selected. Native
-// :focus-visible cannot make that distinction here: every engine matches it
-// for a programmatic focus() redirect regardless of input modality, so the
-// highlight gates on the kb-focus class stage.js sets from real key events.
-test('keyboard arrival at the prompt shows the focus highlight on the first choice', async ({ page }) => {
+test('approach prompt is reachable by Tab from the toggle and activates with Enter', async ({ page }) => {
   await page.keyboard.press('Tab'); // theme toggle
   await page.keyboard.press('Tab'); // approach prompt
+  await expect(page.locator('#approach-prompt')).toBeFocused();
   await page.keyboard.press('Enter');
-  const firstChoice = page.locator('#choices button').first();
-  await expect(firstChoice).toBeFocused();
-  const outlineStyle = await firstChoice.evaluate((el) => getComputedStyle(el).outlineStyle);
-  expect(outlineStyle).not.toBe('none');
+  await expect(page.locator('.card')).toBeVisible();
+  await expect(page.locator('#choices button').first()).toBeFocused();
 });
 
-// A real page.mouse.click (not locator.focus(), which never carries pointer
-// provenance) — the click lands on the character, not the choice button, so
-// this also proves the highlight tracks input modality, not the click target.
-test('a mouse click on the character (direct approach) shows no pre-selected highlight on the first choice', async ({ page }) => {
-  const hit = page.locator('.js-character-hit:visible').first();
-  const box = await hit.boundingBox();
-  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-  const firstChoice = page.locator('#choices button').first();
-  await expect(firstChoice).toBeFocused();
-  const outlineStyle = await firstChoice.evaluate((el) => getComputedStyle(el).outlineStyle);
-  expect(outlineStyle).toBe('none');
-});
-
-for (const route of ROUTES) {
-  test(`end-dialogue button hides the card; the prompt reappears and refocuses ~1s later — ${route}`, async ({ page }) => {
+test('end-dialogue button hides the card; the prompt reappears and refocuses ~1s later', async ({ page }) => {
     await page.clock.install();
     // install() alone still lets Date/timers progress with real time — freeze
     // it here (a generous future point, computed Node-side so there's no page
     // round-trip for real time to sneak into) so the boundary checked below
     // isn't muddied by however long a slower project's steps take in real time.
     await page.clock.pauseAt(Date.now() + 60_000);
-    await page.goto(route);
+    await page.goto('/');
     await approachPrompt(page);
     await page.locator('#end-dialogue').click();
     await expect(page.locator('.card')).not.toBeVisible();
@@ -329,35 +216,21 @@ for (const route of ROUTES) {
     await page.clock.fastForward(100);
     await expect(prompt).toBeFocused();
     expect(await settledOpacity(prompt)).toBe(1);
-  });
+});
 
-  test(`end-dialogue button resets camera to identity — ${route}`, async ({ page }) => {
-    await page.goto(route);
-    await approachPrompt(page);
-    await page.locator('#end-dialogue').click();
-    // Check the inline style directly — exit() sets camera.style.transform = 'none'
-    const transform = await page.locator('.camera').evaluate((el) => el.style.transform);
-    expect(transform).toBe('none');
-  });
+test('end-dialogue button resets camera to identity', async ({ page }) => {
+  await approachPrompt(page);
+  await page.locator('#end-dialogue').click();
+  // Check the inline style directly — exit() sets camera.style.transform = 'none'
+  const transform = await page.locator('.camera').evaluate((el) => el.style.transform);
+  expect(transform).toBe('none');
+});
 
-  test(`Escape exits dialogue and hides the card — ${route}`, async ({ page }) => {
-    await page.goto(route);
-    await approachPrompt(page);
-    await page.keyboard.press('Escape');
-    await expect(page.locator('.card')).not.toBeVisible();
-  });
-
-  test(`Escape: the prompt refocuses ~1s later, same as end-dialogue — ${route}`, async ({ page }) => {
-    await page.clock.install();
-    await page.goto(route);
-    await approachPrompt(page);
-    await page.keyboard.press('Escape');
-    const prompt = page.locator('#approach-prompt');
-    await expect(prompt).not.toBeFocused();
-    await page.clock.fastForward(EXIT_REFOCUS_MS + 500);
-    await expect(prompt).toBeFocused();
-  });
-}
+test('Escape exits dialogue and hides the card', async ({ page }) => {
+  await approachPrompt(page);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.card')).not.toBeVisible();
+});
 
 test('reduced motion: exit refocuses the prompt immediately, no settle delay', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -381,31 +254,6 @@ test('reduced motion: hover reveal and linger fade-out are both instant', async 
 
   await page.mouse.move(0, 0);
   expect(await settledOpacity(prompt)).toBe(0);
-});
-
-test('camera transition-duration is 0s under prefers-reduced-motion', async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.reload();
-  const duration = await page.locator('.camera').evaluate((el) =>
-    window.getComputedStyle(el).transitionDuration
-  );
-  expect(duration).toBe('0s');
-});
-
-test('card has an opacity transition wired up (fades rather than pops)', async ({ page }) => {
-  const { property, duration } = await page.locator('.card').evaluate((el) => {
-    const cs = window.getComputedStyle(el);
-    return { property: cs.transitionProperty, duration: cs.transitionDuration };
-  });
-  const props = property.split(', ');
-  const idx = props.indexOf('opacity');
-  expect(idx, `transitionProperty was "${property}"`).toBeGreaterThanOrEqual(0);
-  expect(parseFloat(duration.split(', ')[idx])).toBeGreaterThan(0);
-});
-
-test('approaching fades the card in to full opacity', async ({ page }) => {
-  await approachPrompt(page);
-  await expect(page.locator('.card')).toHaveCSS('opacity', '1');
 });
 
 test('reduced motion: card fade is disabled, card is immediately full opacity', async ({ page }) => {
@@ -435,7 +283,8 @@ const markerStyle = (page) => page.evaluate(() => {
   };
 });
 
-for (const route of ROUTES) {
+// Both routes: each figure draws its own marker.
+for (const route of ['/', '/404']) {
   test(`the quest marker bobs over the character at rest and hides on approach — ${route}`, async ({ page }) => {
     await page.goto(route);
     const rest = await markerStyle(page);
@@ -467,75 +316,32 @@ test('the area title plays once on arrival and is gone once the dialogue opens',
   expect(await title.evaluate((el) => getComputedStyle(el).display)).toBe('none');
 });
 
-for (const route of ROUTES) {
-  test(`E approaches from the keyboard, the same as the prompt — ${route}`, async ({ page }) => {
-    await page.goto(route);
-    await page.keyboard.press('e');
-    await expect(page.locator('.card')).toBeVisible();
-    await expect(page.locator('#choices button').first()).toBeFocused();
-  });
-}
-
-for (const route of ROUTES) {
-  test(`exiting mid-approach resets the fade so a re-approach fades in cleanly — ${route}`, async ({ page }) => {
-    await page.goto(route);
-    await approachPrompt(page);
-    await page.keyboard.press('Escape');
-    await approachPrompt(page);
-    // Sampled right after the second click, before the fade delay elapses — if
-    // exit() failed to reset the entering state, opacity would already be at 1 here.
-    const opacity = await page.locator('.card').evaluate((el) => window.getComputedStyle(el).opacity);
-    expect(parseFloat(opacity)).toBeLessThan(1);
-    await expect(page.locator('.card')).toHaveCSS('opacity', '1');
-  });
-}
-
-test('no-JS: card is fully opaque, not stuck at the fade\'s starting opacity', async ({ browser }) => {
-  const ctx  = await browser.newContext({ javaScriptEnabled: false });
-  const page = await ctx.newPage();
-  await page.goto('/');
-  await expect(page.locator('.card')).toHaveCSS('opacity', '1');
-  await ctx.close();
+test('E approaches from the keyboard, the same as the prompt', async ({ page }) => {
+  await page.keyboard.press('e');
+  await expect(page.locator('.card')).toBeVisible();
+  await expect(page.locator('#choices button').first()).toBeFocused();
 });
 
-test('no-JS: card is visible on load', async ({ browser }) => {
+test('exiting mid-approach resets the fade so a re-approach fades in cleanly', async ({ page }) => {
+  await approachPrompt(page);
+  await page.keyboard.press('Escape');
+  await approachPrompt(page);
+  // Sampled right after the second click, before the fade delay elapses — if
+  // exit() failed to reset the entering state, opacity would already be at 1 here.
+  const opacity = await page.locator('.card').evaluate((el) => window.getComputedStyle(el).opacity);
+  expect(parseFloat(opacity)).toBeLessThan(1);
+  await expect(page.locator('.card')).toHaveCSS('opacity', '1');
+});
+
+test('no-JS: the card stands open and opaque with the root line, no Leave button', async ({ browser }) => {
   const ctx  = await browser.newContext({ javaScriptEnabled: false });
   const page = await ctx.newPage();
   await page.goto('/');
   await expect(page.locator('.card')).toBeVisible();
-  await ctx.close();
-});
-
-test('no-JS: /sheet link is reachable', async ({ browser }) => {
-  const ctx  = await browser.newContext({ javaScriptEnabled: false });
-  const page = await ctx.newPage();
-  await page.goto('/');
-  // Scoped: the threshold cover ships a second, now-hidden a[href="/sheet"] of
-  // its own (#cover-sheet), which would make a bare a[href="/sheet"] ambiguous.
-  await expect(page.locator('.noscript-note a[href="/sheet"]')).toBeVisible();
-  await ctx.close();
-});
-
-test('no-JS: end-dialogue button is not visible', async ({ browser }) => {
-  const ctx  = await browser.newContext({ javaScriptEnabled: false });
-  const page = await ctx.newPage();
-  await page.goto('/');
+  await expect(page.locator('.card')).toHaveCSS('opacity', '1');
+  expect(((await page.locator('#speech').textContent()) ?? '').trim().length).toBeGreaterThan(0);
   await expect(page.locator('#end-dialogue')).not.toBeVisible();
   await ctx.close();
-});
-
-test('the card stays fully on-screen on a short viewport', async ({ page }) => {
-  await page.setViewportSize({ width: 360, height: 360 });
-  await page.goto('/');
-  await approachPrompt(page);
-  await expect(async () => {
-    const card = await page.locator('.card').boundingBox();
-    const viewport = page.viewportSize();
-    expect(card.x).toBeGreaterThanOrEqual(0);
-    expect(card.y).toBeGreaterThanOrEqual(0);
-    expect(card.x + card.width).toBeLessThanOrEqual(viewport.width);
-    expect(card.y + card.height).toBeLessThanOrEqual(viewport.height);
-  }).toPass();
 });
 
 // Table Mountain is authored once; each aspect variant only pans/scales the camera

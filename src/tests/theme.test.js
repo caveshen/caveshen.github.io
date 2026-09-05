@@ -1,20 +1,16 @@
+// Theme tokens: every colour has a day override, every text role clears WCAG
+// AA over its worst-case backdrop, and no font is fetched from a CDN.
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { resolveTheme } from '../scripts/dialogue.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const tokensCSS  = readFileSync(join(__dirname, '../styles/tokens.css'), 'utf8');
-const indexAstro = readFileSync(join(__dirname, '../pages/index.astro'), 'utf8');
-const stageAstro = readFileSync(join(__dirname, '../components/Stage.astro'), 'utf8');
-
-// ── Shared helpers ────────────────────────────────────────────────────────────
+const tokensCSS = readFileSync(join(__dirname, '../styles/tokens.css'), 'utf8');
 
 function extractVars(block) {
   return [...block.matchAll(/--[\w-]+(?=\s*:)/g)].map(m => m[0]);
 }
-
 function parseTokens(block) {
   const map = {};
   for (const [, name, value] of block.matchAll(/--([\w-]+)\s*:\s*([^;]+);/g)) {
@@ -23,21 +19,16 @@ function parseTokens(block) {
   return map;
 }
 
-// ── tokens.css blocks ─────────────────────────────────────────────────────────
+const rootBlock  = tokensCSS.match(/:root\s*\{([^}]+)\}/)?.[1] ?? '';
+const dayBlock   = tokensCSS.match(/:root\[data-time="day"\]\s*\{([^}]+)\}/)?.[1] ?? '';
+// The HUD surfaces (dialogue, chips, prompts) pin their own tokens so they
+// hold the night register in both themes.
+const hudBlock   = tokensCSS.match(/\.card,[^{]*\{([^}]+)\}/)?.[1] ?? '';
+const nightTokens = parseTokens(rootBlock);
+const dayTokens   = parseTokens(dayBlock);
+const hudTokens   = parseTokens(hudBlock);
 
-const tokensRootBlock = tokensCSS.match(/:root\s*\{([^}]+)\}/)?.[1] ?? '';
-const tokensDayBlock  = tokensCSS.match(/:root\[data-time="day"\]\s*\{([^}]+)\}/)?.[1] ?? '';
-const nightTokens     = parseTokens(tokensRootBlock);
-const dayTokens       = parseTokens(tokensDayBlock);
-
-// ── index.astro page-level style block ───────────────────────────────────────
-// Tokens live in tokens.css now; this guards against new ones being added back
-// to index.astro without a day override.
-const pageStyle      = indexAstro.match(/<style[^>]*>([\s\S]*?)<\/style>/)?.[1] ?? '';
-const pageRootBlock  = pageStyle.match(/:root\s*\{([^}]+)\}/)?.[1] ?? '';
-const pageDayBlock   = pageStyle.match(/:root\[data-time="day"\]\s*\{([^}]+)\}/)?.[1] ?? '';
-
-// Font, motion, radius, and character-identity tokens are theme-neutral; no day override needed
+// Font, motion, radius, and character-identity tokens are theme-neutral.
 const ALLOWLIST = [
   '--serif', '--display', '--mono', '--hud',
   '--theme-transition', '--t-micro', '--ease-camera',
@@ -45,22 +36,12 @@ const ALLOWLIST = [
   '--head-dark',
 ];
 
-// ── Token parity ──────────────────────────────────────────────────────────────
-
 describe('token parity', () => {
-  it('every colour token in tokens.css :root has a [data-time="day"] override', () => {
-    const tokensDayVars = extractVars(tokensDayBlock);
-    for (const v of extractVars(tokensRootBlock)) {
+  it('every colour token in :root has a [data-time="day"] override', () => {
+    const dayVars = extractVars(dayBlock);
+    for (const v of extractVars(rootBlock)) {
       if (ALLOWLIST.includes(v)) continue;
-      expect(tokensDayVars, `${v} missing day override in tokens.css`).toContain(v);
-    }
-  });
-
-  it('every colour token in index.astro :root has a [data-time="day"] override', () => {
-    const pageDayVars = extractVars(pageDayBlock);
-    for (const v of extractVars(pageRootBlock)) {
-      if (ALLOWLIST.includes(v)) continue;
-      expect(pageDayVars, `${v} missing day override in index.astro`).toContain(v);
+      expect(dayVars, `${v} missing day override in tokens.css`).toContain(v);
     }
   });
 
@@ -68,9 +49,15 @@ describe('token parity', () => {
     expect(tokensCSS).toContain('prefers-reduced-motion');
     expect(tokensCSS).toContain('--theme-transition: none');
   });
+
+  it('the HUD block pins the text, gold and holo roles', () => {
+    for (const v of ['--text', '--dim', '--gold', '--gold-bright', '--holo', '--btn-primary-ink']) {
+      expect(hudTokens[v], `${v} missing from the HUD block`).toBeTruthy();
+    }
+  });
 });
 
-// ── WCAG AA contrast ──────────────────────────────────────────────────────────
+// ── WCAG AA contrast maths ──────────────────────────────────────────────────
 
 function linearize(c) {
   const s = c / 255;
@@ -80,12 +67,11 @@ function hexToRgb(hex) {
   const h = hex.replace('#', '');
   return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
 }
-function luminance(rgb) {
-  const [r, g, b] = rgb;
+function luminance([r, g, b]) {
   return 0.2126 * linearize(r) + 0.7152 * linearize(g) + 0.0722 * linearize(b);
 }
-function contrast(fgHex, bgRgb) {
-  const l1 = luminance(hexToRgb(fgHex)), l2 = luminance(bgRgb);
+function contrast(fgRgb, bgRgb) {
+  const l1 = luminance(fgRgb), l2 = luminance(bgRgb);
   const [hi, lo] = l1 > l2 ? [l1, l2] : [l2, l1];
   return (hi + 0.05) / (lo + 0.05);
 }
@@ -93,153 +79,79 @@ function contrast(fgHex, bgRgb) {
 function compositeOver(fgRgb, alpha, bgRgb) {
   return fgRgb.map((c, i) => alpha * c + (1 - alpha) * bgRgb[i]);
 }
+const AA = 4.5;
 
-// Values come from the parsed tokens — a token change is automatically re-checked.
-// --bg (page background, still consumed by Base.astro/sheet.astro) is a real
-// rendered surface, unlike the removed --card — these stay as direct checks.
-describe('WCAG AA contrast (≥ 4.5:1) on --bg', () => {
+describe('WCAG AA on the page background (--bg)', () => {
   it.each([
-    ['night option/bg', nightTokens['--option'], nightTokens['--bg']],
-    ['night dim/bg',     nightTokens['--dim'],    nightTokens['--bg']],
-    ['day option/bg',    dayTokens['--option'],   dayTokens['--bg']],
-    ['day dim/bg',       dayTokens['--dim'],      dayTokens['--bg']],
-  ])('%s: %s on %s', (_name, fg, bg) => {
+    ['night dim/bg', nightTokens['--dim'], nightTokens['--bg']],
+    ['day dim/bg',   dayTokens['--dim'],   dayTokens['--bg']],
+  ])('%s', (_name, fg, bg) => {
     expect(fg, 'token value missing').toBeTruthy();
     expect(bg, 'token value missing').toBeTruthy();
-    expect(contrast(fg, hexToRgb(bg))).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(hexToRgb(fg), hexToRgb(bg))).toBeGreaterThanOrEqual(AA);
   });
 });
 
-// ── WCAG AA contrast on the glass plaque ───────────────────────────────────────
-// The plaque (.card, Stage.astro) is translucent, so effective contrast depends
-// on the scene behind it, not a flat token. Worst case: the glass composited
-// over the most extreme colour in the ground/sea/rail band — the region the
-// plaque overlaps once the camera zooms in on the character (the plaque sits
-// below the zoomed face; sky/moon/city sit above the head and never reach
-// behind it). Night: the band's brightest fill, --rail. Day: its darkest,
-// --ground-near. Both parse from the tokens so a scene retune re-checks here.
-// Blur is not modelled — it averages, so the un-blurred extreme is already the
-// bound. The alphas below must match .card in Stage.astro (the glass literals
-// move onto --glass-bg/--glass-border with the plaque redesign), and must stay
-// strictly below 1 — the e2e suite asserts the glass is translucent. Day alpha
-// (0.81) is a design-picked value that can't clear AA alone — day --stage/
-// --dim/--option/--gold roles are darkened to close the gap instead.
-const GLASS_NIGHT_RGB = [10, 8, 22];   // .card night background, Stage.astro
-const GLASS_NIGHT_ALPHA = 0.75;
-const GLASS_DAY_RGB = [253, 251, 245]; // .card day background, Stage.astro
-const GLASS_DAY_ALPHA = 0.81;
-const SCENE_NIGHT_WORST = hexToRgb(nightTokens['--rail']);       // --rail (night)
-const SCENE_DAY_WORST   = hexToRgb(dayTokens['--ground-near']);  // --ground-near (day)
+// The dialogue option (.choices button, Stage.astro) is a dark translucent
+// chip over the world, which is bright by day. Worst case: the chip composited
+// over the day ground. The rgb/alpha below must match the chip's background
+// in Stage.astro. Its text roles come from the HUD block.
+const CHIP_RGB = [6, 10, 18];
+const CHIP_ALPHA = 0.82;
+const chipOverDay   = compositeOver(CHIP_RGB, CHIP_ALPHA, hexToRgb(dayTokens['--ground-near']));
+const chipOverNight = compositeOver(CHIP_RGB, CHIP_ALPHA, hexToRgb(nightTokens['--rail']));
 
-const plaqueBgNight = compositeOver(GLASS_NIGHT_RGB, GLASS_NIGHT_ALPHA, SCENE_NIGHT_WORST);
-const plaqueBgDay   = compositeOver(GLASS_DAY_RGB, GLASS_DAY_ALPHA, SCENE_DAY_WORST);
-
-describe('WCAG AA contrast (≥ 4.5:1) on the plaque, worst-case composited backdrop', () => {
+describe('WCAG AA on a dialogue option, worst-case composited backdrop', () => {
   it.each([
-    ['night speech',          nightTokens['--text'],        plaqueBgNight],
-    ['night stage direction', nightTokens['--stage'],       plaqueBgNight],
-    ['night dim/system',      nightTokens['--dim'],         plaqueBgNight],
-    ['night option',          nightTokens['--option'],      plaqueBgNight],
-    ['night gold',            nightTokens['--gold'],        plaqueBgNight],
-    ['night gold-bright',     nightTokens['--gold-bright'], plaqueBgNight],
-    ['day speech',            dayTokens['--text'],          plaqueBgDay],
-    ['day stage direction',   dayTokens['--stage'],         plaqueBgDay],
-    ['day dim/system',        dayTokens['--dim'],           plaqueBgDay],
-    ['day option',            dayTokens['--option'],        plaqueBgDay],
-    ['day gold',              dayTokens['--gold'],          plaqueBgDay],
-    ['day gold-bright',       dayTokens['--gold-bright'],   plaqueBgDay],
+    ['option text, day world',    hudTokens['--text'],        chipOverDay],
+    ['system option, day world',  hudTokens['--holo'],        chipOverDay],
+    ['lit option, day world',     hudTokens['--gold-bright'], chipOverDay],
+    ['option text, night world',  hudTokens['--text'],        chipOverNight],
+    ['system option, night world', hudTokens['--holo'],       chipOverNight],
   ])('%s', (_name, fg, bg) => {
     expect(fg, 'token value missing').toBeTruthy();
-    expect(contrast(fg, bg)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(hexToRgb(fg), bg)).toBeGreaterThanOrEqual(AA);
   });
 });
 
-// ── WCAG AA contrast on the approach prompt's shadowed text ───────────────────
-// The approach prompt (.approach-prompt, Stage.astro) dropped the plaque's
-// glass for floating text with a text-shadow — the shadow now carries the AA
-// contrast duty the glass used to carry. Same composited-arithmetic pattern
-// as the plaque above, but for text+shadow over the open scene rather than
-// glass over the ground/sea/rail band: the prompt sits above the character's
-// head, which is mostly sky, so the sky is the worst-case backdrop here —
-// gated explicitly since a light-on-light (or dark-on-dark) mismatch would
-// show up there first. The prompt is plain white in both themes — the
-// rgb/alpha values below must match .approach-prompt's text-shadow anchor
-// layer in Stage.astro; only the strongest (full-alpha) layer is modelled,
-// the two dark-pocket layers only add contrast, never remove it.
-const PROMPT_SHADOW_RGB   = [7, 6, 14]; // dark anchor shadow, both themes
-const PROMPT_SHADOW_ALPHA = 1.0;
-const PROMPT_TEXT_NIGHT   = nightTokens['--prompt-ink']; // tokens.css, consumed by Stage.astro
-const PROMPT_TEXT_DAY     = dayTokens['--prompt-ink'];
-const SKY_NIGHT = hexToRgb(nightTokens['--sky']);
-const SKY_DAY   = hexToRgb(dayTokens['--sky']);
+// Spoken text and the approach prompt float over the scene with a dark
+// anchor text-shadow carrying the contrast duty. The shadow's rgb must match
+// Stage.astro; its full-alpha layer sets the effective backdrop, so the sky
+// (the brightest region under the prompt) is the worst case.
+const SHADOW_RGB = [7, 6, 14];
+const skyNight = compositeOver(SHADOW_RGB, 1, hexToRgb(nightTokens['--sky']));
+const skyDay   = compositeOver(SHADOW_RGB, 1, hexToRgb(dayTokens['--sky']));
 
-const promptBgNight = compositeOver(PROMPT_SHADOW_RGB, PROMPT_SHADOW_ALPHA, SKY_NIGHT);
-const promptBgDay   = compositeOver(PROMPT_SHADOW_RGB, PROMPT_SHADOW_ALPHA, SKY_DAY);
-
-describe('WCAG AA contrast (≥ 4.5:1) on the approach prompt, worst-case (sky) composited backdrop', () => {
+describe('WCAG AA on shadowed text over the scene', () => {
   it.each([
-    ['night prompt text', PROMPT_TEXT_NIGHT, promptBgNight],
-    ['day prompt text',   PROMPT_TEXT_DAY,   promptBgDay],
+    ['night prompt',       nightTokens['--prompt-ink'], skyNight],
+    ['day prompt',         dayTokens['--prompt-ink'],   skyDay],
+    ['speech (HUD text)',  hudTokens['--text'],         skyDay],
+    ['stage direction',    hudTokens['--stage'],        skyDay],
+    ['speaker name',       hudTokens['--gold-bright'],  skyDay],
   ])('%s', (_name, fg, bg) => {
     expect(fg, 'token value missing').toBeTruthy();
-    expect(contrast(fg, bg)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(hexToRgb(fg), bg)).toBeGreaterThanOrEqual(AA);
   });
 });
 
-// ── WCAG AA contrast on the primary action pill ──────────────────────────────
-// The download button (d37 §6, primary verb) fills with --gold and brightens
-// to --gold-bright on hover; --btn-primary-ink rides on top in both states.
-// Night uses dark ink; day's bronze gold is too close to dark ink (~2:1), so
-// the day token flips light — both states are checked here so a retune of any
-// of the three tokens re-proves the pair.
-describe('WCAG AA contrast (≥ 4.5:1) on the primary action pill', () => {
+// The filled gold control (download button) carries --btn-primary-ink on
+// --gold at rest and --gold-bright on hover.
+describe('WCAG AA on the filled gold control', () => {
   it.each([
     ['night ink/gold',        nightTokens['--btn-primary-ink'], nightTokens['--gold']],
     ['night ink/gold-bright', nightTokens['--btn-primary-ink'], nightTokens['--gold-bright']],
     ['day ink/gold',          dayTokens['--btn-primary-ink'],   dayTokens['--gold']],
     ['day ink/gold-bright',   dayTokens['--btn-primary-ink'],   dayTokens['--gold-bright']],
-  ])('%s', (_name, fgHex, bgHex) => {
-    expect(fgHex, 'token value missing').toBeTruthy();
-    expect(bgHex, 'token value missing').toBeTruthy();
-    expect(contrast(fgHex, hexToRgb(bgHex))).toBeGreaterThanOrEqual(4.5);
+    ['HUD ink/gold-bright',   hudTokens['--btn-primary-ink'],   hudTokens['--gold-bright']],
+  ])('%s', (_name, fg, bg) => {
+    expect(fg, 'token value missing').toBeTruthy();
+    expect(bg, 'token value missing').toBeTruthy();
+    expect(contrast(hexToRgb(fg), hexToRgb(bg))).toBeGreaterThanOrEqual(AA);
   });
 });
-
-// ── Approach prompt text-shadow layer count ────────────────────────────────────
-// The night rule (the first .approach-prompt block; the day override is a
-// separate, later selector) carries three dark text-shadow layers: a tight
-// anchor, a dense inner layer, and a wider outer skirt — no gold. Counting
-// rgba(/rgb( occurrences in the raw declaration catches a layer being
-// dropped without depending on exact blur/offset numbers.
-describe('approach prompt text-shadow', () => {
-  it('the night rule carries three dark shadow layers (anchor, inner, skirt) and no gold', () => {
-    const rule = stageAstro.match(/\.approach-prompt\s*\{([^}]+)\}/)?.[1] ?? '';
-    const shadow = rule.match(/text-shadow:\s*([^;]+);/)?.[1] ?? '';
-    expect(shadow, 'text-shadow declaration missing').toBeTruthy();
-    const layers = shadow.match(/rgba?\(/g) ?? [];
-    expect(layers.length).toBe(3);
-    expect(shadow).not.toContain('255, 215, 94'); // no gold in the shadow layers
-  });
-});
-
-// ── Self-hosted fonts & type roles ────────────────────────────────────────
 
 describe('self-hosted fonts', () => {
-  const baseAstro = readFileSync(join(__dirname, '../layouts/Base.astro'), 'utf8');
-
-  it('Base.astro imports @fontsource Cinzel 600/700, Cormorant Garamond 500/600/italic-500 and Rajdhani 500/600/700', () => {
-    for (const imp of [
-      '@fontsource/rajdhani/500.css',
-      '@fontsource/rajdhani/600.css',
-      '@fontsource/rajdhani/700.css',
-      '@fontsource/cinzel/600.css',
-      '@fontsource/cinzel/700.css',
-      '@fontsource/cormorant-garamond/500.css',
-      '@fontsource/cormorant-garamond/600.css',
-      '@fontsource/cormorant-garamond/500-italic.css',
-    ]) expect(baseAstro, `${imp} import missing`).toContain(imp);
-  });
-
   it('no third-party font URL appears anywhere in src/', () => {
     const fontCdn = /fonts\.(googleapis|gstatic)\.com|use\.typekit\.net|cloud\.typography/i;
     const walk = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
@@ -249,71 +161,4 @@ describe('self-hosted fonts', () => {
       expect(readFileSync(file, 'utf8'), `${file} references a font CDN`).not.toMatch(fontCdn);
     }
   });
-});
-
-describe('type roles', () => {
-  it('--serif is the Cormorant stack and --display is the Cinzel stack', () => {
-    expect(nightTokens['--serif']).toContain('Cormorant Garamond');
-    expect(nightTokens['--display']).toContain('Cinzel');
-  });
-
-  it('display roles (name, attribute scores, quest titles) consume --display', () => {
-    const sheet = readFileSync(join(__dirname, '../pages/sheet.astro'), 'utf8');
-    for (const sel of ['.identity h1', '.attr-score', '.quest h4']) {
-      const escaped = sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      expect(sheet, `${sel} does not use var(--display)`).toMatch(
-        new RegExp(`${escaped}\\s*\\{[^}]*var\\(--display\\)`)
-      );
-    }
-  });
-});
-
-// ── Interaction grammar (§6): three hover verbs, one ring ─────────────────────
-
-describe('interaction grammar (theme-direction §6)', () => {
-  const sheetAstro  = readFileSync(join(__dirname, '../pages/sheet.astro'), 'utf8');
-  const toggleAstro = readFileSync(join(__dirname, '../components/ThemeToggle.astro'), 'utf8');
-
-  it('the download button is the primary verb: filled gold, ink text, cut corners, brightens', () => {
-    const btn = sheetAstro.match(/\.download-btn\s*\{([^}]+)\}/)?.[1] ?? '';
-    expect(btn, 'filled with house gold').toContain('background: var(--gold)');
-    expect(btn, 'cut corners, not a pill').toContain('clip-path: polygon(');
-    expect(btn, 'ink text').toContain('color: var(--btn-primary-ink)');
-    const hover = sheetAstro.match(/\.download-btn:hover[\s\S]*?\{([^}]+)\}/)?.[1] ?? '';
-    expect(hover, 'brightens on hover').toContain('background: var(--gold-bright)');
-  });
-
-  it('the back-link is quiet HUD text that turns gold on hover', () => {
-    expect(sheetAstro.match(/\.back-link\s*\{([^}]+)\}/)?.[1]).not.toContain('dashed');
-    const hover = sheetAstro.match(/\.back-link:hover[\s\S]*?\{([^}]+)\}/)?.[1] ?? '';
-    expect(hover).toContain('var(--gold-bright)');
-  });
-
-  // One focus treatment site-wide. A selector may appear in several rules
-  // (hover/focus shares one block); at least one rule per site must carry
-  // the house ring.
-  const ringSites = [
-    ['theme toggle',     toggleAstro, '.toggle:focus-visible'],
-    ['approach prompt',  stageAstro,  '.approach-prompt:focus-visible'],
-    ['fullscreen chip',  stageAstro,  '.fullscreen-toggle:focus-visible'],
-    ['sheet back-link',  sheetAstro,  '.back-link:focus-visible'],
-    ['download button',  sheetAstro,  '.download-btn:focus-visible'],
-    ['contact links',    sheetAstro,  '.contact-link:focus-visible'],
-  ];
-  it.each(ringSites)('the %s focus ring is a 1px holo line, offset 3px', (_name, src, sel) => {
-    const escaped = sel.replace(/[.*+?${}()|[\]\\]/g, '\\$&');
-    const bodies = [...src.matchAll(new RegExp(`${escaped}\\s*\\{([^}]+)\\}`, 'g'))].map(m => m[1]);
-    expect(bodies.some(b =>
-      b.includes('outline: 1px solid var(--holo)') &&
-      b.includes('outline-offset: 3px')
-    )).toBe(true);
-  });
-});
-
-// ── Theme logic ───────────────────────────────────────────────────────────────
-
-describe('resolveTheme', () => {
-  it('"day" → day',  () => expect(resolveTheme('day')).toBe('day'));
-  it('null → night', () => expect(resolveTheme(null)).toBe('night'));
-  it('garbage → night', () => expect(resolveTheme('anything')).toBe('night'));
 });

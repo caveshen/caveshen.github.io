@@ -1,6 +1,6 @@
 // The Badger owns `/` — no selection mechanism, the route is the selector.
 import { test, expect } from './fixtures.js';
-import { sceneRects, approachPrompt, visibleRect } from './geom.js';
+import { sceneRects, visibleRect } from './geom.js';
 
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
@@ -10,13 +10,6 @@ test.beforeEach(async ({ page }) => {
 test('default: Badger visible, hooded figure absent', async ({ page }) => {
   await expect(page.locator('.scene-standard .badger-figure')).toBeVisible();
   await expect(page.locator('.scene-standard .hooded-figure')).not.toBeVisible();
-});
-
-test('approach applies a non-identity camera transform (not a no-op zoom)', async ({ page }) => {
-  await approachPrompt(page);
-  const transform = await page.locator('.camera').evaluate((el) => el.style.transform);
-  expect(transform).not.toBe('');
-  expect(transform).not.toBe('none');
 });
 
 // The prompt anchors to the face box top, not the raster group's own top — the
@@ -29,18 +22,6 @@ test('the approach prompt clears the face box with a 50px gap', async ({ page })
   const faceBox   = await visibleRect(page, '.face-void');
   const gap = faceBox.y - (promptBox.y + promptBox.height);
   expect(Math.abs(gap - 50)).toBeLessThan(2);
-});
-
-test('approach frames the Badger face-void', async ({ page }) => {
-  await approachPrompt(page);
-  // Non-zero box proves the camera math had a real anchor, not a hidden/zero-size one.
-  const faceBox = await page.evaluate(() => {
-    const el = [...document.querySelectorAll('.face-void')].find((e) => e.getBoundingClientRect().width > 0);
-    const r = el.getBoundingClientRect();
-    return { width: r.width, height: r.height };
-  });
-  expect(faceBox.width).toBeGreaterThan(0);
-  expect(faceBox.height).toBeGreaterThan(0);
 });
 
 // A broken href still paints a box (the <image> element itself has a size), so

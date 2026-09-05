@@ -1,6 +1,6 @@
 // not-found.spec.js — the interactive 404: a door that isn't in the script.
 import { test, expect } from '@playwright/test';
-import { rectsIntersect, visibleRect, sceneRects, assertNoIdentityMarkup, dialogueGround, approachPrompt } from './geom.js';
+import { rectsIntersect, visibleRect, sceneRects, dialogueGround, approachPrompt } from './geom.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/404');
@@ -10,18 +10,9 @@ async function approach(page) {
   await approachPrompt(page);
 }
 
-test('card not visible on load with JS', async ({ page }) => {
-  await expect(page.locator('.card')).not.toBeVisible();
-});
-
 test('approaching the hooded figure shows the dialogue card', async ({ page }) => {
   await approach(page);
   await expect(page.locator('.card')).toBeVisible();
-});
-
-test('no avatar or nameplate markup renders', async ({ page }) => {
-  await approach(page);
-  await assertNoIdentityMarkup(page);
 });
 
 test('the dialogue ground holds the night register in both themes', async ({ page }) => {

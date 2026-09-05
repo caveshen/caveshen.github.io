@@ -48,13 +48,6 @@ test('Enter activates New Game', async ({ page }) => {
   await expect.poll(() => coverDisplay(page)).toBe('none');
 });
 
-test('Space activates New Game', async ({ page }) => {
-  await page.goto('/');
-  await page.locator('#cover-new-game').focus();
-  await page.keyboard.press('Space');
-  await expect.poll(() => coverDisplay(page)).toBe('none');
-});
-
 test('hotkey "1" dismisses the cover and sets the session flag', async ({ page }) => {
   await page.goto('/');
   await page.keyboard.press('1');

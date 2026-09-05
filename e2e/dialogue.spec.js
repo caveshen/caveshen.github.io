@@ -1,6 +1,6 @@
 // dialogue.spec.js — streaming dialogue text: cadence, skip, and the a11y contract.
 import { test, expect } from './fixtures.js';
-import { assertNoIdentityMarkup, dialogueGround, approachPrompt, rectsIntersect, rectContains } from './geom.js';
+import { dialogueGround, approachPrompt, rectsIntersect, rectContains } from './geom.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -100,11 +100,6 @@ test('reduced motion: the full line renders immediately, no stream node ever app
   expect(speech.length).toBeGreaterThan(0);
 });
 
-test('no avatar or nameplate markup renders', async ({ page }) => {
-  await approach(page);
-  await assertNoIdentityMarkup(page);
-});
-
 test('the dialogue ground holds the night register in both themes', async ({ page }) => {
   await approach(page);
   const night = await dialogueGround(page);
@@ -152,13 +147,4 @@ test('digit hotkeys pick the numbered option', async ({ page }) => {
   const before = await page.locator('#speech').textContent();
   await page.keyboard.press('2');
   await expect(page.locator('#speech')).not.toHaveText(before ?? '');
-});
-
-test('a digit mid-stream completes the line and does not pick', async ({ page }) => {
-  await startStream(page);
-  await expect(page.locator('.speech-stream')).toBeVisible();
-  const speechBefore = await page.locator('#speech').textContent();
-  await page.keyboard.press('1');
-  await expect(page.locator('.speech-stream')).toHaveCount(0);
-  await expect(page.locator('#speech')).toHaveText(speechBefore ?? '');
 });

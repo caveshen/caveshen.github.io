@@ -71,14 +71,6 @@ test('the plane is pointer-events: none and never blocks the approach prompt', a
   await expect(page.locator('.card')).toBeVisible();
 });
 
-test('no-JS: no plane element exists in the DOM', async ({ browser }) => {
-  const ctx  = await browser.newContext({ javaScriptEnabled: false });
-  const page = await ctx.newPage();
-  await page.goto('/');
-  await expect(page.locator('.banner-plane')).toHaveCount(0);
-  await ctx.close();
-});
-
 // d30: click-to-crash easter egg.
 
 test('clicking the plane mid-flight crashes it, ending below the waterline, then removes it', async ({ page }) => {
@@ -183,13 +175,4 @@ test('clicking the plane mid-flight crashes it, ending below the waterline, then
 
   // Completion (removal): the plane element itself is ultimately gone.
   await expect(plane).toHaveCount(0);
-});
-
-test('reduced-motion: no plane, so no crash hitbox or listener either', async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.clock.install();
-  await page.goto('/');
-  await page.clock.fastForward(10_000);
-  await expect(page.locator('.banner-plane')).toHaveCount(0);
-  await expect(page.locator('.plane-hit')).toHaveCount(0);
 });

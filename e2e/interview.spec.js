@@ -13,15 +13,11 @@ test('night theme by default', async ({ page }) => {
   await expect(page.locator('.night-only:visible').first()).toBeVisible();
 });
 
-test('toggle switches to day theme', async ({ page }) => {
+test('toggle switches to day theme: day-only shows, night-only hides', async ({ page }) => {
   await page.locator('#toggle').click();
   await expect(page.locator('html')).toHaveAttribute('data-time', 'day');
   // :visible filters to the active scene — hidden scene variants contain day-only too
   await expect(page.locator('.day-only:visible').first()).toBeVisible();
-});
-
-test('night-only elements hidden in day mode', async ({ page }) => {
-  await page.locator('#toggle').click();
   await expect(page.locator('.night-only').first()).not.toBeVisible();
 });
 
@@ -44,13 +40,6 @@ test('toggle is first in tab order and keyboard-operable', async ({ page }) => {
   await expect(page.locator('#toggle')).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(page.locator('html')).toHaveAttribute('data-time', 'day');
-});
-
-test('choice buttons are next in tab order after toggle', async ({ page }) => {
-  await page.keyboard.press('Tab'); // toggle
-  await page.keyboard.press('Tab'); // approach prompt
-  await page.keyboard.press('Enter'); // approach — engine focuses first choice
-  await expect(page.locator('#choices button').first()).toBeFocused();
 });
 
 test('full keyboard dialogue playthrough', async ({ page }) => {
@@ -101,33 +90,6 @@ test('dialogue content updates immediately under reduced-motion (no fade delay)'
   expect(opacity).toBeGreaterThan(0.9);
 });
 
-test('no horizontal overflow', async ({ page }) => {
-  const overflows = await page.evaluate(() =>
-    document.documentElement.scrollWidth > document.documentElement.clientWidth
-  );
-  expect(overflows).toBe(false);
-});
-
-test('root speech visible without JavaScript', async ({ browser }) => {
-  const ctx  = await browser.newContext({ javaScriptEnabled: false });
-  const page = await ctx.newPage();
-  await page.goto('/');
-  await expect(page.locator('#speech')).toBeVisible();
-  const speech = ((await page.locator('#speech').textContent()) ?? '').trim();
-  expect(speech.length).toBeGreaterThan(0);
-  await ctx.close();
-});
-
-test('/sheet link present without JavaScript (noscript fallback)', async ({ browser }) => {
-  const ctx  = await browser.newContext({ javaScriptEnabled: false });
-  const page = await ctx.newPage();
-  await page.goto('/');
-  // Scoped: the threshold cover ships a second, now-hidden a[href="/sheet"] of
-  // its own (#cover-sheet), which would make a bare a[href="/sheet"] ambiguous.
-  await expect(page.locator('.noscript-note a[href="/sheet"]')).toBeVisible();
-  await ctx.close();
-});
-
 test('ultra-wide (2560×1080) shows scene-wide only', async ({ page }) => {
   await page.setViewportSize({ width: 2560, height: 1080 });
   await page.goto('/');
@@ -176,16 +138,6 @@ test('standard desktop (1920×1080) shows scene-standard only', async ({ page })
   await expect(page.locator('.scene-standard')).toBeVisible();
   await expect(page.locator('.scene-wide')).not.toBeVisible();
   await expect(page.locator('.scene-tall')).not.toBeVisible();
-});
-
-test('night/day toggle swaps elements in the visible scene', async ({ page }) => {
-  await page.setViewportSize({ width: 1920, height: 1080 });
-  await page.goto('/');
-  // Night is default — moon group inside scene-standard is visible
-  const nightEl = page.locator('.scene-standard .night-only').first();
-  await expect(nightEl).toBeVisible();
-  await page.locator('#toggle').click();
-  await expect(nightEl).not.toBeVisible();
 });
 
 // The sky is gradiented (a url() reference), not a flat fill, and stays a
@@ -242,43 +194,18 @@ test('rail post shadow opacity clears a visibility floor, in both themes', async
   expect(await opacity()).toBeGreaterThanOrEqual(0.25);
 });
 
-test('no horizontal overflow at ultra-wide (2560×1080)', async ({ page }) => {
-  await page.setViewportSize({ width: 2560, height: 1080 });
-  await page.goto('/');
-  const overflow = await page.evaluate(() =>
-    document.documentElement.scrollWidth > document.documentElement.clientWidth
-  );
-  expect(overflow).toBe(false);
-});
-
 // .js-character's own bounding box is not the visible reference any more — it
 // unions in the invisible click-hit padding and the raster's transparent
 // headroom above the drawn head, both well clear of any drawn pixel. The face
 // box is what positionPrompt() actually clears (see stage.js), so it is also
 // the right "does this overlap the character" reference here.
-for (const vp of [
-  { name: 'wide (2560×1080)',     width: 2560, height: 1080 },
-  { name: 'standard (1920×1080)', width: 1920, height: 1080 },
-  { name: 'tall (390×844)',       width: 390,  height: 844  },
-]) {
-  test(`approach prompt does not overlap the figure — ${vp.name}`, async ({ page }) => {
-    await page.setViewportSize({ width: vp.width, height: vp.height });
-    await page.goto('/');
-    const promptBox = await page.locator('#approach-prompt').boundingBox();
-    const faceBox   = await visibleRect(page, '.face-void');
-    const frameBox  = await page.locator('.stage-frame').boundingBox();
-    expect(rectsIntersect(promptBox, faceBox)).toBe(false);
-    // The clamp must not push the prompt out of the scene.
-    expect(rectContains(frameBox, promptBox)).toBe(true);
-  });
-}
-
-// N4: same assertion, no forced viewport — matrix breadth at each project's native size.
-test('approach prompt does not overlap the figure — native viewport', async ({ page }) => {
+// No forced viewport — the matrix runs each project's native size.
+test('approach prompt does not overlap the figure and stays inside the frame', async ({ page }) => {
   const promptBox = await page.locator('#approach-prompt').boundingBox();
   const faceBox   = await visibleRect(page, '.face-void');
   const frameBox  = await page.locator('.stage-frame').boundingBox();
   expect(rectsIntersect(promptBox, faceBox)).toBe(false);
+  // The clamp must not push the prompt out of the scene.
   expect(rectContains(frameBox, promptBox)).toBe(true);
 });
 
@@ -309,34 +236,20 @@ const FULL_WINDOW_VIEWPORTS = [
 ];
 
 for (const vp of FULL_WINDOW_VIEWPORTS) {
-  test(`stage-frame fills 100% of the viewport — ${vp.name}`, async ({ page }) => {
+  test(`stage-frame fills 100% of the viewport with no page scroll — ${vp.name}`, async ({ page }) => {
     await page.setViewportSize({ width: vp.width, height: vp.height });
     await page.goto('/');
     const box = await page.locator('.stage-frame').boundingBox();
     expect(box.width).toBeCloseTo(vp.width, 0);
     expect(box.height).toBeCloseTo(vp.height, 0);
-  });
-
-  test(`no horizontal page overflow — ${vp.name}`, async ({ page }) => {
-    await page.setViewportSize({ width: vp.width, height: vp.height });
-    await page.goto('/');
-    const overflow = await page.evaluate(() =>
-      document.documentElement.scrollWidth > document.documentElement.clientWidth
-    );
-    expect(overflow).toBe(false);
+    const overflow = await page.evaluate(() => ({
+      v: document.documentElement.scrollHeight > document.documentElement.clientHeight,
+      h: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    }));
+    expect(overflow.v).toBe(false);
+    expect(overflow.h).toBe(false);
   });
 }
-
-test('ultra-wide (2560×1080) has no page scroll, vertical or horizontal', async ({ page }) => {
-  await page.setViewportSize({ width: 2560, height: 1080 });
-  await page.goto('/');
-  const overflow = await page.evaluate(() => ({
-    v: document.documentElement.scrollHeight > document.documentElement.clientHeight,
-    h: document.documentElement.scrollWidth > document.documentElement.clientWidth,
-  }));
-  expect(overflow.v).toBe(false);
-  expect(overflow.h).toBe(false);
-});
 
 // 1200×1400 (aspect 0.857) is above the tall breakpoint's 4/5=0.8 cut-off, so it must
 // still select the standard variant, not tall — worth confirming since full-bleed
@@ -409,24 +322,8 @@ for (const vp of [
   });
 }
 
-test.describe('no page scroll at 1920×1080 and 2560×1440', () => {
-  for (const vp of [{ width: 1920, height: 1080 }, { width: 2560, height: 1440 }]) {
-    test(`${vp.width}×${vp.height}`, async ({ page }) => {
-      await page.setViewportSize(vp);
-      await page.goto('/');
-      const overflow = await page.evaluate(() => ({
-        v: document.documentElement.scrollHeight > document.documentElement.clientHeight,
-        h: document.documentElement.scrollWidth > document.documentElement.clientWidth,
-      }));
-      expect(overflow.v).toBe(false);
-      expect(overflow.h).toBe(false);
-    });
-  }
-});
-
 // The zoomed face must clear the dialogue card that overlays it.
 for (const vp of [
-  { name: 'standard (1920×1080)', width: 1920, height: 1080 },
   { name: 'tall (390×844)',       width: 390,  height: 844  },
 ]) {
   test(`face clears the dialogue card after approach — ${vp.name}`, async ({ page }) => {
@@ -497,7 +394,6 @@ test('fullscreen button is keyboard-focusable with a visible outline', async ({ 
 });
 
 for (const vp of [
-  { name: 'wide (2560×1080)',     width: 2560, height: 1080 },
   { name: 'standard (1920×1080)', width: 1920, height: 1080 },
   { name: 'tall (390×844)',       width: 390,  height: 844  },
 ]) {

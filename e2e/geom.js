@@ -70,14 +70,6 @@ export async function assertPortraitGeometry(page, portrait) {
   expect(Math.abs(gap - rem)).toBeLessThan(2);
 }
 
-// Explicit absence check for the identity markup the glass plaque replaced
-// (avatar art + nameplate) — deletion of the markup is not itself a green e2e signal.
-export async function assertNoIdentityMarkup(page) {
-  await expect(page.locator('.card-head')).toHaveCount(0);
-  await expect(page.locator('.avatar')).toHaveCount(0);
-  await expect(page.locator('.name')).toHaveCount(0);
-}
-
 // The dialogue's ground: a soft dark radial gradient behind the subtitle and
 // the wheel, no plaque. Returns the background-image so a caller can prove
 // the HUD holds the night register in both themes.

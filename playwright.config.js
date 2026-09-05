@@ -18,16 +18,13 @@ export default defineConfig({
     timeout: 120_000,
   },
   projects: [
-    { name: 'iphone-se',    use: { ...devices['iPhone SE'],     browserName: 'webkit' } },
     { name: 'iphone-15pro', use: { ...devices['iPhone 15 Pro'], browserName: 'webkit' } },
     { name: 'ipad',         use: { ...devices['iPad (gen 7)'],  browserName: 'webkit' } },
     // Pixel 8: Chromium emulation is the faithful choice for Android (not WebKit).
     { name: 'pixel-8',      use: { ...devices['Pixel 8'],       ...ch } },
-    { name: 'desktop-1366', use: { viewport: { width: 1366, height: 768  }, ...ch } },
     { name: 'desktop-1920', use: { viewport: { width: 1920, height: 1080 }, ...ch } },
     { name: 'desktop-2560', use: { viewport: { width: 2560, height: 1440 }, ...ch } },
     // Firefox: desktop only — Playwright's Firefox engine cannot emulate mobile.
     { name: 'desktop-firefox', use: { ...devices['Desktop Firefox'], browserName: 'firefox' } },
-    // The perf project lives in playwright.perf.config.js so `playwright test` never runs it.
   ],
 });

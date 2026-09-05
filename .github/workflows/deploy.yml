@@ -1,50 +1,42 @@
-name: Deploy to GitHub Pages
+name: CI and deploy
 
 on:
-  # Branch pushes run a smoke check (desktop-1920); PRs run the full
-  # tri-engine matrix as one job per project (d41). Main's pre-deploy run is
-  # also smoke-only: a merged PR already proved the exact SHA against the
-  # full matrix, so the re-run gates on the fast subset. Build and deploy
-  # are gated to main below. The build reads no markdown, and post
-  # tools-split docs/ holds only prose and cv.html (a manual render input) —
-  # neither builds nor tests, so both ignore lists skip them.
+  # Ready pull requests run the full six-project matrix. A push to main
+  # (a squash-merge of a PR the matrix already proved) runs the unit suite
+  # and deploys. A push to the working branch runs the unit suite and
+  # deploys the preview host. Nothing else runs CI. Docs-only changes never
+  # run anything: the build reads no markdown, and docs/ holds only prose.
   push:
-    branches: ['**']
+    branches: [main, item/videogame-menus]
     tags-ignore: ['**']
     paths-ignore: ['**.md', 'docs/**']
 
   pull_request:
     branches: [main]
-    # Same rule as push, post tools-split: docs/ holds no build or test code.
+    types: [opened, synchronize, reopened, ready_for_review]
     paths-ignore: ['**.md', 'docs/**']
 
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
-# Superseded branch runs are cancelled; main queues. The Pages concurrency
-# group lives on the deploy job so a slow test run can never hold it.
+# Superseded PR runs are cancelled; main queues.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   test:
+    if: github.event_name == 'pull_request' && !github.event.pull_request.draft
     runs-on: ubuntu-latest
-    # One shard per Playwright project (d41): wall time collapses to the
-    # slowest single project instead of the whole matrix. 25min: the slowest
-    # project plus build/install overhead — tune after observing a few runs;
-    # the old load-bearing 40 was for the unsharded matrix.
+    # One shard per Playwright project: wall time is the slowest project
+    # plus install overhead. 25 minutes leaves room for a slow WebKit shard.
     timeout-minutes: 25
-    # PRs run all eight projects as parallel jobs; pushes (including main's
-    # pre-deploy gate) run the desktop-1920 smoke shard only.
     strategy:
       fail-fast: false
       matrix:
-        project: ${{ github.event_name == 'pull_request' && fromJSON('["iphone-se","iphone-15pro","ipad","pixel-8","desktop-1366","desktop-1920","desktop-2560","desktop-firefox"]') || fromJSON('["desktop-1920"]') }}
+        project: [iphone-15pro, ipad, pixel-8, desktop-1920, desktop-2560, desktop-firefox]
     steps:
       - uses: actions/checkout@v7
 
@@ -60,60 +52,25 @@ jobs:
       - name: Unit tests
         run: npm test
 
-      # Chromium-family projects use branded Edge via channel: msedge — Edge is
-      # preinstalled on ubuntu runners, so no download and no system deps step.
-      # Only WebKit and Firefox need Playwright's bundled builds here.
+      # Chromium-family projects use branded Edge via channel: msedge, which
+      # is preinstalled on ubuntu runners. Only WebKit and Firefox need
+      # Playwright's bundled builds.
       - name: Install Playwright browsers
         run: |
           case "${{ matrix.project }}" in
-            iphone-se|iphone-15pro|ipad) npx playwright install --with-deps webkit ;;
-            desktop-firefox)             npx playwright install --with-deps firefox ;;
+            iphone-15pro|ipad) npx playwright install --with-deps webkit ;;
+            desktop-firefox)   npx playwright install --with-deps firefox ;;
           esac
 
       - name: Integration tests
         run: npm run test:e2e -- --project=${{ matrix.project }}
 
-  build:
-    needs: [test]
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Set up Node
-        uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run build
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v5
-
   deploy-cloudflare:
-    # Separate from the Pages build/deploy above: same gates, own dist.
-    # The only job that ships to caveshen.com.
-    needs: [test]
-    if: github.ref == 'refs/heads/main'
+    # The only job that ships to caveshen.com. The merged SHA was proved by
+    # the PR matrix; the unit suite is the last cheap gate before deploy.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
 
@@ -125,6 +82,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Unit tests
+        run: npm test
 
       - name: Build
         run: npm run build
@@ -137,9 +97,8 @@ jobs:
 
   deploy-preview:
     # The working branch ships to preview.caveshen.com on every push, gated
-    # on the unit suite only: the e2e specs are being re-pinned to the new
-    # design and must not hold the preview. Its own Pages project.
-    if: github.ref == 'refs/heads/item/videogame-menus'
+    # on the unit suite only. Its own Pages project; removed at the cutover.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/item/videogame-menus'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

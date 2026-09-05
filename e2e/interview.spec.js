@@ -341,7 +341,7 @@ for (const vp of [
 
 // N4's withheld third case: same assertion as above, but native-viewport breadth —
 // runs at whatever viewport each project's own device profile sets (no forced
-// setViewportSize), so it exercises iphone-se's real 320x568 and iphone-15pro's
+// setViewportSize), so it exercises iphone-15pro's
 // real 393x659 rather than the 390x844 stand-in above, which has more headroom
 // than any real phone browser hands a page. See PRD.md §16 open question 4.
 test('face clears the dialogue card after approach — native viewport', async ({ page }) => {

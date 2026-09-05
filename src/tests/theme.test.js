@@ -33,7 +33,6 @@ const ALLOWLIST = [
   '--serif', '--display', '--mono', '--hud',
   '--theme-transition', '--t-micro', '--ease-camera',
   '--r-sharp', '--r-panel', '--r-pill',
-  '--head-dark',
 ];
 
 describe('token parity', () => {

@@ -17,10 +17,8 @@ function filesUnder(relDir) {
     .map((rel) => `${relDir}/${rel.split(path.sep).join('/')}`);
 }
 
-// The /og route's composition chain — see the spec's freshness gate section
-// for the over-coverage rationale. badger-head.svg is a live asset
-// (src/components/BadgerHead.astro) but feeds no derived image, so it is
-// not an input here.
+// The /og route's composition chain: every component and stylesheet, since
+// the title screen the card shows is built from them.
 export const COMMITTED_INPUTS = [
   'src/pages/og.astro',
   ...filesUnder('src/components'),
@@ -30,7 +28,6 @@ export const COMMITTED_INPUTS = [
 // Gitignored source photos that exist only on the owner's machine. CI and
 // fresh clones never have these — the gate skips them where absent.
 export const PRIVATE_INPUTS = [
-  '.scratch/NAG_Badger.jpg',
   '.scratch/cavie-ref.jpg',
   'screenshots/cpt/20251125_200737.jpg',
 ].sort();

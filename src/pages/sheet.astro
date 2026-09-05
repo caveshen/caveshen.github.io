@@ -36,12 +36,25 @@ const hexPoints = (cx: number, cy: number, r: number) =>
   }).join(' ');
 const treeHeight = TOP + ROW_H * Math.max(...SCHOOLS.map((s) => s.nodes.length)) - 10;
 const RANK = ['', 'learning', 'proficient', 'mastered'];
+
+// Structured data for the record: the person behind the sheet.
+const person = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Caveshen Rajman',
+  jobTitle: 'Engineering Manager',
+  worksFor: { '@type': 'Organization', name: 'Derivco' },
+  address: { '@type': 'PostalAddress', addressLocality: 'Cape Town', addressCountry: 'ZA' },
+  url: Astro.site?.toString(),
+  sameAs: ['https://www.linkedin.com/in/caveshen', 'https://github.com/caveshen'],
+};
 ---
 <Base
   title="Character sheet — Caveshen Rajman"
   description="Caveshen Rajman's character record: Engineering Manager, level 11. Attributes, skill tree, quest log and codex, with the plain CV to download."
   theme="night"
 >
+  <script type="application/ld+json" is:inline slot="head" set:html={JSON.stringify(person)} />
   <script is:inline>
     /* Sets arrived-by-morph on <html> before first paint when a cross-document
        view transition is active — fires before the page renders. */

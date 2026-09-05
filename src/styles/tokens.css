@@ -79,9 +79,6 @@
   --sail:      #f2ede1;
   --beacon:    #c0392b;
 
-  /* Badger-head dark (mask stripes, nose) — identity colour, no day entry. */
-  --head-dark: #0f1826;
-
   /* Where the sky's own falloff and the far mountains' base converge, so they
      read as one continuous haze rather than two shapes gradiented independently. */
   --sky-horizon: #1c3554;
@@ -213,7 +210,6 @@
 .f-sail      { fill: var(--sail); }
 .f-beacon  { fill: var(--beacon); }
 
-.f-head-dark { fill: var(--head-dark); }
 
 /* ── Scene layout + day/night visibility ────────────────────────────────
    Shared by every page that renders a `.scene` SVG (currently / and /404):

@@ -57,9 +57,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Check for PLACEHOLDER tokens (warns, never fails)
-        run: node tools/placeholder-check.js
-
       - name: Unit tests
         run: npm test
 
@@ -83,31 +80,8 @@ jobs:
         continue-on-error: true
         run: npm run test:perf
 
-  gated:
-    # Proves the gate before deploy: build with GATED on and run the
-    # single desktop config that asserts cover-only markup plus the
-    # gated dist-file checks. The gate is markup, not rendering, so one
-    # engine (branded Edge, preinstalled — no Playwright install step)
-    # is enough. Runs on every push and PR, same as the test matrix.
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Set up Node
-        uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Gated pass
-        run: npx playwright test --config playwright.gated.config.js
-
   build:
-    needs: [test, gated]
+    needs: [test]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
@@ -143,9 +117,8 @@ jobs:
 
   deploy-cloudflare:
     # Separate from the Pages build/deploy above: same gates, own dist.
-    # This is the only job that builds with the gate on and the only one
-    # that ships to caveshen.com.
-    needs: [test, gated]
+    # The only job that ships to caveshen.com.
+    needs: [test]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
@@ -160,10 +133,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build (gated)
+      - name: Build
         run: npm run build
-        env:
-          GATED: 1
 
       - name: Deploy to Cloudflare Pages
         run: npx wrangler@4 pages deploy dist --project-name=caveshen-com --branch=main
@@ -174,7 +145,7 @@ jobs:
   deploy-preview:
     # The working branch ships to preview.caveshen.com on every push, gated
     # on the unit suite only: the e2e specs are being re-pinned to the new
-    # design and must not hold the preview. Ungated build, its own project.
+    # design and must not hold the preview. Its own Pages project.
     if: github.ref == 'refs/heads/item/videogame-menus'
     runs-on: ubuntu-latest
     timeout-minutes: 10

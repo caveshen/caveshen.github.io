@@ -14,15 +14,8 @@
 // Main menu: a quiet button on the arrived scene brings the cover back
 // (session flag cleared, scene re-armed) so New Game can be replayed. The
 // cover element is hidden, not removed, once dismissed.
-//
-// Gated mode (the `gated` prop): the cover is the whole page. Menu controls
-// render disabled and blurred; no dismissal script, hotkeys or return button.
-interface Props {
-  gated?: boolean;
-}
-const { gated = false } = Astro.props;
 ---
-<div class={gated ? 'threshold-cover cover-gated' : 'threshold-cover'} id="threshold-cover">
+<div class="threshold-cover" id="threshold-cover">
   <!-- Defs-only: 0×0 and clipped, never display:none (some engines skip a
        filter whose <svg> ancestor is display:none). -->
   <svg class="cover-filter-defs" aria-hidden="true" focusable="false">
@@ -83,34 +76,20 @@ const { gated = false } = Astro.props;
     <h1 class="cover-name">Caveshen Rajman</h1>
     <p class="cover-role">Engineering Manager, Cape Town</p>
     <p class="cover-tagline">Problem solver, coffee enjoyer, 10x human</p>
-    {gated ? (
-      <Fragment>
-      <nav class="cover-menu" aria-label="Main menu">
-        <button type="button" id="cover-new-game" class="cover-btn cover-btn-primary" disabled>
-          New game
-        </button>
-        <button type="button" id="cover-sheet" class="cover-btn cover-btn-secondary" disabled>
-          Character sheet
-        </button>
-      </nav>
-      <p class="cover-coming-soon">Coming soon</p>
-      </Fragment>
-    ) : (
-      <nav class="cover-menu" aria-label="Main menu">
-        <button type="button" id="cover-new-game" class="cover-btn cover-btn-primary">
-          New game <kbd class="cover-hotkey" aria-hidden="true">1</kbd>
-        </button>
-        <a href="/sheet" id="cover-sheet" class="cover-btn cover-btn-secondary">
-          Character sheet <kbd class="cover-hotkey" aria-hidden="true">2</kbd>
-        </a>
-        <a href="/cv.pdf" id="cover-cv" class="cover-btn cover-btn-secondary">
-          Download CV <kbd class="cover-hotkey" aria-hidden="true">3</kbd>
-        </a>
-        <a href="https://www.linkedin.com/in/caveshen" id="cover-linkedin" class="cover-btn cover-btn-secondary">
-          LinkedIn <kbd class="cover-hotkey" aria-hidden="true">4</kbd>
-        </a>
-      </nav>
-    )}
+    <nav class="cover-menu" aria-label="Main menu">
+      <button type="button" id="cover-new-game" class="cover-btn cover-btn-primary">
+        New game <kbd class="cover-hotkey" aria-hidden="true">1</kbd>
+      </button>
+      <a href="/sheet" id="cover-sheet" class="cover-btn cover-btn-secondary">
+        Character sheet <kbd class="cover-hotkey" aria-hidden="true">2</kbd>
+      </a>
+      <a href="/cv.pdf" id="cover-cv" class="cover-btn cover-btn-secondary">
+        Download CV <kbd class="cover-hotkey" aria-hidden="true">3</kbd>
+      </a>
+      <a href="https://www.linkedin.com/in/caveshen" id="cover-linkedin" class="cover-btn cover-btn-secondary">
+        LinkedIn <kbd class="cover-hotkey" aria-hidden="true">4</kbd>
+      </a>
+    </nav>
   </div>
 
   <!-- Readout: where the photograph was taken. Real coordinates, the system's voice. -->
@@ -120,8 +99,6 @@ const { gated = false } = Astro.props;
   </p>
 </div>
 
-{!gated && (
-<Fragment>
 <!-- Ships hidden; JS unhides it once it knows the cover isn't showing. -->
 <button type="button" id="return-to-menu" class="return-to-menu" hidden>
   <kbd aria-hidden="true">Esc</kbd> Main menu
@@ -238,8 +215,6 @@ const { gated = false } = Astro.props;
     returnToMenu();
   });
 </script>
-</Fragment>
-)}
 
 <style>
   .threshold-cover {
@@ -251,7 +226,7 @@ const { gated = false } = Astro.props;
     background: var(--sky);
   }
   @media (prefers-reduced-motion: reduce) {
-    .threshold-cover:not(.cover-gated) { display: none; }
+    .threshold-cover { display: none; }
   }
 
   .threshold-cover.cover-undeveloping {
@@ -343,7 +318,7 @@ const { gated = false } = Astro.props;
 
   /* Text-over-photo AA (src/tests/threshold.test.js): a dark anchor
      text-shadow carries the contrast duty, not a chip. */
-  .cover-name, .cover-tagline, .cover-btn-secondary, .cover-coming-soon {
+  .cover-name, .cover-tagline, .cover-btn-secondary {
     color: var(--prompt-ink);
     text-shadow: 0 1px 3px rgba(7, 6, 14, 1), 0 0 12px rgba(7, 6, 14, 1),
                  0 0 20px rgba(7, 6, 14, 0.7);
@@ -372,12 +347,6 @@ const { gated = false } = Astro.props;
     font-style: italic;
     font-size: 1.2rem;
     margin: 0.5rem 0 0;
-  }
-  .cover-coming-soon {
-    font-family: var(--serif);
-    font-style: italic;
-    font-size: 1rem;
-    margin-top: 1.5rem;
   }
 
   .cover-menu {

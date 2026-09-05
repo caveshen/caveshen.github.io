@@ -1,13 +1,8 @@
 // 404 page, hygiene files (robots/sitemap), and OG/meta tag checks.
-// Runs against the ungated build (see playwright.config.js) — the preview
-// posture: noindex/disallow, github.io URLs, no Cloudflare _redirects.
-import { existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import path from 'node:path';
+// A local build has no SITE override, so it carries the live posture:
+// indexable, allow all, caveshen.com URLs.
 import { test, expect } from './fixtures.js';
 import { approachPrompt } from './geom.js';
-
-const distDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist');
 
 test('404 page: navigating to unknown route returns a page with a way home', async ({ page }) => {
   await page.goto('/this-does-not-exist', { waitUntil: 'domcontentloaded' });
@@ -37,11 +32,12 @@ test('GET /robots.txt returns 200', async ({ request }) => {
   expect(res.status()).toBe(200);
 });
 
-test('robots.txt disallows all (preview posture — never competes with the domain)', async ({ request }) => {
+test('robots.txt allows all and names the sitemap (live posture)', async ({ request }) => {
   const res = await request.get('/robots.txt');
   const text = await res.text();
   expect(text).toContain('User-agent: *');
-  expect(text).toContain('Disallow: /');
+  expect(text).toContain('Allow: /');
+  expect(text).toContain('Sitemap: https://caveshen.com/sitemap-index.xml');
 });
 
 test('GET /llms.txt returns 200', async ({ request }) => {
@@ -68,22 +64,17 @@ test('/ has the ruled meta description, character for character', async ({ page 
   expect(desc).toBe('Engineering Manager. Problem solver, coffee enjoyer, 10x human.');
 });
 
-test('/ carries noindex meta (preview posture, ungated build)', async ({ page }) => {
+test('/ carries no robots meta (indexable, live posture)', async ({ page }) => {
   await page.goto('/');
-  const robots = await page.locator('meta[name="robots"]').getAttribute('content');
-  expect(robots).toBe('noindex');
+  await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
 });
 
-test('/ canonical and og:url use the github.io preview host, not the domain', async ({ page }) => {
+test('/ canonical and og:url use the domain', async ({ page }) => {
   await page.goto('/');
   const canonical = await page.locator('link[rel="canonical"]').getAttribute('href');
   const ogUrl = await page.locator('meta[property="og:url"]').getAttribute('content');
-  expect(canonical).toContain('caveshen.github.io');
-  expect(ogUrl).toContain('caveshen.github.io');
-});
-
-test('dist: no Cloudflare _redirects file in the ungated build', async () => {
-  expect(existsSync(path.join(distDir, '_redirects'))).toBe(false);
+  expect(canonical).toBe('https://caveshen.com/');
+  expect(ogUrl).toBe('https://caveshen.com/');
 });
 
 test('/ has og:title meta', async ({ page }) => {

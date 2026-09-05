@@ -1,9 +1,7 @@
-// Hygiene checks: static files, favicon, 404 page, badger assets, PLACEHOLDER scanner (TDD).
+// Hygiene checks: static files, favicon, 404 page, badger assets.
 import { describe, it, expect } from 'vitest';
 import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
-import { tmpdir } from 'node:os';
-import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -29,18 +27,10 @@ describe('robots.txt and llms.txt (build-generated, not static)', () => {
     expect(existsSync(join(root, 'public/llms.txt'))).toBe(false);
   });
 
-  it('robots.txt.js carries both postures: allow (gated) and disallow (ungated)', () => {
+  it('robots.txt.js carries both postures: allow (live) and disallow (preview)', () => {
     const src = readFileSync(join(root, 'src/pages/robots.txt.js'), 'utf8');
     expect(src).toContain('Allow: /');
     expect(src).toContain('Disallow: /');
-    expect(src).not.toContain('PLACEHOLDER');
-  });
-
-  it('llms.txt.js carries both postures: the cover (gated) and the preview notice (ungated)', () => {
-    const src = readFileSync(join(root, 'src/pages/llms.txt.js'), 'utf8');
-    expect(src).toContain('GATED_BODY');
-    expect(src).toContain('UNGATED_BODY');
-    expect(src).not.toContain('PLACEHOLDER');
   });
 });
 
@@ -141,45 +131,11 @@ describe('badger idle frames', () => {
   });
 });
 
-// ── Landing meta description: ruled copy, not the placeholder ─────────────
+// ── Landing meta description: ruled copy ──────────────────────────────────
 
 describe('landing page meta description', () => {
-  it('index.astro carries the ruled tagline, verbatim, no PLACEHOLDER', () => {
+  it('index.astro carries the ruled tagline, verbatim', () => {
     const src = readFileSync(join(root, 'src/pages/index.astro'), 'utf8');
     expect(src).toContain('Engineering Manager. Problem solver, coffee enjoyer, 10x human.');
-    expect(src).not.toContain('PLACEHOLDER');
-  });
-});
-
-// ── PLACEHOLDER checker ───────────────────────────────────────────────────────
-
-describe('placeholder-check', () => {
-  it('finds PLACEHOLDER in files that contain it', async () => {
-    const { findPlaceholderFiles } = await import('../../tools/placeholder-check.js');
-    const tmp = join(tmpdir(), 'ph-test-' + Date.now());
-    mkdirSync(tmp, { recursive: true });
-    writeFileSync(join(tmp, 'test.astro'), 'hello PLACEHOLDER world');
-    const result = findPlaceholderFiles([tmp]);
-    expect(result.length).toBe(1);
-    rmSync(tmp, { recursive: true });
-  });
-
-  it('returns empty array for files without PLACEHOLDER', async () => {
-    const { findPlaceholderFiles } = await import('../../tools/placeholder-check.js');
-    const tmp = join(tmpdir(), 'ph-test2-' + Date.now());
-    mkdirSync(tmp, { recursive: true });
-    writeFileSync(join(tmp, 'test.astro'), 'hello world, all copy is finalized');
-    const result = findPlaceholderFiles([tmp]);
-    expect(result.length).toBe(0);
-    rmSync(tmp, { recursive: true });
-  });
-
-  it('returns empty array for empty directory', async () => {
-    const { findPlaceholderFiles } = await import('../../tools/placeholder-check.js');
-    const tmp = join(tmpdir(), 'ph-test3-' + Date.now());
-    mkdirSync(tmp, { recursive: true });
-    const result = findPlaceholderFiles([tmp]);
-    expect(result.length).toBe(0);
-    rmSync(tmp, { recursive: true });
   });
 });

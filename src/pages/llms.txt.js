@@ -1,11 +1,10 @@
-// Build-generated llms.txt: gated build describes the live cover only;
-// ungated build flags itself as the unindexed preview, not the real site.
-const GATED_BODY = `# Caveshen Rajman
+// Build-generated llms.txt: a plain-text account of the site for agents that read one.
+const BODY = `# Caveshen Rajman
 
-Engineering Manager. Problem solver, coffee enjoyer, 10x human.
+Engineering Manager, Cape Town. Problem solver, coffee enjoyer, 10x human.
 
-This is the live cover for caveshen.com. The full interactive site is
-coming soon.
+The site is built as a videogame: a title screen, a promenade scene with a
+dialogue, and a character sheet at /sheet. The CV is at /cv.pdf.
 
 ## Contact
 
@@ -13,15 +12,6 @@ coming soon.
 - GitHub: https://github.com/caveshen
 `;
 
-const UNGATED_BODY = `# Caveshen Rajman — preview build
-
-This is a development preview, not the indexed production site. Content
-changes without notice. The live site is at https://caveshen.com.
-`;
-
 export function GET() {
-  const gated = import.meta.env.GATED === '1';
-  return new Response(gated ? GATED_BODY : UNGATED_BODY, {
-    headers: { 'Content-Type': 'text/plain' },
-  });
+  return new Response(BODY, { headers: { 'Content-Type': 'text/plain' } });
 }

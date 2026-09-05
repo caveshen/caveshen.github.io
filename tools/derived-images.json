@@ -11,8 +11,8 @@
     "src/components/Scene.astro": "da95bc28eb19a320a5cf7e35ae2425e39852d14f7f9f9a717c2b27537a15f47e",
     "src/components/Stage.astro": "c98f038221ffa2f249b3a75cb461c6d6fb8144ce93c0d055075dce0f0e4d8cd7",
     "src/components/ThemeToggle.astro": "8211e1d188850d918546f6e068b6b2ced191efd9c398f7c6e7964834b6a14f21",
-    "src/components/ThresholdCover.astro": "1f0a48c000f68dc07d0b1a4d55b5f6343d0f06753c1529fbed8e859333a6a1ad",
-    "src/pages/og.astro": "96ff704559c7e504a88e8533f7d64ac6639eed36e119468df31aae0405418411",
+    "src/components/ThresholdCover.astro": "3d7cda9d394faf2962c8194025d7eaa522937bf84c9bf741676acc096b495d2c",
+    "src/pages/og.astro": "f75cc4b65e07cfd415a258f22ed2d515a4c439b1675fd005b37088503b362774",
     "src/styles/tokens.css": "49ca8fb34d7e43272d631b588c6e91d4ea19c5744ea2c7ae5e8a87093f58359a"
   },
   "outputs": {
@@ -22,7 +22,7 @@
     "public/favicon.ico": "311acd92a1a0ab86a5d811732c8244ff728ccfa3cceb1524779bf5cf639f529d",
     "public/grain/grain-0.png": "2f390c057551ea2ea997e500dac95bf6c1e7d143436d8dc14bfdd2c658423c60",
     "public/grain/grain-0.webp": "16086484e0b8d75e8e3699bb4cfb52fdd63223f6432272b50152d1f328253a35",
-    "public/og-image.png": "a0bb61e9f1166f8aec8cb742ee97be701ba5dc4b57acba4319b1d5e7b2b441dd",
+    "public/og-image.png": "f84c5b495083a1490d25f71cb5da10c1eac068dcf4bcc544fdd97d10fe55e4a9",
     "public/sheet-portrait.png": "ad061d6678cb4a5fd1ec22fc0955e3093f18c807bfeb2e1f8bb3e6e75eba3ff9",
     "public/threshold/night-1024.avif": "cebc89753ab40fb8c0f451beafbf2151fa3da84b8b8d220abbd0296965108176",
     "public/threshold/night-1024.jpg": "5003467ca8ca4a18468a7644f7950bf9d7eb9c044947e88937408ab119729c4b",

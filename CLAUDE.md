@@ -1,8 +1,10 @@
 # CLAUDE.md — operational notes for this repository
 
-`docs/PRD.md` is the source of truth: vision, decisions, defects, and the work queue. 
-Read it before starting; update it as part of the work, not after.
-Note: Do not use it for tracking code changes, rather rely on the git history. 
+`docs/PRD.md` is the source of truth: vision, the three views, the standing laws,
+and the work queue. Read it before starting; update it as part of the work, not
+after. It is not a changelog: git history records changes, `docs/HISTORY.md` holds
+the pre-cutover PRD for archaeology, `docs/STYLE_GUIDE.md` the design language,
+`docs/TEST-STRATEGY.md` the test rules.
 
 ## Standing rules
 
@@ -37,9 +39,7 @@ Note: Do not use it for tracking code changes, rather rely on the git history.
   PRD step asks for a ruling to be cited in a comment, this rule wins — reword the step.
 - **Never name a test file after a tracker ID.** Name it for what it tests. IDs get
   renumbered — that happened on 2026-07-27, leaving a file named for one item while a
-  different item had taken that number. Subjects do not move. Current test files follow this:
-  `not-found`, `card-flash`, `banner-plane`, `badger`, `badger-idle`, `approach`,
-  `hygiene`, `interview`, `sheet`, `camera`, `dialogue`, `theme`. Renames should use
+  different item had taken that number. Subjects do not move. Renames use
   `git mv` so blame survives.
 
 ## Commands
@@ -99,3 +99,14 @@ npm run build       # astro build
 - **Script focus ignites plate one on every pointer modality** — `:focus-visible`
   matches after `approach()`'s programmatic focus even for touch. Tests that
   need a plate at true rest read the *second* one (`button-feel.spec.js`).
+- **A class with its own `display` beats the `hidden` attribute.** The UA's
+  `[hidden] { display: none }` loses to any author `display` on the same
+  element. Every control that ships `hidden` carries a
+  `.thing[hidden] { display: none; }` rule beside its own display. Found
+  2026-09-05 by the e2e suite on the approach prompt and the Main menu button.
+- **Slot bodies cannot see `Astro`.** An expression inside a slotted element
+  (`slot="head"`) renders lazily inside the layout, where `Astro` is out of
+  scope. Compute the value in the frontmatter and pass the constant.
+- **Files on disk are CRLF.** `core.autocrlf` is on, so an exact-substring
+  patch script must normalise CRLF to LF before matching and restore CRLF on
+  write, or every match misses.

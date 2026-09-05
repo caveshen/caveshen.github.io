@@ -1,13 +1,20 @@
-# caveshen.github.io
+# caveshen.com
 
-An interactive, adventure-game-styled portfolio and CV for Caveshen Rajman. The site is itself the portfolio piece: a narrative dialogue experience (think SCUMM-era adventure game) built in Astro and deployed to GitHub Pages, demonstrating narrative design, front-end engineering, and visual craft in one artifact.
+Caveshen Rajman's portfolio and CV, built as a videogame's menus: a title
+screen over a night photograph of Cape Town, a vector promenade with a
+character to talk to, and the CV as a character record. Astro, static,
+deployed to Cloudflare Pages. The site is itself the portfolio piece.
 
-See [docs/PRD.md](docs/PRD.md) for the full product spec, design tokens, sitemap, and build phases.
+See `docs/PRD.md` for what the site is and the work in flight,
+`docs/STYLE_GUIDE.md` for the design language, and `docs/TEST-STRATEGY.md`
+for how it is tested.
 
 ## Development
 
 ```sh
 npm install
-npm run dev      # localhost:4321
-npm run build    # static output to dist/
+npm run dev        # localhost:4321
+npm test           # unit suite
+npm run test:e2e   # Playwright matrix
+npm run build      # static output to dist/
 ```

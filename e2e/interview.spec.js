@@ -75,11 +75,11 @@ test('full keyboard dialogue playthrough', async ({ page }) => {
   // line, activation needs a completed line, so this Enter only completes it.
   const speechBeforeComplete = await page.locator('#speech').textContent();
   await page.keyboard.press('Enter');
-  await expect(page.locator('#choices button.system')).toHaveCount(0);
+  await expect(page.locator('.speech-stream')).toHaveCount(0);
   await expect(page.locator('#speech')).toHaveText(speechBeforeComplete ?? '');
 
   await page.keyboard.press('Enter'); // line is complete now — this one activates
-  await expect(page.locator('#choices button.system')).toBeVisible();
+  await expect(page.locator('#speech')).not.toHaveText(speechBeforeComplete ?? '');
 });
 
 test('focused buttons have visible outline', async ({ page }) => {
@@ -387,23 +387,25 @@ for (const vp of [
 
 // Run at all four tested aspects, not just 1920×1080: the fullscreen button relocates to
 // top:4rem under the portrait (max-aspect-ratio:4/5) override, so the corners it can
-// collide with genuinely differ by aspect.
+// collide with genuinely differ by aspect. Main menu is visible here because the
+// fixture pre-dismisses the cover.
 for (const vp of [
   { name: '1920×1080',           width: 1920, height: 1080 },
   { name: 'ultra-wide 2560×1080', width: 2560, height: 1080 },
   { name: 'tall 1200×1400',       width: 1200, height: 1400 },
   { name: 'portrait 390×844',     width: 390,  height: 844  },
 ]) {
-  test(`theme toggle, footer, and fullscreen button do not overlap each other — ${vp.name}`, async ({ page }) => {
+  test(`theme toggle, Main menu, and fullscreen button do not overlap each other — ${vp.name}`, async ({ page }) => {
     await forceFullscreenEnabled(page);
     await page.setViewportSize({ width: vp.width, height: vp.height });
     await page.goto('/');
+    await expect(page.locator('#return-to-menu')).toBeVisible();
     const toggleBox = await page.locator('#toggle').boundingBox();
-    const footBox   = await page.locator('.page-foot').boundingBox();
+    const menuBox   = await page.locator('#return-to-menu').boundingBox();
     const fsBox     = await page.locator('#fullscreen-toggle').boundingBox();
-    expect(rectsIntersect(toggleBox, footBox)).toBe(false);
+    expect(rectsIntersect(toggleBox, menuBox)).toBe(false);
     expect(rectsIntersect(toggleBox, fsBox)).toBe(false);
-    expect(rectsIntersect(footBox, fsBox)).toBe(false);
+    expect(rectsIntersect(menuBox, fsBox)).toBe(false);
   });
 }
 

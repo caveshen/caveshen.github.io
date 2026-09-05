@@ -54,7 +54,7 @@ test('click-through: supported engine sets arrived-by-morph and suppresses portr
         actualTy: m.m42,
         expectedTy: -halfH,
       },
-      menuAnimName: getComputedStyle(document.querySelector('.nameplate-inner')).animationName,
+      menuAnimName: getComputedStyle(document.querySelector('.character')).animationName,
       xpAnim: getComputedStyle(document.querySelector('.xp-fill')).animationName,
     };
   });
@@ -85,13 +85,13 @@ test('click-through: portrait geometry is correct on arrival (supported engine)'
   await assertPortraitGeometry(page, portrait);
 });
 
-// Only portrait slide-in is suppressed on morph arrival; nameplate, columns, and XP bar keep their animations.
-test('click-through: nameplate, columns, and XP bar keep their animation names on morph arrival', async ({ page }) => {
+// Only portrait slide-in is suppressed on morph arrival; the panels and XP bar keep their animations.
+test('click-through: panels and XP bar keep their animation names on morph arrival', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await navigateToSheet(page);
   if (!(await arrivedByMorph(page))) return;
 
-  for (const sel of ['.nameplate-inner', '.abilities-col', '.middle-col', '.right-col', '.xp-fill']) {
+  for (const sel of ['.character', '.abilities', '.quests', '.codex', '.xp-fill']) {
     const animName = await page.locator(sel).evaluate((el) => getComputedStyle(el).animationName);
     expect(animName, `${sel} animation name`).not.toBe('none');
   }
@@ -126,7 +126,7 @@ test('reduced motion: click-through is instant with no arrived-by-morph and fina
   expect(hasMarker).toBe(false);
 
   // Reduced-motion final states: panels land immediately with no animation.
-  for (const sel of ['.nameplate-inner', '.abilities-col', '.middle-col', '.right-col']) {
+  for (const sel of ['.character', '.abilities', '.quests', '.codex']) {
     const style = await page.locator(sel).evaluate((el) => {
       const cs = getComputedStyle(el);
       return { name: cs.animationName, opacity: cs.opacity, transform: cs.transform };

@@ -1,10 +1,6 @@
 // The approach — e2e tests
 import { test, expect } from './fixtures.js';
-import {
-  visibleRect, seekFrameTransition, expectRectClose,
-  settledOpacity, approachPrompt,
-  armFrameFreeze, sampleFrameTransition, waitFrameSettled,
-} from './geom.js';
+import { visibleRect, settledOpacity, approachPrompt } from './geom.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -423,101 +419,62 @@ test('reduced motion: card fade is disabled, card is immediately full opacity', 
   await expect(page.locator('.card')).toHaveCSS('opacity', '1');
 });
 
-// The three tests below sample the etched frame's --frame/--frame-faint
-// custom-property transitions. A transition already running when you seek
-// and pause it can have that seek land one frame late on a slow machine —
-// harmless for a same/different comparison, but enough to break an exact
-// near-zero threshold. armFrameFreeze() sidesteps this by freezing the
-// transition the instant it's created (the freeze-at-birth idiom
-// banner-plane.spec.js uses), before it has run a single frame, so every
-// later seek lands on a stationary animation. The third test still settles
-// in real time rather than via WAAPI pause — some engines don't reliably
-// repaint a background-image driven by a paused custom-property transition —
-// but it proves the frame's own transition finished directly, instead of
-// inferring that from the unrelated opacity transition finishing.
-test('approaching draws the etched frame in over the entrance window', async ({ page }) => {
-  await armFrameFreeze(page);
-  await approachPrompt(page);
-  const start = await sampleFrameTransition(page, 0);
-  const mid   = await sampleFrameTransition(page, 0.5);
-  const end   = await sampleFrameTransition(page, 1);
-  expect(start.outlineAlpha).toBeLessThan(0.01); // armed transparent by .card-entering
-  expect(mid.outlineColor).not.toBe(start.outlineColor);
-  expect(mid.outlineColor).not.toBe(end.outlineColor);
+// ── Quest marker, area title, E hotkey ──────────────────────────────────
+// The HUD's "someone to talk to" sign and the region name both leave once
+// the dialogue is open; E is the same verb as the prompt.
+
+// Only the laid-out scene variant's marker counts (the other two sit in
+// display:none copies) — read computed display, never a collapsed rect
+// (WebKit keeps last-laid-out boxes for SVG inside display:none).
+const markerStyle = (page) => page.evaluate(() => {
+  const scene = [...document.querySelectorAll('.scene')].find((e) => e.getBoundingClientRect().width > 0);
+  const marker = scene.querySelector('.quest-marker');
+  return {
+    display: getComputedStyle(marker).display,
+    bob: getComputedStyle(marker.querySelector('.quest-marker-bob')).animationName,
+  };
 });
 
-test('the frame also draws in under day theme, not just night', async ({ page }) => {
-  await page.locator('#toggle').click();
-  await armFrameFreeze(page);
-  await approachPrompt(page);
-  const start = await sampleFrameTransition(page, 0);
-  expect(start.outlineAlpha).toBeLessThan(0.01);
-});
-
-test('resting frame colour is identical whether the entrance animates or not', async ({ page }) => {
-  // Real-time settle, not WAAPI pause/seek — some engines don't reliably
-  // repaint a background-image driven by a paused custom-property transition.
-  // Waits on the frame's own transitionend, not on opacity finishing — opacity
-  // finishing proves only the fade is done, not the colour transition.
-  const settled = waitFrameSettled(page);
-  const readCard = () => page.locator('.card').evaluate((el) => {
-    const cs = getComputedStyle(el);
-    return { outlineColor: cs.outlineColor, backgroundImage: cs.backgroundImage };
+for (const route of ROUTES) {
+  test(`the quest marker bobs over the character at rest and hides on approach — ${route}`, async ({ page }) => {
+    await page.goto(route);
+    const rest = await markerStyle(page);
+    expect(rest.display).not.toBe('none');
+    expect(rest.bob).toBe('marker-bob');
+    await approachPrompt(page);
+    expect((await markerStyle(page)).display).toBe('none');
+    await page.keyboard.press('Escape');
+    await expect.poll(async () => (await markerStyle(page)).display).not.toBe('none');
   });
-  await approachPrompt(page);
-  await settled;
-  const animated = await readCard();
+}
 
+test('reduced motion: the quest marker stands still', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.reload();
-  // The cursor is still parked over the pre-reload .js-character-hit's screen
-  // position. The reload's fresh layout puts an element back at that exact
-  // spot, so without a real move first, the browser sees no hover transition
-  // to fire a fresh mouseenter for approachPrompt()'s hover() below.
-  await page.mouse.move(0, 0);
-  await approachPrompt(page);
-  const reduced = await readCard();
-
-  expect(animated.outlineColor).toBe(reduced.outlineColor);
-  expect(animated.backgroundImage).toBe(reduced.backgroundImage);
+  expect((await markerStyle(page)).bob).toBe('none');
 });
 
-test('reduced motion: the frame has no animation, its resting colour applies immediately', async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.reload();
+test('the area title plays once on arrival and is gone once the dialogue opens', async ({ page }) => {
+  const title = page.locator('#area-title');
+  await expect(title).toHaveClass(/play/);
+  const anim = await title.evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return { name: cs.animationName, count: cs.animationIterationCount };
+  });
+  expect(anim.name).toBe('area-reveal');
+  expect(anim.count).toBe('1');
   await approachPrompt(page);
-  const anims = await page.locator('.card').evaluate((el) =>
-    el.getAnimations().filter((a) =>
-      a.transitionProperty === '--frame' || a.transitionProperty === '--frame-faint'
-    ).length
-  );
-  expect(anims).toBe(0);
-  const outlineColor = await page.locator('.card').evaluate((el) => getComputedStyle(el).outlineColor);
-  expect(outlineColor).not.toBe('rgba(0, 0, 0, 0)');
+  expect(await title.evaluate((el) => getComputedStyle(el).display)).toBe('none');
 });
 
-test('the frame reveal changes colour only — outline/bracket geometry and clickable boxes hold still', async ({ page }) => {
-  await approachPrompt(page);
-  const start = await seekFrameTransition(page, 0);
-  const end   = await seekFrameTransition(page, 1);
-  expect(end.outlineColor).not.toBe(start.outlineColor); // sanity: the frame did draw in
-  expect(end.outlineWidth).toBe(start.outlineWidth);
-  expect(end.outlineOffset).toBe(start.outlineOffset);
-  expect(end.backgroundSize).toBe(start.backgroundSize);
-  expect(end.backgroundPosition).toBe(start.backgroundPosition);
-  expectRectClose(end.cardRect, start.cardRect);
-  expectRectClose(end.btnRect, start.btnRect);
-});
-
-test('the corner brackets also draw in, not just the hairline', async ({ page }) => {
-  // Real-time settle, not WAAPI pause/seek — some engines don't reliably
-  // repaint a background-image driven by a paused custom-property transition.
-  const before = await page.locator('.card').evaluate((el) => getComputedStyle(el).backgroundImage);
-  await approachPrompt(page);
-  await expect(page.locator('.card')).toHaveCSS('opacity', '1'); // settled: the frame shares this window
-  const after = await page.locator('.card').evaluate((el) => getComputedStyle(el).backgroundImage);
-  expect(after).not.toBe(before);
-});
+for (const route of ROUTES) {
+  test(`E approaches from the keyboard, the same as the prompt — ${route}`, async ({ page }) => {
+    await page.goto(route);
+    await page.keyboard.press('e');
+    await expect(page.locator('.card')).toBeVisible();
+    await expect(page.locator('#choices button').first()).toBeFocused();
+  });
+}
 
 for (const route of ROUTES) {
   test(`exiting mid-approach resets the fade so a re-approach fades in cleanly — ${route}`, async ({ page }) => {

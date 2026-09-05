@@ -17,7 +17,7 @@ async function settled(locator) {
 }
 
 for (const width of [1920, 2560]) {
-  test(`portrait is visible, overlaps neither the nameplate nor the sheet grid, is vertically centred on the grid, and gap-matches the grid gap at ${width}`, async ({ page }) => {
+  test(`portrait is visible, clear of the record, vertically centred on it, one rem to its left at ${width}`, async ({ page }) => {
     await page.setViewportSize({ width, height: 1080 });
     await page.goto('/sheet');
     const portrait = page.locator('.sheet-portrait');
@@ -52,17 +52,17 @@ test('menu-open choreography: animation delays are ordered', async ({ page }) =>
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto('/sheet');
 
-  const nameplate = await timing(page.locator('.nameplate-inner'));
-  const abilities = await timing(page.locator('.abilities-col'));
-  const middle    = await timing(page.locator('.middle-col'));
-  const right     = await timing(page.locator('.right-col'));
+  const character = await timing(page.locator('.character'));
+  const abilities = await timing(page.locator('.abilities'));
+  const quests    = await timing(page.locator('.quests'));
+  const codex     = await timing(page.locator('.codex'));
   const portrait  = await timing(page.locator('.sheet-portrait'));
   const xpFill    = await timing(page.locator('.xp-fill'));
 
-  expect(nameplate).toBeLessThanOrEqual(abilities);
-  expect(abilities).toBeLessThanOrEqual(middle);
-  expect(middle).toBeLessThanOrEqual(right);
-  expect(right).toBeLessThanOrEqual(portrait);
+  expect(character).toBeLessThanOrEqual(abilities);
+  expect(abilities).toBeLessThanOrEqual(quests);
+  expect(quests).toBeLessThanOrEqual(codex);
+  expect(codex).toBeLessThanOrEqual(portrait);
   expect(portrait).toBeLessThanOrEqual(xpFill);
 });
 
@@ -84,7 +84,7 @@ test('prefers-reduced-motion: panels land in final state immediately, no motion'
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto('/sheet');
 
-  for (const sel of ['.nameplate-inner', '.abilities-col', '.middle-col', '.right-col']) {
+  for (const sel of ['.character', '.abilities', '.quests', '.codex']) {
     const el = page.locator(sel);
     const style = await el.evaluate((e) => {
       const cs = getComputedStyle(e);
@@ -118,10 +118,10 @@ test('prefers-reduced-motion: portrait has no animation but keeps its vertical-c
   const portrait = page.locator('.sheet-portrait');
   await assertPortraitNoAnim(portrait);
 
-  // Confirm it's still actually centred on .sheet-grid under reduced motion.
+  // Confirm it's still actually centred on the record under reduced motion.
   const portraitBox = await portrait.boundingBox();
-  const gridBox = await page.locator('.sheet-grid').boundingBox();
+  const recordBox = await page.locator('.record').boundingBox();
   const portraitCenterY = portraitBox.y + portraitBox.height / 2;
-  const gridCenterY = gridBox.y + gridBox.height / 2;
-  expect(Math.abs(portraitCenterY - gridCenterY)).toBeLessThan(2);
+  const recordCenterY = recordBox.y + recordBox.height / 2;
+  expect(Math.abs(portraitCenterY - recordCenterY)).toBeLessThan(2);
 });

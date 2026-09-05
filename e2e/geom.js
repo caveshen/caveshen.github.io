@@ -54,22 +54,20 @@ export function rectContains(outer, inner) {
          inner.y + inner.height <= outer.y + outer.height;
 }
 
-// Asserts the portrait's geometry against the nameplate and sheet-grid:
-// no overlap, vertically centred on the grid, and gap matches the grid's column-gap.
-// Read from the DOM, not hardcoded pixel twins — holds if --portrait or grid gap ever move.
+// Asserts the companion portrait's geometry against the record: no overlap,
+// vertically centred on it, and one rem of gap to its left edge
+// (sheet.astro's `right: calc(100% + 1rem)`). Read from the DOM, not
+// hardcoded pixel twins — holds if --portrait or the record width ever move.
 export async function assertPortraitGeometry(page, portrait) {
-  const portraitBox  = await portrait.boundingBox();
-  const nameplateBox = await page.locator('.nameplate').boundingBox();
-  const grid         = page.locator('.sheet-grid');
-  const gridBox      = await grid.boundingBox();
-  const gridGap      = await grid.evaluate((el) => parseFloat(getComputedStyle(el).columnGap));
-  expect(rectsIntersect(portraitBox, nameplateBox)).toBe(false);
-  expect(rectsIntersect(portraitBox, gridBox)).toBe(false);
+  const portraitBox = await portrait.boundingBox();
+  const recordBox   = await page.locator('.record').boundingBox();
+  const rem = await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).fontSize));
+  expect(rectsIntersect(portraitBox, recordBox)).toBe(false);
   const portraitCenterY = portraitBox.y + portraitBox.height / 2;
-  const gridCenterY     = gridBox.y + gridBox.height / 2;
-  expect(Math.abs(portraitCenterY - gridCenterY)).toBeLessThan(2);
-  const gap = gridBox.x - (portraitBox.x + portraitBox.width);
-  expect(Math.abs(gap - gridGap)).toBeLessThan(2);
+  const recordCenterY   = recordBox.y + recordBox.height / 2;
+  expect(Math.abs(portraitCenterY - recordCenterY)).toBeLessThan(2);
+  const gap = recordBox.x - (portraitBox.x + portraitBox.width);
+  expect(Math.abs(gap - rem)).toBeLessThan(2);
 }
 
 // Explicit absence check for the identity markup the glass plaque replaced
@@ -80,118 +78,13 @@ export async function assertNoIdentityMarkup(page) {
   await expect(page.locator('.name')).toHaveCount(0);
 }
 
-// Asserts the plaque's glass surface (translucent, blurred) and etched inner frame
-// (hairline outline + eight corner-bracket gradient layers) render. Returns the
-// resolved background-color so a caller can prove night and day differ.
-export async function assertPlaqueGlass(page) {
-  const style = await page.locator('.card').evaluate((el) => {
-    const cs = getComputedStyle(el);
-    return {
-      backdropFilter:  cs.backdropFilter || cs.webkitBackdropFilter || '',
-      backgroundColor: cs.backgroundColor,
-      outlineStyle:    cs.outlineStyle,
-      outlineOffset:   cs.outlineOffset,
-      backgroundImage: cs.backgroundImage,
-    };
-  });
-  expect(style.backdropFilter).toContain('blur');
-  expect(style.outlineStyle).not.toBe('none');
-  expect(parseFloat(style.outlineOffset)).toBeLessThan(0); // negative-offset hairline
-  // Four corner brackets, two gradient arms each.
-  expect((style.backgroundImage.match(/linear-gradient/g) ?? []).length).toBe(8);
-  const alpha = parseFloat(style.backgroundColor.match(/,\s*([\d.]+)\)$/)?.[1] ?? '1');
-  expect(alpha).toBeLessThan(1); // translucent — the scene must show through
-  return style.backgroundColor;
-}
-
-// Seeks the card's etched-frame custom-property transitions (--frame/--frame-faint,
-// Stage.astro) to a point in [0,1] of their active duration (0 = just-armed start
-// value, 1 = settled), pausing every .card animation there — opacity/transform
-// freeze at a fixed point too, so a diff between two samples is attributable to
-// the frame's own colour change alone. WAAPI currentTime seeks a CSS transition
-// directly, so real time never races. waitForFunction guards the first call
-// against reading before the transition has actually started.
-export async function seekFrameTransition(page, fraction) {
-  await page.waitForFunction(() =>
-    document.querySelector('.card').getAnimations()
-      .some((a) => a.transitionProperty === '--frame'));
-  return page.evaluate((fraction) => {
-    const card = document.querySelector('.card');
-    card.getAnimations().forEach((a) => {
-      if (a.transitionProperty === '--frame' || a.transitionProperty === '--frame-faint') {
-        const timing = a.effect.getComputedTiming();
-        a.currentTime = (timing.delay ?? 0) + (timing.duration ?? 0) * fraction;
-      }
-      a.pause();
-    });
-    const cs   = getComputedStyle(card);
-    const rect = (r) => r && { x: r.x, y: r.y, width: r.width, height: r.height };
-    const btn  = card.querySelector('.choices button');
-    // Engines disagree on the RGB channels a colour interpolation reports for
-    // "transparent" (some report 0,0,0, some premultiply toward the other
-    // endpoint's RGB) — alpha alone is the portable "not drawn yet" signal.
-    const outlineAlpha = parseFloat(cs.outlineColor.match(/,\s*([\d.]+)\)$/)?.[1] ?? '1');
-    return {
-      outlineColor:      cs.outlineColor,
-      outlineAlpha,
-      backgroundImage:   cs.backgroundImage,
-      outlineWidth:      cs.outlineWidth,
-      outlineOffset:     cs.outlineOffset,
-      backgroundSize:    cs.backgroundSize,
-      backgroundPosition: cs.backgroundPosition,
-      cardRect: rect(card.getBoundingClientRect()),
-      btnRect:  btn && rect(btn.getBoundingClientRect()),
-    };
-  }, fraction);
-}
-
-// Arms a listener that freezes the card's --frame/--frame-faint transitions
-// the instant they're created — the freeze-at-birth idiom banner-plane.spec.js
-// uses for its crash animations. Call this BEFORE the action that starts the
-// transition (approachPrompt()). A transition that's already been running in
-// real time can have a later seek-and-pause land one frame late on a slow
-// machine — fine for a same/different comparison, not for an exact near-zero
-// threshold. One frozen at birth has never run a frame, so
-// sampleFrameTransition() below always seeks a stationary animation.
-//
-// Stashes the caught Animation objects on window.__frameAnims rather than
-// leaving sampleFrameTransition() re-query getAnimations() later — seeking a
-// paused CSS-transition Animation to exactly its effect end (fraction 1)
-// makes Chromium drop it from getAnimations() even though it's still paused,
-// so a later re-query can find nothing and hang forever. A direct reference
-// keeps working after that drop.
-export async function armFrameFreeze(page) {
-  await page.evaluate(() => {
-    window.__frameAnims = [];
-    document.querySelector('.card').addEventListener('transitionrun', (e) => {
-      e.target.getAnimations().forEach((a) => {
-        if (a.transitionProperty === '--frame' || a.transitionProperty === '--frame-faint') {
-          a.currentTime = 0;
-          a.pause();
-          window.__frameAnims.push(a);
-        }
-      });
-    });
-  });
-}
-
-// Reads the card's frame outline colour at a fraction of the transition's
-// active duration. Requires armFrameFreeze() to have run first, so the
-// transition is already paused and this only ever seeks a stationary animation.
-export async function sampleFrameTransition(page, fraction) {
-  await page.waitForFunction(() => window.__frameAnims?.length > 0);
-  return page.evaluate((fraction) => {
-    const card = document.querySelector('.card');
-    window.__frameAnims.forEach((a) => {
-      const timing = a.effect.getComputedTiming();
-      a.currentTime = (timing.delay ?? 0) + (timing.duration ?? 0) * fraction;
-    });
-    const cs = getComputedStyle(card);
-    // Engines disagree on the RGB channels a colour interpolation reports for
-    // "transparent" — alpha alone is the portable "not drawn yet" signal.
-    const outlineAlpha = parseFloat(cs.outlineColor.match(/,\s*([\d.]+)\)$/)?.[1] ?? '1');
-    return { outlineColor: cs.outlineColor, outlineAlpha };
-  }, fraction);
+// The dialogue's ground: a soft dark radial gradient behind the subtitle and
+// the wheel, no plaque. Returns the background-image so a caller can prove
+// the HUD holds the night register in both themes.
+export async function dialogueGround(page) {
+  const bg = await page.locator('.card').evaluate((el) => getComputedStyle(el).backgroundImage);
+  expect(bg).toContain('radial-gradient');
+  return bg;
 }
 
 // Frozen-state sampling: pauses an element's own animation(s) at the settled
@@ -216,32 +109,6 @@ export async function settledOpacity(locator) {
 export async function approachPrompt(page) {
   await page.locator('.js-character-hit:visible').first().hover();
   await page.locator('#approach-prompt').click();
-}
-
-// Compares two {x,y,width,height} rects with a small px tolerance — real
-// engines can settle sub-pixel layout (dynamic-viewport-unit rounding, a
-// focus-triggered scroll) between two samples with no size-affecting CSS
-// change of their own between them.
-export function expectRectClose(actual, expected, eps = 3) {
-  for (const key of ['x', 'y', 'width', 'height']) {
-    expect(Math.abs(actual[key] - expected[key]), `${key}: ${actual[key]} vs ${expected[key]}`)
-      .toBeLessThan(eps);
-  }
-}
-
-// Resolves once the card's --frame and --frame-faint colour transitions have
-// both genuinely finished (a real transitionend for each), instead of
-// inferring it from the unrelated opacity transition finishing. Same
-// register-before-trigger idiom as waitBgSettle below — call this BEFORE
-// approachPrompt() so the listener is attached before the transition starts.
-export async function waitFrameSettled(page) {
-  return page.evaluate(() => new Promise((resolve) => {
-    const remaining = new Set(['--frame', '--frame-faint']);
-    document.querySelector('.card').addEventListener('transitionend', (e) => {
-      remaining.delete(e.propertyName);
-      if (remaining.size === 0) resolve();
-    });
-  }));
 }
 
 // Resolves when the .bg-layer transform transition settles after a mouse move,

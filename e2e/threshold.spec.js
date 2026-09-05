@@ -265,3 +265,23 @@ test('reduced motion: Return to menu restores the cover instantly, and a further
   expect(fillOpacity).toBe('1');
   await ctx.close();
 });
+
+// ── The menu's other two entries, and the hand-off to the area title ────────
+
+test('Download CV and LinkedIn are real links, with hotkeys 3 and 4 on the menu', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('#cover-cv')).toHaveAttribute('href', '/cv.pdf');
+  await expect(page.locator('#cover-linkedin')).toHaveAttribute('href', 'https://www.linkedin.com/in/caveshen');
+  await expect(page.locator('.cover-menu kbd')).toHaveText(['1', '2', '3', '4']);
+});
+
+test('New Game hands over to the area title, delayed behind the bloom', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#cover-new-game').click();
+  const title = page.locator('#area-title');
+  await expect(title).toHaveClass(/play/);
+  await expect(title).toHaveClass(/from-cover/);
+  // Frozen: the declared delay, not a live frame.
+  const delay = await title.evaluate((el) => parseFloat(getComputedStyle(el).animationDelay));
+  expect(delay).toBeGreaterThan(0);
+});

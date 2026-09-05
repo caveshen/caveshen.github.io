@@ -1,5 +1,6 @@
-// button-feel.spec.js — d37 §5: the dialogue plate idiom (rest state, ignition,
-// ring, numeral) and its reduced-motion gating, plus the theme-toggle flip.
+// button-feel.spec.js — the HUD option idiom on the wheel: numbered caps at
+// rest, gold ignition on hover, a holo ring only for keyboard arrivals; plus
+// the theme-toggle flip and its reduced-motion gate.
 import { test, expect } from './fixtures.js';
 import { approachPrompt } from './geom.js';
 
@@ -7,107 +8,74 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/');
 });
 
-async function approach(page) {
-  await approachPrompt(page);
-}
+const GOLD_BRIGHT = 'rgb(255, 196, 107)';
+const HOLO = 'rgb(111, 179, 232)';
 
-// getComputedStyle on an element's ::before/::after pseudo — used throughout
-// to read generated content without depending on it being real DOM. The
-// contract: the numerals and ✦ are pure CSS content with alt-text form ''
-// (see Stage.astro's ::after), so they never join a button's accessible NAME;
-// a screen reader may still announce them while reading the choices list.
-async function pseudoStyle(locator, pseudo, prop) {
-  return locator.evaluate((el, [p, name]) => getComputedStyle(el, p)[name], [pseudo, prop]);
-}
-
-// The ignition is a 150ms transition; a read straight after hover/focus races
-// it mid-flight (CI caught a ✦ at opacity 0.924). Poll to the settled state.
-async function plateState(choice) {
-  return choice.evaluate((e) => {
+// Settled ignition state, polled: the transition is a short micro-timing and
+// a read straight after hover races it mid-flight.
+async function ignition(locator) {
+  return locator.evaluate((e) => {
     const cs = getComputedStyle(e);
-    const before = getComputedStyle(e, '::before');
-    const after = getComputedStyle(e, '::after');
-    return {
-      bg: cs.backgroundColor,
-      ruleWidth: before.width,
-      ruleColor: before.backgroundColor,
-      ruleOpacity: before.opacity,
-      starOpacity: after.opacity,
-    };
+    return { color: cs.color, border: cs.borderTopColor };
   });
 }
 
-const IGNITED = {
-  bg: 'rgba(217, 169, 78, 0.1)',
-  ruleWidth: '3px',
-  ruleColor: 'rgb(255, 196, 107)',
-  ruleOpacity: '1',
-  starOpacity: '1',
-};
-
-// chromium's getComputedStyle returns the unresolved counter() for ::before
-// content; engines that resolve it give the numeral itself. Both are the
-// contract — the mechanism is pinned in src/tests/plates.test.js too.
-function expectRoman(content, count) {
-  const resolved = `"${'I'.repeat(count)}"`;
-  return content.includes('upper-roman') || content === resolved;
-}
-
-test('plates are quiet at rest: flat fill, dim rule, no star', async ({ page }) => {
-  await approach(page);
-  // Plate TWO: the first plate is script-focused after approach(), and that
-  // focus ignites it by design (the ticket-3 spike finding) — on every
-  // pointer modality. Rest is read where neither hover nor focus lives.
-  const choice = page.locator('.choices button').nth(1);
-  expect(await choice.evaluate((e) => getComputedStyle(e).backgroundColor))
-    .toBe('rgba(236, 228, 212, 0.04)');
-  expect(await pseudoStyle(choice, '::before', 'width')).toBe('2px');
-  expect(await pseudoStyle(choice, '::before', 'backgroundColor')).toBe('rgb(217, 169, 78)');
-  expect(await pseudoStyle(choice, '::before', 'opacity')).toBe('0.35');
-  expect(await pseudoStyle(choice, '::after', 'opacity')).toBe('0');
+test('options are numbered from 1 in a holo cap, matching the digit hotkeys', async ({ page }) => {
+  await approachPrompt(page);
+  const buttons = page.locator('.choices button');
+  const n = await buttons.count();
+  expect(n).toBeGreaterThanOrEqual(2);
+  // Chromium reports the unresolved counter(); other engines the digit itself.
+  const cap = (i) => buttons.nth(i).evaluate((e) => {
+    const before = getComputedStyle(e, '::before');
+    return { content: before.content, color: before.color };
+  });
+  const first = await cap(0);
+  expect(first.content === '"1"' || first.content.includes('counter(plate)')).toBe(true);
+  expect(first.color).toBe(HOLO);
+  const second = await cap(1);
+  expect(second.content === '"2"' || second.content.includes('counter(plate)')).toBe(true);
 });
 
-test('plate ignites on hover: warm wash, bright wide rule, star fades in', async ({ page }) => {
+test('hover ignites an option: text and border go gold-bright', async ({ page }) => {
   const pointerFine = await page.evaluate(() => matchMedia('(pointer: fine)').matches);
   test.skip(!pointerFine, 'hover is a desktop-pointer affordance');
-  await approach(page);
-  const choice = page.locator('.choices button').first();
+  await approachPrompt(page);
+  // Option TWO: the first is script-focused after approach; rest is read where
+  // neither hover nor focus lives.
+  const choice = page.locator('.choices button').nth(1);
+  const rest = await ignition(choice);
+  expect(rest.color).not.toBe(GOLD_BRIGHT);
   await choice.hover();
-  await expect.poll(() => plateState(choice)).toEqual(IGNITED);
+  await expect.poll(() => ignition(choice)).toEqual({ color: GOLD_BRIGHT, border: GOLD_BRIGHT });
 });
 
-test('keyboard focus ignites the plate and rings gold-bright via kb-focus', async ({ page }) => {
-  // A real Tab+Enter keyboard activation, not approach()'s mouse click —
-  // dialogue.js's programmatic choice.focus() after a mouse click does not
-  // itself satisfy :focus-visible (browsers key it off the input modality).
+test('a mouse arrival shows no focus ring on the first option', async ({ page }) => {
+  await approachPrompt(page);
+  const choice = page.locator('.choices button').first();
+  await expect(choice).toBeFocused();
+  expect(await choice.evaluate((e) => getComputedStyle(e).outlineStyle)).toBe('none');
+});
+
+test('keyboard arrival lights the first option gold and rings it holo', async ({ page }) => {
+  // A real Tab+Enter activation, not approachPrompt()'s mouse click: the ring
+  // is gated on keyboard input (stage.js's kb-focus class).
   await page.keyboard.press('Tab'); // theme toggle
   await page.keyboard.press('Tab'); // approach prompt
   await page.keyboard.press('Enter');
   const choice = page.locator('.choices button').first();
   await expect(choice).toBeFocused();
-  await expect.poll(() => pseudoStyle(choice, '::after', 'opacity')).toBe('1');
-  const { color, width, offset } = await choice.evaluate((e) => {
+  await expect.poll(() => ignition(choice)).toEqual({ color: GOLD_BRIGHT, border: GOLD_BRIGHT });
+  const ring = await choice.evaluate((e) => {
     const cs = getComputedStyle(e);
     return { color: cs.outlineColor, width: cs.outlineWidth, offset: cs.outlineOffset };
   });
-  expect(color).toBe('rgb(255, 196, 107)');
-  expect(width).toBe('2px');
-  expect(offset).toBe('2px');
+  expect(ring).toEqual({ color: HOLO, width: '1px', offset: '3px' });
 });
 
-test('each option leads with a mono roman numeral index', async ({ page }) => {
-  await approach(page);
-  const lis = page.locator('.choices li');
-  expect(expectRoman(await pseudoStyle(lis.nth(0), '::before', 'content'), 1)).toBe(true);
-  expect(expectRoman(await pseudoStyle(lis.nth(1), '::before', 'content'), 2)).toBe(true);
-  const family = await pseudoStyle(lis.nth(0), '::before', 'fontFamily');
-  expect(family.toLowerCase()).toContain('cascadia');
-});
-
-// The plate's own box is fixed by the card (display:block; width:100%) and
-// nothing in the ignition moves layout — the rule widens at the plate edge
-// and the star fades into reserved right padding. Measure where the label
-// TEXT starts, via a Range over its text node, to prove it.
+// The option's box is fixed by its spoke and nothing in the ignition moves
+// layout. Measure where the label TEXT starts, via a Range over its text
+// node, to prove it.
 async function labelTextX(locator) {
   return locator.evaluate((el) => {
     const range = document.createRange();
@@ -116,54 +84,29 @@ async function labelTextX(locator) {
   });
 }
 
-test('ignition does not shift the label — both glyph slots are reserved padding', async ({ page }) => {
+test('ignition does not shift the label', async ({ page }) => {
   const pointerFine = await page.evaluate(() => matchMedia('(pointer: fine)').matches);
   test.skip(!pointerFine, 'hover is a desktop-pointer affordance');
-  await approach(page);
-  // Let the card's entry transform settle — beforeX must be read after the
-  // card has centred itself or the position is not the final layout position.
+  await approachPrompt(page);
   await expect(page.locator('.card')).toHaveCSS('opacity', '1', { timeout: 5000 });
-  await expect(page.locator('.card')).not.toHaveClass(/is-streaming/, { timeout: 5000 });
-  const choice = page.locator('.choices button').first();
+  const choice = page.locator('.choices button').nth(1);
   const beforeX = await labelTextX(choice);
   await choice.hover();
   const afterX = await labelTextX(choice);
   expect(afterX).toBeCloseTo(beforeX, 0);
 });
 
-test('system options and End dialogue are ordinary plates — one style, same ignition', async ({ page }) => {
-  await approach(page);
-  // root's own choices already include a system option (the /sheet skip) —
-  // no need to navigate anywhere.
-  await expect(page.locator('.card')).not.toHaveClass(/is-streaming/, { timeout: 5000 });
+test('the system option and Leave share the same ignition', async ({ page }) => {
+  const pointerFine = await page.evaluate(() => matchMedia('(pointer: fine)').matches);
+  test.skip(!pointerFine, 'hover is a desktop-pointer affordance');
+  await approachPrompt(page);
   for (const selector of ['.choices button.system', '#end-dialogue']) {
     const el = page.locator(selector).first();
     await expect(el).toBeVisible();
-    expect(await el.evaluate((e) => getComputedStyle(e).borderTopStyle)).toBe('none');
-    expect(await el.evaluate((e) => getComputedStyle(e).backgroundColor))
-      .toBe('rgba(236, 228, 212, 0.04)');
     await el.hover();
-    await expect.poll(() => plateState(el)).toEqual(IGNITED);
-    // Both buttons navigate/exit on a real click — release away from the
-    // element so mouseup doesn't complete one and skip the loop's second half.
+    await expect.poll(async () => (await ignition(el)).color).toBe(GOLD_BRIGHT);
+    // Both navigate or exit on a real click — release away from the element.
     await page.mouse.move(0, 0);
-  }
-});
-
-// #approach-prompt is deliberately absent here — the approach-reveal ticket
-// removed its box/border (floating shadowed text, not a boxed control); the
-// dedicated no-box/no-border assertions live in approach.spec.js instead.
-test('plates are sharp-cornered and borderless; the toggle keeps its 2px box', async ({ page }) => {
-  await approach(page);
-  const targets = ['.choices button', '#toggle'];
-  for (const sel of targets) {
-    const el = page.locator(sel).first();
-    const { radius, width } = await el.evaluate((e) => {
-      const cs = getComputedStyle(e);
-      return { radius: cs.borderTopLeftRadius, width: cs.borderTopWidth };
-    });
-    expect(radius, sel).toBe('4px');
-    expect(width, sel).toBe(sel === '.choices button' ? '0px' : '2px');
   }
 });
 
